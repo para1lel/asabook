@@ -1,0 +1,19 @@
+:root,
+:root:where(:lang(zh)),
+:root:where(:lang(zh-CN)) {
+  --vp-font-family-base: "LXGW WenKai", sans-serif;
+  --vp-font-family-mono: "LXGW WenKai", monospace;
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select,
+code,
+kbd,
+samp,
+pre {
+  font-family: "LXGW WenKai", sans-serif !important;
+}
