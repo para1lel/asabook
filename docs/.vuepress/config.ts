@@ -44,6 +44,10 @@ export default defineUserConfig({
       message: '基于 VuePress 与 Plume 主题构建',
       copyright: 'Copyright © 2026 ASa Book',
     },
+    lastUpdated: false,
+    changelog: true,
+    contributors: false,
+    plugins: { git: true },
   }),
 
   bundler: viteBundler(),

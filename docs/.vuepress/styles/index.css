@@ -27,7 +27,3 @@ pre {
 .vp-doc a[target="_blank"]::after {
   display: none;
 }
-
-.vp-doc-footer {
-  margin-top: 0;
-}
