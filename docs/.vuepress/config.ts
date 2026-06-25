@@ -9,8 +9,8 @@ export default defineUserConfig({
 
   theme: plumeTheme({
     navbar: [
-      { text: 'vndb', link: '/vndb/', activeMatch: '^/vndb/' },
-      { text: 'csdiy', link: '/csdiy/', activeMatch: '^/csdiy/' },
+      { text: 'vndb', link: '/vndb/intro/', activeMatch: '^/vndb/' },
+      { text: 'csdiy', link: '/csdiy/aops/', activeMatch: '^/csdiy/' },
     ],
     collections: [
       {
@@ -20,9 +20,9 @@ export default defineUserConfig({
         linkPrefix: '/vndb/',
         sidebar: [
           {
-            text: 'vndb',
+            text: 'VNDB',
             collapsed: false,
-            items: ['', 'getting-started', 'reference'],
+            items: ['intro'],
           },
         ],
       },
@@ -33,9 +33,9 @@ export default defineUserConfig({
         linkPrefix: '/csdiy/',
         sidebar: [
           {
-            text: 'csdiy',
+            text: 'AoPS',
             collapsed: false,
-            items: ['', 'getting-started', 'resources'],
+            items: ['aops', 'tst26-p18'],
           },
         ],
       },

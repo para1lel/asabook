@@ -1,8 +1,8 @@
 :root,
 :root:where(:lang(zh)),
 :root:where(:lang(zh-CN)) {
-  --vp-font-family-base: "LXGW WenKai", sans-serif;
-  --vp-font-family-mono: "LXGW WenKai", monospace;
+  --vp-font-family-base: "FiraCode Nerd Font", "FiraCode Nerd Font Mono", "LXGW WenKai", sans-serif;
+  --vp-font-family-mono: "FiraCode Nerd Font Mono", "FiraCode Nerd Font", "LXGW WenKai", monospace;
 }
 
 html,
@@ -15,5 +15,15 @@ code,
 kbd,
 samp,
 pre {
-  font-family: "LXGW WenKai", sans-serif !important;
+  font-family: "Lucida Handwriting", "LXGW WenKai", sans-serif !important;
+}
+
+.vp-doc a {
+  text-decoration: none;
+}
+
+.vp-external-link-icon::after,
+.vp-doc a[href*="//"]::after,
+.vp-doc a[target="_blank"]::after {
+  display: none;
 }

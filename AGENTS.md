@@ -2,14 +2,16 @@
 
 ## Project Structure & Module Organization
 
-This repository is a VuePress 2 documentation site using the Plume theme and Vite bundler. Author content under `docs/`:
+This repository is a VuePress 2 documentation/blog site using the Plume theme and Vite bundler. Author content under `docs/`:
 
-- `docs/vndb/` and `docs/csdiy/` contain the two documentation collections.
-- `docs/.vuepress/config.ts` defines site metadata, navigation, collections, and sidebars.
+- `docs/README.md` is the site home page, written in Chinese.
+- `docs/vndb/` contains visual novel / Galgame notes. The current entry point is `intro.md`.
+- `docs/csdiy/` contains course, math, and problem-solving notes. Current pages include `aops.md` and `tst26-p18.md`.
+- `docs/.vuepress/config.ts` defines site metadata, navigation, collection sidebars, and page entry points.
 - `docs/.vuepress/client.ts` registers client-side styles and the LXGW WenKai webfont.
 - `docs/.vuepress/styles/index.css` contains global theme overrides.
 
-Generated output and caches live under `docs/.vuepress/dist`, `.cache`, and `.temp`; never edit or commit them. Add images and other public files under `docs/.vuepress/public/` when needed.
+Generated output and caches live under `docs/.vuepress/dist`, `.cache`, and `.temp`; never edit or commit them. Add collection-specific images beside the Markdown page that references them when relative links are clearer, such as `docs/csdiy/miku.gif`; use `docs/.vuepress/public/` only for shared public assets.
 
 ## Build, Test, and Development Commands
 
@@ -22,9 +24,9 @@ Run `npm run docs:build` before submitting changes.
 
 ## Coding Style & Naming Conventions
 
-Use two-space indentation in TypeScript, JSON, CSS, and YAML frontmatter. Keep TypeScript imports at the top and prefer single quotes without semicolons, matching `config.ts`. Use lowercase kebab-case Markdown filenames, such as `getting-started.md`. Keep collection names displayed as `vndb` and `csdiy`, and preserve the site name `ASa Book`.
+Use two-space indentation in TypeScript, JSON, CSS, and YAML frontmatter. Keep TypeScript imports at the top and prefer single quotes without semicolons, matching `config.ts`. Use lowercase kebab-case Markdown filenames, such as `tst26-p18.md`. Keep collection names displayed as `vndb` and `csdiy`, and preserve the site name `ASa Book`.
 
-Write short Markdown sections with descriptive headings and relative links for pages in the same collection. When adding a page, also add its filename (without `.md`) to the appropriate collection sidebar in `docs/.vuepress/config.ts`.
+Write content primarily in Chinese, with short Markdown sections, descriptive headings, and relative links for pages in the same collection. Pages should include YAML frontmatter with `title`, `createTime`, and a stable `permalink` matching the configured collection path, for example `/csdiy/tst26-p18/`. Math content may use KaTeX syntax. When adding a page, also add its filename without `.md` to the appropriate collection sidebar in `docs/.vuepress/config.ts`, and update navbar entry points if the first page in a collection changes.
 
 No formatter or linter is configured; follow the surrounding style and avoid unrelated reformatting.
 
