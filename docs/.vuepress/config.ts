@@ -53,7 +53,7 @@ export default defineUserConfig({
               {
                 text: 'AoPS',
                 collapsed: false,
-                items: ['aops', 'tst26-p18'],
+                items: ['aops', 'tst26-p18', 'isl19-a5', 'tst26-p12'],
               },
             ],
           },
@@ -92,7 +92,7 @@ export default defineUserConfig({
               {
                 text: 'AoPS',
                 collapsed: false,
-                items: ['aops', 'tst26-p18'],
+                items: ['aops', 'tst26-p18', 'isl19-a5', 'tst26-p12'],
               },
             ],
           },
@@ -108,6 +108,7 @@ export default defineUserConfig({
     changelog: true,
     contributors: false,
     plugins: { git: true },
+    markdown: { abbr: true, annotation: true },
   }),
 
   bundler: viteBundler(),

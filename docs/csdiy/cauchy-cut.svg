@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-label="Cauchy 积分公式中割线法的示意图">
+  <defs>
+    <marker id="arrow-blue" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#3b82f6" />
+    </marker>
+    <marker id="arrow-green" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#22c55e" />
+    </marker>
+    <marker id="arrow-red" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#ef4444" />
+    </marker>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#94a3b8" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <rect x="18" y="18" width="684" height="384" rx="18" fill="#f8fafc" stroke="#e2e8f0" />
+  <path d="M606 202 C604 300 500 369 352 364 C194 358 91 284 105 184 C118 90 239 43 389 61 C524 77 608 119 606 202 Z" fill="#dbeafe" fill-opacity="0.38" stroke="#3b82f6" stroke-width="4" filter="url(#soft-shadow)" />
+  <path d="M606 202 C608 119 524 77 392 64" fill="none" stroke="#3b82f6" stroke-width="4" marker-end="url(#arrow-blue)" />
+
+  <path d="M428 199 C430 252 377 292 316 281 C255 270 222 228 235 178 C247 129 298 101 358 114 C403 124 427 153 428 199 Z" fill="#fff7ed" stroke="#22c55e" stroke-width="4" />
+  <path d="M428 199 C430 238 376 292 316 281" fill="none" stroke="#22c55e" stroke-width="4" marker-end="url(#arrow-green)" />
+
+  <path d="M606 202 C516 202 517 200 428 199" fill="none" stroke="#ef4444" stroke-width="4" marker-end="url(#arrow-red)" />
+  <path d="M428 211 C517 212 517 211 606 214" fill="none" stroke="#ef4444" stroke-width="4" stroke-dasharray="8 7" marker-end="url(#arrow-red)" />
+
+  <circle cx="335" cy="197" r="6" fill="#0f172a" />
+  <text x="347" y="192" fill="#0f172a" font-size="26" font-family="serif">a</text>
+
+  <text x="560" y="145" fill="#1d4ed8" font-size="28" font-family="serif">γ₁ 逆时针</text>
+  <text x="252" y="135" fill="#15803d" font-size="28" font-family="serif">γ₀ 顺时针</text>
+  <text x="474" y="190" fill="#b91c1c" font-size="23" font-family="sans-serif">割线</text>
+  <text x="440" y="246" fill="#b91c1c" font-size="23" font-family="sans-serif">往返抵消</text>
+
+  <text x="74" y="331" fill="#334155" font-size="25" font-family="serif">γ = γ₁ + 割线 + γ₀反向 + 割线反向，γ 零伦</text>
+  <text x="126" y="371" fill="#334155" font-size="26" font-family="serif">∫γ g dz = ∫γ₁ g dz - ∫γ₀ g dz = 0</text>
+</svg>
