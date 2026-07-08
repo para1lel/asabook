@@ -28,7 +28,7 @@ export default defineUserConfig({
         selectLanguageName: '简体中文',
         navbar: [
           { text: 'vndb', link: '/vndb/intro/', activeMatch: '^/vndb/' },
-          { text: 'csdiy', link: '/csdiy/aops/', activeMatch: '^/csdiy/' },
+          { text: 'csdiy', link: '/csdiy/cse291a/', activeMatch: '^/csdiy/' },
         ],
         collections: [
           {
@@ -52,8 +52,13 @@ export default defineUserConfig({
             sidebar: [
               {
                 text: 'AoPS',
-                collapsed: false,
+                collapsed: true,
                 items: ['aops', 'tst26-p18', 'isl19-a5', 'tst26-p12'],
+              },
+              {
+                text: 'CSE 291A',
+                collapsed: false,
+                items: ['cse291a', 'cse291a-week1'],
               },
             ],
           },
@@ -67,7 +72,7 @@ export default defineUserConfig({
         selectLanguageName: 'English',
         navbar: [
           { text: 'vndb', link: '/en/vndb/intro/', activeMatch: '^/en/vndb/' },
-          { text: 'csdiy', link: '/en/csdiy/aops/', activeMatch: '^/en/csdiy/' },
+          { text: 'csdiy', link: '/en/csdiy/cse291a/', activeMatch: '^/en/csdiy/' },
         ],
         collections: [
           {
@@ -91,8 +96,13 @@ export default defineUserConfig({
             sidebar: [
               {
                 text: 'AoPS',
-                collapsed: false,
+                collapsed: true,
                 items: ['aops', 'tst26-p18', 'isl19-a5', 'tst26-p12'],
+              },
+              {
+                text: 'CSE 291A',
+                collapsed: false,
+                items: ['cse291a', 'cse291a-week1'],
               },
             ],
           },
