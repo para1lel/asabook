@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Lucida Handwriting";
-  src: url("/fonts/LHANDW.TTF") format("ttf");
+  src: url("/fonts/LHANDW.TTF") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -18,12 +18,16 @@ body,
 button,
 input,
 textarea,
-select,
+select {
+  font-family: "Lucida Handwriting", "LXGW WenKai", sans-serif !important;
+}
+
 code,
 kbd,
 samp,
-pre {
-  font-family: "Lucida Handwriting", "LXGW WenKai", sans-serif !important;
+pre,
+pre * {
+  font-family: "FiraCode Nerd Font", "FiraCode Nerd Font Mono", "LXGW WenKai", monospace !important;
 }
 
 .vp-doc a {

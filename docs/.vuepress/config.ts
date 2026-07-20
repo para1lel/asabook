@@ -58,7 +58,7 @@ export default defineUserConfig({
               {
                 text: 'CSE 291A',
                 collapsed: false,
-                items: ['cse291a', 'cse291a-week1'],
+                items: ['cse291a', 'cse291a-week1', 'cse291a-week2'],
               },
             ],
           },
@@ -102,7 +102,7 @@ export default defineUserConfig({
               {
                 text: 'CSE 291A',
                 collapsed: false,
-                items: ['cse291a', 'cse291a-week1'],
+                items: ['cse291a', 'cse291a-week1', 'cse291a-week2'],
               },
             ],
           },
