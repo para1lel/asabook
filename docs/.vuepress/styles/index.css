@@ -6,6 +6,22 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "FiraCode Nerd Font";
+  src: url("/fonts/fira-code-nerd-font/FiraCodeNerdFont-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FiraCode Nerd Font";
+  src: url("/fonts/fira-code-nerd-font/FiraCodeNerdFont-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root,
 :root:where(:lang(zh)),
 :root:where(:lang(zh-CN)) {
