@@ -21,7 +21,7 @@ permalink: /csdiy/cse291a-week3/
 
 ```python
 def torch_conv1d(x, w):
-    return F.conv1d(x.view(1, 1, -1), w.view(1, 1, -1)).view(-1)
+  return F.conv1d(x.view(1, 1, -1), w.view(1, 1, -1)).view(-1)
 ```
 
 一个基本的实现是每个线程计算连续 8 个结果. 首先把用到的 5 个 $w$ 和 12 个 $x$ 读入寄存器, 然后计算这 8 个输出, 最后直接写回 $y$.
@@ -32,49 +32,49 @@ conv1d_k5_register_kernel(const __half* __restrict__ x,
                           const __half* __restrict__ w,
                           __half* __restrict__ y,
                           const long long n_out) {
-    const float w0 = __half2float(__ldg(&w[0]));
-    const float w1 = __half2float(__ldg(&w[1]));
-    const float w2 = __half2float(__ldg(&w[2]));
-    const float w3 = __half2float(__ldg(&w[3]));
-    const float w4 = __half2float(__ldg(&w[4]));
-    const long long gout = (long long)blockIdx.x * TILE
+  const float w0 = __half2float(__ldg(&w[0]));
+  const float w1 = __half2float(__ldg(&w[1]));
+  const float w2 = __half2float(__ldg(&w[2]));
+  const float w3 = __half2float(__ldg(&w[3]));
+  const float w4 = __half2float(__ldg(&w[4]));
+  const long long gout = (long long)blockIdx.x * TILE
                          + (long long)threadIdx.x * VEC;
-    if (gout >= n_out) return;
+  if (gout >= n_out) return;
 
-    float r[VEC + K - 1];
-    if (gout + VEC <= n_out) {
-        #pragma unroll
-        for (int j = 0; j < VEC + K - 1; ++j) {
-            r[j] = __half2float(__ldg(&x[gout + j]));
-        }
-    } else {
-        const long long n_in = n_out + K - 1;
-        #pragma unroll
-        for (int j = 0; j < VEC + K - 1; ++j) {
-            const long long idx = gout + j;
-            r[j] = (idx < n_in) ? __half2float(__ldg(&x[idx])) : 0.f;
-        }
-    }
-
+  float r[VEC + K - 1];
+  if (gout + VEC <= n_out) {
     #pragma unroll
-    for (int j = 0; j < VEC; ++j) {
-        r[j] = w0 * r[j]
+    for (int j = 0; j < VEC + K - 1; ++j) {
+      r[j] = __half2float(__ldg(&x[gout + j]));
+    }
+  } else {
+    const long long n_in = n_out + K - 1;
+    #pragma unroll
+    for (int j = 0; j < VEC + K - 1; ++j) {
+      const long long idx = gout + j;
+      r[j] = (idx < n_in) ? __half2float(__ldg(&x[idx])) : 0.f;
+    }
+  }
+
+  #pragma unroll
+  for (int j = 0; j < VEC; ++j) {
+    r[j] = w0 * r[j]
              + w1 * r[j + 1]
              + w2 * r[j + 2]
              + w3 * r[j + 3]
              + w4 * r[j + 4];
-    }
+  }
 
-    if (gout + VEC <= n_out) {
-        __half out[VEC];
-        #pragma unroll
-        for (int j = 0; j < VEC; ++j) out[j] = __float2half(r[j]);
-        *reinterpret_cast<uint4*>(&y[gout]) =
-            *reinterpret_cast<const uint4*>(out);
-    } else {
-        for (int j = 0; j < VEC && gout + j < n_out; ++j)
-            y[gout + j] = __float2half(r[j]);
-    }
+  if (gout + VEC <= n_out) {
+    __half out[VEC];
+    #pragma unroll
+    for (int j = 0; j < VEC; ++j) out[j] = __float2half(r[j]);
+    *reinterpret_cast<uint4*>(&y[gout]) =
+      *reinterpret_cast<const uint4*>(out);
+  } else {
+    for (int j = 0; j < VEC && gout + j < n_out; ++j)
+      y[gout + j] = __float2half(r[j]);
+  }
 }
 ```
 
@@ -96,67 +96,67 @@ conv1d_k5_kernel(const __half* __restrict__ x,
                  const __half* __restrict__ w,
                  __half* __restrict__ y,
                  const long long n_out) {
-    __shared__ __align__(16) __half s[TILE + K - 1];
-    const float w0 = __half2float(__ldg(&w[0]));
-    const float w1 = __half2float(__ldg(&w[1]));
-    const float w2 = __half2float(__ldg(&w[2]));
-    const float w3 = __half2float(__ldg(&w[3]));
-    const float w4 = __half2float(__ldg(&w[4]));
-    const long long base = (long long)blockIdx.x * TILE;
-    const int t = threadIdx.x;
-    const long long n_in = n_out + K - 1;
+  __shared__ __align__(16) __half s[TILE + K - 1];
+  const float w0 = __half2float(__ldg(&w[0]));
+  const float w1 = __half2float(__ldg(&w[1]));
+  const float w2 = __half2float(__ldg(&w[2]));
+  const float w3 = __half2float(__ldg(&w[3]));
+  const float w4 = __half2float(__ldg(&w[4]));
+  const long long base = (long long)blockIdx.x * TILE;
+  const int t = threadIdx.x;
+  const long long n_in = n_out + K - 1;
 
-    const long long g = base + (long long)t * VEC;
-    if (g + VEC <= n_in) {
-        *reinterpret_cast<uint4*>(&s[t * VEC]) =
-            *reinterpret_cast<const uint4*>(&x[g]);
-    } else {
-        #pragma unroll
-        for (int j = 0; j < VEC; ++j) {
-            const long long idx = g + j;
-            s[t * VEC + j] = (idx < n_in) ? x[idx] : __float2half(0.f);
-        }
-    }
-    if (t < K - 1) {
-        const long long idx = base + TILE + t;
-        s[TILE + t] = (idx < n_in) ? x[idx] : __float2half(0.f);
-    }
-    __syncthreads();
-
-    const int o = t * VEC;
-    const long long gout = base + o;
-    if (gout >= n_out) return;
-
-    const uint4 v0 = *reinterpret_cast<const uint4*>(&s[o]);
-    const uint2 v1 = *reinterpret_cast<const uint2*>(&s[o + VEC]);
-    const __half* h0 = reinterpret_cast<const __half*>(&v0);
-    const __half* h1 = reinterpret_cast<const __half*>(&v1);
-
-    float r[VEC + K - 1];
-    #pragma unroll
-    for (int j = 0; j < VEC; ++j) r[j] = __half2float(h0[j]);
-    #pragma unroll
-    for (int j = 0; j < K - 1; ++j) r[VEC + j] = __half2float(h1[j]);
-
+  const long long g = base + (long long)t * VEC;
+  if (g + VEC <= n_in) {
+    *reinterpret_cast<uint4*>(&s[t * VEC]) =
+      *reinterpret_cast<const uint4*>(&x[g]);
+  } else {
     #pragma unroll
     for (int j = 0; j < VEC; ++j) {
-        r[j] = w0 * r[j]
+      const long long idx = g + j;
+      s[t * VEC + j] = (idx < n_in) ? x[idx] : __float2half(0.f);
+    }
+  }
+  if (t < K - 1) {
+    const long long idx = base + TILE + t;
+    s[TILE + t] = (idx < n_in) ? x[idx] : __float2half(0.f);
+  }
+  __syncthreads();
+
+  const int o = t * VEC;
+  const long long gout = base + o;
+  if (gout >= n_out) return;
+
+  const uint4 v0 = *reinterpret_cast<const uint4*>(&s[o]);
+  const uint2 v1 = *reinterpret_cast<const uint2*>(&s[o + VEC]);
+  const __half* h0 = reinterpret_cast<const __half*>(&v0);
+  const __half* h1 = reinterpret_cast<const __half*>(&v1);
+
+  float r[VEC + K - 1];
+  #pragma unroll
+  for (int j = 0; j < VEC; ++j) r[j] = __half2float(h0[j]);
+  #pragma unroll
+  for (int j = 0; j < K - 1; ++j) r[VEC + j] = __half2float(h1[j]);
+
+  #pragma unroll
+  for (int j = 0; j < VEC; ++j) {
+    r[j] = w0 * r[j]
              + w1 * r[j + 1]
              + w2 * r[j + 2]
              + w3 * r[j + 3]
              + w4 * r[j + 4];
-    }
+  }
 
-    if (gout + VEC <= n_out) {
-        __half out[VEC];
-        #pragma unroll
-        for (int j = 0; j < VEC; ++j) out[j] = __float2half(r[j]);
-        *reinterpret_cast<uint4*>(&y[gout]) =
-            *reinterpret_cast<const uint4*>(out);
-    } else {
-        for (int j = 0; j < VEC && gout + j < n_out; ++j)
-            y[gout + j] = __float2half(r[j]);
-    }
+  if (gout + VEC <= n_out) {
+    __half out[VEC];
+    #pragma unroll
+    for (int j = 0; j < VEC; ++j) out[j] = __float2half(r[j]);
+    *reinterpret_cast<uint4*>(&y[gout]) =
+      *reinterpret_cast<const uint4*>(out);
+  } else {
+    for (int j = 0; j < VEC && gout + j < n_out; ++j)
+      y[gout + j] = __float2half(r[j]);
+  }
 }
 ```
 
@@ -171,59 +171,59 @@ Claude 好像还不太会写 TileLang, 只有跟 CUDA 写得一模一样才能�
 @tilelang.jit(target="cuda")
 def _conv1d(N_out, K, block_N, threads):
 
-    @T.prim_func
-    def main(
-        x: T.Tensor((N_out + K - 1,), "float16"),  # type: ignore
-        w: T.Tensor((K,), "float16"),  # type: ignore
-        y: T.Tensor((N_out,), "float16"),  # type: ignore
-    ):
-        VEC = block_N // threads  # halfs per thread (8 -> uint4 accesses)
-        N_in = N_out + K - 1
+  @T.prim_func
+  def main(
+    x: T.Tensor((N_out + K - 1,), "float16"),  # type: ignore
+    w: T.Tensor((K,), "float16"),  # type: ignore
+    y: T.Tensor((N_out,), "float16"),  # type: ignore
+  ):
+    VEC = block_N // threads  # halfs per thread (8 -> uint4 accesses)
+    N_in = N_out + K - 1
 
-        with T.Kernel(T.ceildiv(N_out, block_N), threads=threads) as bx:
-            x_shared = T.alloc_shared((block_N + K - 1,), "float16")
-            w_local = T.alloc_local((K,), "float32")
-            r = T.alloc_local((VEC + K - 1,), "float32")
-            out = T.alloc_local((VEC,), "float16")
+    with T.Kernel(T.ceildiv(N_out, block_N), threads=threads) as bx:
+      x_shared = T.alloc_shared((block_N + K - 1,), "float16")
+      w_local = T.alloc_local((K,), "float32")
+      r = T.alloc_local((VEC + K - 1,), "float32")
+      out = T.alloc_local((VEC,), "float16")
 
-            tx = T.get_thread_binding(0)
-            base = bx * block_N + tx * VEC
+      tx = T.get_thread_binding(0)
+      base = bx * block_N + tx * VEC
 
-            # Main tile (128-bit vectorized; scalar guarded in the last block)
-            # plus K-1 halo elements.
-            if base + VEC <= N_in:
-                for j in T.vectorized(VEC):
-                    x_shared[tx * VEC + j] = x[base + j]
-            else:
-                for j in T.serial(VEC):
-                    x_shared[tx * VEC + j] = T.if_then_else(
-                        base + j < N_in, x[base + j], T.float16(0))
-            if tx < K - 1:
-                x_shared[block_N + tx] = T.if_then_else(
-                    bx * block_N + block_N + tx < N_in,
-                    x[bx * block_N + block_N + tx], T.float16(0))
-            for k in T.serial(K):
-                w_local[k] = T.cast(w[k], "float32")
-            T.sync_threads()
+      # Main tile (128-bit vectorized; scalar guarded in the last block)
+      # plus K-1 halo elements.
+      if base + VEC <= N_in:
+        for j in T.vectorized(VEC):
+          x_shared[tx * VEC + j] = x[base + j]
+      else:
+        for j in T.serial(VEC):
+          x_shared[tx * VEC + j] = T.if_then_else(
+            base + j < N_in, x[base + j], T.float16(0))
+      if tx < K - 1:
+        x_shared[block_N + tx] = T.if_then_else(
+          bx * block_N + block_N + tx < N_in,
+          x[bx * block_N + block_N + tx], T.float16(0))
+      for k in T.serial(K):
+        w_local[k] = T.cast(w[k], "float32")
+      T.sync_threads()
 
-            if base < N_out:
-                for j in T.serial(VEC + K - 1):
-                    r[j] = T.cast(x_shared[tx * VEC + j], "float32")
-                for j in T.serial(VEC):
-                    out[j] = T.cast(
-                        w_local[0] * r[j] + w_local[1] * r[j + 1]
-                        + w_local[2] * r[j + 2] + w_local[3] * r[j + 3]
-                        + w_local[4] * r[j + 4], "float16")
+      if base < N_out:
+        for j in T.serial(VEC + K - 1):
+          r[j] = T.cast(x_shared[tx * VEC + j], "float32")
+        for j in T.serial(VEC):
+          out[j] = T.cast(
+            w_local[0] * r[j] + w_local[1] * r[j + 1]
+            + w_local[2] * r[j + 2] + w_local[3] * r[j + 3]
+            + w_local[4] * r[j + 4], "float16")
 
-                if base + VEC <= N_out:
-                    for j in T.vectorized(VEC):
-                        y[base + j] = out[j]
-                else:
-                    for j in T.serial(VEC):
-                        if base + j < N_out:
-                            y[base + j] = out[j]
+        if base + VEC <= N_out:
+          for j in T.vectorized(VEC):
+            y[base + j] = out[j]
+        else:
+          for j in T.serial(VEC):
+            if base + j < N_out:
+              y[base + j] = out[j]
 
-    return main
+  return main
 ```
 
 可以在[这里](/webpage/conv1d-report.html)查看 IR 的逐步变换和编译得到的 CUDA 代码, [官方文档](https://tilelang.com/tools/lower_trace.html).  

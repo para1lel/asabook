@@ -9,6 +9,7 @@ This is yet another blog system in a long line of blog systems I have tried. I u
 
 - [vndb](./vndb/intro/) collects reviews, recommendations, and impressions about galgames and visual novels.
 - [csdiy](./csdiy/cse291a/) collects course notes and problem-solving notes. Despite the name, it is not limited to computer science; mathematics and philosophy may show up as well.
+- [papers](./papers/taso/) contains readable HTML transcriptions of papers, including their figures and references.
 
 After starting college, and especially after getting used to writing with AI, I have almost lost the habit of typing things out myself. I hope this project lasts a little longer than the previous ones.
 

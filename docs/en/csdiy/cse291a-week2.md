@@ -25,14 +25,14 @@ Consider a simplified memory hierarchy model: matrices A, B, and C live in DRAM,
 def matmul(A: Float[Tensor, "n/v1 n v1", "DRAM"],
            B: Float[Tensor, "n/v2 n v2", "DRAM"],
            C: Float[Tensor, "n/v1 n/v2 v1 v2", "DRAM"]):
-    for i in range(n/v1):
-        for j in range(n/v2):
-            c: Float[Tensor, "v1 v2", "reg"] = 0
-            for k in range(n):
-                a: Float[Tensor, "v1", "reg"] = A[i, k]
-                b: Float[Tensor, "v2", "reg"] = B[j, k]
-                c += outer(a, b)
-            C[i, j] = c
+  for i in range(n/v1):
+    for j in range(n/v2):
+      c: Float[Tensor, "v1 v2", "reg"] = 0
+      for k in range(n):
+        a: Float[Tensor, "v1", "reg"] = A[i, k]
+        b: Float[Tensor, "v2", "reg"] = B[j, k]
+        c += outer(a, b)
+      C[i, j] = c
 ```
 
 The numbers of reads of A and B become $n^3/v_2$ and $n^3/v_1$ respectively, while the number of writes to C stays at $n^2$.  

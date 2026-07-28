@@ -29,6 +29,10 @@
   --vp-font-family-mono: "FiraCode Nerd Font Mono", "FiraCode Nerd Font", "LXGW WenKai", monospace;
 }
 
+html.smooth {
+  scroll-behavior: auto;
+}
+
 html,
 body,
 button,
@@ -54,4 +58,30 @@ pre * {
 .vp-doc a[href*="//"]::after,
 .vp-doc a[target="_blank"]::after {
   display: none;
+}
+
+.vp-doc-container .content,
+.vp-doc-container .content-container,
+.vp-doc-container .main,
+.vp-doc-title,
+.vp-doc {
+  min-width: 0;
+}
+
+.page-title,
+.vp-breadcrumb .breadcrumb {
+  overflow-wrap: anywhere;
+}
+
+.vp-breadcrumb ol li {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.vp-doc img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-right: auto;
+  margin-left: auto;
 }

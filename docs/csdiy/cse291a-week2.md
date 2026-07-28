@@ -27,14 +27,14 @@ $$A[i,j]=A.\mathrm{data}[\mathrm{offset}+i\cdot A.\mathrm{stride}[0]+j\cdot A.\m
 def matmul(A: Float[Tensor, "n/v1 n v1", "DRAM"],
            B: Float[Tensor, "n/v2 n v2", "DRAM"],
            C: Float[Tensor, "n/v1 n/v2 v1 v2", "DRAM"]):
-    for i in range(n/v1):
-        for j in range(n/v2):
-            c: Float[Tensor, "v1 v2", "reg"] = 0
-            for k in range(n):
-                a: Float[Tensor, "v1", "reg"] = A[i, k]
-                b: Float[Tensor, "v2", "reg"] = B[j, k]
-                c += outer(a, b)
-            C[i, j] = c
+  for i in range(n/v1):
+    for j in range(n/v2):
+      c: Float[Tensor, "v1 v2", "reg"] = 0
+      for k in range(n):
+        a: Float[Tensor, "v1", "reg"] = A[i, k]
+        b: Float[Tensor, "v2", "reg"] = B[j, k]
+        c += outer(a, b)
+      C[i, j] = c
 ```
 
 A 和 B 的读取次数分别是 $n^3/v_2$ 和 $n^3/v_1$, C 的写入次数 $n^2$ 保持不变.  
