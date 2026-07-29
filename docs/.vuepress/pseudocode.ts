@@ -46,7 +46,7 @@ export const pseudocodeLanguage = {
       name: 'constant.numeric.pseudocode',
     },
     variables: {
-      match: "\\b(?:[A-Z](?:\\d+)?(?:_[A-Za-z0-9]+)*|[a-z]+(?:_[A-Za-z0-9]+)+|alpha|threshold)'?(?![A-Za-z0-9_])",
+      match: "\\b(?:[A-Z](?:\\d+)?(?:_[A-Za-z0-9]+)*|[a-z]+(?:_[A-Za-z0-9]+)+|alpha|beta|gamma|delta|epsilon|zeta|eta|theta|iota|kappa|lambda|mu|nu|xi|omicron|pi|rho|sigma|tau|upsilon|phi|chi|psi|omega)'?(?![A-Za-z0-9_])",
       name: 'variable.other.pseudocode',
     },
     operators: {

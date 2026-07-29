@@ -26,6 +26,8 @@ Run `npm run docs:build` before submitting changes.
 
 Use two-space indentation in TypeScript, JSON, CSS, and YAML frontmatter. Keep TypeScript imports at the top and prefer single quotes without semicolons, matching `config.ts`. Use lowercase kebab-case Markdown filenames, such as `tst26-p18.md`. Keep collection names displayed as `vndb` and `csdiy`, and preserve the site name `ASa Book`.
 
+Keep all Markdown abbreviation definitions in `docs/.vuepress/config.ts` under `paperAbbreviations`; do not create per-page or per-paper abbreviation files.
+
 Write content primarily in Chinese, with short Markdown sections, descriptive headings, and relative links for pages in the same collection. English translation pages should not be literal word-for-word copies; prioritize fluent, idiomatic English that reads naturally to native speakers while preserving the original meaning, links, math, and structure. Pages should include YAML frontmatter with `title`, `createTime`, and a stable `permalink` matching the configured collection path, for example `/csdiy/tst26-p18/`. Math content may use KaTeX syntax. When adding a page, also add its filename without `.md` to the appropriate collection sidebar in `docs/.vuepress/config.ts`, and update navbar entry points if the first page in a collection changes.
 
 No formatter or linter is configured; follow the surrounding style and avoid unrelated reformatting.
@@ -33,6 +35,8 @@ No formatter or linter is configured; follow the surrounding style and avoid unr
 ## Testing Guidelines
 
 There is no automated test framework or coverage requirement. The required check is a successful production build. For navigation or styling changes, also inspect both `/vndb/` and `/csdiy/` in the development server at desktop and mobile widths.
+
+After testing, stop any local development or preview servers started for the task. Do not leave test servers running when handing off the completed work.
 
 ## Commit & Pull Request Guidelines
 

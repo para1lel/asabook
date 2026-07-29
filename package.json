@@ -6,12 +6,16 @@
   "scripts": {
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "docs:clean-dev": "vuepress dev docs --clean-cache --clean-temp"
+    "docs:clean-dev": "vuepress dev docs --clean-cache --clean-temp",
+    "paper:render": "node scripts/render-pdf.mjs",
+    "paper:references": "node scripts/extract-tei-bibliography.mjs"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "0.1.100",
     "@vuepress/bundler-vite": "2.0.0-rc.30",
     "katex": "^0.17.0",
     "lxgw-wenkai-webfont": "1.7.0",
+    "pdfjs-dist": "5.4.394",
     "typescript": "^5.9.3",
     "vue": "^3.5.35",
     "vuepress": "2.0.0-rc.30",
@@ -22,6 +26,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0"
+    "@vercel/speed-insights": "^2.0.0",
+    "mermaid": "^11.16.0"
   }
 }
