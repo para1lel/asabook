@@ -4,7 +4,7 @@ createTime: 2026/07/29 15:00:00
 permalink: /papers/kimi-k3/
 ---
 
-> [Kimi Team](https://platform.kimi.com/docs/guide/kimi-k3-quickstart). *Kimi K3: Open Frontier Intelligence: Technical Report of Kimi K3*. 本网页阅读版依据[原始 PDF](/paper/k3_tech_report.pdf) 提取的文本整理. 数学符号, 图表及完整参考文献列表以 PDF 为准. [模型权重](https://huggingface.co/moonshotai/Kimi-K3).
+> [Kimi Team](https://platform.kimi.com/docs/guide/kimi-k3-quickstart). Kimi K3: Open Frontier Intelligence: Technical Report of Kimi K3. 本网页阅读版依据[原始 PDF](/paper/k3_tech_report.pdf) 提取的文本整理. 数学符号, 图表及完整参考文献列表以 PDF 为准. [模型权重](https://huggingface.co/moonshotai/Kimi-K3).
 
 ## 摘要
 

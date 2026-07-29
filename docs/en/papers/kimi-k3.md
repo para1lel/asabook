@@ -4,7 +4,7 @@ createTime: 2026/07/29 15:00:00
 permalink: /en/papers/kimi-k3/
 ---
 
-> [Kimi Team](https://platform.kimi.com/docs/guide/kimi-k3-quickstart). *Kimi K3: Open Frontier Intelligence: Technical Report of Kimi K3*. This web reading edition follows the text extracted from the [original PDF](/paper/k3_tech_report.pdf). The PDF remains authoritative for mathematical notation, figures, tables, and the complete reference list. [Model weights](https://huggingface.co/moonshotai/Kimi-K3).
+> [Kimi Team](https://platform.kimi.com/docs/guide/kimi-k3-quickstart). Kimi K3: Open Frontier Intelligence: Technical Report of Kimi K3. This web reading edition follows the text extracted from the [original PDF](/paper/k3_tech_report.pdf). The PDF remains authoritative for mathematical notation, figures, tables, and the complete reference list. [Model weights](https://huggingface.co/moonshotai/Kimi-K3).
 
 ## Abstract
 

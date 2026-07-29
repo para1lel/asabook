@@ -1,0 +1,1284 @@
+<?xml version="1.0" encoding="UTF-8"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Pet: Optimizing Tensor Programs with Partially Equivalent Transformations and Automated Corrections</title>
+				<funder ref="#_DD3CF8W">
+					<orgName type="full">unknown</orgName>
+				</funder>
+				<funder ref="#_JY7ZGqu">
+					<orgName type="full">National Natural Science Foundation of China</orgName>
+				</funder>
+				<funder ref="#_Q7UrTda">
+					<orgName type="full">Beijing Natural Science Foundation</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct status="extracted">
+					<analytic>
+						<author>
+							<persName><forename type="first">Haojie</forename><surname>Wang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Jidong</forename><surname>Zhai</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Mingyu</forename><surname>Gao</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Zixuan</forename><surname>Ma</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Shizhi</forename><surname>Tang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Liyan</forename><surname>Zheng</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Yuanzhi</forename><surname>Li</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Kaiyuan</forename><surname>Rong</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Yuanyong</forename><surname>Chen</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Zhihao</forename><surname>Jia</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">†</forename><surname>Kaiyuan</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Rong</forename><forename type="middle">Yuanyong</forename><surname>Chen</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Tsinghua University</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit3">Tsinghua University</orgName>
+								<orgName type="institution" key="instit4">Carnegie Mellon University</orgName>
+								<orgName type="institution" key="instit5">Tsinghua University Carnegie Mellon University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Pet: Optimizing Tensor Programs with Partially Equivalent Transformations and Automated Corrections</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">B421007385ABE4C0A02F3E0F985618BE</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.9.0" ident="GROBID" when="2026-07-29T09:17+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<label type="revision">0.9.0</label>
+					<label type="parameters">startPage=-1, endPage=-1, consolidateCitations=0, consolidateHeader=1, consolidateFunders=0, includeRawAffiliations=false, includeRawCitations=false, includeRawCopyrights=false, generateTeiIds=false, generateTeiCoordinates=[], flavor=null</label>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>High-performance tensor programs are critical for efficiently deploying deep neural network (DNN) models in realworld tasks. Existing frameworks optimize tensor programs by applying fully equivalent transformations, which maintain equivalence on every element of output tensors. This approach misses possible optimization opportunities as transformations that only preserve equivalence on subsets of the output tensors are excluded.</p><p>We propose PET, the first DNN framework that optimizes tensor programs with partially equivalent transformations and automated corrections. PET discovers and applies program transformations that improve computation efficiency but only maintain partial functional equivalence. PET then automatically corrects results to restore full equivalence. We develop rigorous theoretical foundations to simplify equivalence examination and correction for partially equivalent transformations, and design an efficient search algorithm to quickly discover highly optimized programs by combining fully and partially equivalent optimizations at the tensor, operator, and graph levels. Our evaluation shows that PET outperforms existing systems by up to 2.5×, by unlocking previously missed opportunities from partially equivalent transformations.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Existing deep neural network (DNN) frameworks represent DNN computations as tensor programs, which are direct acyclic computation graphs describing the operations applied to a set of tensors (i.e., n-dimensional arrays). The operators in tensor programs are mostly linear algebra computations such as matrix multiplication and convolution. Although tensor programs are specified based on the high-level insights of today's DNN algorithms, such constructions do not necessarily offer the best runtime performance. Current practice to optimize tensor programs in existing DNN frameworks is to leverage program transformations, each of which identifies a subprogram that matches a specific pattern and replaces it with another subprogram that offers improved performance.</p><p>To preserve the statistical behavior of DNN models, existing frameworks only consider fully equivalent program transformations, where the new subprogram is mathematically equivalent to the original subprogram for arbitrary inputs. For example, TensorFlow, PyTorch, TensorRT, TVM, and Ansor all use rule-based optimization strategies that directly apply manually designed program transformations whenever applicable <ref type="bibr" target="#b2">[3,</ref><ref type="bibr" target="#b5">6,</ref><ref type="bibr" target="#b25">26,</ref><ref type="bibr" target="#b31">32,</ref><ref type="bibr" target="#b33">34]</ref>. TASO automatically generates and verifies transformations by taking operator specifications as inputs, but is still limited to fully equivalent transformations <ref type="bibr" target="#b14">[15]</ref>.</p><p>Despite the wide use of equivalent program transformations in conventional compilers and modern DNN frameworks, they only exhibit limited opportunities for performance optimization, especially for tensor programs. Unlike traditional programs whose primitives are scalars or simple arrays of scalars, tensor programs operate on high-dimensional tensors with up to millions of elements. Many transformations can improve the runtime performance of a tensor program but do not preserve full equivalence on all elements of the output tensors. We call such transformations partially equivalent. Examples of performance-optimizing partially equivalent transformations include <ref type="bibr" target="#b0">(1)</ref> changing the shape or linearization ordering of input tensors to improve computational efficiency, (2) replacing less efficient operators with more optimized operators with similar mathematical behavior, and (3) transforming the graph structure of a program to enable subsequent performance optimizations.</p><p>Partially equivalent transformations, despite their high potential, are not exploited in existing DNN frameworks due to several challenges. First, directly applying partially equivalent transformations would violate the functional equivalence to an input program and potentially decrease the model accuracy. It is necessary to correct any non-equivalent regions of output tensors, to preserve transparency to higher-level algorithms. However, quickly examining equivalence to identify these regions and effectively generating the required correction kernels are difficult tasks. Second, when partially equivalent transformations are applied, the design space is substantially enlarged compared to existing frameworks under equivalence constraint. Theoretically, any program transformation, regardless of how different the result is from the original one, becomes a potential candidate. The generation algorithm for partially equivalent transformations should carefully manage its computational complexity. The optimizer must balance the benefits and overhead and be able to combine fully and partially equivalent transformations to obtain performant tensor programs.</p><p>In this paper, we explore a radically different approach to optimize tensor programs, by exploiting partially equivalent transformations. We develop rigorous theorems that simplify equivalence examination and correction kernel generation, allowing us to easily restore functional equivalence and provably preserve the DNN models' statistical behavior. With a significantly larger search space of program optimizations that includes both fully and partially equivalent transformations, our approach can discover highly optimized tensor programs that existing approaches miss. Based on these techniques, we propose PET, the first DNN framework that optimizes tensor programs with partially equivalent transformations and automated corrections. PET consists of three main components: Mutation generator. To discover partially equivalent transformations automatically for an input subprogram, PET uses a mutation generator to construct potential program mutants. Each mutant takes the same input tensors as in the original subprogram and produces output tensors with the same shapes. This ensures that a mutant can replace the input subprogram and therefore constitutes a potential transformation.</p><p>Mutation corrector. The generated mutants of an input subprogram may produce different results on some regions of the output tensors, thus affecting the model accuracy. To preserve its statistical behavior, PET's mutation corrector examines the equivalence between an input subprogram and its mutant and automatically generates correction kernels. These are subsequently applied to the output tensors to maintain an end-to-end equivalence to the input subprogram. To reduce the overhead and heterogeneity introduced by the correction kernels, PET opportunistically fuses the correction kernels with other tensor computation kernels.</p><p>Examining and correcting a partially equivalent transformation is difficult, since the output tensors of a program include up to millions of elements, and each one must be verified against a large number of input elements. A key contribution of PET is a set of rigorous theoretical foundations that significantly simplify this verification process. Rather than examining program equivalence for all positions in the output tensors, PET needs to test only a few representative positions.</p><p>Program optimizer. PET uses a program optimizer to identify mutant candidates with high performance, by effectively balancing the benefits from using better mutants and the overheads of extra correction kernels. We first split an arbitrarily large input program into multiple small subprograms at the positions of non-linear operators. Each subprogram then contains only linear operators and can be independently mutated. We support mutations on various subsets of operators in the subprogram, and can iteratively apply mutations to obtain mutants that are more complex. Finally, we apply a series of post-optimizations across subprogram boundaries, including redundancy elimination and operator fusion.</p><p>We evaluate PET on five real-world DNN models. Even for common and heavily optimized models in existing frameworks such as Resnet-18 <ref type="bibr" target="#b13">[14]</ref>, PET can still improve the performance by 1.2×. For new models such as CSRNet <ref type="bibr" target="#b19">[20]</ref> and BERT <ref type="bibr" target="#b11">[12]</ref>, PET is up to 2.5× faster than the state-of-theart frameworks. The significant performance improvement is enabled by combining fully and partially equivalent transformations at the tensor, operator, and graph levels.</p><p>This paper makes the following contributions.</p><p>• We present the first attempt in tensor program optimization to exploit partially equivalent transformations with automated corrections. We explore a significantly larger search space than existing DNN frameworks.</p><p>• We develop rigorous theoretical foundations that simplify the equivalence examination and correction kernel generation, making it practical to preserve statistical behavior even with partially equivalent transformations.</p><p>• We propose efficient generation and optimization approaches to explore the large design space automatically with both fully and partially equivalent transformations.</p><p>• We implement the above techniques into an end-to-end framework, PET, and achieve up to 2.5× speedup compared to state-of-the-art frameworks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Background and Motivation</head><p>To generate high-performance tensor programs, a common form of optimization in existing DNN frameworks (e.g., Ten-sorFlow <ref type="bibr" target="#b2">[3]</ref>, TensorRT <ref type="bibr" target="#b31">[32]</ref>, and TVM <ref type="bibr" target="#b5">[6]</ref>) is fully equivalent transformations that improve the performance of a tensor program while preserving its mathematical equivalence. Examples of current fully equivalent transformations include operator fusion <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b5">6]</ref>, layout transformations <ref type="bibr" target="#b17">[18]</ref>, and automated generation of graph substitutions <ref type="bibr" target="#b14">[15]</ref>. Though effective at improving performance, fully equivalent transformations explore only a limited space of program optimizations. In contrast, Figure <ref type="figure" target="#fig_0">1</ref> shows an example of a partially equivalent transformation for a convolution operator. It concatenates two individual images into a larger one along the width dimension to improve performance. This is because a larger width, which is typically the innermost dimension for convolution on modern accelerators like GPUs, provides more parallelism and improves computation locality. However, the new program after this transformation (shown in Figure <ref type="figure" target="#fig_12">1(b)</ref>) produces different results on a sub-region of the output tensor along the boundary of the concatenation (shown as the shaded boxes in Figure <ref type="figure" target="#fig_12">1(b)</ref>), resulting in partial non-equivalence.</p><p>conv T 1 T 2 (a) Input program. conv reshape &amp; transpose T 1 T 3 T 4 T 5 reshape &amp; transpose (b) A partially equivalent transformation. T 5 T 2 correction (c) Correcting results. In addition to the above example that optimizes a tensor program by changing the shape and linearization of its tensors, partially equivalent transformations also include replacing less efficient operators with more optimized ones with similar semantics, and modifying the graph structure of a tensor program to enable additional optimizations. We provide more such examples in §4.2 and evaluate them in §8.3.</p><p>Although partially equivalent transformations exhibit high potential for performance improvement, they are not considered in current DNN frameworks due to their possible impact on model accuracy. Manually implementing such partially equivalent transformations is prohibitive. First, it requires evaluating a large amount of potential partially equivalent transformations to discover promising ones. Second, to apply partially equivalent transformations while preserving model accuracy, we need correction kernels to fix the results for nonequivalent parts (see Figure <ref type="figure" target="#fig_12">1(c)</ref>). Overall, more automated approaches are needed to discover performance-optimizing partially equivalent transformations and correct the results, which are the main focus of this work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Design Overview</head><p>PET is the first framework to optimize tensor programs by exploiting partially equivalent transformations and correcting their results automatically. To realize this, PET leverages the multi-linearity of tensor programs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Multi-linear tensor programs (MLTPs).</head><p>We first define multi-linear tensor operators. An operator op with n input tensors I 1 , . . . , I n is multi-linear if op is linear to all inputs I k : consists of multi-linear tensor operators (e.g., matrix multiplication, convolution) and element-wise non-linear operators (e.g., ReLU <ref type="bibr" target="#b22">[23]</ref> and sigmoid). The linear operators consume the majority of the computation time, due to their high computational complexity. A program P is a multi-linear tensor program (MLTP) if all operators op ∈ P are multi-linear.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>PET overview.</head><p>Figure <ref type="figure" target="#fig_4">2</ref> shows an overview of PET. The input to PET is a tensor program to be optimized. Similar to prior work <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b33">34]</ref>, PET first splits an input program into smaller subprograms to reduce the exploration space of each subprogram without sacrificing performance improvement opportunities. For each subprogram, PET's mutation generator discovers partially equivalent transformations by generating possible mutants for MLTPs in the subprogram. Each mutant has the To maintain the end-to-end equivalence to an input program, PET's mutation corrector examines the equivalence between a mutant and its original MLTP, and automatically generates correction kernels to fix the outputs of the mutant. PET leverages rigorous theoretical foundations to simplify such challenging tasks ( §5).</p><p>The corrected mutants are sent to PET's program optimizer, which combines existing fully equivalent transformations with partially equivalent ones to construct a comprehensive search space of program optimizations. The optimizer evaluates a rich set of mutants for each subprogram and applies postoptimizations across their boundaries, in order to discover highly optimized candidates in the search space ( §6).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Mutation Generator</head><p>This section describes the mutation generator in PET, which takes an MLTP as input and automatically generates possible mutants to replace the input MLTP. The generation algorithm discovers valid mutants up to a certain size. Each generated mutant does not necessarily preserve mathematical equivalence to the input program on the entire output tensors. To restore functional equivalence, the mutation corrector ( §5) automatically generates correction kernels. if P and P 0 have the same input/output shapes then 9:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Mutation Generation Algorithm</head><formula xml:id="formula_0">M = M + {P } 10:</formula><p>if n &lt; depth then 11:</p><p>for op ∈ O do 12:</p><p>for i ∈ I and i is a valid input to op do</p><p>13: Add operator op into program P 14: Add the output tensors of op into I 15: BUILD(n + 1, P , I ) 16: Remove operator op from P 17: Remove the output tensors of op from I 18: return M sic building blocks. Table 1 lists the operators used in our evaluation. The list covers a variety of commonly used tensor operators, including compute-intensive operators (conv, matmul, etc.), element-wise operators (add, mul, etc.), and tensor manipulation (split, transpose, etc.). This set can also be extended to include new DNN operators. Algorithm 1 shows a depth-first search algorithm for constructing potential mutants of an MLTP P 0 . PET starts from an empty program with no operator and only the set of original input tensors to P 0 . PET iteratively adds a new operator to the current program P by enumerating the type of operator from O and the input tensors to the operator. The input tensors can be the initial input tensors to P 0 (i.e., I 0 in Algorithm 1) or the output tensors of previous operators. The depth-first search algorithm enumerates all potential MLTPs up to a certain size (called the mutation depth). For each mutant P , PET checks whether P and P 0 have the same number and shapes of inputs/outputs. P is a valid mutant if it passes this test.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Example Mutant Categories</head><p>While the above mutation generation algorithm is general enough to explore a sufficiently large design space, we emphasize that several mutant categories are of particular importance to PET and lead to mutants with improved performance. Note that PET does not rely on manually specified categories. Rather, these categories are discovered by PET automatically.</p><p>Reshape and transpose. It is widely known that the inmemory layouts of tensors play an important role in optimizing tensor programs <ref type="bibr" target="#b5">[6]</ref>. PET leverages the reshape and transpose operators to transform the shapes of input tensors and the linearization ordering of tensor dimensions to generate mutants with better performance. A reshape operator changes the shape of a tensor by decoupling a single dimen-sion into multiple ones or combining multiple dimensions into one. E.g., a reshape can transform a vector with four elements into a 2 × 2 matrix. A transpose operator modifies the linearization ordering of a tensor's dimensions, such as converting a row-major matrix to a column-major one.</p><p>Reshape and transpose are generally applied jointly to transform the tensor layouts. For example, Figure <ref type="figure" target="#fig_0">1</ref> shows a potential mutant of a convolution operator that concatenates two separate images (i.e., T 1 → T 3 in Figure <ref type="figure" target="#fig_12">1(b)</ref>) along the width dimension to improve the performance of convolution: typically a larger width exhibits more parallelism to be exploited on modern accelerators such as GPUs. This concatenation involves a combination of three reshape and transpose operators. First, a reshape operator splits the batch dimension of T 0 into an inner dimension that groups every two consecutive images, and an outer dimension that is half the size of the original. Then, a transpose operator moves the newly created inner dimension next to the width dimension and updates the tensor's linearization ordering accordingly, so each row of the two images in the same group is stored consecutively in memory. Finally, another reshape operator combines the two images.</p><p>The mutation generator usually fuses multiple consecutive reshape and transpose operators into a single compound operator, namely reshape &amp; transpose. This fusion reduces the size of the generated mutants and allows for exploring much larger and more sophisticated mutants.</p><p>Single-operator mutants. PET can also generate mutants that replace an inefficient operator in a tensor program with a different and more performant operator. Several standard tensor operators, such as convolution and matrix multiplication, have been extensively optimized either manually or automatically on modern hardware backends. In contrast, their variants, such as strided or dilated convolutions <ref type="bibr" target="#b19">[20]</ref>, are not as efficiently supported. There are performance-related benefits to mutating them into their standard counterparts with highly optimized kernels. As an example, Figure <ref type="figure" target="#fig_3">3</ref> shows a mutant that transforms a dilated convolution into a regular convolution by reorganizing the linearization ordering of the input tensor based on the given dilation. However, the mutant is not fully equivalent to the input program and requires corrections afterward to restore functional equivalence.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Multi-operator mutants.</head><p>PET also supports substituting a subgraph of multiple operators with another more efficient set of operators. For example, a few independent convolutions with similar tensor shapes may be combined into a single larger convolution to improve GPU utilization and reduce kernel launch overhead. This requires manipulating tensor shapes and adding proper padding (see the examples in §8.3.3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Mutation Corrector</head><p>While the mutants generated by PET have potentially higher performance than the original programs, they may produce different mathematical results on some regions of the output tensors, potentially leading to accuracy loss. To maintain transparency at the application level, PET chooses to preserve the statistical behavior of the input program and guarantees the same model accuracy, with the help of a mutation corrector. Specifically, the mutation corrector takes as inputs an MLTP P 0 and one of its mutants P , and automatically generates correction kernels that are applied to the output tensors of P to maintain functional equivalence to P 0 .</p><p>The goal of the mutation corrector is twofold. First, for any given MLTP and its mutant, the corrector analyzes the two programs and identifies all the regions of the output tensors on which the two programs provide identical results and therefore do not need any correction. Second, for the remaining regions where the two outputs are different, the corrector automatically generates kernels to fix the output of the mutant and preserve functional equivalence.</p><p>Designing the mutation corrector requires addressing two challenges. First, the output tensors may be very large, involving up to many millions of elements that all require equivalence verification. It is infeasible to verify every single element of the output tensors individually. Second, the verification of each output element may depend on a large number of input variables in many tensor operators. For example, each output element of a matrix multiplication is the inner product of one row and one column of the two input matrices, both with sizes up to several thousand. Numerically enumerating all possible values for this many input variables is impractical.</p><p>Two theorems that significantly simplify the verification tasks are central to the PET mutation corrector. Rather than verifying all output positions with respect to all input value combinations, PET only needs to verify a few representative output positions with a small number of randomly generated input values. This dramatically reduces the verification workload. We describe these theoretical foundations in §5.1 and introduce our mutation correction algorithm in §5.2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Theoretical Foundations</head><p>To simplify our analysis, we assume an input MLTP P 0 and its mutant P each has one output. Our results can be generalized to programs with multiple outputs by sequentially analyzing each one. Let P (I) denote the output tensor of running P on n input tensors I = (I 1 , ..., I n ). Let P (I)[ v] denote the output value at position v, and let I j [ u] denote the input value at position u of I j . With these definitions, the computation for a single output position of an MLTP P is represented as <ref type="formula" target="#formula_2">1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4</ref>T 1 W 1 T 2 <ref type="formula" target="#formula_2">1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   T 1   reshape &amp;  transpose   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4</ref>4 T 3 conv T 4 T 5 reshape &amp; transpose correction T 5 T 2 (a) Input program. <ref type="formula" target="#formula_2">1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4</ref>T 1 W 1 T 2 <ref type="formula" target="#formula_2">1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4</ref>T 1 <ref type="formula" target="#formula_2">1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4</ref>4 T 3 conv T 4 T 5 reshape &amp; transpose correction T 5 T 2 (b) A partially equivalent transformation. correction dilated conv <ref type="formula" target="#formula_2">1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4</ref>T 1 W 1 T 2 <ref type="formula" target="#formula_2">1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   1 2 1 2 1 2 1 2   3 4 3 4 3 4 3 4   T 1   reshape &amp;  transpose   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   1 1 1 1 2 2 2 2   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4 4   3 3 3 3 4 4 4</ref>4 T 3 conv T 4 T 5 reshape &amp; transpose T 5 T 2 (c) Correcting results. where R ( v) is the summation interval of v, which is iterated over when computing P (I) <ref type="bibr">[ v]</ref>, and u = L j ( v, r) is a linear mapping from ( v, r) to a position u of the j-th input tensor I j . For example, a convolution with a kernel size of 3 × 3 and zero padding is defined as</p><formula xml:id="formula_1">P (I 1 , ..., I n )[ v] = ∑ r∈R ( v) n ∏ j=1 I j [L j ( v, r)]</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>dilated conv</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>dilated conv</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>reshape &amp; transpose</head><formula xml:id="formula_2">conv(I 1 , I 2 )[c, h, w] = D-1 ∑ d=0 min(H-1-h,1) ∑ x=max(-1,-h) min(W -1-w,1) ∑ y=max(-1,-w) I 1 [d, h + x, w + y] × I 2 [d, c, x, y]<label>(1)</label></formula><p>where D, H, and W refer to the number of channels, height, and width of the input image I 1 , respectively. The numbers below and above the summation symbols respectively denote the lower and upper bounds of the summation interval. The two linear mappings can be represented as L 1 ( v, r) = (d, h + x, w + y) and L 2 ( v, r) = (d, c, x, y), where v = (c, h, w) and r = (d, x, y).</p><p>Different positions of an output tensor may have different summation intervals. For the convolution operator defined above, computing the top-left output position (i.e., h = 0, w = 0) only involves a 2 × 2 kernel (i.e., 0 ≤ x ≤ 1, 0 ≤ y ≤ 1) since that position does not have a left or top neighbor, as shown in Figure <ref type="figure">4</ref>. We group the output positions with an identical summation internal into a box. Formally, a box is a region of an output tensor whose elements all have the same summation internal. This convolution has nine boxes overall, which are depicted in Figure <ref type="figure">4</ref>.</p><p>All output positions in the same box have an identical summation internal and share similar mathematical properties, which are leveraged by PET when examining program equivalence. Instead of testing the equivalence of two MLTPs on all individual positions, PET only needs to verify their equivalence on m + 1 specific positions in each box, where m is the number of dimensions of the output tensor.</p><p>Theorem 1 For two MLTPs P 1 and P 2 with an m-dimension output tensor, let e 1 , . . . , e m be a set of m-dimension base vec-</p><formula xml:id="formula_3">conv 0 ≤ x ≤ 1 -1 ≤ y ≤ 0 -1 ≤ x ≤ 1 -1 ≤ y ≤ 0 -1 ≤ x ≤ 0 -1 ≤ y ≤ 0 0 ≤ x ≤ 1 0 ≤ y ≤ 1 -1 ≤ x ≤ 1 0 ≤ y ≤ 1 -1 ≤ x ≤ 0 0 ≤ y ≤ 1 0 ≤ x ≤ 1 -1 ≤ y ≤ 1 -1 ≤ x ≤ 1 -1 ≤ y ≤ 1 -1 ≤ x ≤ 0 -1 ≤ y ≤ 1 Input Weight x = -1 x = 0 x = -1 y = -1 y = 0 y = 1</formula><p>Figure <ref type="figure">4</ref>: The nine boxes of a convolution with a 3 × 3 kernel and zero padding, as well as their summation intervals. A convolution has three summation dimensions (i.e., d, x, and y in Equation ( <ref type="formula" target="#formula_2">1</ref>)). The channel dimension (i.e., d) has the same internal in all boxes and is thus omitted.</p><p>tors. That is, e i = (0, . . . , 0, 1, 0, . . . , 0) is an m-tuple with all coordinates equal to 0 except the i-th.</p><p>Let B be a box for P 1 and P 2 , and let v 0 be an arbitrary position in B.</p><formula xml:id="formula_4">Define v j = v 0 + e j , 1 ≤ j ≤ m. If ∀I, 0 ≤ i ≤ m, P 1 (I)[ v i ] = P 2 (I)[ v i ], then ∀I, v ∈ B, P 1 (I)[ v] = P 2 (I)[ v].</formula><p>Proof sketch. The proof uses a lemma whereby if P 1 and P 2 are equivalent for positions v 0 and v 0 + e i , then the equivalence holds for v 0 + k • e i , where k is an integer. We prove this lemma by comparing the coefficient matrices of P 1 and P 2 with respect to the input variables. Using this lemma, we show that P 1 and P 2 are equivalent for the entire box B, since any v ∈ B can be decomposed to a linear combination of v 0 and e 0 , . . . , e m .</p><p>Theorem 1 shows that, if P 1 and P 2 are equivalent for m + 1 specific positions in a box, identified by v 0 , ..., v m , then the equivalence holds for all other positions in the same box. This theorem significantly reduces the verification workload:</p><p>Table 2: Reducing verification workload in PET.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Output positions Input combinations</head><p>Original all all + Theorem 1 a few positions all + Theorem 2 a few positions a few random inputs instead of examining all positions of an output tensor, PET only needs to verify m + 1 specific positions in each box. The verification of a single position remains challenging, nevertheless, as each MLTP generally involves a large number of input variables. Proving the equivalence of two MLTPs requires examining all possible combinations of value assignments to these input variables. We further address this challenge using the following theorem. Proof sketch. This is a corollary of the Schwartz-Zippel Lemma <ref type="bibr" target="#b27">[28,</ref><ref type="bibr" target="#b34">35]</ref>.</p><p>Theorem 2 shows that if two MLTPs with n inputs are not equivalent on a specific position v, then the probability that they produce an identical result on this position with a random input sampled from a finite field F is low (i.e., at most n p , where p is the number of possible values in F). This theorem shows the sufficiency and effectiveness of random testing for examining the equivalence of two MLTPs.</p><p>Theorem 2 relies on the fact that F is a finite field, from which the random inputs are sampled, but MLTPs operate on the infinite field of real numbers. To apply Theorem 2, we choose F to be a field of integers modulo p, where p is a large prime number (p = 2 31 -1 in our evaluation). The arithmetic operations in random testing are performed on integers and calculated modulo the prime number p. Working with a finite field provides another desirable property that applying arithmetic operators does not involve integer overflow.</p><p>By combining Theorems 1 and 2, PET reduces the original verification task of examining all output positions with respect to all input value combinations to a much more lightweight task that only requires testing a few representative positions using several randomly generated inputs, as shown in Table <ref type="table">2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Mutation Correction Algorithm</head><p>The PET mutation correction algorithm exploits the theorems in §5.1 to calculate which regions of the output tensors in a mutant are not equivalent to the input MLTP and, therefore, need additional correction. In particular, it suffices to examine the equivalence for each pair of overlapped boxes from the two  MLTPs, using a small number of random tests. The overall algorithm works in the following three steps.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Step 1: Box propagation.</head><p>First, we calculate the boxes of a given MLTP through box propagation. The idea of box propagation is similar to forward and backward propagation in deep learning: we compute the boxes of an operator's output tensors based on the boxes of its inputs, and the computation is conducted following the operator dependencies in a program. We maintain a set of split points for each dimension of a tensor to identify the boundaries of its boxes. For a multi-linear operator, we infer the split points of its output tensors based on the split points of its input tensors and the operator type and hyper-parameters. Figure <ref type="figure" target="#fig_6">5</ref> shows the box propagation procedure for the mutation example in Figure <ref type="figure" target="#fig_0">1</ref>.</p><p>Step 2: Random testing for each box pair. After obtaining all boxes of an input MLTP P 1 and its mutant P 2 , PET leverages the theorems in §5.1 to examine the intersected regions of each pair of boxes from P 1 and P 2 . If two boxes do not have any overlapped region, they can be skipped. For each box intersection, PET examines the equivalence of the two programs on m + 1 positions identified by Theorem 1, where m is the number of output tensor dimensions (e.g., m = 4 in Figure <ref type="figure" target="#fig_6">5</ref>, since the output of a convolution has four dimensions).</p><p>For each of these m + 1 positions, PET runs a set of random tests by assigning input tensors with values uniformly sampled from a finite field F containing all integers between 0 and p -1, where p = 2 31 -1 is a prime number. As a result, the probability that two non-equivalent MLTPs produce identical outputs on a random input is at most n p , where n is the number of inputs to the MLTPs. Finally, two non-equivalent MLTPs pass all tests with a probability lower than ( n p ) t , where t is the number of test cases and a hyper-parameter in PET that serves as a tradeoff between the speed of the corrector and the error probability that non-equivalent MLTPs pass all random tests.</p><p>Our approach introduces an extremely small and controllable probability of error that we have to tolerate. That is, non-equivalent programs may pass random testing with probability ( n p ) t . We argue that this is an example of how random testing can enable a tradeoff between the cost of program verification and a small probability of unsoundness for verifying tensor program transformations.</p><p>To further reduce the verification workload, PET includes a caching optimization: the tests for all boxes share the same set of random inputs, and PET caches and reuses all intermediate results to avoid redundant computations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Step 3: Correction kernel generation.</head><p>For each box failing the random tests, PET generates correction kernels to fix its outputs and restore the mathematical equivalence between the original MLTP and its mutant. To fix the outputs, the correction kernel performs the same set of operations as the original MLTP but only on those boxes where the two input programs are not equivalent (shown as the red shaded boxes in Figure <ref type="figure" target="#fig_0">1</ref>). These boxes are regular cubes in the multi-dimensional space and can be viewed as sub-tensors of the original ones but with much smaller sizes. Therefore, PET directly leverages existing DNN libraries <ref type="bibr" target="#b7">[8,</ref><ref type="bibr" target="#b9">10]</ref> or kernel generation techniques <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b33">34]</ref> to generate correction kernels. To reduce the correction overhead, PET opportunistically fuses the correction kernels with existing tensor operators ( §5.3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Fusing Correction Kernels</head><p>Correction kernels may introduce non-trivial overheads due to the cost of launching the correction kernels and their limited degrees of parallelism. For example, some correction kernels may have similar execution time compared to the corresponding full-size tensor operators. This may eliminate the performance gains from applying partially equivalent transformations. To reduce the correction overhead, PET opportunistically fuses correction kernels with other tensor operators.</p><p>For example, Figure <ref type="figure" target="#fig_7">6</ref>(b) shows the tensor program after applying the partially equivalent transformation in Figure <ref type="figure" target="#fig_0">1</ref>. Conv-2 is the correction kernel for fixing the output of Conv-1. Since the two convolution operators share the same weights (i.e., W 1 ), PET fuses them into a single convolution, shown as Conv-1-2 in Figure <ref type="figure" target="#fig_7">6(c</ref>). This fusion requires concatenating T 1 and T 0 into a single tensor and splitting the output of Conv-1-2 into T 2 and T 3 . The concatenation and split only involve direct memory copies and can be fused with the reshape and transpose operators.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Program Optimizer</head><p>In this section, we describe the program optimizer in PET, which explores a large search space of program optimizations, combining fully and partially equivalent transformations, and quickly discovers highly optimized programs. The program optimizer first splits an input program into multiple subprograms with smaller sizes to allow efficient mutation generation ( §6.1). Second, to optimize each individual subprogram, PET searches for the best mutants in a rich candidate space by varying both the subsets of operators to mutate together and the number of iterative rounds of mutation ( §6.2). Finally, when stitching the optimized subprograms back together, PET applies additional post-optimizations across the boundaries of the subprograms, including redundancy elimination and operator fusion ( §6.3). The overall program optimization algorithm is summarized in Algorithm 2. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">Program Splitting</head><p>The complexity of the mutation generation grows rapidly with the input program size, as explained in §4. It is nearly im-possible to directly mutate a large tensor program with many hundreds of operators. Instead, PET splits an input program into multiple disjoint subprograms with smaller sizes.</p><p>It is crucial to properly select the split points for an input program, to effectively reduce the mutation complexity while still preserving most program optimization opportunities. More split points lead to smaller subprograms with fewer mutant candidates to be explored. As an extreme case, by constraining each subprogram to have only a small constant number of operators, the overall complexity scales linearly with the program size, rather than the naive exponential trend. However, an overly aggressive split may result in locally optimized mutants that are limited within subprograms, missing optimization opportunities across subprogram boundaries.</p><p>We use non-linear operators in tensor programs as the split points. First, non-linear operators such as the activation layers in DNNs are widely used in tensor programs. Typically, each one or a few linear operators are followed by a non-linear activation (e.g., ReLU or sigmoid). This effectively limits the split subprograms to the small sizes we expect. Second, as §5 explains, PET's mutation only applies to MLTPs; any nonlinear operators must be excluded from the mutation. This makes splitting at the points of non-linear operators a natural choice for the partially equivalent mutation in PET. Third, our design is also motivated by an observation that most existing tensor program transformations <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b5">6,</ref><ref type="bibr" target="#b14">15]</ref> also do not include non-linear operators in their substitution patterns (except for fusion, which we handle in §6.3).</p><p>PET further adjusts the subprogram sizes after splitting an input program at the non-linear operators. For multiple individual subprograms without any data dependency, PET considers the possibility of combining them into a single subprogram using grouped or batched operators. Examples include fusing the standard convolutions on different branches of an Inception network <ref type="bibr" target="#b30">[31]</ref> into a grouped convolution, as shown in Figure <ref type="figure" target="#fig_12">10</ref>. On the other hand, if a subprogram is still too large, PET will only query the mutation generator with a subset of operators each time (see §6.2). using a cost model adapted from TASO [15]. The cost model measures the execution time of each tensor operator once for each configuration (e.g., different strides and padding of a convolution), and estimates the performance of a new program candidate P new by summing up the measured execution time of its operators. The top-K program candidates with the best performance thus far are kept in H .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">Subprogram Optimization</head><p>To explore a sufficiently large space of possible mutants for each subprogram within reasonable time and space cost, we manage the mutation process with several key features. First, when the number of operators in a subprogram exceeds a threshold d (our evaluation uses d = 4), PET breaks the subprogram into smaller subsets of operators by enumerating all possible combinations with up to d operators, and only queries the mutation generator on the subset, while keeping the remaining operators unchanged (Algorithm 2 Line 26). Second, we allow iterative mutation on a subprogram for up to r rounds (Algorithm 2 Line 23), which significantly enlarges the search space of possible mutants and allows PET to discover more optimized mutants. All generated mutants in all rounds are returned to the optimizer as potential candidates.</p><p>It is worth noting that PET's optimizer is compatible with and can incorporate existing fully equivalent transformations <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b14">15]</ref> besides PET's mutations. Doing so merely requires enhancing the mutation generator to explore and return fully equivalent transformations as well, which are directly applicable to the input subprograms in the same way as the mutations. By combining fully and partially equivalent transformations, PET explores a significantly larger search space of program optimizations and discovers highly optimized programs that existing optimizers miss.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3">Post-Optimizations</head><p>Finally, the optimized mutants for all subprograms need to be stitched together. In addition to connecting their input and output tensors, we also perform several post-optimizations across the subprogram boundaries to further improve the overall performance. We observe that the mutation generator in PET introduces a large number of reshape and transpose (R/T) operators, especially at the beginning and the end of each subprogram. There are opportunities to fuse these R/T operators across subprograms and further fuse the non-linear operators that are excluded from the above subprogram optimizations. Figure <ref type="figure" target="#fig_9">7</ref> shows an example with two optimized subprograms. To optimize the boundaries between subprograms, PET first groups together all R/T operators between subprograms by reordering the R/T operators with element-wise non-linear activations (e.g., ReLU and sigmoid), as shown in Figure <ref type="figure" target="#fig_9">7(b)</ref>. This reordering is functionally correct, since both reshape and transpose are commutative with element-wise operators. The reordering also allows PET to fuse the non-linear activations with other linear operators, such as fusing a Conv and a subsequent ReLU into a Conv-ReLU, as shown in Figure <ref type="figure" target="#fig_9">7(c</ref>). We then apply the following three post-optimizations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Inverses elimination.</head><p>We eliminate any pairs of R/T operators that can cancel out each other and therefore are equivalent to a no-op. We call each such pair an inverse group and directly remove them as part of the post-optimization. An example of an inverse group is R/T-E and R/T-G in Figure <ref type="figure" target="#fig_9">7(b)</ref>.</p><p>Operator fusion. As shown in Figure <ref type="figure" target="#fig_9">7</ref>(c), PET fuses the remaining consecutive R/T operators into a single operator (e.g., R/T-DH) to reduce the kernel launch cost. The non-linear activations in a tensor program are also fused with an R/T or with other linear operators. Note that operator fusion is the most commonly used, if not the only, program optimization for non-linear operators. PET is able to recover most of the efficiency that was lost when splitting the tensor program.</p><p>Preprocessing. We preprocess any operator if all its input tensors are statically known. For example, in Figure <ref type="figure" target="#fig_9">7(b)</ref>, both R/T-B and R/T-I can be preprocessed on the convolution weight tensors w 1 and w 2 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Implementation</head><p>PET is implemented as an end-to-end tensor program optimization framework, with about 13,000 lines of C++ code and 1,000 lines of Python code. This section describes our implementation of the PET mutation generator and corrector.</p><p>Mutation operators. Table <ref type="table" target="#tab_0">1</ref> lists the tensor operators included in the current implementation of PET. We use cuDNN <ref type="bibr" target="#b7">[8]</ref> and cuBLAS <ref type="bibr" target="#b9">[10]</ref> as our backend operator libraries. PET can also be extended to include other libraries, such as TVM <ref type="bibr" target="#b5">[6]</ref> and Ansor <ref type="bibr" target="#b33">[34]</ref>. In our evaluation, we demonstrate this extensibility on TVM and Ansor, and show that they can directly benefit from PET's partially equivalent opti-mizations and automated corrections.</p><p>Reshape and transpose are two frequently used operators in partially equivalent transformations. Our implementation includes a series of optimizations on them, including eliminating inverse groups of R/T operators and fusing consecutive R/T operators, as described in §6.3. Since both reshape and transpose are multi-linear operators, PET directly uses the random testing method introduced in §5 to examine whether a sequence of R/T operators forms an inverse group and therefore can be eliminated.</p><p>Correction kernels. §5.2 describes a generic approach to generate correction kernels by directly running the original program on the positions with incorrect results. To reduce the correction overhead, PET fuses the correction kernels with other tensor operators, as described in §5.3. The correction kernel fusion introduces additional memory copies, which are also fused with the R/T operators during post-optimizations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Evaluation</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.1">Experimental Setup</head><p>Platforms. We use a server equipped with two-socket, 28core Intel Xeon E5-2680 v4 processors (hyper-thread enabled), 256 GB of DRAM, and one NVIDIA Tesla V100 GPU. All experiments use CUDA 10.2 and cuDNN 7.6.5 except for those with TVM and Ansor, which directly use the best kernels generated by these backends.</p><p>PET preserves an end-to-end equivalence between the original and optimized programs, same as all the baselines. PET takes ONNX models as input. TensorRT and TASO directly support the ONNX format. For TensorFlow and TensorFlow-XLA, we use the onnx-tensorflow tool <ref type="bibr" target="#b24">[25]</ref> for format conversion.</p><p>Workloads. We use five DNN architectures. Resnet-18 <ref type="bibr" target="#b13">[14]</ref> is a widely used convolutional network for image classification. CSRNet <ref type="bibr" target="#b19">[20]</ref> is a dilated convolutional network used for semantic segmentation. Its sampling rate can be arbitrarily adjusted to enlarge the receptive field for higher accuracy. Inception-v3 <ref type="bibr" target="#b30">[31]</ref> is an improved version of GoogLeNet <ref type="bibr" target="#b29">[30]</ref> with carefully designed Inception modules to improve accuracy and computational efficiency. BERT <ref type="bibr" target="#b11">[12]</ref> is a language representation architecture that obtains state-of-the-art accuracy on a wide range of natural language tasks. Resnet3D-18 <ref type="bibr" target="#b12">[13]</ref> is a 3D convolutional network for video processing.</p><p>Unless otherwise stated, in all experiments, we use CUDA events to measure the elapsed time from launching the first CUDA kernel in a tensor program to receiving the completion notification of the last kernel. We set the default mutation generation depth to 4 (i.e., depth = 4 in Algorithm 1) and the search rounds to 4 (i.e., r = 4 in Algorithm 2). We further evaluate the scalability of the mutation generator and the program optimizer in §8.5. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.2">End-to-End Evaluation</head><p>We first compare the end-to-end inference performance between PET and existing tensor program optimizers, including TensorFlow <ref type="bibr" target="#b2">[3]</ref>, TensorFlow XLA <ref type="bibr" target="#b0">[1]</ref>, TensorRT <ref type="bibr" target="#b31">[32]</ref>, and TASO <ref type="bibr" target="#b14">[15]</ref>. Figure <ref type="figure" target="#fig_10">8</ref> shows the results under batch sizes of 1 and 16. To eliminate the impact of using different operator libraries, all optimizers use the same cuDNN <ref type="bibr" target="#b7">[8]</ref> and cuBLAS <ref type="bibr" target="#b9">[10]</ref> libraries as the backend. Therefore, the performance differences only come from different optimized tensor programs produced by PET and the baselines. §8.4 further evaluates PET with existing kernel generation techniques, such as TVM <ref type="bibr" target="#b5">[6]</ref> and Ansor <ref type="bibr" target="#b33">[34]</ref>. Among the five DNN architectures, Resnet-18 and Resnet3D-18 are commonly used and heavily optimized in existing DNN frameworks. However, PET is still able to improve their performance by up to 1.21× and 1.28×, respectively, by discovering new partially equivalent transformations not considered by existing optimizers. For Resnet-18, CSRNet, and Inception-v3, PET achieves higher speedups with a batch size of 16. This is because a larger batch size offers more mutation opportunities across different tensor dimensions for PET to exploit. Overall, PET outperforms existing DNN frameworks by up to 2.5×.</p><p>To further evaluate the partially equivalent transformations discovered by PET, we manually add them and corresponding correction kernels as additional graph substitutions into TASO, and measure by how much these new transformations improve TASO's performance. As shown in Figure <ref type="figure" target="#fig_11">9</ref>, the enhanced version of TASO further improves the inference performance of Inception-v3 and BERT by 1.12× and 1.31×, respectively. This demonstrates that partially equivalent transformations indeed enlarge the design space of graph transformations, and PET unleashes these benefits automatically. Some non-trivial partially equivalent transformations are not leveraged by TASO, due to substantial correction overhead, while PET is able to avoid this overhead through correction kernel fusion ( §5.3) and post-optimization ( §6.3).  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3">Case Studies</head><p>To understand how partially equivalent transformations discovered by PET optimize DNN computation, we study four optimization categories in detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3.1">Tensor-Level Optimization</head><p>PET discovers many partially equivalent transformations that improve DNN computation by optimizing the shapes or linearization of tensors. We evaluate a convolution operator in Inception-v3, whose configuration is depicted in Table <ref type="table" target="#tab_1">3</ref> conv.</p><p>PET transforms the input tensor shape from <ref type="bibr" target="#b0">[1,</ref><ref type="bibr">48,</ref><ref type="bibr">38,</ref><ref type="bibr">38]</ref> to <ref type="bibr" target="#b15">[16,</ref><ref type="bibr">48,</ref><ref type="bibr" target="#b9">10,</ref><ref type="bibr" target="#b9">10]</ref> by splitting both the height and width dimensions each into four partitions. IGEMM and FFT are the most efficient convolution algorithms before and after the optimization, respectively. Using the transformed input tensor Table <ref type="table">4</ref>: Case studies on the performance of the conv and dilatedconv operators in Table <ref type="table" target="#tab_1">3</ref>. IGEMM, FFT, and WINO refer to implicit GEMM, Fast Fourier Transform, and Winograd convolution algorithms, respectively. For conv, the optimized program transforms the input tensor shape from <ref type="bibr" target="#b0">[1,</ref><ref type="bibr">48,</ref><ref type="bibr">38,</ref><ref type="bibr">38]</ref> to <ref type="bibr" target="#b15">[16,</ref><ref type="bibr">48,</ref><ref type="bibr" target="#b9">10,</ref><ref type="bibr" target="#b9">10]</ref>. For dilatedconv, the optimized program replaces the dilatedconv with a regular convolution with the same input and kernel sizes.</p><p>Algo Time (us) # GPU DRAM # GPU L2 FLOP conv Original IGEMM 90 1.51 × 10 4 2.80 × 10 6 2.26 × 10 8 FFT 352 1.06 × 10 8 1.15 × 10 8 8.75 × 10 7 Optimized IGEMM 90 1.52 × 10 4 1.46 × 10 6 2.46 × 10 8 FFT 51 1.09 × 10 6 7.44 × 10 6 1.26 × 10 8 dilated conv Original IGEMM 153 1.06 × 10 5 2.46 × 10 6 1.32 × 10 8 WINO N/A N/A N/A N/A Optimized IGEMM 153 8.54 × 10 4 1.80 × 10 6 1.32 × 10 8 WINO 79 2.23 × 10 6 6.36 × 10 6 7.20 × 10 7</p><p>reduces the GPU DRAM and L2 accesses by 100× and 15×, respectively, and thus reduces the run time by 7× (Table <ref type="table">4</ref>).</p><p>As another example of tensor-level optimization, for conv with a stride size larger than 1 (i.e., the output tensor is a down-sample of the input tensor), PET can reorganize the linearization of the tensors and reduce the stride size to 1, which improves the computation locality.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3.2">Operator-Level Optimization</head><p>For operators with less efficient implementations on specific hardware backends, PET can opportunistically replace them with semantically similar ones with more optimized implementations. We study the performance of a dilated convolution in CSRNet <ref type="bibr" target="#b19">[20]</ref>, whose configuration is shown in Table <ref type="table" target="#tab_1">3</ref> dilatedconv. PET replaces it with a regular convolution operator (as shown in Figure <ref type="figure" target="#fig_3">3</ref>) to enable more efficient algorithms on GPUs such as Winograd <ref type="bibr" target="#b16">[17]</ref>. This reduces the execution time by 1.94× (Table <ref type="table">4</ref>).</p><p>Other examples of operator-level optimizations include replacing a batch matrix multiplication with a standard matrix multiplication, a group convolution with a convolution, and an average pooling with a group convolution or a convolution if the replacement leads to improved performance, even when including the correction cost.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3.3">Graph-Level Optimization</head><p>PET also discovers graph-level optimizations. Figure <ref type="figure" target="#fig_12">10</ref> shows two graph transformations discovered by PET to optimize Inception-v3 <ref type="bibr" target="#b30">[31]</ref>. For two parallel conv operators with different numbers of output channels, Figure <ref type="figure" target="#fig_12">10(a)</ref> shows a non-equivalent transformation that fuses the two conv operators into a groupconv by padding W 2 with zeros, so that the output of pad has the same shape as W 1 . The correction splits and discards the zeros tensor at the end (shown in red). conv conv O 1 [n,f,h,w] O 2 [n,2f,h,w] I 1 [n,c,h,w] W 1 [f,c,r,s] I 2 [n,c,h,w] W 2 [2f,c,r,s] O 1 [n,f,h,w] O 2 [n,2f,h,w] concat(axis=1) concat(axis=0) group conv (#g=3) split(axis=1) mutation I 1 [n,c,h,w] W 1 [f 1 ,c,r,s] I 2 [n,c,h,w] W 2 [f 2 ,c,r,s] conv conv O 1 [n,f 1 ,h,w] O 2 [n,f 2 ,h,w] W 2 [f 2 ,c,r,s] O 1 [n,f 1 ,h,w] O 2 [n,f 2 ,h,w] pad W 2 [f 1 ,c,h,w] concat(axis=1) concat(axis=0) group conv (#g=2) split (axis=1) zeros mutation I 1 [n,c,h,w] W 1 [f 1 ,c,r,s] I 2 [n,c,h,w] (a) I 1 [n,c,h,w] W 1 [f,c,r,s] I 2 [n,c,h,w] W 2 [2f,c,r,s] conv conv O 1 [n,f,h,w] O 2 [n,2f,h,w] I 1 [n,c,h,w] W 1 [f,c,r,s] I 2 [n,c,h,w] W 2 [2f,c,r,s] O 1 [n,f,h,w] O 2 [n,2f,h,w] concat(axis=1) concat(axis=0) group conv (#g=3) split(axis=1) mutation I 1 [n,c,h,w] W 1 [f 1 ,c,r,s] conv O 1 [n,f 1 ,h,w] O 1 [n,f 1 ,h,w] O 2 [n,f 2 concat(axis=1) group conv (#g=2) split (axis=1) muta I 1 [n,c,h,w] W 1 [f 1 ,c,r,s]</p><p>Figure <ref type="figure" target="#fig_12">10</ref>: Mutants discovered by PET for Inception-v3. axis denotes the dimension on which to perform concat and split.</p><p>PET also discovers fully equivalent transformations that are missed by existing frameworks. The mutation corrector can successfully verify the equivalence for all output elements, in which case no correction is needed. Figure <ref type="figure" target="#fig_12">10(b)</ref> shows a new equivalent transformation discovered by PET that optimizes two conv operators by duplicating the input tensors (i.e., I 1 and I 2 ) and fusing the two conv operators into a groupconv. Note that Figure <ref type="figure" target="#fig_12">10</ref> shows two different mutants of the same input program. PET's program optimizer can automatically select a more efficient one based on the performance of these mutants on specific devices.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3.4">Kernel Fusion</head><p>We use CSRNet <ref type="bibr" target="#b19">[20]</ref> as an example to study the effectiveness of PET's kernel fusion optimization. Figure <ref type="figure" target="#fig_12">11(a)</ref> and <ref type="bibr">Figure 11(b)</ref> show the original and optimized model architectures of CSRNet. The numbers in each operator denote the input tensor shape. To demonstrate the correction kernel fusion and post-optimization in PET, Figure <ref type="figure" target="#fig_12">11(c)</ref> shows the subprogram of a single dilated convolution before postoptimization, which contains three correction kernels and six R/T (i.e., reshape and transpose) operators. These correction kernels are fused with Conv-4, as described in §5.3. In addition, the multiple R/T operators between convolutions are fused into a single one during post-optimization ( §6.3).</p><p>Fusing correction kernels and R/T operators is critical to PET's performance. In an ablation study, disabling kernel fusion in PET decreases the performance of the final program by 2.9×, making it even slower than the original one.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.4">TVM and Ansor</head><p>PET improves tensor computations by generating and correcting partially equivalent transformations and is therefore orthogonal to and can potentially be combined with recent kernel generation techniques, such as TVM <ref type="bibr" target="#b5">[6]</ref> and Ansor <ref type="bibr" target="#b33">[34]</ref>.</p><p>We evaluate PET on TVM and Ansor with a set of commonly used DNN operators, including conv, dilatedconv,</p><p>T 0 DilatedConv-1 [1,512,14,14] ReLU-1 DilatedConv-2 [1,512,14,14] ReLU-2 DilatedConv-3 [1,512,14,14] ReLU-3 DilatedConv-4 [1,512,14,14] ReLU-4 DilatedConv-5 [1,256,14,14] ReLU-5 DilatedConv-6 [1,128,14,14] ReLU-6 T 6 (a) CSRNet before optimization. T 0 Fused R/T-0 Conv-ReLU-1 [2,512,7,15] Fused R/T-1 Conv-ReLU-2 [2,512,7,15] Fused R/T-2 Conv-ReLU-3 [2,512,7,15] Fused R/T-3 Conv-ReLU-4 [2,512,7,15] Fused R/T-4 Conv-ReLU-5 [4,256,7,7] Fused R/T-5 Conv-ReLU-6 [4,128,7,7] Fused R/T-6 T 6 (c) (d) (b) CSRNet after optimization. Correction kernels R/T-A Conv-4 [2,512,7,14] R/T-F DilatedConv-C [1,512,14,5] T 3 T 4 R/T-B R/T-E DilatedConv-B [1,512,5,14] R/T-D Conv-A [1,512,3,14] R/T-C T E T F ReLU-3 T D (c) DilatedConv-4's subprogram after subprogram optimization but before post-optimization. R/T-D R/T-E R/T-F T E [1,256,14,14] T F [1,256,14,14] T 4 [1,256,14,14] R/T-G T G [1,256,14,14] R/T-H T H [2,256,7,14] R/T-I T I [4,256,7,7] T D [1,256,7,15]  conv dilatedconv groupconv batchmatmul 0x 1x 2x 3x 4x 5x 6x Speedup over cuDNN/cuBLAS cuDNN/cuBLAS cuDNN/cuBLAS w/ PET TVM TVM w/ PET Ansor Ansor w/ PET Figure 12: Performance comparison of PET on the cuDNN/cuBLAS, TVM, and Ansor backends. The performance is normalized to cuDNN/cuBLAS without PET.</p><p>groupconv, and batchmatmul, which are obtained from Resnet-18, CSRNet, Inception-v3, and BERT, respectively. Their shape configurations are listed in Table <ref type="table" target="#tab_1">3</ref>. To generate kernels for potential mutants during the search, we allow TVM and Ansor to run 1024 trials and use the best discovered kernels to measure the cost of the mutants.</p><p>As Figure <ref type="figure" target="#fig_1">12</ref> shows, when combining PET with TVM and Ansor, PET can improve the performance of the evaluated operators by up to 1.23× and 1.21×, respectively, compared to directly generating kernels for these operators. Beyond such simple combinations, joint optimization of PET and existing kernel generation techniques would uncover more benefits, which we leave as future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.5">Ablation and Sensitivity Studies</head><p>The key insight of PET is to explore partially equivalent program mutants, while state-of-the-art frameworks only capture fully equivalent transformations <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b33">34]</ref>. We run several variants of PET to evaluate the benefits of considering either fully or partially equivalent program transformations, or both of them, as PET does. Figure <ref type="figure" target="#fig_15">13</ref> shows the results. When restricting PET to consider only equivalent transformations, it achieves similar performance gains as previous work such as</p><p>Resnet-18 CSRNet Inception-v3 BERT Resnet3D-18 0.0x 0.5x 1.0x 1.5x 2.0x 2.5x Relative speedup W/o Opt. Equivalent Opt. Non-equivalent Opt. Joint Opt. 1 2 3 4 5 depth 0.95x 1.00x 1.05x 1.10x 1.15x 1.20x 1.25x Resnet-18 1 2 3 4 5 depth 0.8x 1.0x 1.2x 1.4x 1.6x 1.8x 2.0x 2.2x 2.4x CSRNet rounds=2 rounds=3 rounds=4 Relative speedup TASO. Partially equivalent transformations, by themselves, enable noticeable benefits but also miss significant potential. Finally, PET achieves the highest performance by jointly considering both fully and partially equivalent transformations. Finally, PET relies on several heuristic parameters to balance the search time and the resultant program performance. The mutation depth in Algorithm 1 limits the maximum number of operators in a program mutant; the mutation round in Algorithm 2 specifies the maximum number of iterations to apply mutations. Larger values of these thresholds allow larger design spaces of potential mutants but also require more time to search. Figure <ref type="figure" target="#fig_16">14</ref> compares the performance of the optimized programs under different searching depths and rounds for Resnet-18 and CSRNet. The performance gains keep increasing with larger rounds values for Resnet-18, due to the generation of more optimized mutants, while for CSR-Net, the performance improvement mainly comes from larger mutation depth. On the other hand, increasing the mutation depth from two to three improves the performance for both models significantly, since many mutations PET finds are subprograms with three operators. In summary, the key takeaway is that PET has only moderately high search complexity yet achieves significant performance gains.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.6">Searching Time</head><p>PET uses a program optimizer to explore the search space of possible mutants and discover highly optimized candidates. Typically, it takes under 3 minutes (89 seconds, 88 seconds, 91 seconds, and 165 seconds on Resnet-18, CSRNet, BERT, and Resnet3D-18, respectively) for PET to find highly optimized program mutants with a batch size of 1. However, PET spends about 25 minutes optimizing Inception-v3, due to the multiple branches in the Inception modules <ref type="bibr" target="#b30">[31]</ref>. Although their search spaces are not directly comparable, PET's search time is on par with state-of-the-art DNN optimization frameworks such as TASO <ref type="bibr" target="#b14">[15]</ref> and Ansor <ref type="bibr" target="#b33">[34]</ref>, and is acceptable because it is a one-time cost before stable deployment. We leave any further search optimizations, such as aggressive pruning and parallelization, to future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9">Related work</head><p>Graph-level optimizations. TensorFlow <ref type="bibr" target="#b2">[3]</ref>, TensorRT <ref type="bibr" target="#b31">[32]</ref>, TVM <ref type="bibr" target="#b5">[6]</ref>, and MetaFlow <ref type="bibr" target="#b15">[16]</ref> optimize tensor programs by applying substitutions that are manually designed by domain experts. TASO <ref type="bibr" target="#b14">[15]</ref> generates graph substitutions automatically from basic operator properties, which significantly enlarges search space and reduces human effects. The key difference between PET and these frameworks is that PET can generate and correct partially equivalent transformations, enabling a significantly larger space of program optimizations. Program mutation is a program testing technique designed to evaluate the quality of existing test cases <ref type="bibr" target="#b10">[11]</ref>. By randomly mutating the input program and running the generated mutants on existing test cases, the technique can quickly estimate the coverage of these test cases. PET generates mutants for a different purpose. Instead of testing an input tensor program, the mutants generated by PET are used for performance optimizations on the program. Code generation. Halide <ref type="bibr" target="#b26">[27]</ref> is a programming language designed for high-performance tensor computing, and several works are proposed based on its scheduling model <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b18">19,</ref><ref type="bibr" target="#b21">22]</ref>. TVM <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b6">7]</ref> uses a similar scheduling language and a learningbased approach to generate highly optimized code for dif-ferent hardware backends. Ansor <ref type="bibr" target="#b33">[34]</ref> explores larger search spaces than TVM and finds better optimized kernels. Ten-sorComprehensions <ref type="bibr" target="#b32">[33]</ref> and Tiramisu <ref type="bibr" target="#b4">[5]</ref> use polyhedral compilation models to solve code generation problems in deep learning. As shown in §8.4, PET's program-level optimizations are orthogonal and can be combined with these code generation techniques. Data layout optimization. NeoCPU <ref type="bibr" target="#b20">[21]</ref> optimizes CNN models by changing the data layout and eliminating unnecessary layout transformations on CPUs, while Li et al. <ref type="bibr" target="#b17">[18]</ref> explore the memory efficiency for CNNs on GPUs. Chou et al. <ref type="bibr" target="#b8">[9]</ref> introduce a language to describe the different sparse tensor formats and automatically generate code for converting data layouts. Many transformations discovered by PET also involve layout conversions. However, the key differences between PET and prior work are that PET considers more complicated layouts and combines tensor layout optimizations with operator-and graph-level optimizations. AutoML. Recent work has proposed approaches to search for accurate neural architectures by iteratively proposing modifications to the models' architectures and accepting proposals with the highest accuracy gain. Examples include automatic statistician <ref type="bibr" target="#b28">[29]</ref> and TPOT <ref type="bibr" target="#b23">[24]</ref>. These approaches apply nonequivalent transformations to a model architecture and rely on expensive retraining steps to evaluate how each transformation affects model accuracy. On the contrary, PET leverages performance optimizations in non-equivalent transformations and applies automated corrections to preserve an end-to-end equivalence. As such, PET does not require retraining.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="10">Conclusion</head><p>We present PET, the first DNN framework that optimizes tensor programs with partially equivalent transformations and automated corrections. PET discovers program transformations that improve DNN computations with only partial functional equivalence. Automated corrections are subsequently applied to restore full equivalence with the help of rigorous theoretical guarantees. The results of our evaluation show that PET outperforms existing frameworks by up to 2.5× by unlocking partially equivalent transformations that existing frameworks miss. PET is publicly available at <ref type="url" target="https://github.com/thu-pacman/PET">https://github.com/thu-pacman/PET</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: A partially equivalent transformation that improves the performance of convolution by manipulating tensor shape and linearization. The shaded boxes in (b) highlight non-equivalent elements between two programs in the transformation. The correction kernel in (c) is applied to these elements to recover the functional equivalence of the input program.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>op(I 1 Figure 2 :</head><label>12</label><figDesc>Figure 2: PET overview.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>1 : 2 :</head><label>12</label><figDesc>We call an MLTP P 1 a mutant of another MLTP P 0 if P 1 and P 0 have the same number of inputs (and outputs) and each input (and output) has the same shape. The computations of P 0 and P 1 are not necessarily equivalent. Intuitively, if P 0 is a subprogram in a tensor program, then replacing P 0 with P 1 yields a valid but potentially non-equivalent tensor program. For a given MLTP P 0 , PET generates potential mutants of P 0 using a given set of multi-linear operators O as the ba-Algorithm 1 MLTP mutation generation algorithm. Input: A set of operators O; an input MLTP P 0 Output: A set of valid program mutants M for P 0 3: I 0 = the set of input tensors in P 0 4: M = ∅ 5: BUILD(1, ∅, I 0 ) 6: // Depth-first search to construct mutants 7: function BUILD(n, P , I ) 8:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: An example mutant that transforms a dilated convolution to a standard convolution. The red-shaded boxes in (b) highlight non-equivalent elements between the two programs, which are fixed by the correction kernel in (c).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Theorem 2</head><label>2</label><figDesc>Fortwo MLTPs P 1 and P 2 with n input tensors, let v be a position where P 1 and P 2 are not equivalent, i.e., ∃I, P 1 (I)[ v] = P 2 (I)[ v]. Let I be a randomly generated input uniformly sampled from a finite field F. The probability that P 1 (I )[ v] = P 2 (I )[ v] is at most n p , where p is the number of possible values in F.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>1 (</head><label>1</label><figDesc>b) A potential mutant P 1 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Box propagation for the example in Figure 1. The red arrows indicate the split points of each tensor dimension.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: Fusing correction kernels with DNN kernels.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Algorithm 2 4 :for M ∈ mutants do 13 : 14 : 26 :</head><label>24131426</label><figDesc>Program optimization algorithm. 1: Input: An input tensor program P 0 2: Output: An optimized tensor program P opt 3: Split P 0 into a list of subprograms 5: Initialize a heap H to record the top-K programs 6: H .insert(P 0 ) 7: // Greedily mutate each subprogram 8: for each subprogram S ∈ P 0 do P new = replace S with M in P Apply post-optimizations on P new 15: H new .insert(P new ) 16: H = H new 17: P opt = the program with the best performance in H 18: return P opt 19: 20: function GETMUTANTS(S 0 ) 21: O = the set of mutant operators for S 0 22: Q = {S 0 }, mutants = {S 0 } for each subset of operators S ∈ S do 27: for M ∈ MUTATIONGENERATOR(O, S ) do 28: M = replace S with M in S 29: Add M to Q new and mutants</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 7 :</head><label>7</label><figDesc>Figure7: Post-optimizations applied when stitching two subprograms SG-1 and SG-2. R/T refers to a reshape followed by a transpose. Conv and ReLU denote a convolution and a ReLU operator, respectively.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 8 :</head><label>8</label><figDesc>Figure8: End-to-end performance comparison between PET and existing frameworks. For each DNN, the numbers above the PET bars show the speedups over the best baseline. TASO does not support the 3D convolution operators in Resnet3D-18.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 9 :</head><label>9</label><figDesc>Figure9: Performance benefits after adding PET's partially equivalent transformations into TASO.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>I 1</head><label>1</label><figDesc>[n,c,h,w] W 1 [f,c,r,s] I 2 [n,c,h,w] W 2 [2f,c,r,s]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><figDesc>(d) Unfused R/T operators and corresponding tensors' shape of F R/T-4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 11 :Figure 12 :</head><label>1112</label><figDesc>Figure 11: Optimization details in PET for CSRNet.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure 13 :</head><label>13</label><figDesc>Figure 13: Performance comparison of tensor program optimizations using only (fully) equivalent transformations, only partially equivalent transformations, and both (as in PET).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>Figure 14 :</head><label>14</label><figDesc>Figure 14: Performance comparison by using PET with different mutation depths ( §4.1) and rounds ( §6.2).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17"><graphic coords="1,-9.00,-10.01,630.00,255.87" type="bitmap"/></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18"><graphic coords="1,-9.00,543.00,630.00,259.01" type="bitmap"/></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc>Multi-linear tensor operators used in PET.</figDesc><table><row><cell>Operator</cell><cell>Description</cell></row><row><cell>add</cell><cell>Element-wise addition</cell></row><row><cell>mul</cell><cell>Element-wise multiplication</cell></row><row><cell>conv</cell><cell>Convolution</cell></row><row><cell>groupconv</cell><cell>Grouped convolution</cell></row><row><cell cols="2">dilatedconv Dilated convolution</cell></row><row><cell>batchnorm</cell><cell>Batch normalization</cell></row><row><cell>avgpool</cell><cell>Average pooling</cell></row><row><cell>matmul</cell><cell>Matrix multiplication</cell></row><row><cell cols="2">batchmatmul Batch matrix multiplication</cell></row><row><cell>concat</cell><cell>Concatenate multiple tensors</cell></row><row><cell>split</cell><cell>Split a tensor into multiple tensors</cell></row><row><cell>transpose</cell><cell>Transpose a tensor's dimensions</cell></row><row><cell>reshape</cell><cell>Decouple/combine a tensor's dimensions</cell></row><row><cell cols="2">same input and output shapes as the original MLTPs, thus</cell></row><row><cell cols="2">constitutes a partially equivalent transformation ( §4).</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1"><head>Table 3 :</head><label>3</label><figDesc>Operator benchmark list.</figDesc><table><row><cell>Operator</cell><cell>Input</cell><cell>Weight</cell><cell>#Op</cell></row><row><cell>conv</cell><cell>[1, 48, 38, 38]</cell><cell>[64, 48, 5, 5]</cell><cell>1</cell></row><row><cell cols="3">dilatedconv [1, 512, 14, 14] [256, 512, 3, 3]</cell><cell>1</cell></row><row><cell>groupconv</cell><cell cols="2">[1, 768, 18, 18] [192,768, 1, 1] [1, 768, 18, 18] [160,768, 1, 1]</cell><cell>2 2</cell></row><row><cell>batchmatmul</cell><cell>[512, 768]</cell><cell>[768, 768]</cell><cell>3</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>We would like to thank the anonymous reviewers and our shepherd, <rs type="person">Behnaz Arzani</rs>, for their valuable comments and suggestions. This work is partially supported by <rs type="funder">National Natural Science Foundation of China</rs> (<rs type="grantNumber">U20A20226</rs>, <rs type="grantNumber">62072262</rs>) and <rs type="funder">Beijing Natural Science Foundation</rs> (<rs type="grantNumber">4202031</rs>). <rs type="person">Jidong Zhai</rs> is the corresponding author of this paper (<ref type="url" target="mailto:zhaijidong@tsinghua.edu.cn">zhaijidong@tsinghua.edu.cn</ref>).</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_JY7ZGqu">
+					<idno type="grant-number">U20A20226</idno>
+				</org>
+				<org type="funding" xml:id="_Q7UrTda">
+					<idno type="grant-number">62072262</idno>
+				</org>
+				<org type="funding" xml:id="_DD3CF8W">
+					<idno type="grant-number">4202031</idno>
+				</org>
+			</listOrg>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A Artifact Appendix</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.1 Abstract</head><p>This artifact appendix helps the readers reproduce the main evaluation results of the OSDI' 21 paper: Pet: Optimizing Tensor Programs with Partially Equivalent Transformations and Automated Corrections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.2 Pet Usage</head><p>Pet provides C++ API to build the input tensor program, and also supports importing input tensor program from ONNX 1 model. For each input tensor program, Pet generates a mathematically equivalent executable that includes the performance optimizations described in this paper. Pet uses cuDNN/cuBLAS as backend by default, but users can also export the mutation subprograms with their corresponding input/output tensor shapes to use different backends like TVM and Ansor.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.3 Scope</head><p>The artifact can be used for evaluating and reproducing the main results of the paper, including the end-to-end evaluation, the operator-level evaluation, the performance comparison across different optimization policies and heuristics parameters, and the searching time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.4 Contents</head><p>The artifact evaluation includes the following experiments: E1: An end-to-end performance comparison between Pet and other frameworks. (Figure <ref type="figure">8</ref>) E2: An operator-level performance comparison on different backends, including cuDNN/cuBLAS, TVM, and Ansor. (Figure <ref type="figure">12</ref>) E3: A performance comparison across different optimization policies, including fully-equivalent transformations, partially-equivalent transformations, and joint optimization using both. (Figure <ref type="figure">13</ref>) </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.5 Hosting</head><p>The source code of this artifact can be found on GitHub: <ref type="url" target="https://github.com/whjthu/pet-osdi21-ae">https://github.com/whjthu/  pet-osdi21-ae</ref>, master branch, with commit ID: 9e07cb1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.6 Requirements</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Hardware dependencies</head><p>This artifact depends on an NVIDIA V100 GPU.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Software dependencies</head><p>This artifact depends on the following software libraries:</p><p>• Pet uses cuDNN and cuBLAS libraries as backend. Our evaluation uses CUDA 10.2 and cuDNN 7.6.5.</p><p>• TensorFlow, TensorRT, TASO, TVM and Ansor are used as baseline DNN frameworks in E1 and E2. Our evaluation on these baseline uses TensorFlow 1.15, TensorRT 7.0.0.11, TASO with commit ID f11782c (we add some minor fixes for TASO to support the tested models), and TVM with commit ID 3950639.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.7 Installation</head><p>A.7.1 Install Pet from source</p><p>• Clone code from git • Install PET mkdir build; cd build; cmake ..</p><p>make -j</p><p>• Set the environment for evaluations export PET HOME=path to pet home</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.7.2 Install other frameworks</head><p>Please refer to the artifact evaluation instruction (README.pdf in the git repo <ref type="url" target="https://github.com/whjthu/pet-osdi21-ae">https://github.  com/whjthu/pet-osdi21-ae</ref>) or the installation instructions provided by the frameworks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8 Experiments workflow</head><p>The following experiments are included in this artifact. All DNN benchmarks use synthetic input data in GPU device memory to remove the side effects of data transfers between CPU and GPU. The detailed running instruction can be found in the artifact evaluation instruction (README.pdf in the git repo <ref type="url" target="https://github.com/whjthu/pet-osdi21-ae">https://github.com/whjthu/pet-osdi21-ae</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8.1 End-to-end performance (E1)</head><p>This experiment reproduces Figure <ref type="figure">8</ref> in the paper. Prerequisite: generate ONNX models • cd $PET HOME/models-ae • ./generate onnx.sh TensorFlow &amp; TensorFlow XLA. The Tensor-Flow &amp; TensorFlow XLA results of the 4 models are available in the tensorflow ae folder. The following command lines measure the inference latency of TensorFlow and TensorFlow XLA, respectively: • cd $PET HOME/tf-ae • ./run.sh TensorRT. The TensoRT results of the 4 models are available in the tensorrt ae folder. The following command lines measure the inference latency of Ten-sorRT: • Load TensorRT environment (add library path to LD LIBRARY PATH) • cd $PET HOME/trt-ae • ./run.sh TASO. The TASO results of the 4 models are available in the taso ae folder. The following command lines measure the inference latency of TASO: • Load TASO environment • cd $PET HOME/taso-ae • ./run e2e.sh PET. The Pet results of the 4 models are available in the pet ae folder. The following command lines measure the inference latency of Pet: • cd $PET HOME/pet-ae • ./run e2e.sh A.8.2 Operator-level performance (E2) This experiment reproduces Figure 12 in the paper. The scripts are available in the operator ae folder. The experiments of TVM and Ansor will take a very long time to search different mutation kernels. cuDNN/cuBLAS. The following command lines measure cuDNN/cuBLAS results for the 4 operatorlevel benchmarks: • cd operator ae/cudnn • ./run.sh TVM &amp; Ansor. The scripts in operator ae/autotvm and operator ae/ansor search the kernels for the 4 operator-level benchmarks using TVM and Ansor, respectively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8.3 Different optimization policy (E3)</head><p>This experiment reproduces Figure <ref type="figure">13</ref> in the paper. The scripts are available in the pet-ae folder. The following command lines measure the results:</p><p>• cd $PET HOME/pet-ae • ./run policy.sh</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8.4 Different heuristic parameters (E4)</head><p>This experiment reproduces Figure <ref type="figure">14</ref> in the paper. The scripts are available in the pet-ae folder. The following command lines measure the results:</p><p>• cd $PET HOME/pet-ae • ./run param.sh</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.8.5 Searching time (E5)</head><p>This experiment reproduces Section 8.6 in the paper. The scripts are available in the pet-ae folder. The same commands for Pet in E1 print the searching time at the same time.</p><p>• cd $PET HOME/pet-ae • ./run e2e.sh Note that our evaluation platform for AE has different CPUs from the platform we used for the paper so that the searching time could be different. Nevertheless, they should be within the same scale.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_19"><head>1</head><figDesc>https://onnx.ai/ E4: A performance comparison using different heuristics. (Figure14) E5: Searching time. (Section 8.6)</figDesc></figure>
+			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct status="extracted" xml:id="b0">
+	<monogr>
+		<ptr target="https://www.tensorflow.org/xla,2017"/>
+		<title level="m">Xla: Optimizing compiler for tensorflow</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b1">
+	<monogr>
+		<ptr target="https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/graph_transforms,2018"/>
+		<title level="m">TensorFlow Graph Transform Tool</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Tensorflow: A system for largescale machine learning</title>
+		<author>
+			<persName><forename type="first">Martín</forename><surname>Abadi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Barham</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianmin</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhifeng</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andy</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeffrey</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthieu</forename><surname>Devin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sanjay</forename><surname>Ghemawat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Geoffrey</forename><surname>Irving</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Isard</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Manjunath</forename><surname>Kudlur</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Josh</forename><surname>Levenberg</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rajat</forename><surname>Monga</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sherry</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Derek</forename><forename type="middle">G</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benoit</forename><surname>Steiner</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Tucker</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vijay</forename><surname>Vasudevan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pete</forename><surname>Warden</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Martin</forename><surname>Wicke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuan</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiaoqiang</forename><surname>Zheng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 12th USENIX Conference on Operating Systems Design and Implementation, OSDI</title>
+		<meeting>the 12th USENIX Conference on Operating Systems Design and Implementation, OSDI</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Learning to optimize halide with tree search and random programs</title>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Karima</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Riyadh</forename><surname>Baghdadi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tzu-Mao</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michaël</forename><surname>Gharbi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benoit</forename><surname>Steiner</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Steven</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kayvon</forename><surname>Fatahalian</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Frédo</forename><surname>Durand</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Transactions on Graphics (TOG)</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1" to="12"/>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Tiramisu: A polyhedral compiler for expressing fast and portable code</title>
+		<author>
+			<persName><forename type="first">Riyadh</forename><surname>Baghdadi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jessica</forename><surname>Ray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Malek</forename><surname>Ben Romdhane</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Emanuele</forename><surname>Del Sozzo</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Abdurrahman</forename><surname>Akkas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yunming</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Patricia</forename><surname>Suriana</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shoaib</forename><surname>Kamil</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Saman</forename><surname>Amarasinghe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IEEE/ACM International Symposium on Code Generation and Optimization (CGO)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+			<biblScope unit="page" from="193" to="205"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b5">
+	<monogr>
+		<title level="m" type="main">TVM: end-to-end optimization stack for deep learning</title>
+		<author>
+			<persName><forename type="first">Tianqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Thierry</forename><surname>Moreau</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ziheng</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Haichen</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eddie</forename><forename type="middle">Q</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leyuan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuwei</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luis</forename><surname>Ceze</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Carlos</forename><surname>Guestrin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Krishnamurthy</surname></persName>
+		</author>
+		<idno>CoRR, abs/1802.04799</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Learning to optimize tensor programs</title>
+		<author>
+			<persName><forename type="first">Tianqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lianmin</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eddie</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ziheng</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Thierry</forename><surname>Moreau</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luis</forename><surname>Ceze</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Carlos</forename><surname>Guestrin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Krishnamurthy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<publisher>NeurIPS</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page">18</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b7">
+	<monogr>
+		<title level="m" type="main">cudnn: Efficient primitives for deep learning</title>
+		<author>
+			<persName><forename type="first">Sharan</forename><surname>Chetlur</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cliff</forename><surname>Woolley</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Philippe</forename><surname>Vandermersch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Catanzaro</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Evan</forename><surname>Shelhamer</surname></persName>
+		</author>
+		<idno>CoRR, abs/1410.0759</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Automatic generation of efficient sparse tensor format conversion routines</title>
+		<author>
+			<persName><forename type="first">Stephen</forename><surname>Chou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fredrik</forename><surname>Kjolstad</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Saman</forename><surname>Amarasinghe</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2001.02609</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b9">
+	<monogr>
+		<ptr target="https://developer.nvidia.com/cublas,2016"/>
+		<title level="m">Dense Linear Algebra on GPUs</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Compiler-integrated program mutation</title>
+		<author>
+			<persName><forename type="first">Edward</forename><forename type="middle">W</forename><surname>Richard A Demillo</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aditya</forename><forename type="middle">P</forename><surname>Krauser</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Mathur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The Fifteenth Annual International Computer Software &amp; Applications Conference</title>
+		<imprint>
+			<publisher>IEEE Computer Society</publisher>
+			<date type="published" when="1991">1991. 1991</date>
+			<biblScope unit="page" from="351" to="352"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b11">
+	<monogr>
+		<title level="m" type="main">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>CoRR, abs/1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Learning spatio-temporal features with 3d residual networks for action recognition</title>
+		<author>
+			<persName><forename type="first">Kensho</forename><surname>Hara</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hirokatsu</forename><surname>Kataoka</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yutaka</forename><surname>Satoh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE International Conference on Computer Vision Workshops</title>
+		<meeting>the IEEE International Conference on Computer Vision Workshops</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="3154" to="3160"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Deep residual learning for image recognition</title>
+		<author>
+			<persName><forename type="first">Kaiming</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiangyu</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shaoqing</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jian</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<publisher>CVPR</publisher>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Taso: optimizing deep learning computation with automatic generation of graph substitutions</title>
+		<author>
+			<persName><forename type="first">Zhihao</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oded</forename><surname>Padon</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Todd</forename><surname>Warszawski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Aiken</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 27th ACM Symposium on Operating Systems Principles</title>
+		<meeting>the 27th ACM Symposium on Operating Systems Principles</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="47" to="62"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Optimizing dnn computation with relaxed graph substitutions</title>
+		<author>
+			<persName><forename type="first">Zhihao</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Todd</forename><surname>Warzawski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mingyu</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Aiken</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2nd Conference on Systems and Machine Learning, SysML'19</title>
+		<meeting>the 2nd Conference on Systems and Machine Learning, SysML'19</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Fast algorithms for convolutional neural networks</title>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Lavin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Scott</forename><surname>Gray</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="4013" to="4021"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Optimizing memory efficiency for deep convolutional neural networks on gpus</title>
+		<author>
+			<persName><forename type="first">Chao</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yi</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Min</forename><surname>Feng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Srimat</forename><surname>Chakradhar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Huiyang</forename><surname>Zhou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">SC'16: Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Differentiable programming for image processing and deep learning in halide</title>
+		<author>
+			<persName><forename type="first">Tzu-Mao</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michaël</forename><surname>Gharbi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Frédo</forename><surname>Durand</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Ragan-Kelley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Transactions on Graphics (TOG)</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1" to="13"/>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Csrnet: Dilated convolutional neural networks for understanding the highly congested scenes</title>
+		<author>
+			<persName><forename type="first">Yuhong</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiaofan</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Deming</forename><surname>Chen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE conference on computer vision and pattern recognition</title>
+		<meeting>the IEEE conference on computer vision and pattern recognition</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="1091" to="1100"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Optimizing {CNN} model inference on cpus</title>
+		<author>
+			<persName><forename type="first">Yizhi</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yao</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ruofei</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mu</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vin</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yida</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">{USENIX} Annual Technical Conference ({USENIX}{ATC} 19)</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+			<biblScope unit="page" from="1025" to="1040"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Automatically scheduling halide image processing pipelines</title>
+		<author>
+			<persName><forename type="first">Ravi</forename><surname>Teja</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mullapudi</forename></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dillon</forename><surname>Sharlet</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Ragan-Kelley</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kayvon</forename><surname>Fatahalian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Transactions on Graphics (TOG)</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1" to="11"/>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Rectified linear units improve restricted boltzmann machines</title>
+		<author>
+			<persName><forename type="first">Vinod</forename><surname>Nair</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Geoffrey</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 27th International Conference on International Conference on Machine Learning, ICML'10</title>
+		<meeting>the 27th International Conference on International Conference on Machine Learning, ICML'10<address><addrLine>USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Omnipress</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="807" to="814"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Tpot: A treebased pipeline optimization tool for automating machine learning</title>
+		<author>
+			<persName><forename type="first">S</forename><surname>Randal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><forename type="middle">H</forename><surname>Olson</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Moore</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Workshop on automatic machine learning</title>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="66" to="74"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b24">
+	<monogr>
+		<ptr target="https://github.com/onnx/onnx-tensorflow"/>
+		<title level="m">TensorFlow Backend for ONNX</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b25">
+	<monogr>
+		<ptr target="https://pytorch.org,2017"/>
+		<title level="m">Tensors and Dynamic neural networks in Python with strong GPU acceleration</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Halide: A language and compiler for optimizing parallelism, locality, and recomputation in image processing pipelines</title>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Ragan-Kelley</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Connelly</forename><surname>Barnes</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sylvain</forename><surname>Paris</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Frédo</forename><surname>Durand</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Saman</forename><surname>Amarasinghe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 34th ACM SIGPLAN Conference on Programming Language Design and Implementation</title>
+		<meeting>the 34th ACM SIGPLAN Conference on Programming Language Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+	<note>PLDI '13</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Fast probabilistic algorithms for verification of polynomial identities</title>
+		<author>
+			<persName><forename type="first">T</forename><surname>Jacob</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Schwartz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the ACM (JACM)</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="701" to="717"/>
+			<date type="published" when="1980">1980</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b28">
+	<analytic>
+		<title level="a" type="main">The automatic statistician</title>
+		<author>
+			<persName><forename type="first">Christian</forename><surname>Steinruecken</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Emma</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Janz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Lloyd</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zoubin</forename><surname>Ghahramani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Automated Machine Learning</title>
+		<meeting><address><addrLine>Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="161" to="173"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b29">
+	<monogr>
+		<title level="m" type="main">Going deeper with convolutions</title>
+		<author>
+			<persName><forename type="first">Christian</forename><surname>Szegedy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yangqing</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pierre</forename><surname>Sermanet</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Scott</forename><forename type="middle">E</forename><surname>Reed</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dragomir</forename><surname>Anguelov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dumitru</forename><surname>Erhan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><surname>Vanhoucke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Rabinovich</surname></persName>
+		</author>
+		<idno>CoRR, abs/1409.4842</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Rethinking the inception architecture for computer vision</title>
+		<author>
+			<persName><forename type="first">Christian</forename><surname>Szegedy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><surname>Vanhoucke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sergey</forename><surname>Ioffe</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jon</forename><surname>Shlens</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zbigniew</forename><surname>Wojna</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b31">
+	<monogr>
+		<ptr target="https://developer.nvidia.com/tensorrt,2017"/>
+		<title level="m">NVIDIA TensorRT: Programmable inference accelerator</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Tensor comprehensions: Framework-agnostic high-performance machine learning abstractions</title>
+		<author>
+			<persName><forename type="first">Nicolas</forename><surname>Vasilache</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oleksandr</forename><surname>Zinenko</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Theodoros</forename><surname>Theodoridis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Priya</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zachary</forename><surname>Devito</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">William</forename><forename type="middle">S</forename><surname>Moses</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sven</forename><surname>Verdoolaege</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Albert</forename><surname>Cohen</surname></persName>
+		</author>
+		<idno>CoRR, abs/1802.04730</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Ansor: generating high-performance tensor programs for deep learning</title>
+		<author>
+			<persName><forename type="first">Lianmin</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chengfan</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Minmin</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhao</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cody</forename><surname>Hao Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ameer</forename><surname>Haj-Ali</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yida</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jun</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Danyang</forename><surname>Zhuo</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Koushik</forename><surname>Sen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">14th {USENIX} Symposium on Operating Systems Design and Implementation ({OSDI} 20)</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="863" to="879"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Probabilistic algorithms for sparse polynomials</title>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Zippel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International symposium on symbolic and algebraic manipulation</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="1979">1979</date>
+			<biblScope unit="page" from="216" to="226"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>
