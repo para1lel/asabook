@@ -1,0 +1,15 @@
+[
+  { "name": "table-01", "page": 5, "x": 109, "y": 92, "width": 391, "height": 62 },
+  { "name": "table-02", "page": 5, "x": 350, "y": 423, "width": 149, "height": 45 },
+  { "name": "table-03", "page": 5, "x": 136, "y": 588, "width": 339, "height": 46 },
+  { "name": "table-04", "page": 7, "x": 167, "y": 223, "width": 279, "height": 52 },
+  { "name": "table-05", "page": 7, "x": 109, "y": 405, "width": 393, "height": 63 },
+  { "name": "table-06", "page": 8, "x": 145, "y": 115, "width": 323, "height": 50 },
+  { "name": "table-07", "page": 23, "x": 109, "y": 126, "width": 394, "height": 385 },
+  { "name": "table-08", "page": 25, "x": 120, "y": 104, "width": 371, "height": 182 },
+  { "name": "table-09", "page": 27, "x": 126, "y": 92, "width": 358, "height": 108 },
+  { "name": "table-10", "page": 36, "x": 201, "y": 226, "width": 210, "height": 253 },
+  { "name": "table-11", "page": 37, "x": 109, "y": 104, "width": 394, "height": 232 },
+  { "name": "table-12", "page": 39, "x": 109, "y": 491, "width": 395, "height": 90 },
+  { "name": "table-13", "page": 39, "x": 131, "y": 666, "width": 352, "height": 56 }
+]
