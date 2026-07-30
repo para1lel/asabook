@@ -20,7 +20,7 @@ Deep neural network (DNN) frameworks represent a neural architecture as a comput
 
 Existing DNN frameworks optimize a computation graph by applying graph substitutions that are manually designed by domain experts, as depicted in Figure 1a. For example, TensorFlow, PyTorch, TensorRT, and TVM use a greedy rule-based optimization strategy and directly perform all applicable substitutions (i.e., rules) on an input computation graph [Aba16, Che18, PyT17, Ten17a]. MetaFlow [Jia19] allows substitutions that may either increase or decrease performance to enable a larger search space of equivalent computation graphs and uses back-tracking search to explore this space, but it still requires manually specified substitutions. Although manually designed substitutions improve the performance of DNN computations, they fall short in several respects.
 
-![Comparison of computation graph optimization in existing DNN frameworks and TASO](./taso/figure-01.png)
+![Comparison of computation graph optimization in existing DNN frameworks and TASO](../../papers/taso/figure-01.png)
 
 **Figure 1.** Comparing computation graph optimization in existing DNN frameworks with TASO.
 
@@ -78,7 +78,7 @@ A graph substitution is specified independently of the concrete tensor shapes. F
 
 [+terminology]: In some of the superoptimization literature, what we call the source is called the target, and what we call the target is called the rewrite.
 
-![Two examples of graph substitutions](./taso/figure-02.png)
+![Two examples of graph substitutions](../../papers/taso/figure-02.png)
 
 **Figure 2.** Graph substitution examples: (a) associativity of matrix multiplication; (b) fusing two matrix multiplications using concatenation and split.
 
@@ -88,7 +88,7 @@ Concatenation and split operators are commonly used in fusing operators with sha
 
 Formally, we maintain a split tree for each dimension of a tensor to track the concatenation history. Figure 3 shows the split trees of the row dimension for all tensors in Figure 2b. The split trees allow the substitution to recover the split point without introducing any additional parameters. Our approach also supports multi-way concatenation and split by nesting of concatenation and split operators.
 
-![A graph substitution for fusing matrix multiplications with a shared input](./taso/figure-03.png)
+![A graph substitution for fusing matrix multiplications with a shared input](../../papers/taso/figure-03.png)
 
 **Figure 3.** A graph substitution for fusing matrix multiplications with a shared input. The target graph has a concat and a split operator, both performed along the row dimension. The split tree of the row dimension for each tensor is shown in a gray box.
 
@@ -142,7 +142,7 @@ Each pair of graphs passing the random testing becomes the source and target gra
 
 The algorithm described so far is generic, in the sense that it does not depend on the specific tensor operators used. However, we observed that for DNN applications, there are two operators that require special handling. The relu operator [Nai10], which is commonly used in DNN applications, returns 0 for all negative inputs. As relu often returns 0, it results in many superfluous substitutions being valid. To prevent these substitutions from being generated, the generator replaces relu by an arbitrary non-linear function (our implementation uses $x \mapsto x(x+1)+1$). The enlarge operator increases the size of a tensor by padding it with zeros, which is useful for fusing convolutions with different kernel sizes [Jia19]. However, the presence of zeros also results in many superfluous substitutions. To overcome this, the generator only considers computation graphs in which enlarge is applied to an input tensor, i.e., not to the output of another operator. This restriction captures the intended use of enlarge for fusing convolutions, while avoiding the superfluous substitutions.
 
-![Table of tensor operators and constant tensors included in TASO](./taso/table-01.png)
+![Table of tensor operators and constant tensors included in TASO](../../papers/taso/table-01.png)
 
 **Table 1.** Tensor operators and constant tensors included in TASO.
 
@@ -158,7 +158,7 @@ $$\forall s,p,x,y,z.\ \operatorname{conv}(s,p,A_{\mathrm{none}},\operatorname{ew
 
 Table 1 lists all operators and tensor constants used in the evaluation, and Table 2 gives the complete list of operator properties used to verify graph substitutions.
 
-![Operator properties used for verification](./taso/table-02.png)
+![Operator properties used for verification](../../papers/taso/table-02.png)
 
 **Table 2.** Operator properties used for verification.
 
@@ -180,7 +180,7 @@ During our development process, the verification methodology revealed several su
 
 A graph substitution is redundant if it is subsumed by a more general valid substitution. This section describes TASO's pruning techniques. All pruning steps preserve every optimization opportunity: if graph $G$ can be transformed into $G'$ using a sequence of substitutions, then $G$ can still be transformed into $G'$ after pruning, possibly using a different set of transformations.
 
-![Examples of redundant substitutions pruned by TASO](./taso/figure-04.png)
+![Examples of redundant substitutions pruned by TASO](../../papers/taso/figure-04.png)
 
 **Figure 4.** Example redundant substitutions pruned by TASO. Matmul and Add refer to matrix multiplication and element-wise addition. For each subgraph, A, B, and C are its input tensors, while X is the output tensor.
 
@@ -196,7 +196,7 @@ The second form of common subgraph is demonstrated in Figure 4c. Here, the commo
 
 Table 3 shows the effect of the TASO pruning techniques on the number of substitutions. We observe that both pruning techniques play an important role in eliminating redundant substitutions and their combination reduces the number of substitutions TASO must consider by 39×.
 
-![Number of graph substitutions remaining after pruning](./taso/table-03.png)
+![Number of graph substitutions remaining after pruning](../../papers/taso/table-03.png)
 
 **Table 3.** The number of remaining graph substitutions after applying the pruning techniques in order.
 
@@ -206,7 +206,7 @@ We now describe the TASO optimizer for jointly optimizing data layout and graph 
 
 When applying a substitution to a matched subgraph, TASO enumerates possible layouts for tensors in the target graph based on the source tensors and the layouts supported by each operator. Applying a substitution may therefore produce multiple graphs with identical structure but different data layouts.
 
-![A graph substitution using the transpose of matrix multiplication](./taso/figure-05.png)
+![A graph substitution using the transpose of matrix multiplication](../../papers/taso/figure-05.png)
 
 **Figure 5.** A graph substitution using the transpose of matrix multiplication. The parentheses show potential tensor layouts, where C and R indicate column-major and row-major layouts.
 
@@ -237,7 +237,7 @@ To search for an optimized graph, all candidate graphs are maintained in a prior
 
 A non-obvious property of graph substitutions is that applying them can introduce cycles into a graph. Figure 6 shows one example where applying a valid substitution results in a cyclic graph. Since computation graphs must be acyclic, TASO checks the acyclicity of $G'$ (line 12 of Algorithm 2) before enqueuing it in $P$.
 
-![A graph substitution that introduces a cycle](./taso/figure-06.png)
+![A graph substitution that introduces a cycle](../../papers/taso/figure-06.png)
 
 **Figure 6.** A valid graph substitution can introduce a cycle into a computation graph. The source and target subgraphs are shown by dotted boxes, and the resulting cycle is highlighted in red.
 
@@ -281,7 +281,7 @@ To generate GPU kernels in TVM, we allow the auto tuner [Che18a] to run 2000 tri
 
 Among the five DNN architectures, ResNet-50 has been commonly used and heavily optimized by existing DNN frameworks. TASO achieves on-par performance for ResNet-50 with existing frameworks, showing that TASO is able to automatically discover graph substitutions manually designed by domain experts. For the remaining four DNN architectures with new operators and graph structures, TASO outperforms existing DNN frameworks with speedups ranging from 1.3× to 2.8× on the cuDNN backend and 1.1× to 1.8× on the TVM backend. The speedup is achieved by (1) automatically discovering optimizing substitutions for the new operators and (2) jointly optimizing graph substitution and data layout. We analyze the substitutions discovered by TASO in [Section 7.3](#_7-3-substitution-case-study) and [Section 7.4](#_7-4-analysis-of-used-substitutions), and the joint optimization of substitution and data layout in [Section 7.5](#_7-5-joint-optimization-of-graph-substitutions-and-data-layout).
 
-![End-to-end inference performance of existing DNN frameworks and TASO](./taso/figure-07.png)
+![End-to-end inference performance of existing DNN frameworks and TASO](../../papers/taso/figure-07.png)
 
 **Figure 7.** End-to-end inference performance on a single NVIDIA V100 GPU. Each result averages 1,000 runs; the labels above TASO bars show speedup over the best existing approach using the same backend.
 
@@ -291,7 +291,7 @@ To understand how the substitutions generated and verified by TASO improve runti
 
 NasNet-A is the best discovered CNN architecture for the CIFAR-10 dataset, obtained by neural architecture search. Figure 8a shows a convolutional cell in NasNet-A. Unlike human-designed architectures, NasNet-A contains unconventional graph structures, making it hard to optimize with manual substitutions designed for more standard DNN architectures. To illustrate how TASO optimizes this architecture, we show two example substitutions discovered by TASO; neither is present in any existing DNN framework.
 
-![NasNet-A architecture and substitutions discovered by TASO](./taso/figure-08.png)
+![NasNet-A architecture and substitutions discovered by TASO](../../papers/taso/figure-08.png)
 
 **Figure 8.** The NasNet-A architecture and substitutions discovered by TASO. Colored boxes identify source and target subgraphs; gray regions depend only on pretrained weights and can be precomputed.
 
@@ -313,7 +313,7 @@ For inference workloads, DNN weights such as $W_i$ and $C_{\mathrm{pool}}$ in Fi
 
 ResNeXt-50 replaces large ResNet-50 convolutions with multiple branches of smaller convolutions to improve accuracy and runtime efficiency, as shown in Figure 9a. Launching each small convolution separately incurs high kernel-launch overhead. Grouped convolution kernels execute multiple convolutions in a single CUDA kernel, but grouping all 32 convolutions requires more cache for intermediate state and can also reduce performance. Figure 9d shows that neither separate convolutions nor one group of 32 is optimal.
 
-![Multi-batch convolution strategies in ResNeXt-50 and their performance](./taso/figure-09.png)
+![Multi-batch convolution strategies in ResNeXt-50 and their performance](../../papers/taso/figure-09.png)
 
 **Figure 9.** Multi-batch convolution strategies in ResNeXt-50. TASO uses four grouped convolutions of eight convolutions each, a mixture it discovered automatically, and achieves a 2.8x speedup over the best existing approach.
 
@@ -321,13 +321,13 @@ ResNeXt-50 replaces large ResNet-50 convolutions with multiple branches of small
 
 We now present a detailed analysis of how the graph substitutions discovered by TASO impact the performance of the optimized graphs. Figure 10 shows a heat map of the substitutions used to optimize each of the five DNN architectures. Each DNN uses 4-10 different substitutions to achieve optimized performance, and different DNNs require different sets of substitutions. This shows the difficulty of manually designing a few core substitutions to optimize today's DNN architectures with increasingly high diversity. TASO is better positioned for optimizing new DNNs by automatically discovering performance critical substitutions.
 
-![Heat map of graph substitutions used by five DNN architectures](./taso/figure-10.png)
+![Heat map of graph substitutions used by five DNN architectures](../../papers/taso/figure-10.png)
 
 **Figure 10.** How often verified substitutions are used to optimize five DNN architectures. Only substitutions used by at least one DNN are shown.
 
 Additionally, we evaluate the scalability of TASO by considering substitutions with different size limitations, and measuring the runtime performance of the optimized graphs. Figure 11 shows the results. For all three DNN architectures, performance improvement is consistently achieved by using larger substitutions up to size 3. ResNeXt-50 and BERT do not obtain additional speedups by using substitutions with 4 operators, while NasNet-A achieves 1.2× by considering larger substitutions. Our current implementation of TASO does not scale to generate all substitutions with 5 or more operators, since the generator is limited by the memory needed to hold the fingerprints of all potential graphs, which scales exponentially with graph size. A distributed fingerprint generator could potentially handle graphs of size 5 and even more, which we leave as future work.
 
-![Performance with different graph substitution size limits](./taso/figure-11.png)
+![Performance with different graph substitution size limits](../../papers/taso/figure-11.png)
 
 **Figure 11.** Relative speedups obtained with different maximum graph substitution sizes.
 
@@ -337,7 +337,7 @@ To evaluate joint optimization, TASO is compared with three baselines: graph sub
 
 Figure 12 compares the four strategies on BERT. TASO outperforms the baselines by 1.2-1.3x using substitutions that transform both graph structure and data layout. One example appears in Figure 5. BERT's most expensive operation is $A\times B$, where A is 64 by 1024 and B is 1024 by 4096. In cuBLAS, the transposed form, $(B^T\times A^T)^T$, is 1.5x faster when $B^T$ and $A^T$ use column-major and row-major layout, respectively. This optimization can only be captured when graph substitution and data layout are considered jointly.
 
-![BERT inference time for graph and layout optimization strategies](./taso/figure-12.png)
+![BERT inference time for graph and layout optimization strategies](../../papers/taso/figure-12.png)
 
 **Figure 12.** End-to-end BERT inference performance with separate, sequential, and joint graph substitution and data layout optimization.
 

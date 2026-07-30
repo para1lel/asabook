@@ -53,7 +53,7 @@ To generate high-performance tensor programs, a common form of optimization in e
 
 In contrast, Figure 1 shows an example of a partially equivalent transformation for a convolution operator. It concatenates two individual images into a larger one along the width dimension to improve performance. This is because a larger width, which is typically the innermost dimension for convolution on modern accelerators like GPUs, provides more parallelism and improves computation locality. However, the new program after this transformation (shown in Figure 1b) produces different results on a sub-region of the output tensor along the boundary of the concatenation (shown as the shaded boxes in Figure 1b), resulting in partial non-equivalence.
 
-![A partially equivalent convolution transformation and its correction](./pet/figure-01.png)
+![A partially equivalent convolution transformation and its correction](../../papers/pet/figure-01.png)
 
 **Figure 1.** A partially equivalent transformation that improves the performance of convolution by manipulating tensor shape and linearization. The shaded boxes in (b) highlight non-equivalent elements between two programs in the transformation. The correction kernel in (c) is applied to these elements to recover the functional equivalence of the input program.
 
@@ -89,7 +89,7 @@ To maintain end-to-end equivalence to an input program, PET's mutation corrector
 
 The corrected mutants are sent to PET's program optimizer, which combines existing fully equivalent transformations with partially equivalent ones to construct a comprehensive search space of program optimizations. The optimizer evaluates a rich set of mutants for each subprogram and applies post-optimizations across their boundaries, in order to discover highly optimized candidates in the search space ([Section 6](#_6-program-optimizer)).
 
-![PET framework overview](./pet/figure-02.png)
+![PET framework overview](../../papers/pet/figure-02.png)
 
 **Figure 2.** PET overview.
 
@@ -103,7 +103,7 @@ We call an MLTP $\mathcal{P}_1$ a mutant of another MLTP $\mathcal{P}_0$ if $\ma
 
 For a given MLTP $\mathcal{P}_0$, PET generates potential mutants of $\mathcal{P}_0$ using a given set of multi-linear operators $O$ as the basic building blocks. Table 1 lists the operators used in our evaluation. The list covers a variety of commonly used tensor operators, including compute-intensive operators (`conv`, `matmul`, etc.), element-wise operators (`add`, `mul`, etc.), and tensor manipulation (`split`, `transpose`, etc.). This set can also be extended to include new DNN operators.
 
-![Multi-linear tensor operators used in PET](./pet/table-01.png)
+![Multi-linear tensor operators used in PET](../../papers/pet/table-01.png)
 
 **Table 1.** Multi-linear tensor operators used in PET.
 
@@ -183,7 +183,7 @@ $$
 \end{aligned}
 $$
 
-![A dilated convolution mutant and its correction](./pet/figure-03.png)
+![A dilated convolution mutant and its correction](../../papers/pet/figure-03.png)
 
 **Figure 3.** An example mutant that transforms a dilated convolution to a standard convolution. The red-shaded boxes in (b) highlight non-equivalent elements between the two programs, which are fixed by the correction kernel in (c).
 
@@ -191,7 +191,7 @@ Here, $D$, $H$, and $W$ refer to the number of channels, height, and width of th
 
 Different positions of an output tensor may have different summation intervals. For the convolution operator defined above, computing the top-left output position (i.e., $h=0,w=0$) only involves a $2\times2$ kernel (i.e., $0\le x\le1,0\le y\le1$), since that position does not have a left or top neighbor, as shown in Figure 4. We group the output positions with an identical summation interval into a box. Formally, a box is a region of an output tensor whose elements all have the same summation interval. This convolution has nine boxes overall, which are depicted in Figure 4.
 
-![The nine boxes and summation intervals of a convolution](./pet/figure-04.png)
+![The nine boxes and summation intervals of a convolution](../../papers/pet/figure-04.png)
 
 **Figure 4.** The nine boxes of a convolution with a $3\times3$ kernel and zero padding, as well as their summation intervals. A convolution has three summation dimensions (i.e., $d$, $x$, and $y$ in Equation 1). The channel dimension (i.e., $d$) has the same interval in all boxes and is thus omitted.
 
@@ -215,7 +215,7 @@ Theorem 2 relies on the fact that $\mathbb{F}$ is a finite field, from which the
 
 By combining Theorems 1 and 2, PET reduces the original verification task of examining all output positions with respect to all input value combinations to a much more lightweight task that only requires testing a few representative positions using several randomly generated inputs, as shown in Table 2.
 
-![Verification workload reductions in PET](./pet/table-02.png)
+![Verification workload reductions in PET](../../papers/pet/table-02.png)
 
 **Table 2.** Reducing verification workload in PET.
 
@@ -223,7 +223,7 @@ By combining Theorems 1 and 2, PET reduces the original verification task of exa
 
 The PET mutation correction algorithm exploits the theorems in [Section 5.1](#_5-1-theoretical-foundations) to calculate which regions of the output tensors in a mutant are not equivalent to the input MLTP and, therefore, need additional correction. In particular, it suffices to examine the equivalence for each pair of overlapped boxes from the two MLTPs, using a small number of random tests. The overall algorithm works in the following three steps.
 
-![Box propagation for the convolution transformation](./pet/figure-05.png)
+![Box propagation for the convolution transformation](../../papers/pet/figure-05.png)
 
 **Figure 5.** Box propagation for the example in Figure 1. The red arrows indicate the split points of each tensor dimension.
 
@@ -251,7 +251,7 @@ Correction kernels may introduce non-trivial overheads due to the cost of launch
 
 For example, Figure 6b shows the tensor program after applying the partially equivalent transformation in Figure 1. `Conv-2` is the correction kernel for fixing the output of `Conv-1`. Since the two convolution operators share the same weights (i.e., $W_1$), PET fuses them into a single convolution, shown as `Conv-1-2` in Figure 6c. This fusion requires concatenating $T_1$ and $T_0'$ into a single tensor and splitting the output of `Conv-1-2` into $T_2$ and $T_3'$. The concatenation and split only involve direct memory copies and can be fused with the `reshape` and `transpose` operators.
 
-![Fusing correction kernels with DNN kernels](./pet/figure-06.png)
+![Fusing correction kernels with DNN kernels](../../papers/pet/figure-06.png)
 
 **Figure 6.** Fusing correction kernels with DNN kernels.
 
@@ -320,7 +320,7 @@ Finally, the optimized mutants for all subprograms need to be stitched together.
 
 Figure 7 shows an example with two optimized subprograms. To optimize the boundaries between subprograms, PET first groups together all R/T operators between subprograms by reordering the R/T operators with element-wise non-linear activations (e.g., ReLU and sigmoid), as shown in Figure 7b. This reordering is functionally correct, since both `reshape` and `transpose` are commutative with element-wise operators. The reordering also allows PET to fuse the non-linear activations with other linear operators, such as fusing a Conv and a subsequent ReLU into a Conv-ReLU, as shown in Figure 7c. We then apply the following three post-optimizations.
 
-![Post-optimizations across two subprograms](./pet/figure-07.png)
+![Post-optimizations across two subprograms](../../papers/pet/figure-07.png)
 
 **Figure 7.** Post-optimizations applied when stitching two subprograms SG-1 and SG-2. R/T refers to a `reshape` followed by a `transpose`. Conv and ReLU denote a convolution and a ReLU operator, respectively.
 
@@ -370,7 +370,7 @@ Unless otherwise stated, in all experiments, we use CUDA events to measure the e
 
 We first compare the end-to-end inference performance between PET and existing tensor program optimizers, including TensorFlow [Aba16], TensorFlow XLA [XLA17], TensorRT [Ten17a], and TASO [Jia19b]. Figure 8 shows the results under batch sizes of 1 and 16. To eliminate the impact of using different operator libraries, all optimizers use the same cuDNN [Che14] and cuBLAS [Cub16] libraries as the backend. Therefore, the performance differences only come from different optimized tensor programs produced by PET and the baselines. [Section 8.4](#_8-4-tvm-and-ansor) further evaluates PET with existing kernel generation techniques, such as TVM [Che18] and Ansor [Zhe20].
 
-![End-to-end performance comparison between PET and existing frameworks](./pet/figure-08.png)
+![End-to-end performance comparison between PET and existing frameworks](../../papers/pet/figure-08.png)
 
 **Figure 8.** End-to-end performance comparison between PET and existing frameworks. For each DNN, the numbers above the PET bars show the speedups over the best baseline. TASO does not support the 3D convolution operators in Resnet3D-18.
 
@@ -378,11 +378,11 @@ Among the five DNN architectures, Resnet-18 and Resnet3D-18 are commonly used an
 
 To further evaluate the partially equivalent transformations discovered by PET, we manually add them and corresponding correction kernels as additional graph substitutions into TASO, and measure by how much these new transformations improve TASO's performance. As shown in Figure 9, the enhanced version of TASO further improves the inference performance of Inception-v3 and BERT by 1.12x and 1.31x, respectively. This demonstrates that partially equivalent transformations indeed enlarge the design space of graph transformations, and PET unleashes these benefits automatically. Some non-trivial partially equivalent transformations are not leveraged by TASO, due to substantial correction overhead, while PET is able to avoid this overhead through correction kernel fusion ([Section 5.3](#_5-3-fusing-correction-kernels)) and post-optimization ([Section 6.3](#_6-3-post-optimizations)).
 
-![Performance benefits after adding PET transformations to TASO](./pet/figure-09.png)
+![Performance benefits after adding PET transformations to TASO](../../papers/pet/figure-09.png)
 
 **Figure 9.** Performance benefits after adding PET's partially equivalent transformations into TASO.
 
-![Operator benchmark list](./pet/table-03.png)
+![Operator benchmark list](../../papers/pet/table-03.png)
 
 **Table 3.** Operator benchmark list.
 
@@ -396,7 +396,7 @@ PET discovers many partially equivalent transformations that improve DNN computa
 
 PET transforms the input tensor shape from $[1,48,38,38]$ to $[16,48,10,10]$ by splitting both the height and width dimensions each into four partitions. IGEMM and FFT are the most efficient convolution algorithms before and after the optimization, respectively. Using the transformed input tensor reduces the GPU DRAM and L2 accesses by 100x and 15x, respectively, and thus reduces the run time by 7x (Table 4).
 
-![Performance case studies for convolution operators](./pet/table-04.png)
+![Performance case studies for convolution operators](../../papers/pet/table-04.png)
 
 **Table 4.** Case studies on the performance of the `conv` and `dilatedconv` operators in Table 3. IGEMM, FFT, and WINO refer to implicit GEMM, Fast Fourier Transform, and Winograd convolution algorithms, respectively. For `conv`, the optimized program transforms the input tensor shape from $[1,48,38,38]$ to $[16,48,10,10]$. For `dilatedconv`, the optimized program replaces the `dilatedconv` with a regular convolution with the same input and kernel sizes.
 
@@ -412,7 +412,7 @@ Other examples of operator-level optimizations include replacing a batch matrix 
 
 PET also discovers graph-level optimizations. Figure 10 shows two graph transformations discovered by PET to optimize Inception-v3 [Sze16]. For two parallel `conv` operators with different numbers of output channels, Figure 10a shows a non-equivalent transformation that fuses the two `conv` operators into a `groupconv` by padding $W_2$ with zeros, so that the output of `pad` has the same shape as $W_1$. The correction splits and discards the zeros tensor at the end (shown in red).
 
-![Mutants discovered by PET for Inception-v3](./pet/figure-10.png)
+![Mutants discovered by PET for Inception-v3](../../papers/pet/figure-10.png)
 
 **Figure 10.** Mutants discovered by PET for Inception-v3. `axis` denotes the dimension on which to perform `concat` and `split`.
 
@@ -422,7 +422,7 @@ PET also discovers fully equivalent transformations that are missed by existing 
 
 We use CSRNet [Li18a] as an example to study the effectiveness of PET's kernel fusion optimization. Figure 11a and Figure 11b show the original and optimized model architectures of CSRNet. The numbers in each operator denote the input tensor shape. To demonstrate the correction kernel fusion and post-optimization in PET, Figure 11c shows the subprogram of a single dilated convolution before post-optimization, which contains three correction kernels and six R/T (i.e., `reshape` and `transpose`) operators. These correction kernels are fused with `Conv-4`, as described in [Section 5.3](#_5-3-fusing-correction-kernels). In addition, the multiple R/T operators between convolutions are fused into a single one during post-optimization ([Section 6.3](#_6-3-post-optimizations)).
 
-![Optimization details in PET for CSRNet](./pet/figure-11.png)
+![Optimization details in PET for CSRNet](../../papers/pet/figure-11.png)
 
 **Figure 11.** Optimization details in PET for CSRNet.
 
@@ -434,7 +434,7 @@ PET improves tensor computations by generating and correcting partially equivale
 
 We evaluate PET on TVM and Ansor with a set of commonly used DNN operators, including `conv`, `dilatedconv`, `groupconv`, and `batchmatmul`, which are obtained from Resnet-18, CSRNet, Inception-v3, and BERT, respectively. Their shape configurations are listed in Table 3. To generate kernels for potential mutants during the search, we allow TVM and Ansor to run 1024 trials and use the best discovered kernels to measure the cost of the mutants.
 
-![PET performance on the cuDNN, cuBLAS, TVM, and Ansor backends](./pet/figure-12.png)
+![PET performance on the cuDNN, cuBLAS, TVM, and Ansor backends](../../papers/pet/figure-12.png)
 
 **Figure 12.** Performance comparison of PET on the cuDNN/cuBLAS, TVM, and Ansor backends. The performance is normalized to cuDNN/cuBLAS without PET.
 
@@ -444,13 +444,13 @@ As Figure 12 shows, when combining PET with TVM and Ansor, PET can improve the p
 
 The key insight of PET is to explore partially equivalent program mutants, while state-of-the-art frameworks only capture fully equivalent transformations [Jia19b, Zhe20]. We run several variants of PET to evaluate the benefits of considering either fully or partially equivalent program transformations, or both of them, as PET does. Figure 13 shows the results. When restricting PET to consider only equivalent transformations, it achieves similar performance gains as previous work such as TASO. Partially equivalent transformations, by themselves, enable noticeable benefits but also miss significant potential. Finally, PET achieves the highest performance by jointly considering both fully and partially equivalent transformations.
 
-![Performance of fully equivalent, partially equivalent, and joint optimizations](./pet/figure-13.png)
+![Performance of fully equivalent, partially equivalent, and joint optimizations](../../papers/pet/figure-13.png)
 
 **Figure 13.** Performance comparison of tensor program optimizations using only (fully) equivalent transformations, only partially equivalent transformations, and both (as in PET).
 
 Finally, PET relies on several heuristic parameters to balance the search time and the resultant program performance. The mutation depth in Algorithm 1 limits the maximum number of operators in a program mutant; the mutation round in Algorithm 2 specifies the maximum number of iterations to apply mutations. Larger values of these thresholds allow larger design spaces of potential mutants but also require more time to search. Figure 14 compares the performance of the optimized programs under different searching depths and rounds for Resnet-18 and CSRNet.
 
-![PET performance at different mutation depths and rounds](./pet/figure-14.png)
+![PET performance at different mutation depths and rounds](../../papers/pet/figure-14.png)
 
 **Figure 14.** Performance comparison by using PET with different mutation depths ([Section 4.1](#_4-1-mutation-generation-algorithm)) and rounds ([Section 6.2](#_6-2-subprogram-optimization)).
 

@@ -10,7 +10,7 @@ permalink: /en/papers/kimi-k3/
 
 We introduce Kimi K3, a 2.8T parameter Mixture-of-Experts model with 104 billion activated parameters, native vision capabilities, and a 1-million-token context window. Kimi K3 is built on Kimi Delta Attention [Tea25b] and Attention Residuals [Tea26], which improve information flow across sequence length and model depth. Together with Stable LatentMoE, which effectively activates 16 of 896 routed experts per token, and refined training and data recipes, these advances yield an approximately $2.5\times$ improvement in overall scaling efficiency over Kimi K2 [Tea25]. Post-training highlights reinforcement learning across general, agentic, and coding domains and multiple reasoning-effort levels, enabling compositional generalization and robust long-horizon execution. At 2.8T scale, Kimi K3 is supported by infrastructure advances in multiple areas: algorithm-system co-design for KDA, perfectly balanced expert-parallel training with efficient memory management, million-token agentic RL with persistent rollout and sandbox states, and deployment innovations. Extensive evaluations show that Kimi K3 achieves frontier-level performance across long-horizon coding, agentic, knowledge, reasoning, and vision tasks. While its overall performance still trails the most powerful proprietary models, namely Claude Fable 5 and GPT-5.6 Sol, Kimi K3 consistently outperforms other open and proprietary models evaluated in our suite. We release the full Kimi K3 model weights to facilitate future research and accelerate the broader deployment and adoption of frontier intelligence.
 
-![Kimi K3 benchmark results](./kimi-k3/figure-01.png)
+![Kimi K3 benchmark results](../../papers/kimi-k3/figure-01.png)
 
 **Figure 1.** Kimi K3 main results.
 
@@ -32,7 +32,7 @@ The resulting model establishes a new open frontier. On benchmarks spanning long
 
 The Kimi K3 architecture is designed to scale information flow along three complementary dimensions: sequence length, network depth, and model width. Along the sequence dimension, Hybrid Attention combines three Kimi Delta Attention (KDA) [Tea25b] layers with one Gated MLA layer in each block, providing an efficient mechanism for long-context token mixing while retaining selective high-capacity attention ([§2.1](#_2-1-hybrid-attention)). Along the depth dimension, Attention Residuals (AttnRes) [Tea26] enable each module to selectively retrieve representations from the embedding, the current block, and preceding blocks, extending information access beyond conventional sequential residual accumulation ([§2.2](#_2-2-attention-residuals)). Along the width dimension, each attention layer is followed by a Stable LatentMoE layer that performs sparse channel mixing, effectively activating 16 of 896 routed experts for each token ([§2.3](#_2-3-stable-latentmoe)). For native vision, MoonViT-V2 encodes images and videos, and a lightweight projector maps the resulting visual features into the shared embedding space before backbone processing ([§2.4](#_2-4-native-vision)). Together with Per-Head Muon ([§2.5](#_2-5-per-head-muon)), these components provide a unified architecture for scaling information flow across tokens, layers, and channels. Combined with refined training and data recipes, they yield an approximately $2.5\times$ improvement in overall scaling efficiency over Kimi K2. Figure 2 provides an overview of the architecture.
 
-![Kimi K3 architecture](./kimi-k3/figure-02.png)
+![Kimi K3 architecture](../../papers/kimi-k3/figure-02.png)
 
 **Figure 2.** The Kimi K3 architecture, organized around token, channel, and layer mixing, with a native vision pathway at the input. Each block contains three Kimi Delta Attention (KDA) layers followed by one Gated MLA layer, with each attention layer paired with a Stable LatentMoE feed-forward network. Attention Residuals (AttnRes) use learned pseudo-queries to derive attention weights over the embedding and preceding block outputs, enabling selective information flow across depth.
 
@@ -107,7 +107,7 @@ $$
 
 where $A_h$ is a learnable per-head log-scale and $g_{\min}=-5$ is fixed. We initialize $A_h=0$, and each bias $\mathbf b_\alpha^h$ is initialized following [Tea25b, Dao24, Yan25]. With $g_{\min}=-5$, every retention factor satisfies $\alpha_{t,j}^h>e^{-5}\approx6.7\times10^{-3}$, and the cumulative log-decay over a 16-token tile lies in $(-80,0)$. The corresponding reciprocal rescaling factor is therefore smaller than $e^{80}$ and remains within the BF16 dynamic range. This finite range allows both diagonal and off-diagonal tiles to use dense Tensor Core matrix multiplications, eliminating the position-pair diagonal path. This parameterization is closely related to the lower-bounded recurrence gates in prior work [Qin24a, De24, Pen25]. Figure 3 illustrates the change in decay parameterization and its computational consequence.
 
-![Lower-bounded decay and chunkwise KDA computation](./kimi-k3/figure-03.png)
+![Lower-bounded decay and chunkwise KDA computation](../../papers/kimi-k3/figure-03.png)
 
 **Figure 3.** Lower-bounded decay and its effect on chunkwise KDA computation. Kimi Linear uses an unbounded negative-Softplus mapping, whereas Kimi K3 bounds the log-decay with a scaled sigmoid, allowing all causal tiles to use dense Tensor Core matrix multiplications.
 
@@ -220,7 +220,7 @@ $$
 
 For Kimi K3, we set the soft-cap hyperparameters to $\beta_1=4$ for the gate branch and $\beta_2=25$ for the up branch. The scaled tanh is approximately linear near the origin and bounded at large magnitude, allowing SiTU-GLU to preserve the local response of SwiGLU while controlling both factors in the product. Figure 4 compares the branch definitions and scalar responses of GLU, SwiGLU, and SiTU-GLU on a common slice. Appendix B gives the local expansion, limiting case, formal output bound, and comparison with hard clamping.
 
-![GLU, SwiGLU, and SiTU-GLU branch responses](./kimi-k3/figure-04.png)
+![GLU, SwiGLU, and SiTU-GLU branch responses](../../papers/kimi-k3/figure-04.png)
 
 **Figure 4.** Gate and up branches of GLU, SwiGLU, and SiTU-GLU, together with their scalar responses. SiTU-GLU closely follows SwiGLU near the origin and approaches the bound $|f(x)|\le\beta_1\beta_2=100$ for large positive inputs, whereas SwiGLU remains unbounded.
 
@@ -263,7 +263,7 @@ $$
 
 The margins subtract the biased cutoff $\alpha_i^{(t)}$ from the raw score $s_{i,j}$, so the old bias enters the update only through the cutoffs, and the second line removes a common offset that leaves Top-$k$ selection unchanged. For causality, the update takes effect only in the next step [Dee24a], i.e., a batch is never routed with a bias derived from itself. Figure 5 illustrates the case $m=8$, $n=4$, and $k=1$, where each expert receives the target load $q=2$. The final bias is frozen at inference. The balanced-assignment derivation is given in Appendix C.
 
-![Quantile Balancing example](./kimi-k3/figure-05.png)
+![Quantile Balancing example](../../papers/kimi-k3/figure-05.png)
 
 **Figure 5.** Quantile Balancing with $m=8$ tokens, $n=4$ routed experts, and $k=1$ selected expert per token. The expert-side bias update changes the imbalanced loads $(4,3,1,0)$ into the balanced load $(2,2,2,2)$.
 
@@ -279,7 +279,7 @@ Kimi K3 is natively multimodal: text, images, and videos are processed by a sing
 
 A key departure from Kimi K2.5 is that we train Kimi K3's vision encoder, MoonViT-V2, entirely from scratch with next-token prediction. Prior practice, including Kimi K2.5 itself, initializes the vision encoder from a contrastively pre-trained model such as SigLIP, under the premise that pre-trained visual knowledge gives the model a head start. We depart from this practice primarily for training stability. When a pre-trained encoder is attached to the LLM, joint optimization becomes unstable: the SigLIP-initialized MoonViT-3D shows persistently higher gradient norms with frequent spikes, while MoonViT-V2 remains stable throughout training (Figure 6). Training with next-token prediction also allows the encoder's representations to be shaped directly by the language-modeling objective, rather than by a contrastive loss that favors global semantics over fine-grained textual and structural cues. Notably, we find MoonViT-V2 matches the SigLIP-initialized baseline across vision evaluations, indicating that contrastive pre-training is unnecessary as an initialization for multimodal language models at scale.
 
-![Vision-tower gradient norms](./kimi-k3/figure-06.png)
+![Vision-tower gradient norms](../../papers/kimi-k3/figure-06.png)
 
 **Figure 6.** Vision-tower gradient norms in pre-training ablations. Compared with the SigLIP-initialized MoonViT-3D, the from-scratch MoonViT-V2 maintains lower gradient norms with fewer spikes, indicating more stable optimization.
 
@@ -305,11 +305,11 @@ The vision corpus follows the taxonomy of Kimi K2.5 [Kim26a], combining open-sou
 
 Taken together, the architectural, data, and training improvements described in the previous sections define our new model family. Since these changes also alter the optimal training regime, we conduct dedicated scaling-law studies to retune key hyperparameters, including the batch size, learning rate, tokens-per-parameter ratio (TPP), and model shape. Evaluated on held-out OOD validation data, the scaling-law curves in Figure 7 show that these improvements collectively deliver an approximately $2.5\times$ gain in overall scaling efficiency over Kimi K2. Table 1 provides a detailed architectural comparison between Kimi K2 and Kimi K3, highlighting the structural changes that contribute to this improvement.
 
-![Scaling-law curves for Kimi K2 and Kimi K3](./kimi-k3/figure-07.png)
+![Scaling-law curves for Kimi K2 and Kimi K3](../../papers/kimi-k3/figure-07.png)
 
 **Figure 7.** Fitted scaling-law curves for Kimi K2 and Kimi K3. Kimi K3 achieves a $2.5\times$ gain in scaling efficiency over Kimi K2.
 
-![Architectural comparison between Kimi K2 and Kimi K3](./kimi-k3/table-01.png)
+![Architectural comparison between Kimi K2 and Kimi K3](../../papers/kimi-k3/table-01.png)
 
 **Table 1.** Architectural comparison between Kimi K2 and Kimi K3.
 
@@ -343,7 +343,7 @@ The SFT stage establishes a high-quality cold-start policy for the subsequent RL
 
 #### 4.1.2 Reinforcement Learning
 
-![RL scaling across public and in-house evaluations](./kimi-k3/figure-08.png)
+![RL scaling across public and in-house evaluations](../../papers/kimi-k3/figure-08.png)
 
 **Figure 8.** Scores and average assistant steps across public and in-house evaluations during reinforcement learning. Scaling RL FLOPs consistently increases tool-call steps and improves overall capability.
 
@@ -404,7 +404,7 @@ Training with a single fixed agent harness can cause a model to overfit to a par
 
 **Motivation and overview.** The quality and diversity of post-training tasks are largely determined by their source materials. Retrieval guided by fine-grained concepts surfaces specialized and underrepresented knowledge, while sampling across diverse concepts broadens domain coverage. To control both granularity and coverage at scale, we build a self-evolving, hierarchically organized knowledge graph that agents continuously expand through web-scale exploration across knowledge-intensive and coding domains. Figure 9 illustrates the task synthesis pipeline. The hierarchically organized knowledge graph represents concepts at multiple levels, ranging from broad domains to fine-grained concepts. Related nodes are sampled to form a keyword set that guides the retrieval of publicly available source materials. For each synthesis instance, the system selects a task type and uses the retrieved materials to synthesize a corresponding task.
 
-![Knowledge-graph-guided task synthesis](./kimi-k3/figure-09.png)
+![Knowledge-graph-guided task synthesis](../../papers/kimi-k3/figure-09.png)
 
 **Figure 9.** Knowledge-graph-guided task synthesis. Related nodes in a hierarchical concept graph guide source retrieval and the synthesis of diverse tasks.
 
@@ -432,7 +432,7 @@ For long-horizon personal assistant tasks, we develop realistic mock implementat
 
 We introduce Autonomous Execution Tasks (AET), an environment paradigm that trains long-horizon agent intelligence through verify-in-the-loop optimization. Each task specifies an initial state, a constrained goal, a tool-based action space, execution budgets, and an independent verifier. Agents see only the objective, context, constraints, and verification interfaces, without reference trajectories or predefined procedures, and must autonomously perform task decomposition, tool selection, planning, error recovery, and termination. Rewards are grounded in the verifier's evaluation of the final environment state rather than the agent's self-reported completion. We design multiple types of verifiers that support diverse environments, including black-box system replication (Figure 10), quantitative factor discovery, and tax auditing.
 
-![Autonomous execution task completion curves](./kimi-k3/figure-10.png)
+![Autonomous execution task completion curves](../../papers/kimi-k3/figure-10.png)
 
 **Figure 10.** Completion curves on Camera Repair Management System, a black-box system replication task in which the agent reconstructs a hidden 3D-camera repair system as a web application through oracle queries.
 
@@ -493,7 +493,7 @@ The MoE layers employ shared experts replicated across EP ranks, and the all-to-
 
 Natively multimodal pre-training at the 3T-class poses three critical problems: (i) token loads are imbalanced across EP ranks; (ii) activations, gradients, and optimizer states exceed the memory budget; and (iii) the vision encoder's highly variable computation is exposed on the critical path. The following subsections address these problems in turn: perfectly balanced expert-parallel MoE training ([§5.2.1](#_5-2-1-perfectly-balanced-expert-parallel-moe-training)), memory-efficient training ([§5.2.2](#_5-2-2-memory-efficient-training)), and multimodal encoder optimization ([§5.2.3](#_5-2-3-multimodal-encoder-optimization)). Fig. 11 illustrates the resulting execution schedule.
 
-![Overlapped pre-training execution schedule](./kimi-k3/figure-11.png)
+![Overlapped pre-training execution schedule](../../papers/kimi-k3/figure-11.png)
 
 **Figure 11.** Computation, communication, and offloading overlapped in different pipeline-parallel phases.
 
@@ -593,7 +593,7 @@ Block-hash-based prefix caching reuses the KV cache at the granularity of one ph
 
 We therefore decouple the two granularities. Prefix hashing runs on fine hash blocks (e.g., 512 tokens) inside MLA pages, while the physical block remains the coarse allocation unit. Alignment runs the other way for KDA: checkpoints of the recurrent state are saved only at a sparse subset of MLA's hash endpoints, the only positions a lookup can ever reference.
 
-![Fine-grained KDA-aware prefix caching](./kimi-k3/figure-12.png)
+![Fine-grained KDA-aware prefix caching](../../papers/kimi-k3/figure-12.png)
 
 **Figure 12.** Fine-grained prefix caching within a 6144-token physical cache block. A request reuses five 512-token MLA hash blocks and the KDA checkpoint at boundary $B=2560$, then resumes prefill without recomputing $[0,B)$.
 
@@ -671,7 +671,7 @@ GDPval-AA v2, AA-Briefcase, $\tau^3$-Banking, Harvey Lab-AA, APEX-Agents, SciCod
 
 #### 6.1.4 Results
 
-![Public benchmark comparison](./kimi-k3/table-02.png)
+![Public benchmark comparison](../../papers/kimi-k3/table-02.png)
 
 **Table 2.** Performance comparison of Kimi K3 against proprietary and open-weight models. Bold denotes the best result for each benchmark and underline denotes the second best.
 
@@ -685,7 +685,7 @@ Table 2 provides a comprehensive comparison of Kimi K3 against both proprietary 
 
 Beyond the public benchmark suite, we maintain a collection of in-house benchmarks that target capability areas public evaluations do not adequately cover, giving a more comprehensive measure of model and agent capabilities. These benchmarks are refreshed and expanded frequently, so that they can closely track the model's evolving failure modes and directly guide data and training iterations. They broadly fall into three categories: coding capability and experience, general agent experience, and conversational experience. Table 3 reports the results across these benchmarks.
 
-![In-house benchmark results](./kimi-k3/table-03.png)
+![In-house benchmark results](../../papers/kimi-k3/table-03.png)
 
 **Table 3.** Results on the in-house benchmark suite. Bold denotes the best reported result per benchmark; a dash denotes scores not included in the report.
 
@@ -695,7 +695,7 @@ Beyond the public benchmark suite, we maintain a collection of in-house benchmar
 
 - **Kimi Webdev Bench:** evaluates models on challenging web development prompts drawn from real usage scenarios, with outputs compared through blind expert judgment, with results available in Table 4.
 
-![Kimi Webdev Bench results](./kimi-k3/table-04.png)
+![Kimi Webdev Bench results](../../papers/kimi-k3/table-04.png)
 
 **Table 4.** Results on Kimi Webdev Bench: Kimi K3 against Claude Opus 4.8 under blind expert judging of code quality, feature completeness, visual fidelity, and interaction experience.
 
@@ -773,7 +773,7 @@ We regard our evaluation as a lower bound on capability. These results are condi
 
 Kimi K3 has also been independently evaluated by third-party organizations since its release. Table 5 summarizes the headline results as of July 23, 2026.
 
-![Independent third-party evaluation results](./kimi-k3/table-05.png)
+![Independent third-party evaluation results](../../papers/kimi-k3/table-05.png)
 
 **Table 5.** Headline independent third-party evaluations of Kimi K3 as of July 23, 2026.
 
@@ -793,7 +793,7 @@ For BrowseComp, the cost of Kimi K3 is measured from our own runs, while the cos
 
 On Kimi Code Bench 2.0, Kimi K3 is 4.0 points behind Claude Fable 5 at 38% of its cost, and at high effort it already matches Claude Opus 4.8's maximum-effort score at roughly one third of the cost. On BrowseComp, Kimi K3 attains the best score (91.2%) at \$2.03 per task, half the cost of GPT-5.6 Sol (90.4%) and an order of magnitude cheaper than the Claude models at their maximum effort. On GDPval-AA v2, Kimi K3 is within 50 Elo of GPT-5.6 Sol at 13% lower cost, and $2.6\times$ cheaper than Claude Fable 5. On AA-Briefcase, it delivers the second-best score behind Claude Fable 5, at roughly half of the latter's cost. Figure 13 summarizes the comparison. Overall, Kimi K3 sits on or near the cost-efficiency frontier across all four suites, delivering near-top scores at a fraction of the cost of Claude Fable 5 in particular.
 
-![Score versus per-task inference cost](./kimi-k3/figure-13.png)
+![Score versus per-task inference cost](../../papers/kimi-k3/figure-13.png)
 
 **Figure 13.** Score versus per-task inference cost on Kimi Code Bench 2.0, BrowseComp, GDPval-AA v2, and AA-Briefcase. Kimi K3 is marked with a star.
 
@@ -805,13 +805,13 @@ In this section, we present representative cases that demonstrate Kimi K3's capa
 
 We tested the models' ability to optimize GPU kernels. Each model works independently in an identically configured sandbox, with a budget of up to 24 hours per task for profiling, rewriting, and benchmarking. The evaluation covers four representative kernels: AttnRes, DeepSeek Sparse Attention (DSA), KDA, and MLA (with head dimension 512), on an NVIDIA Hopper GPU and an alternative-vendor GPGPU. Kimi K3 substantially improved performance across all four kernels, reducing AttnRes latency from 283.6 ms to 114.4 ms, cutting DSA and KDA runtime by 55.1% and 73.6%, respectively, and reaching over half of peak TFLOPS on MLA. Across these tasks, Kimi K3 matched Claude Fable 5 [Fab26] (with fallback) and substantially outperformed Claude Opus 4.8 [Opu26], GPT-5.6 Sol [Sol26], and GPT-5.5 [Ope26]. Figure 14 compares the models' optimization trajectories on AttnRes. Beyond the benchmark, an early Kimi K3 checkpoint was already handling most of our kernel optimization work during late-stage development.
 
-![GPU kernel optimization trajectories](./kimi-k3/figure-14.png)
+![GPU kernel optimization trajectories](../../papers/kimi-k3/figure-14.png)
 
 **Figure 14.** GPU kernel optimization trajectories for AttnRes.
 
 **GPU compiler development.** Kimi K3 developed MiniTriton ([repository](https://github.com/MoonshotAI/minitriton)), a compact Triton-like [Til19] compiler with a custom tile-level Python frontend and layout system, a lightweight warp-level MLIR [Lat21] annotation and optimization layer, and a Parallel Thread Execution (PTX) code-generation pipeline. Built around the compiler is a dual-mode tensor library with a PyTorch-like [Pas19] high-level interface, whose eager and forward-only compiled paths share the same DSL compiler and runtime. The library further provides reverse-mode autograd, neural-network modules, distributed-training primitives over NCCL [NccWeb], and sparse and visualization primitives. On an NVIDIA L20, MiniTriton outperforms PyTorch eager [Pas19] and torch.compile [Ans24] in geometric mean over its core benchmark suite. Its from-scratch tensor-core matmul path approaches cuBLAS [Cub26] at the largest shapes, reaching about 90% of the measured machine roof, while its DSL-level KDA [Tea25b] prefill kernel outperforms a matched Triton reference by a clear margin. MiniTriton also trains a GPT model end to end with a loss curve closely tracking the PyTorch reference, with full-model gradients differing from torch autograd by no more than torch's own FP32 rounding error, $10^{-4}$, measured against an FP64 reference. Together, these results demonstrate that Kimi K3 can build a coherent end-to-end compiler, from DSL frontend and IR passes to PTX code generation and CUDA runtime, rather than a collection of isolated kernels (Figure 15).
 
-![MiniTriton GPU compiler results](./kimi-k3/figure-15.png)
+![MiniTriton GPU compiler results](../../papers/kimi-k3/figure-15.png)
 
 **Figure 15.** GPU compiler development with MiniTriton: CUDA-core and tensor-core rooflines, GPT training loss, and two-GPU data-parallel training.
 
@@ -984,7 +984,7 @@ Construct a router output $I^*$ as follows: the experts on EP rank 0 receive no 
 
 ## F Chat Template
 
-![Kimi K3 chat template structure](./kimi-k3/figure-16.png)
+![Kimi K3 chat template structure](../../papers/kimi-k3/figure-16.png)
 
 **Figure 16.** Structure of the Kimi K3 chat template: context layout, assistant-message channels, and indexed parallel tool calls.
 

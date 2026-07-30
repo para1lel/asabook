@@ -224,12 +224,17 @@ export default defineUserConfig({
     '/': {
       lang: 'zh-CN',
       title: 'ASa Book',
-      description: 'vndb 与 csdiy 文档',
+      description: 'csdiy 与论文文档',
     },
     '/en/': {
       lang: 'en-US',
       title: 'ASa Book',
-      description: 'Notes on visual novels, self-directed study, and papers',
+      description: 'Notes on self-directed study and papers',
+    },
+    '/ja/': {
+      lang: 'ja-JP',
+      title: 'ASa Book',
+      description: '自主学習と論文についてのノート',
     },
   },
 
@@ -244,7 +249,6 @@ export default defineUserConfig({
       '/': {
         selectLanguageName: '简体中文',
         navbar: [
-          { text: 'vndb', link: '/vndb/intro/', activeMatch: '^/vndb/' },
           { text: 'csdiy', link: '/csdiy/cse291a/', activeMatch: '^/csdiy/' },
           { text: 'papers', link: '/papers/taso/', activeMatch: '^/papers/' },
         ],
@@ -302,7 +306,6 @@ export default defineUserConfig({
       '/en/': {
         selectLanguageName: 'English',
         navbar: [
-          { text: 'vndb', link: '/en/vndb/intro/', activeMatch: '^/en/vndb/' },
           { text: 'csdiy', link: '/en/csdiy/cse291a/', activeMatch: '^/en/csdiy/' },
           { text: 'papers', link: '/en/papers/taso/', activeMatch: '^/en/papers/' },
         ],
@@ -354,6 +357,63 @@ export default defineUserConfig({
         ],
         footer: {
           message: 'Built with VuePress and the Plume theme',
+          copyright: 'Copyright © 2026 ASa Book',
+        },
+      },
+      '/ja/': {
+        selectLanguageName: '日本語',
+        navbar: [
+          { text: 'csdiy', link: '/ja/csdiy/cse291a/', activeMatch: '^/ja/csdiy/' },
+          { text: 'papers', link: '/ja/papers/taso/', activeMatch: '^/ja/papers/' },
+        ],
+        collections: [
+          {
+            type: 'doc',
+            title: 'vndb',
+            dir: 'vndb',
+            linkPrefix: '/vndb/',
+            sidebar: [
+              {
+                text: 'VNDB',
+                collapsed: false,
+                items: ['intro'],
+              },
+            ],
+          },
+          {
+            type: 'doc',
+            title: 'csdiy',
+            dir: 'csdiy',
+            linkPrefix: '/csdiy/',
+            sidebar: [
+              {
+                text: 'AoPS',
+                collapsed: true,
+                items: ['aops', 'tst26-p18', 'isl19-a5', 'tst26-p12'],
+              },
+              {
+                text: 'CSE 291A',
+                collapsed: false,
+                items: ['cse291a', 'cse291a-week1', 'cse291a-week2', 'cse291a-week3'],
+              },
+            ],
+          },
+          {
+            type: 'doc',
+            title: 'papers',
+            dir: 'papers',
+            linkPrefix: '/papers/',
+            sidebar: [
+              {
+                text: '論文',
+                collapsed: false,
+                items: ['taso', 'pet', 'kimi-k3'],
+              },
+            ],
+          },
+        ],
+        footer: {
+          message: 'VuePress と Plume テーマで構築',
           copyright: 'Copyright © 2026 ASa Book',
         },
       },
