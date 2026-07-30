@@ -224,5 +224,5 @@ def _conv1d(N_out, K, block_N, threads):
   return main
 ```
 
-IR が段階的に変換される様子と、コンパイル後の CUDA コードは[こちら](/webpage/conv1d-report.html)で確認できます。[公式ドキュメント](https://tilelang.com/tools/lower_trace.html)も参照してください。  
+IR が段階的に変換される様子と、コンパイル後の CUDA コードは[こちら](/conv1d-report.html)で確認できます。[公式ドキュメント](https://tilelang.com/tools/lower_trace.html)も参照してください。  
 TileLang には本来、範囲外アクセスの検査が組み込まれていますが、`T.vectorized` を明示しなければメモリアクセスはベクトル化されません。

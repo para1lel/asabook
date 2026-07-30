@@ -224,5 +224,5 @@ def _conv1d(N_out, K, block_N, threads):
   return main
 ```
 
-The step-by-step IR transformations and the generated CUDA code are available [here](/webpage/conv1d-report.html); see also the [official documentation](https://tilelang.com/tools/lower_trace.html).  
+The step-by-step IR transformations and the generated CUDA code are available [here](/conv1d-report.html); see also the [official documentation](https://tilelang.com/tools/lower_trace.html).  
 TileLang normally provides built-in bounds checking, but memory access is not vectorized unless `T.vectorized` is written explicitly.

@@ -226,5 +226,5 @@ def _conv1d(N_out, K, block_N, threads):
   return main
 ```
 
-可以在[这里](/webpage/conv1d-report.html)查看 IR 的逐步变换和编译得到的 CUDA 代码, [官方文档](https://tilelang.com/tools/lower_trace.html).  
+可以在[这里](/conv1d-report.html)查看 IR 的逐步变换和编译得到的 CUDA 代码, [官方文档](https://tilelang.com/tools/lower_trace.html).  
 本来 TileLang 是自带越界检查的, 但是不显式写 `T.vectorized` 就没有向量化读写.
