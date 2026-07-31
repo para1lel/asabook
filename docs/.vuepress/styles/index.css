@@ -85,3 +85,35 @@ pre * {
   margin-right: auto;
   margin-left: auto;
 }
+
+.yokubi-page .vp-doc pre.yokubi-example {
+  display: block;
+  width: min(100%, 44rem);
+  margin: 1.25rem auto;
+  padding: 0.9rem 1.1rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  background: var(--vp-c-bg-soft);
+  border-left: 3px solid var(--vp-c-brand-1);
+  border-radius: 4px;
+  line-height: 1.8;
+}
+
+.yokubi-page .vp-doc ruby {
+  ruby-position: over;
+}
+
+.yokubi-page .vp-doc rt {
+  font-size: 0.65em;
+}
+
+.yokubi-page .vp-doc .yokubi-closing-mark {
+  margin: 1.5rem 0;
+  font-size: 3rem;
+  text-align: center;
+}
+
+.yokubi-page .vp-doc > p:first-of-type > img[alt="logo"] {
+  width: min(100%, 28rem);
+  max-height: 13rem;
+}
