@@ -28,7 +28,7 @@ Use two-space indentation in TypeScript, JSON, CSS, and YAML frontmatter. Keep T
 
 Keep all Markdown abbreviation definitions in `docs/.vuepress/config.ts` under `paperAbbreviations`; do not create per-page or per-paper abbreviation files.
 
-Write content primarily in Chinese, with short Markdown sections, descriptive headings, and relative links for pages in the same collection. English translation pages should not be literal word-for-word copies; prioritize fluent, idiomatic English that reads naturally to native speakers while preserving the original meaning, links, math, and structure. Pages should include YAML frontmatter with `title`, `createTime`, and a stable `permalink` matching the configured collection path, for example `/csdiy/tst26-p18/`. Math content may use KaTeX syntax. When adding a page, also add its filename without `.md` to the appropriate collection sidebar in `docs/.vuepress/config.ts`, and update navbar entry points if the first page in a collection changes.
+Write content primarily in Chinese, with short Markdown sections, descriptive headings, and relative links for pages in the same collection. For paper editions governed by the add-paper skill, reproduce the English source word for word and sentence for sentence, and translate the Chinese and Japanese pages faithfully from that source. For other English translation pages, prioritize fluent, idiomatic English that reads naturally to native speakers while preserving the original meaning, links, math, and structure. Pages should include YAML frontmatter with `title`, `createTime`, and a stable `permalink` matching the configured collection path, for example `/csdiy/tst26-p18/`. Math content may use KaTeX syntax. When adding a page, also add its filename without `.md` to the appropriate collection sidebar in `docs/.vuepress/config.ts`, and update navbar entry points if the first page in a collection changes.
 
 No formatter or linter is configured; follow the surrounding style and avoid unrelated reformatting.
 
@@ -37,6 +37,10 @@ No formatter or linter is configured; follow the surrounding style and avoid unr
 There is no automated test framework or coverage requirement. The required check is a successful production build. For navigation or styling changes, also inspect both `/vndb/` and `/csdiy/` in the development server at desktop and mobile widths.
 
 After testing, stop any local development or preview servers started for the task. Do not leave test servers running when handing off the completed work.
+
+## Add Paper Skill
+
+When the user supplies an arXiv identifier or asks to add, typeset, translate, synchronize, or commit a paper, read and follow `skills/add-paper/SKILL.md`. Unless the user narrows the scope, complete the English, Simplified Chinese, and Japanese pages, validate the production build, and finish with a scoped commit.
 
 ## Commit & Pull Request Guidelines
 
