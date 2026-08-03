@@ -36,13 +36,15 @@ There is another いる verb: 要る which means "to need". The difference is th
 
 ある conjugates as a godan verb, but its negative conjugation is irregular.
 
-|             |
-|-------------|
-| ある        |
-| **ない**    |
-| あった      |
-| あります    |
-| ありません  |
+<table>
+  <tbody>
+    <tr><td>ある</td></tr>
+    <tr><td><strong>ない</strong></td></tr>
+    <tr><td>あった</td></tr>
+    <tr><td>あります</td></tr>
+    <tr><td>ありません</td></tr>
+  </tbody>
+</table>
 
 <pre class="yokubi-example">
 店は<b>ない</b>

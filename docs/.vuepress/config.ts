@@ -268,6 +268,80 @@ const paperAbbreviations = {
   'Zho25': "P. Zhou, B. Leon, X. Ying, C. Zhang, Y. Shao, Q. Ye, D. Chong, Z. Jin, C. Xie, M. Cao, et al. \"Browsecomp-zh: Benchmarking web browsing ability of large language models in chinese.\" arXiv preprint arXiv:2504.19314. 2025.",
 }
 
+interface YokubiSidebarLabels {
+  introduction: string
+  introductionLink: string
+  startHere: string
+  absoluteBeginner: string
+  part1: string
+  part2: string
+  absoluteTerritory: string
+  part3: string
+  part4: string
+  about: string
+}
+
+const yokubiLessons = (part: number, first: number, last: number) =>
+  Array.from(
+    { length: last - first + 1 },
+    (_, offset) => `part-${part}/lesson-${String(first + offset).padStart(2, '0')}`,
+  )
+
+const yokubiSidebar = (labels: YokubiSidebarLabels) => [
+  {
+    text: labels.startHere,
+    collapsed: false,
+    items: [
+      { text: labels.introduction, link: labels.introductionLink },
+      'before-you-begin',
+      'preamble',
+    ],
+  },
+  {
+    text: labels.absoluteBeginner,
+    collapsed: false,
+    items: [
+      {
+        text: labels.part1,
+        link: 'part-1',
+        collapsed: true,
+        items: yokubiLessons(1, 0, 18),
+      },
+      {
+        text: labels.part2,
+        link: 'part-2',
+        collapsed: true,
+        items: yokubiLessons(2, 19, 28),
+      },
+    ],
+  },
+  {
+    text: labels.absoluteTerritory,
+    collapsed: false,
+    items: [
+      'absolute-territory',
+      {
+        text: labels.part3,
+        link: 'part-3',
+        collapsed: true,
+        items: yokubiLessons(3, 29, 44),
+      },
+      {
+        text: labels.part4,
+        link: 'part-4',
+        collapsed: true,
+        items: yokubiLessons(4, 45, 63),
+      },
+      'closing-words',
+    ],
+  },
+  {
+    text: labels.about,
+    collapsed: false,
+    items: ['faq', 'credits'],
+  },
+]
+
 export default defineUserConfig({
   locales: {
     '/': {
@@ -350,6 +424,24 @@ export default defineUserConfig({
                 items: ['glm-5', 'kimi-k3'],
               },
             ],
+          },
+          {
+            type: 'doc',
+            title: 'Yokubi',
+            dir: 'yokubi',
+            linkPrefix: '/yokubi/',
+            sidebar: yokubiSidebar({
+              introduction: '简介',
+              introductionLink: '/yokubi/',
+              startHere: '开始阅读',
+              absoluteBeginner: '零基础',
+              part1: '第一部分: 入门',
+              part2: '第二部分: 渐入佳境',
+              absoluteTerritory: '绝对领域',
+              part3: '第三部分: 扩展句子',
+              part4: '第四部分: 添点香料与“其他内容”',
+              about: '关于 Yokubi',
+            }),
           },
         ],
         footer: {
@@ -602,6 +694,24 @@ export default defineUserConfig({
                 items: ['glm-5', 'kimi-k3'],
               },
             ],
+          },
+          {
+            type: 'doc',
+            title: 'Yokubi',
+            dir: 'yokubi',
+            linkPrefix: '/yokubi/',
+            sidebar: yokubiSidebar({
+              introduction: '紹介',
+              introductionLink: '/ja/yokubi/',
+              startHere: 'はじめに',
+              absoluteBeginner: '初学者向け',
+              part1: '第 1 部: はじめの一歩',
+              part2: '第 2 部: 学習を進める',
+              absoluteTerritory: '絶対領域',
+              part3: '第 3 部: 文を広げる',
+              part4: '第 4 部: ひと味加える・「その他」',
+              about: 'Yokubi について',
+            }),
           },
         ],
         footer: {
