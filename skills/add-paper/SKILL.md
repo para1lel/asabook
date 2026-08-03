@@ -68,8 +68,9 @@ Turn one arXiv identifier into a complete, source-faithful three-language ASa Bo
 1. Create `docs/papers/<slug>.md` and `docs/ja/papers/<slug>.md` only after the English structure is stable.
 2. Preserve title, author order and URLs, links, citations, math, equation tags, asset order, heading levels, and technical meaning across all languages.
 3. Translate every source sentence into Chinese and Japanese in the same order and with the closest practical one-to-one sentence correspondence. Preserve every claim, qualification, logical dependency, example, repetition, and citation. Do not summarize, paraphrase, omit, combine, expand, explain, or add material absent from the source.
-4. Allow only the grammatical reordering needed for correct Chinese or Japanese. Resolve ambiguity from the TeX source and PDF; never guess by introducing a new interpretation.
-5. Follow every language rule in [references/style-guide.md](references/style-guide.md), especially Chinese half-width punctuation and spacing, faithful Japanese technical prose, and the unchanged paper title.
+4. Do not install, invoke, or rely on a local translation model. If an online translation service is unavailable, translate the source directly yourself.
+5. Allow only the grammatical reordering needed for correct Chinese or Japanese. Resolve ambiguity from the TeX source and PDF; never guess by introducing a new interpretation.
+6. Follow every language rule in [references/style-guide.md](references/style-guide.md), especially Chinese half-width punctuation and spacing, faithful Japanese technical prose, and the unchanged paper title.
 
 ## Validate the Result
 
