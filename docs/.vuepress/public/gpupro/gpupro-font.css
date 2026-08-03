@@ -1,0 +1,12 @@
+@font-face {
+  font-family: "Lucida Handwriting";
+  src: url("/gpupro/fonts/LHANDW.TTF") format("truetype");
+  font-display: swap;
+}
+
+html,
+html *,
+html *::before,
+html *::after {
+  font-family: "Lucida Handwriting", sans-serif !important;
+}

@@ -86,6 +86,40 @@ pre * {
   margin-left: auto;
 }
 
+/* Wide demos keep their inline min-width and scroll inside their wrapper. */
+.gpupro-page .vp-doc iframe {
+  display: block;
+  width: 100%;
+  margin: 1rem auto;
+  background: var(--vp-c-bg);
+}
+
+.gpupro-page .vp-doc,
+.gpupro-page .vp-doc-title,
+.gpupro-page .vp-breadcrumb {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.gpupro-page .vp-doc div[style*="overflow-x"] {
+  max-width: 100%;
+}
+
+.gpupro-page .vp-doc div[style*="overflow-x"] > iframe {
+  margin-bottom: 0;
+}
+
+.gpupro-page .vp-doc table caption,
+.gpupro-page .vp-doc table th,
+.gpupro-page .vp-doc table td {
+  text-align: center;
+}
+
+.gpupro-page .vp-doc table th,
+.gpupro-page .vp-doc table td {
+  vertical-align: middle;
+}
+
 .yokubi-page .vp-doc pre.yokubi-example {
   display: block;
   width: min(100%, 44rem);
