@@ -1,5 +1,5 @@
 ---
-title: 'A Survey of Low-bit Large Language Models: Basics, Systems, and Algorithms'
+title: 'A Survey of Low-bit Large Language Models'
 createTime: 2026/08/03 11:20:41
 permalink: /en/papers/low-bit-llms/
 ---

@@ -1,5 +1,5 @@
 ---
-title: 'DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence'
+title: 'DeepSeek-V4: Efficient Million-Token Intelligence'
 createTime: 2026/08/03 20:59:18
 permalink: /en/papers/deepseek-v4/
 ---
@@ -62,7 +62,7 @@ As shown in Figure 2, DeepSeek-V4 series incorporate Manifold-Constrained Hyper-
 
 **Standard Hyper-Connections.**
 
-The standard HC expands the width of the residual stream by a factor of $n_{\mathrm{hc}}$. Specifically, the shape of the residual stream is expanded from $\mathbb{R}^{d}$ to $\mathbb{R}^{n_{\mathrm{hc}}\times d}$, where $d$ is the hidden size of the actual layer input. Let $X_{l}=[\mathbf{x}_{l,1};\ldots;\mathbf{x}_{l,n_{\mathrm{hc}}}]^{T}\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$ be the residual state before the $l$-th layer. HC introduces three linear mappings: an input mapping $A_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, a residual transformation $B_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$, and an output mapping $C_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$. The update of the residual state is then formulated as:
+The standard HC expands the width of the residual stream by a factor of $n_{\mathrm{hc}}$. Specifically, the shape of the residual stream is expanded from $\mathbb{R}^{d}$ to $\mathbb{R}^{n_{\mathrm{hc}}\times d}$, where $d$ is the hidden size of the actual layer input. Let $X_{l}=[\mathbf{x}_{l,1};\ldots;\mathbf{x}_{l,n_{\mathrm{hc}}}]^\top\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$ be the residual state before the $l$-th layer. HC introduces three linear mappings: an input mapping $A_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, a residual transformation $B_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$, and an output mapping $C_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$. The update of the residual state is then formulated as:
 
 $$
 X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),\tag{1}
@@ -75,7 +75,7 @@ where $\mathcal{F}_{l}$ denotes the $l$-th layer (e.g., an MoE layer), whose inp
 The core innovation of *m*HC is to constrain the residual mapping matrix $B_{l}$ to the manifold of doubly stochastic matrices (the Birkhoff polytope) $\mathcal{M}$, and thus enhance the stability of signal propagation across layers:
 
 $$
-B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^{T}M=\mathbf{1}_{n}^{T},\;M\geqslant 0\}.\tag{2}
+B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.\tag{2}
 $$
 
 This constraint ensures that the spectral norm of the mapping matrix $\|B_{l}\|_{2}$ is bounded by 1, so the residual transformation is non-expansive, which increases the numerical stability during both the forward pass and backpropagation. Besides, the set $\mathcal{M}$ is closed under multiplication, which guarantees stability in the scenarios of deep stacks of *m*HC. In addition, the input transformation $A_{l}$ and output transformation $C_{l}$ are also constrained to be non-negative and bounded via a Sigmoid function to avoid the risk of signal cancellation.
@@ -93,7 +93,7 @@ $$
 $$
 
 $$
-\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^{T}+S_{l}^{\mathrm{post}},\tag{5}
+\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},\tag{5}
 $$
 
 where $W^{\mathrm{pre}}_{l},W^{\mathrm{post}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}}$ and $W^{\mathrm{res}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}^{2}}$ are learnable parameters for generating the dynamic components; $\mathrm{Mat}(\cdot)$ reshapes a vector of size $1\times n_{\mathrm{hc}}^{2}$ into a matrix of size $n_{\mathrm{hc}}\times n_{\mathrm{hc}}$; $S_{l}^{\mathrm{pre}}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, $S_{l}^{\mathrm{post}}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$, and $S_{l}^{\mathrm{res}}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$ are learnable static biases; and $\alpha_{l}^{\mathrm{pre}}$, $\alpha_{l}^{\mathrm{res}}$, $\alpha_{l}^{\mathrm{post}}\in\mathbb{R}$ are learnable gating factors initialized to small values.
@@ -120,7 +120,7 @@ where $\mathcal{T}_{r}$ and $\mathcal{T}_{c}$ denote row and column normalizatio
 
 ### 2.3 Hybrid Attention with CSA and HCA
 
-As the context length reaches extreme scales, the attention mechanism emerges as the dominant computational bottleneck in a model. For DeepSeek-V4, we design two efficient attention architectures — Compressed Sparse Attention (CSA) and Heavily Compressed Attention (HCA) — and employ their interleaved hybrid configuration, which substantially reduces the computational cost of attention in long-text scenarios. CSA integrates both compression and sparse attention strategies: it first compresses the Key-Value (KV) cache of every $m$ tokens into one entry, and then applies DeepSeek Sparse Attention (DSA) [Dee25a] where each query token attends to only $k$ compressed KV entries. HCA aims for extreme compression by consolidating the KV cache of every $m^{\prime}$ ($\gg m$) tokens into a single entry. The hybrid architecture of CSA and HCA remarkably improves the long-context efficiency of DeepSeek-V4 series, making one-million-token context feasible in practice. This subsection describes the core techniques of our hybrid attention architecture, and we also provide an open-source implementation[^1] to specify more details unambiguously.
+As the context length reaches extreme scales, the attention mechanism emerges as the dominant computational bottleneck in a model. For DeepSeek-V4, we design two efficient attention architectures — Compressed Sparse Attention (CSA) and Heavily Compressed Attention (HCA) — and employ their interleaved hybrid configuration, which substantially reduces the computational cost of attention in long-text scenarios. CSA integrates both compression and sparse attention strategies: it first compresses the Key-Value (KV) cache of every $m$ tokens into one entry, and then applies DeepSeek Sparse Attention (DSA) [Dee25a] where each query token attends to only $k$ compressed KV entries. HCA aims for extreme compression by consolidating the KV cache of every $m^{\prime}$ ($\gg m$) tokens into a single entry. The hybrid architecture of CSA and HCA remarkably improves the long-context efficiency of DeepSeek-V4 series, making one-million-token context feasible in practice. This subsection describes the core techniques of our hybrid attention architecture, and we also provide an open-source implementation [+1] to specify more details unambiguously.
 
 ![DeepSeek-V4 Figure 3](../../papers/deepseek-v4/figure-03.png)
 
@@ -307,10 +307,10 @@ We maintain the AdamW [Los17] optimizer for the embedding module, the prediction
 
 **Hybrid Newton-Schulz Iterations.**
 
-For a given matrix $M$, let its Singular Value Decomposition (SVD) be $M=U\Sigma V^{T}$. The Newton-Schulz iterations aim to approximately orthogonalize $M$ to be $U V^{T}$. Usually, $M$ will be first normalized as $M_{0}=M/\|M\|_{F}$ to ensure its maximum singular value does not exceed 1. Then, each Newton-Schulz iteration performs the following operation:
+For a given matrix $M$, let its Singular Value Decomposition (SVD) be $M=U\Sigma V^\top$. The Newton-Schulz iterations aim to approximately orthogonalize $M$ to be $U V^\top$. Usually, $M$ will be first normalized as $M_{0}=M/\|M\|_{F}$ to ensure its maximum singular value does not exceed 1. Then, each Newton-Schulz iteration performs the following operation:
 
 $$
-M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^{T})M_{k-1}+c(M_{k-1}M_{k-1}^{T})^{2}M_{k-1}.\tag{28}
+M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.\tag{28}
 $$
 
 Our hybrid Newton-Schulz performs 10 iterations over two distinct stages. During the first 8 steps, we use coefficients $(a,b,c)=(3.4445,-4.7750,2.0315)$ to drive rapid convergence, bringing the singular values close to 1. In the final 2 steps, we switch to coefficients $(a,b,c)=(2,-1.5,0.5)$, which stabilize the singular values precisely at 1.
@@ -339,7 +339,7 @@ To further lower the interconnect bandwidth requirement and amplify the benefits
 
 **Performance and Open-Sourced Mega-Kernel.**
 
-We validated the fine-grained EP scheme on both NVIDIA GPUs and HUAWEI Ascend NPUs platforms. Compared against strong non-fused baselines, it achieves $1.50\sim 1.73\times$ speedup for general inference workloads, and up to $1.96\times$ for latency-sensitive scenarios such as RL rollouts and high-speed agent serving. We have open-sourced the CUDA-based mega-kernel implementation named **MegaMoE[^2]** as a component of DeepGEMM.
+We validated the fine-grained EP scheme on both NVIDIA GPUs and HUAWEI Ascend NPUs platforms. Compared against strong non-fused baselines, it achieves $1.50\sim 1.73\times$ speedup for general inference workloads, and up to $1.96\times$ for latency-sensitive scenarios such as RL rollouts and high-speed agent serving. We have open-sourced the CUDA-based mega-kernel implementation named **MegaMoE** [+2] as a component of DeepGEMM.
 
 **Observations and Proposals.**
 
@@ -388,7 +388,7 @@ To enable efficient training and inference, we develop a comprehensive set of hi
 
 Batch invariance ensures that the output of any given token remains bitwise identical, regardless of its position within a batch. To implement batch invariance, the primary challenges are listed as follows:
 
-- **Attention.** To achieve batch invariance, we cannot use the split-KV method [Dao23], which distributes the attention computation for a single sequence across multiple Stream Multiprocessors (SMs) to balance the load of SMs. However, abandoning this technique will lead to severe wave-quantization problems[^3], which can adversely affect GPU utilization. To address this, we develop a dual-kernel strategy for batch-invariant decoding. The first kernel computes the attention output for an entire sequence within a single SM, ensuring high throughput for fully occupied waves. The second kernel, to minimize the latency of the final partially-filled wave and thus alleviate wave-quantization, uses multiple SMs for a single sequence. For the bitwise identity of these two kernels, we carefully design the calculation path of the second kernel to ensure its accumulation order is the same as that of the first kernel. Additionally, the second kernel utilizes distributed shared memory[^4] within thread-block clusters, enabling high-speed data exchange across SMs. This dual-kernel method effectively confines the overhead of batch-invariant decoding to be negligible.
+- **Attention.** To achieve batch invariance, we cannot use the split-KV method [Dao23], which distributes the attention computation for a single sequence across multiple Stream Multiprocessors (SMs) to balance the load of SMs. However, abandoning this technique will lead to severe wave-quantization problems [+3], which can adversely affect GPU utilization. To address this, we develop a dual-kernel strategy for batch-invariant decoding. The first kernel computes the attention output for an entire sequence within a single SM, ensuring high throughput for fully occupied waves. The second kernel, to minimize the latency of the final partially-filled wave and thus alleviate wave-quantization, uses multiple SMs for a single sequence. For the bitwise identity of these two kernels, we carefully design the calculation path of the second kernel to ensure its accumulation order is the same as that of the first kernel. Additionally, the second kernel utilizes distributed shared memory [+4] within thread-block clusters, enabling high-speed data exchange across SMs. This dual-kernel method effectively confines the overhead of batch-invariant decoding to be negligible.
 - **Matrix Multiplication.** Traditional cuBLAS library [Cor24] cannot achieve batch invariance. Therefore, we replace it end-to-end with DeepGEMM [Zha25e]. Furthermore, for very small batch sizes, conventional implementation usually employs split-k [Osa23] techniques to improve performance. Unfortunately, split-k techniques cannot guarantee batch invariance, a pivotal feature in DeepSeek-V4. Therefore, we abandon split-k in most scenarios, which, however, may cause performance degradation. To address this, we introduce a set of optimizations that enable our implementation of matrix multiplication to match or even surpass the performance of standard split-k in most major scenarios.
 
 **Determinism.**
@@ -804,216 +804,6 @@ In this work, we present a preview version of DeepSeek-V4 series, aiming at next
 
 In pursuit of extreme long-context efficiency, DeepSeek-V4 series adopted a bold architectural design. To minimize risk, we retained many preliminarily validated components and tricks, which, while effective, made the architecture relatively complex. In future iterations, we will carry out more comprehensive and principled investigations to distill the architecture down to its most essential designs, making it more elegant without sacrificing performance. Meanwhile, although Anticipatory Routing and SwiGLU Clamping have been proven effective in mitigating training instabilities, their underlying principles remain insufficiently understood. We will actively study foundational problems on training stability and strengthen internal metric monitoring, aiming for a more principled and predictive approach to stable large-scale training. In addition, beyond the MoE and sparse attention architecture, we will also proactively explore model sparsity along new dimensions — such as more sparse embedding modules [Che26b] — to further improve computational and memory efficiency without compromising capability. We will also continuously investigate low-latency architectures and system techniques to make long-context deployment and interaction more responsive. Furthermore, we recognize the importance and practical value of long-horizon, multi-round agentic tasks, and will continue to iterate and explore in this direction. We are also working on incorporating multimodal capabilities to our models. Finally, we are committed to developing better data curation and synthesis strategies to consistently enhance model intelligence, robustness, and practical usability across an increasingly broad range of scenarios and tasks.
 
-## References
-
-- [Aa25] AA. “GDPval-AA Leaderboard.” 2025. [Link](https://artificialanalysis.ai/methodology/intelligence-benchmarking#gdpval-aa).
-
-- [Ach25] Achim, Tudor, Best, Alex, Bietti, Alberto, Der, Kevin, Fédérico, Math\"\is, Gukov, Sergei, Halpern-Leistner, Daniel, Henningsgard, Kirsten, Kudryashov, Yury, Meiburg, Alexander, and others. “Aristotle: Imo-level automated theorem proving.” arXiv preprint arXiv:2510.01346. 2025.
-
-- [Aga20] Agache, Alexandru, Brooker, Marc, Florescu, Andreea, Iordache, Alexandra, Liguori, Anthony, Neugebauer, Rolf, Piwonka, Phil, and Popa, Diana-Maria. “Firecracker: lightweight virtualization for serverless applications.” Proceedings of the 17th Usenix Conference on Networked Systems Design and Implementation. 2020.
-
-- [Aim25] Aimuyo, Osayamen Jonathan, Oh, Byungsoo, and Singh, Rachee. “FlashMoE: Fast Distributed MoE in a Single Kernel.” Advances in Neural Information Processing Systems. 2025. [Link](https://neurips.cc/virtual/2025/poster/119124).
-
-- [Ain23] Ainslie, Joshua, Lee-Thorp, James, de Jong, Michiel, Zemlyanskiy, Yury, Lebrón, Federico, and Sanghai, Sumit. “GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.” arXiv preprint arXiv:2305.13245. 2023.
-
-- [Gem24] Aryo Pradipta Gema, Joshua Ong Jun Leang, Giwon Hong, Alessio Devoto, Alberto Carlo Maria Mancino, Rohit Saxena, Xuanli He, Yu Zhao, Xiaotang Du, Mohammad Reza Ghasemi Madani, Claire Barale, Robert McHardy, Joshua Harris, Jean Kaddour, Emile van Krieken, and Pasquale Minervini. “Are We Done with MMLU?.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2406.04127).
-
-- [Ash25] Asher, Justin. “LeanExplore: A search engine for Lean 4 declarations.” 2025. [Link](https://arxiv.org/abs/2506.11085).
-
-- [Bai25] Bai, Yushi, Tu, Shangqing, Zhang, Jiajie, Peng, Hao, Wang, Xiaozhi, Lv, Xin, Cao, Shulin, Xu, Jiazheng, Hou, Lei, Dong, Yuxiao, and others. “Longbench v2: Towards deeper understanding and reasoning on realistic long-context multitasks.” Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2025.
-
-- [Ban26a] Bandi, Chaithanya, Hertzberg, Ben, Boo, Geobio, Polakam, Tejas, Da, Jeff, Hassaan, Sami, Sharma, Manasi, Park, Andrew, Hernandez, Ernesto, Rambado, Dan, and others. “MCP-Atlas: A Large-Scale Benchmark for Tool-Use Competency with Real MCP Servers.” arXiv preprint arXiv:2602.00933. 2026.
-
-- [Bel05] Bellard, Fabrice. “QEMU, a fast and portable dynamic translator.” Proceedings of the Annual Conference on USENIX Annual Technical Conference. 2005.
-
-- [Dar23] Bita Darvish Rouhani, Ritchie Zhao, Ankit More, Mathew Hall, Alireza Khodamoradi, Summer Deng, Dhruv Choudhary, Marius Cornea, Eric Dellinger, Kristof Denolf, Stosic Dusan, Venmugil Elango, Maximilian Golub, Alexander Heinecke, Phil James-Roxby, Dharmesh Jani, Gaurav Kolhe, Martin Langhammer, Ada Li, Levi Melnick, Maral Mesmakhosroshahi, Andres Rodriguez, Michael Schulte, Rasoul Shafipour, Lei Shao, Michael Siu, Pradeep Dubey, Paulius Micikevicius, Maxim Naumov, Colin Verrilli, Ralph Wittig, Doug Burger, and Eric Chung. “Microscaling Data Formats for Deep Learning.” 2023. [Link](https://arxiv.org/abs/2310.10537).
-
-- [Che25] Cheng, Aileen, Jacovi, Alon, Globerson, Amir, Golan, Ben, Kwong, Charles, Alberti, Chris, Tao, Connie, Ben-David, Eyal, Tomar, Gaurav Singh, Haas, Lukas, and others. “The FACTS Leaderboard: A Comprehensive Benchmark for Large Language Model Factuality.” arXiv preprint arXiv:2512.10791. 2025.
-
-- [Zha25e] Chenggang Zhao, Liang Zhao, Jiashi Li, Zhean Xu, and Chenhao Xu. “DeepGEMM: clean and efficient FP8 GEMM kernels with fine-grained scaling.” GitHub. 2025.
-
-- [Cob21] Cobbe, Karl, Kosaraju, Vineet, Bavarian, Mohammad, Chen, Mark, Jun, Heewoo, Kaiser, Lukasz, Plappert, Matthias, Tworek, Jerry, Hilton, Jacob, Nakano, Reiichiro, and others. “Training verifiers to solve math word problems.” arXiv preprint arXiv:2110.14168. 2021.
-
-- [Dai24] Damai Dai, Chengqi Deng, Chenggang Zhao, R. X. Xu, Huazuo Gao, Deli Chen, Jiashi Li, Wangding Zeng, Xingkai Yu, Y. Wu, Zhenda Xie, Y. K. Li, Panpan Huang, Fuli Luo, Chong Ruan, Zhifang Sui, and Wenfeng Liang. “DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2401.06066).
-
-- [Dem08] De Moura, Leonardo and Bj\orner, Nikolaj. “Z3: an efficient SMT solver.” Proceedings of the Theory and Practice of Software, 14th International Conference on Tools and Algorithms for the Construction and Analysis of Systems. 2008.
-
-- [Dee24b] DeepSeek-AI. “DeepSeek-Coder-V2: Breaking the Barrier of Closed-Source Models in Code Intelligence.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2406.11931).
-
-- [Dee24] DeepSeek-AI. “DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2405.04434).
-
-- [Dee24a] DeepSeek-AI. “DeepSeek-V3 Technical Report.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2412.19437).
-
-- [Guo25] DeepSeek-AI. “DeepSeek-R1 incentivizes reasoning in LLMs through reinforcement learning.” Nat. 2025. [Link](https://doi.org/10.1038/s41586-025-09422-z).
-
-- [Dee25a] DeepSeek-AI. “DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models.” 2025. [Link](https://arxiv.org/abs/2512.02556).
-
-- [Dee25c] DeepSeek-AI. “Fire-Flyer File System.” 2025. [Link](https://github.com/deepseek-ai/3FS).
-
-- [Zhu25] Defa Zhu, Hongzhi Huang, Zihao Huang, Yutao Zeng, Yunyao Mao, Banggu Wu, Qiyang Min, and Xun Zhou. “Hyper-Connections.” The Thirteenth International Conference on Learning Representations, ICLR 2025, Singapore, April 24-28, 2025. 2025. [Link](https://openreview.net/forum?id=9FqARW7dwB).
-
-- [Dua19] Dheeru Dua, Yizhong Wang, Pradeep Dasigi, Gabriel Stanovsky, Sameer Singh, and Matt Gardner. “DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs.” Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, NAACL-HLT 2019, Minneapolis, MN, USA, June 2-7, 2019, Volume 1 (Long and Short Papers). 2019. [Link](https://doi.org/10.18653/V1/N19-1246).
-
-- [Hup25] Dieuwke Hupkes and Nikolay Bogoychev. “MultiLoKo: a multilingual local knowledge benchmark for LLMs spanning 31 languages.” CoRR. 2025. [Link](https://doi.org/10.48550/ARXIV.2504.10356).
-
-- [Du25a] Du, Xinrun, Yao, Yifan, Ma, Kaijing, Wang, Bingli, Zheng, Tianyu, Zhu, King, Liu, Minghao, Liang, Yiming, Jin, Xiaolong, Wei, Zhenlin, and others. “Supergpqa: Scaling llm evaluation across 285 graduate disciplines.” arXiv preprint arXiv:2502.14739. 2025.
-
-- [Glo24] Fabian Gloeckle, Badr Youbi Idrissi, Baptiste Rozière, David Lopez-Paz, and Gabriel Synnaeve. “Better & Faster Large Language Models via Multi-token Prediction.” Forty-first International Conference on Machine Learning, ICML 2024, Vienna, Austria, July 21-27, 2024. 2024. [Link](https://openreview.net/forum?id=pEWAcejiU2).
-
-- [Shi23] Freda Shi, Mirac Suzgun, Markus Freitag, Xuezhi Wang, Suraj Srivats, Soroush Vosoughi, Hyung Won Chung, Yi Tay, Sebastian Ruder, Denny Zhou, Dipanjan Das, and Jason Wei. “Language models are multilingual chain-of-thought reasoners.” The Eleventh International Conference on Learning Representations, ICLR 2023, Kigali, Rwanda, May 1-5, 2023. 2023. [Link](https://openreview.net/forum?id=fR3wGCk-IXp).
-
-- [Gao19] Gao, Xiang, Dong, Mingkai, Miao, Xie, Du, Wei, Yu, Chao, and Chen, Haibo. “EROFS: a compression-friendly readonly file system for resource-scarce devices.” Proceedings of the 2019 USENIX Conference on Usenix Annual Technical Conference. 2019.
-
-- [Riv24] Gemma Team Morgane Riviere, Shreya Pathak, Pier Giuseppe Sessa, Cassidy Hardin, Surya Bhupatiraju, L'eonard Hussenot, Thomas Mesnard, Bobak Shahriari, Alexandre Ram'e, Johan Ferret, Peter Liu, Pouya Dehghani Tafti, Abe Friesen, Michelle Casbon, Sabela Ramos, Ravin Kumar, Charline Le Lan, Sammy Jerome, Anton Tsitsulin, Nino Vieillard, Piotr Stańczyk, Sertan Girgin, Nikola Momchev, Matt Hoffman, Shantanu Thakoor, Jean-Bastien Grill, Behnam Neyshabur, Alanna Walton, Aliaksei Severyn, Alicia Parrish, Aliya Ahmad, Allen Hutchison, Alvin Abdagic, Amanda Carl, Amy Shen, Andy Brock, Andy Coenen, Anthony Laforge, Antonia Paterson, Ben Bastian, Bilal Piot, Boxi Wu, Brandon Royal, Charlie Chen, Chintu Kumar, Chris Perry, Christoper A. Welty, Christopher A. Choquette-Choo, Danila Sinopalnikov, David Weinberger, Dimple Vijaykumar, Dominika Rogozi'nska, D. Herbison, Elisa Bandy, Emma Wang, Eric Noland, Erica Moreira, Evan Senter, Evgenii Eltyshev, Francesco Visin, Gabriel Rasskin, Gary Wei, Glenn Cameron, Gus Martins, Hadi Hashemi, Hanna Klimczak-Pluci'nska, Harleen Batra, Harsh Dhand, Ivan Nardini, Jacinda Mein, Jack Zhou, James Svensson, Jeff Stanway, Jetha Chan, Jin Zhou, Joana Carrasqueira, Joana Iljazi, Jocelyn Becker, Joe Fernandez, Joost R. van Amersfoort, Josh Gordon, Josh Lipschultz, Joshua Newlan, Junsong Ji, Kareem Mohamed, Kartikeya Badola, Kat Black, Katie Millican, Keelin McDonell, Kelvin Nguyen, Kiranbir Sodhia, Kish Greene, Lars Lowe Sjoesund, Lauren Usui, L. Sifre, Lena Heuermann, Leti-cia Lago, Lilly McNealus, Livio Baldini Soares, Logan Kilpatrick, Lucas Dixon, Luciano Luz Badini Martins, Machel Reid, Manvinder Singh, Mark Iverson, Martin Gorner, Mat Velloso, Mateo Wirth, Matt Davidow, Matt Miller, Matthew Rahtz, Matthew Watson, Meg Risdal, Mehran Kazemi, Michael Moynihan, Ming Zhang, Minsuk Kahng, Minwoo Park, Mofi Rahman, Mohit Khatwani, Natalie Dao, Nen-shad Bardoliwalla, Nesh Devanathan, Neta Dumai, Nilay Chauhan, Oscar Wahltinez, Pankil Botarda, Parker Barnes, Paul Barham, Paul Michel, Peng-chong Jin, Petko Georgiev, Phil Culliton, Pradeep Kuppala, Ramona Comanescu, Ramona Merhej, Reena Jana, Reza Ardeshir Rokni, Rishabh Agarwal, Ryan Mullins, Samaneh Saadat, Sara Marie Mc Carthy, Sarah Perrin, Sébastien M. R. Arnold, Se-bastian Krause, Shengyang Dai, Shruti Garg, Shruti Sheth, Sue Ronstrom, Susan Chan, Timothy Jordan, Ting Yu, Tom Eccles, Tom Hennigan, Tomás Kocisk\'y, Tulsee Doshi, Vihan Jain, Vikas Yadav, Vilobh Meshram, Vishal Dharmadhikari, Warren Barkley, Wei Wei, Wenming Ye, Woohyun Han, Woosuk Kwon, Xiang Xu, Zhe Shen, Zhitao Gong, Zichuan Wei, Victor Cotruta, Phoebe Kirk, Anand Rao, Minh Giang, Ludovic Peran, Tris Warkentin, Eli Collins, Joelle Barral, Zoubin Ghahramani, Raia Hadsell, Daniel Sculley, Jeanine Banks, Anca Dragan, Slav Petrov, Oriol Vinyals, Jeffrey Dean, Demis Hassabis, Koray Kavukcuoglu, Clément Farabet, Elena Buchatskaya, Sebastian Borgeaud, Noah Fiedel, Armand Joulin, Kathleen Kenealy, Robert Dadashi, and Alek Andreev. “Gemma 2: Improving Open Language Models at a Practical Size.” arXiv preprint arXiv:2408.00118. 2024.
-
-- [Tso24] George Tsoukalas, Jasper Lee, John Jennings, Jimmy Xin, Michelle Ding, Michael Jennings, Amitayush Thakur, and Swarat Chaudhuri. “PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition.” 2024. [Link](https://arxiv.org/abs/2407.11214).
-
-- [Gu25] Gu, Yuxian, Dong, Li, Wei, Furu, and Huang, Minlie. “MiniLLM: Knowledge Distillation of Large Language Models.” The Twelfth International Conference on Learning Representations. 2024.
-
-- [Xia24a] Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. “Efficient Streaming Language Models with Attention Sinks.” The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024. 2024. [Link](https://openreview.net/forum?id=NG7sS51zVF).
-
-- [Haa25] Haas, Lukas, Yona, Gal, D'Antonio, Giovanni, Goldshtein, Sasha, and Das, Dipanjan. “Simpleqa verified: A reliable factuality benchmark to measure parametric knowledge.” arXiv preprint arXiv:2509.07968. 2025.
-
-- [Din24a] Hantian Ding, Zijian Wang, Giovanni Paolini, Varun Kumar, Anoop Deoras, Dan Roth, and Stefano Soatto. “Fewer Truncations Improve Language Modeling.” arXiv preprint arXiv:2404.10830. 2024.
-
-- [He24] He, Yancheng, Li, Shilong, Liu, Jiaheng, Tan, Yingshui, Wang, Weixun, Huang, Hui, Bu, Xingyuan, Guo, Hangyu, Hu, Chengwei, Zheng, Boren, and others. “Chinese simpleqa: A chinese factuality evaluation for large language models.” arXiv preprint arXiv:2411.07140. 2024.
-
-- [Hen20] Hendrycks, Dan, Burns, Collin, Basart, Steven, Zou, Andy, Mazeika, Mantas, Song, Dawn, and Steinhardt, Jacob. “Measuring massive multitask language understanding.” arXiv preprint arXiv:2009.03300. 2020.
-
-- [Hen21] Hendrycks, Dan, Burns, Collin, Kadavath, Saurav, Arora, Akul, Basart, Steven, Tang, Eric, Song, Dawn, and Steinhardt, Jacob. “Measuring mathematical problem solving with the math dataset.” arXiv preprint arXiv:2103.03874. 2021.
-
-- [Hua23] Huang, Yuzhen, Bai, Yuzhuo, Zhu, Zhihao, Zhang, Junlei, Zhang, Jinghan, Su, Tangjun, Liu, Junteng, Lv, Chuancheng, Zhang, Yikai, Lei, Jiayi, and others. “C-Eval: A multi-level multi-discipline chinese evaluation suite for foundation models.” arXiv preprint arXiv:2305.08322. 2023.
-
-- [Li20] Huiba Li, Yifan Yuan, Rui Du, Kai Ma, Lanzheng Liu, and Windsor Hsu. “DADI: Block-Level Image Service for Agile and Elastic Application Deployment.” 2020 USENIX Annual Technical Conference (USENIX ATC 20). 2020. [Link](https://www.usenix.org/conference/atc20/presentation/li-huiba).
-
-- [Bel17] Irwan Bello, Hieu Pham, Quoc V. Le, Mohammad Norouzi, and Samy Bengio. “Neural Combinatorial Optimization with Reinforcement Learning.” 2017. [Link](https://openreview.net/forum?id=rJY3vK9eg).
-
-- [Ben18] Jacob, Benoit, Kligys, Skirmantas, Chen, Bo, Zhu, Menglong, Tang, Matthew, Howard, Andrew, Adam, Hartwig, and Kalenichenko, Dmitry. “Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference.” Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR). 2018.
-
-- [Jai24] Jain, Naman, Han, King, Gu, Alex, Li, Wen-Ding, Yan, Fanjia, Zhang, Tianjun, Wang, Sida, Solar-Lezama, Armando, Sen, Koushik, and Stoica, Ion. “LiveCodeBench: Holistic and Contamination Free Evaluation of Large Language Models for Code.” arXiv preprint arXiv:2403.07974. 2024.
-
-- [Ree22] James K. Reed, Zachary DeVito, Horace He, Ansley Ussery, and Jason Ansel. “Torch.fx: Practical Program Capture and Transformation for Deep Learning in Python.” 2022. [Link](https://arxiv.org/abs/2112.08429).
-
-- [Che25a] Jiangjie Chen, Wenxiang Chen, Jiacheng Du, Jinyi Hu, Zhicheng Jiang, Allan Jie, Xiaoran Jin, Xing Jin, Chenggang Li, Wenlei Shi, Zhihong Wang, Mingxuan Wang, Chenrui Wei, Shufa Wei, Huajian Xin, Fan Yang, Weihao Gao, Zheng Yuan, Tianyang Zhan, Zeyu Zheng, Tianxi Zhou, and Thomas Hanwen Zhu. “Seed-Prover 1.5: Mastering Undergraduate-Level Theorem Proving via Learning from Experience.” 2025. [Link](https://arxiv.org/abs/2512.17260).
-
-- [Liu25] Jingyuan Liu, Jianlin Su, Xingcheng Yao, Zhejun Jiang, Guokun Lai, Yulun Du, Yidao Qin, Weixin Xu, Enzhe Lu, Junjie Yan, Yanru Chen, Huabin Zheng, Yibo Liu, Shaowei Liu, Bohong Yin, Weiran He, Han Zhu, Yuzhi Wang, Jianzhou Wang, Mengnan Dong, Zheng Zhang, Yongsheng Kang, Hao Zhang, Xinran Xu, Yutao Zhang, Yuxin Wu, Xinyu Zhou, and Zhilin Yang. “Muon is Scalable for LLM Training.” CoRR. 2025. [Link](https://doi.org/10.48550/arXiv.2502.16982).
-
-- [Yan25b] John Yang, Kilian Lieret, Carlos E. Jimenez, Alexander Wettig, Kabir Khandpur, Yanzhe Zhang, Binyuan Hui, Ofir Press, Ludwig Schmidt, and Diyi Yang. “SWE-smith: Scaling Data for Software Engineering Agents.” 2025. [Link](https://arxiv.org/abs/2504.21798).
-
-- [Kel24] Jordan, Keller, Jin, Yuchen, Boza, Vlado, You, Jiacheng, Cesista, Franz, Newhouse, Laker, and Bernstein, Jeremy. “Muon: An optimizer for hidden layers in neural networks.” Cited on. 2024.
-
-- [Jos17] Joshi, Mandar, Choi, Eunsol, Weld, Daniel, and Zettlemoyer, Luke. “TriviaQA: A Large Scale Distantly Supervised Challenge Dataset for Reading Comprehension.” Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). 2017. [Link](https://doi.org/10.18653/v1/P17-1147).
-
-- [Sak19] Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi. “WinoGrande: An Adversarial Winograd Schema Challenge at Scale.” 2019. [Link](https://arxiv.org/abs/1907.10641).
-
-- [Lu25] Kevin Lu and Thinking Machines Lab. “On-Policy Distillation.” Thinking Machines Lab: Connectionism. 2025. [Link](https://doi.org/10.64434/tml.20251026).
-
-- [Wan24d] Lean Wang, Huazuo Gao, Chenggang Zhao, Xu Sun, and Damai Dai. “Auxiliary-Loss-Free Load Balancing Strategy for Mixture-of-Experts.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2408.15664).
-
-- [Li23e] Li, Haonan, Zhang, Yixuan, Koto, Fajri, Yang, Yifei, Zhao, Hai, Gong, Yeyun, Duan, Nan, and Baldwin, Timothy. “CMMLU: Measuring massive multitask language understanding in Chinese.” arXiv preprint arXiv:2306.09212. 2023.
-
-- [Li25b] Li, Junlong, Zhao, Wenshuo, Zhao, Jian, Zeng, Weihao, Wu, Haoze, Wang, Xiaochen, Ge, Rui, Cao, Yuxuan, Huang, Yuzhen, Liu, Wei, and others. “The Tool Decathlon: Benchmarking Language Agents for Diverse, Realistic, and Long-Horizon Task Execution.” arXiv preprint arXiv:2510.25726. 2025.
-
-- [Xu20] Liang Xu, Hai Hu, Xuanwei Zhang, Lu Li, Chenjie Cao, Yudong Li, Yechen Xu, Kai Sun, Dian Yu, Cong Yu, Yin Tian, Qianqian Dong, Weitang Liu, Bo Shi, Yiming Cui, Junyi Li, Jun Zeng, Rongzhao Wang, Weijian Xie, Yanting Li, Yina Patterson, Zuoyu Tian, Yiwen Zhang, He Zhou, Shaoweihua Liu, Zhe Zhao, Qipeng Zhao, Cong Yue, Xinrui Zhang, Zhengliang Yang, Kyle Richardson, and Zhenzhong Lan. “CLUE: A Chinese Language Understanding Evaluation Benchmark.” Proceedings of the 28th International Conference on Computational Linguistics, COLING 2020, Barcelona, Spain (Online), December 8-13, 2020. 2020. [Link](https://doi.org/10.18653/V1/2020.COLING-MAIN.419).
-
-- [Los17] Loshchilov, Ilya and Hutter, Frank. “Decoupled weight decay regularization.” arXiv preprint arXiv:1711.05101. 2017.
-
-- [Lu26] Lu, Zhiyuan, Li, Chenliang, Shi, Yingcheng, Shen, Weizhou, Yan, Ming, and Huang, Fei. “CorpusQA: A 10 Million Token Benchmark for Corpus-Level Analysis and Reasoning.” arXiv preprint arXiv:2601.14952. 2026.
-
-- [Che21] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Pondé de Oliveira Pinto, Jared Kaplan, Harrison Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Joshua Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba. “Evaluating Large Language Models Trained on Code.” CoRR. 2021. [Link](https://arxiv.org/abs/2107.03374).
-
-- [Mer26] Merrill, Mike A, Shaw, Alexander G, Carlini, Nicholas, Li, Boxuan, Raj, Harsh, Bercovich, Ivan, Shi, Lin, Shin, Jeong Yeon, Walshe, Thomas, Buchanan, E Kelly, and others. “Terminal-bench: Benchmarking agents on hard, realistic tasks in command line interfaces.” arXiv preprint arXiv:2601.11868. 2026.
-
-- [Min25] MiniMax. “Meet MiniMax-M2.” 2025. [Link](https://github.com/MiniMax-AI/MiniMax-M2).
-
-- [Bal25] Mislav Balunović, Jasper Dekoninck, Ivo Petrov, Nikola Jovanović, and Martin Vechev. “MathArena: Evaluating LLMs on Uncontaminated Math Competitions.” Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmark. 2025.
-
-- [Mou21] Moura, Leonardo de and Ullrich, Sebastian. “The lean 4 theorem prover and programming language.” International Conference on Automated Deduction. 2021.
-
-- [Nes83] Nesterov, Yurii. “A method of solving a convex programming problem with convergence rate $O(1 / k^2)$.” Soviet Mathematics Doklady. 1983.
-
-- [Sha19] Noam Shazeer. “Fast Transformer Decoding: One Write-Head is All You Need.” CoRR. 2019. [Link](http://arxiv.org/abs/1911.02150).
-
-- [Cor24] NVIDIA Corporation. “cuBLAS Documentation.” Version 12.4. Accessed: 2024-09-16. 2024. [Link](https://docs.nvidia.com/cuda/cublas/).
-
-- [Ope24b] OpenAI. “Introducing SimpleQA.” 2024. [Link](https://openai.com/index/introducing-simpleqa/).
-
-- [Ope24e] OpenAI. “Introducing SWE-bench Verified We’re releasing a human-validated subset of SWE-bench that more.” 2024. [Link](https://openai.com/index/introducing-swe-bench-verified/).
-
-- [Ope24] OpenAI. “Learning to reason with LLMs.” 2024. [Link](https://openai.com/index/learning-to-reason-with-llms).
-
-- [Ope24c] OpenAI. “Multilingual Massive Multitask Language Understanding (MMMLU).” 2024. [Link](https://huggingface.co/datasets/openai/MMMLU).
-
-- [Ope24d] OpenAI. “OpenAI MRCR: Long context multiple needle in a haystack benchmark.” 2024. [Link](https://huggingface.co/datasets/openai/mrcr).
-
-- [Ope25c] OpenAI. “gpt-oss-120b & gpt-oss-20b Model Card.” CoRR. 2025. [Link](https://doi.org/10.48550/ARXIV.2508.10925).
-
-- [Osa23] Osama, Muhammad, Merrill, Duane, Cecka, Cris, Garland, Michael, and Owens, John D. “Stream-k: Work-centric parallel decomposition for dense matrix-matrix multiplication on the gpu.” Proceedings of the 28th ACM SIGPLAN Annual Symposium on Principles and Practice of Parallel Programming. 2023.
-
-- [Pat25] Patwardhan, Tejal, Dias, Rachel, Proehl, Elizabeth, Kim, Grace, Wang, Michele, Watkins, Olivia, Fishman, Simón Posada, Aljubeh, Marwan, Thacker, Phoebe, Fauconnet, Laurance, and others. “Gdpval: Evaluating ai model performance on real-world economically valuable tasks.” arXiv preprint arXiv:2510.04374. 2025.
-
-- [Pha25] Phan, Long, Gatti, Alice, Han, Ziwen, Li, Nathaniel, Hu, Josephina, Zhang, Hugh, Zhang, Chen Bo Calvin, Shaaban, Mohamed, Ling, John, Shi, Sean, and others. “Humanity's last exam.” arXiv preprint arXiv:2501.14249. 2025.
-
-- [Yan25a] Qwen. “Qwen3 Technical Report.” CoRR. 2025. [Link](https://doi.org/10.48550/ARXIV.2505.09388).
-
-- [Raj20] Rajbhandari, Samyam, Rasley, Jeff, Ruwase, Olatunji, and He, Yuxiong. “Zero: Memory optimizations toward training trillion parameter models.” SC20: International Conference for High Performance Computing, Networking, Storage and Analysis. 2020.
-
-- [Rei24] Rein, David, Hou, Betty Li, Stickland, Asa Cooper, Petty, Jackson, Pang, Richard Yuanzhe, Dirani, Julien, Michael, Julian, and Bowman, Samuel R. “GPQA: A graduate-level google-proof q&a benchmark.” arXiv preprint arXiv:2311.12022. 2023.
-
-- [Zel19] Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali Farhadi, and Yejin Choi. “HellaSwag: Can a Machine Really Finish Your Sentence?.” Proceedings of the 57th Conference of the Association for Computational Linguistics, ACL 2019, Florence, Italy, July 28- August 2, 2019, Volume 1: Long Papers. 2019. [Link](https://doi.org/10.18653/v1/p19-1472).
-
-- [Sha20] Shazeer, Noam. “Glu variants improve transformer.” arXiv preprint arXiv:2002.05202. 2020.
-
-- [Zha25d] Shulai Zhang, Ningxin Zheng, Haibin Lin, Ziheng Jiang, Wenlei Bao, Chengquan Jiang, Qi Hou, Weihao Cui, Size Zheng, Li-Wen Chang, Quan Chen, and Xin Liu. “Comet: Fine-grained Computation-communication Overlapping for Mixture-of-Experts.” 2025. [Link](https://arxiv.org/abs/2502.19811).
-
-- [Rol21] Stephen Roller, Sainbayar Sukhbaatar, Arthur Szlam, and Jason Weston. “Hash Layers For Large Sparse Models.” Advances in Neural Information Processing Systems 34: Annual Conference on Neural Information Processing Systems 2021, NeurIPS 2021, December 6-14, 2021, virtual. 2021. [Link](https://proceedings.neurips.cc/paper/2021/hash/92bf5e6240737e0326ea59846a83e076-Abstract.html).
-
-- [Su24] Su, Jianlin, Ahmed, Murtadha, Lu, Yu, Pan, Shengfeng, Bo, Wen, and Liu, Yunfeng. “Roformer: Enhanced transformer with rotary position embedding.” Neurocomputing. 2024.
-
-- [Suz22] Suzgun, Mirac, Scales, Nathan, Schärli, Nathanael, Gehrmann, Sebastian, Tay, Yi, Chung, Hyung Won, Chowdhery, Aakanksha, Le, Quoc V, Chi, Ed H, Zhou, Denny, and others. “Challenging big-bench tasks and whether chain-of-thought can solve them.” arXiv preprint arXiv:2210.09261. 2022.
-
-- [Zhu25a] Terry Yue Zhuo, Minh Chien Vu, Jenny Chim, Han Hu, Wenhao Yu, Ratnadira Widyasari, Imam Nur Bani Yusuf, Haolan Zhan, Junda He, Indraneil Paul, Simon Brunner, Chen Gong, James Hoang, Armel Randy Zebaze, Xiaoheng Hong, Wen-Ding Li, Jean Kaddour, Ming Xu, Zhihan Zhang, Prateek Yadav, and et al. “BigCodeBench: Benchmarking Code Generation with Diverse Function Calls and Complex Instructions.” The Thirteenth International Conference on Learning Representations, ICLR 2025, Singapore, April 24-28, 2025. 2025. [Link](https://openreview.net/forum?id=YrycTjllL0).
-
-- [Luo25] Thang Luong, Dawsen Hwang, Hoang H. Nguyen, Golnaz Ghiasi, Yuri Chervonyi, Insuk Seo, Junsu Kim, Garrett Bingham, Jonathan Lee, Swaroop Mishra, Alex Zhai, Clara Huiyi Hu, Henryk Michalewski, Jimin Kim, Jeonghyun Ahn, Junhwi Bae, Xingyou Song, Trieu H. Trinh, Quoc V. Le, and Junehyuk Jung. “Towards Robust Mathematical Reasoning.” Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing. 2025. [Link](https://aclanthology.org/2025.emnlp-main.1794/).
-
-- [Che18] Tianqi Chen, Thierry Moreau, Ziheng Jiang, Lianmin Zheng, Eddie Yan, Haichen Shen, Meghan Cowan, Leyuan Wang, Yuwei Hu, Luis Ceze, Carlos Guestrin, and Arvind Krishnamurthy. “TVM: An Automated End-to-End Optimizing Compiler for Deep Learning.” 13th USENIX Symposium on Operating Systems Design and Implementation (OSDI 18). 2018. [Link](https://www.usenix.org/conference/osdi18/presentation/chen).
-
-- [Wei23b] Tianwen Wei, Jian Luan, Wei Liu, Shuang Dong, and Bin Wang. “CMATH: Can Your Language Model Pass Chinese Elementary School Math Test?.” 2023. [Link](https://arxiv.org/abs/2306.16636).
-
-- [Dao23] Tri Dao, Daniel Haziza, Francisco Massa, and Grigory Sizov. “Flash-Decoding for long-context inference.” 2023. [Link](https://pytorch.org/blog/flash-decoding/).
-
-- [Vas17] Vaswani, Ashish, Shazeer, Noam, Parmar, Niki, Uszkoreit, Jakob, Jones, Llion, Gomez, Aidan N, Kaiser, \Lukasz, and Polosukhin, Illia. “Attention is all you need.” Advances in neural information processing systems. 2017.
-
-- [Wan26] Wang, Lei, Cheng, Yu, Shi, Yining, Mo, Zhiwen, Tang, Zhengju, Xie, Wenhao, Wu, Tong, Ma, Lingxiao, Xia, Yuqing, Xue, Jilong, and others. “TileLang: Bridge Programmability and Performance in Modern Neural Kernels.” The Fourteenth International Conference on Learning Representations. 2026.
-
-- [Zho23] Wanjun Zhong, Ruixiang Cui, Yiduo Guo, Yaobo Liang, Shuai Lu, Yanlin Wang, Amin Saied, Weizhu Chen, and Nan Duan. “AGIEval: A Human-Centric Benchmark for Evaluating Foundation Models.” CoRR. 2023. [Link](https://doi.org/10.48550/arXiv.2304.06364).
-
-- [Wei25] Wei, Jason, Sun, Zhiqing, Papay, Spencer, McKinney, Scott, Han, Jeffrey, Fulford, Isa, Chung, Hyung Won, Passos, Alex Tachard, Fedus, William, and Glaese, Amelia. “Browsecomp: A simple yet challenging benchmark for browsing agents.” arXiv preprint arXiv:2504.12516. 2025.
-
-- [Qi20] Weizhen Qi, Yu Yan, Yeyun Gong, Dayiheng Liu, Nan Duan, Jiusheng Chen, Ruofei Zhang, and Ming Zhou. “ProphetNet: Predicting Future N-gram for Sequence-to-Sequence Pre-training.” Findings of the Association for Computational Linguistics: EMNLP 2020, Online Event, 16-20 November 2020. 2020. [Link](https://doi.org/10.18653/v1/2020.findings-emnlp.217).
-
-- [Den25] Xiang Deng, Jeff Da, Edwin Pan, Yannis Yiming He, Charles Ide, Kanak Garg, Niklas Lauffer, Andrew Park, Nitin Pasari, Chetan Rane, Karmini Sampath, Maya Krishnan, Srivatsa Kundurthy, Sean Hendryx, Zifan Wang, Vijay Bharadwaj, Jeff Holm, Raja Aluri, Chen Bo Calvin Zhang, Noah Jacobson, Bing Liu, and Brad Kenstler. “SWE-Bench Pro: Can AI Agents Solve Long-Horizon Software Engineering Tasks?.” 2025. [Link](https://arxiv.org/abs/2509.16941).
-
-- [Che26b] Xin Cheng, Wangding Zeng, Damai Dai, Qinyu Chen, Bingxuan Wang, Zhenda Xie, Kezhao Huang, Xingkai Yu, Zhewen Hao, Yukun Li, Han Zhang, Huishuai Zhang, Dongyan Zhao, and Wenfeng Liang. “Conditional Memory via Scalable Lookup: A New Axis of Sparsity for Large Language Models.” CoRR. 2026. [Link](https://doi.org/10.48550/ARXIV.2601.07372).
-
-- [Don25] Xin Dong, Yonggan Fu, Shizhe Diao, Wonmin Byeon, ZIJIA CHEN, Ameya Sunil Mahabaleshwarkar, Shih-Yang Liu, Matthijs Van keirsbilck, Min-Hung Chen, Yoshi Suhara, Yingyan Celine Lin, Jan Kautz, and Pavlo Molchanov. “Hymba: A Hybrid-head Architecture for Small Language Models.” The Thirteenth International Conference on Learning Representations. 2025. [Link](https://openreview.net/forum?id=A1ztozypga).
-
-- [Tea25] Yifan Bai, Yiping Bao, Guanduo Chen, Jiahao Chen, Ningxin Chen, Ruijue Chen, Yanru Chen, Yuankun Chen, Yutian Chen, Zhuofu Chen, Jialei Cui, Hao Ding, Mengnan Dong, Angang Du, Chenzhuang Du, Dikang Du, Yulun Du, Yu Fan, Yichen Feng, Kelin Fu, Bofei Gao, Hongcheng Gao, Peizhong Gao, Tong Gao, Xinran Gu, Longyu Guan, Haiqing Guo, Jianhang Guo, Hao Hu, Xiaoru Hao, Tianhong He, Weiran He, Wenyang He, Chao Hong, Yangyang Hu, Zhenxing Hu, Weixiao Huang, Zhiqi Huang, Zihao Huang, Tao Jiang, Zhejun Jiang, Xinyi Jin, Yongsheng Kang, Guokun Lai, Cheng Li, Fang Li, Haoyang Li, Ming Li, Wentao Li, Yanhao Li, Yiwei Li, Zhaowei Li, Zheming Li, Hongzhan Lin, Xiaohan Lin, Zongyu Lin, Chengyin Liu, Chenyu Liu, Hongzhang Liu, Jingyuan Liu, Junqi Liu, Liang Liu, Shaowei Liu, T. Y. Liu, Tianwei Liu, Weizhou Liu, Yangyang Liu, Yibo Liu, Yiping Liu, Yue Liu, Zhengying Liu, Enzhe Lu, Lijun Lu, Shengling Ma, Xinyu Ma, Yingwei Ma, Shaoguang Mao, Jie Mei, Xin Men, Yibo Miao, Siyuan Pan, Yebo Peng, Ruoyu Qin, Bowen Qu, Zeyu Shang, Lidong Shi, Shengyuan Shi, Feifan Song, Jianlin Su, Zhengyuan Su, Xinjie Sun, Flood Sung, Heyi Tang, Jiawen Tao, Qifeng Teng, Chensi Wang, Dinglu Wang, Feng Wang, and Haiming Wang. “Kimi K2: Open Agentic Intelligence.” CoRR. 2025. [Link](https://doi.org/10.48550/arXiv.2507.20534).
-
-- [Wan24c] Yubo Wang, Xueguang Ma, Ge Zhang, Yuansheng Ni, Abhranil Chandra, Shiguang Guo, Weiming Ren, Aaran Arulraj, Xuan He, Ziyan Jiang, Tianle Li, Max Ku, Kai Wang, Alex Zhuang, Rongqi Fan, Xiang Yue, and Wenhu Chen. “MMLU-Pro: A More Robust and Challenging Multi-Task Language Understanding Benchmark.” CoRR. 2024. [Link](https://doi.org/10.48550/arXiv.2406.01574).
-
-- [Li24g] Yuhui Li, Fangyun Wei, Chao Zhang, and Hongyang Zhang. “EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty.” Forty-first International Conference on Machine Learning, ICML 2024, Vienna, Austria, July 21-27, 2024. 2024. [Link](https://openreview.net/forum?id=1NdN7eXyb4).
-
-- [Zha25f] Zhang, Chen, Du, Kuntai, Liu, Shu, Kwon, Woosuk, Mo, Xiangxi, Wang, Yufeng, Liu, Xiaoxuan, You, Kaichao, Li, Zhuohan, Long, Mingsheng, Zhai, Jidong, Gonzalez, Joseph, and Stoica, Ion. “Jenga: Effective Memory Management for Serving LLM with Heterogeneity.” Proceedings of the ACM SIGOPS 31st Symposium on Operating Systems Principles. 2025. [Link](https://doi.org/10.1145/3731569.3764823).
-
-- [Xie26] Zhenda Xie, Yixuan Wei, Huanqi Cao, Chenggang Zhao, Chengqi Deng, Jiashi Li, Damai Dai, Huazuo Gao, Jiang Chang, Kuai Yu, Liang Zhao, Shangyan Zhou, Zhean Xu, Zhengyan Zhang, Wangding Zeng, Shengding Hu, Yuqing Wang, Jingyang Yuan, Lean Wang, and Wenfeng Liang. “mHC: Manifold-Constrained Hyper-Connections.” 2026. [Link](https://arxiv.org/abs/2512.24880).
-
-- [Sha25] Zhihong Shao, Yuxiang Luo, Chengda Lu, Z. Z. Ren, Jiewen Hu, Tian Ye, Zhibin Gou, Shirong Ma, and Xiaokang Zhang. “DeepSeekMath-V2: Towards Self-Verifiable Mathematical Reasoning.” 2025. [Link](https://arxiv.org/abs/2511.22570).
-
-- [Zhu24] Zhu, Xuekai, Cheng, Daixuan, Li, Hengli, Zhang, Kaiyan, Hua, Ermo, Lv, Xingtai, Ding, Ning, Lin, Zhouhan, Zheng, Zilong, and Zhou, Bowen. “How to synthesize text data without model collapse?.” arXiv preprint arXiv:2412.14689. 2024.
-
-## Appendix
-
 ## Appendix A Author List and Acknowledgment
 
 ### A.1 Author List
@@ -1062,10 +852,10 @@ We would like to thank [Dolly Deng](https://www.zhihu.com/people/toyama) and oth
 
 **Figure 15.** Example output of a task which requires researching 2020-2025 Nobel Science Prizes and generating an analytical PDF report.
 
-[^1]: [https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/tree/main/inference](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/tree/main/inference)
+[+1]: [https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/tree/main/inference](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/tree/main/inference)
 
-[^2]: [https://github.com/deepseek-ai/DeepGEMM/pull/304](https://github.com/deepseek-ai/DeepGEMM/pull/304)
+[+2]: [https://github.com/deepseek-ai/DeepGEMM/pull/304](https://github.com/deepseek-ai/DeepGEMM/pull/304)
 
-[^3]: [https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html#wave-quant](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html#wave-quant)
+[+3]: [https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html#wave-quant](https://docs.nvidia.com/deeplearning/performance/dl-performance-matrix-multiplication/index.html#wave-quant)
 
-[^4]: [https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/writing-cuda-kernels.html#distributed-shared-memory](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/writing-cuda-kernels.html#distributed-shared-memory)
+[+4]: [https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/writing-cuda-kernels.html#distributed-shared-memory](https://docs.nvidia.com/cuda/cuda-programming-guide/02-basics/writing-cuda-kernels.html#distributed-shared-memory)
