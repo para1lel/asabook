@@ -138,7 +138,7 @@ $$
 
 ### 2.2 Attention Residuals
 
-标准残差连接 [He15] 沿深度方向将所有先前信息压缩到单一状态 $\mathbf h_l$ 中, 这一瓶颈类似于 RNN 沿时间方向的递归. 在序列建模中, Transformer 用注意力取代了递归 [Bah14, Vas17], 使每个位置都能通过依赖数据的权重, 选择性访问所有先前位置. Attention Residuals (AttnRes) [Tea26] 将同样的方法应用于深度方向: 每一层都选择性检索所有先前层的表示, 而非对其进行无差别累积.
+标准残差连接 [He16] 沿深度方向将所有先前信息压缩到单一状态 $\mathbf h_l$ 中, 这一瓶颈类似于 RNN 沿时间方向的递归. 在序列建模中, Transformer 用注意力取代了递归 [Bah14, Vas17], 使每个位置都能通过依赖数据的权重, 选择性访问所有先前位置. Attention Residuals (AttnRes) [Tea26] 将同样的方法应用于深度方向: 每一层都选择性检索所有先前层的表示, 而非对其进行无差别累积.
 
 #### 完整 Attention Residuals
 
@@ -647,7 +647,7 @@ Kimi K3 引入了多个新架构模块: KDA ([§2.1.1](#_2-1-1-kimi-delta-attent
 
 - **编码:** DeepSWE [Ela26], ProgramBench [Pro26], Terminal-Bench 2.1 [Mer26], FrontierSWE [Fu24], SWE-Marathon [Mar26], PostTrainBench [Pos26], MLS-Bench-Lite [Lyu26] 和 SciCode [Tia24, Art26].
 
-- **智能体:** BrowseComp [Wei25], DeepSearchQA [Ved25], ResearchRubrics [Sha26], Toolathlon-Verified [LiWeb], MCPMark-Verified [Wu25], MCP-Atlas [Ban26a], AutomationBench [She26], JobBench [Li26], GDPval-AA v2 [Pat25], AA-Briefcase [Art26, Age26], Agents' Last Exam (ALE) [Age26a, Sun26a], APEX-Agents [Vid26], OfficeQA Pro [Ops26], SpreadsheetBench 2 [Zhu26], OSWorld-Verified [Xie25], OSWorld 2.0 [Yua26], SaaS-Bench [Shi26], $\tau^3$-Banking [Ban26, Art26], Harvey Lab-AA [Art26, Har26], CorpFin v2 [Val26], Finance Agent v2 [Fro26] 和 Legal Research Bench [Val26b].
+- **智能体:** BrowseComp [Wei25], DeepSearchQA [Ved25], ResearchRubrics [Sha26], Toolathlon-Verified [Li25b], MCPMark-Verified [Wu25], MCP-Atlas [Ban26a], AutomationBench [She26], JobBench [Li26], GDPval-AA v2 [Pat25], AA-Briefcase [Art26, Age26], Agents' Last Exam (ALE) [Age26a, Sun26a], APEX-Agents [Vid26], OfficeQA Pro [Ops26], SpreadsheetBench 2 [Zhu26], OSWorld-Verified [Xie25], OSWorld 2.0 [Yua26], SaaS-Bench [Shi26], $\tau^3$-Banking [Ban26, Art26], Harvey Lab-AA [Art26, Har26], CorpFin v2 [Val26], Finance Agent v2 [Fro26] 和 Legal Research Bench [Val26b].
 
 - **视觉:** WorldVQA [Zho26], OmniDocBench [Ouy25], PerceptionBench [Tea26b], Video-MME [GlmWeb], MMVU [Zha25] 和配有 Python 工具的 BabyVision [Che26]. MMMU-Pro [Yue24], CharXiv (RQ) [Wan24a], Math-Vision [Wan24] 和 ZeroBench-main [Rob25] 均分为使用和不使用 Python 工具增强两种设置.
 

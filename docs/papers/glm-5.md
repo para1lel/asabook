@@ -106,7 +106,7 @@ DSA 训练从中期训练结束时的基础模型开始. 预热阶段共 1000 �
 
 #### 2.1.2 高效注意力变体的消融研究
 
-除 DSA [Liu25a] 外, 我们还基于 GLM-9B 探索了多种替代性高效注意力机制. GLM-9B 是 GLM-4 系列模型之一, 可在 [https://github.com/zai-org/GLM-4](https://github.com/zai-org/GLM-4) 获取. 基线模型的全部 40 层均采用分组查询注意力, 并已使用 128K token 上下文窗口完成微调. 我们评估以下方法:
+除 DSA [Dee25a] 外, 我们还基于 GLM-9B 探索了多种替代性高效注意力机制. GLM-9B 是 GLM-4 系列模型之一, 可在 [https://github.com/zai-org/GLM-4](https://github.com/zai-org/GLM-4) 获取. 基线模型的全部 40 层均采用分组查询注意力, 并已使用 128K token 上下文窗口完成微调. 我们评估以下方法:
 
 - 滑动窗口注意力 (SWA) 交错: 在整个网络中统一应用全注意力层与窗口注意力层固定交替的模式.
 - Gated DeltaNet (GDN) [Yan25]: 一种线性注意力变体, 以门控线性递归替代二次复杂度的 softmax 注意力计算, 将注意力计算成本从序列长度的二次方降至线性.
@@ -448,7 +448,7 @@ $$
 
 我们发现, BrowseComp [Wei25] 上的表现同时对 judge 提示词与 judge 模型敏感, 开源 judge 还可能引入系统性偏差. 为确保一致性与可复现性, 我们统一使用 OpenAI 官方评测提示词, 并以闭源模型 o3-mini 作为 judge, 对所有依赖 judge 的组件进行标准化. 案例研究表明, 这一配置与人工标注真值最为一致, 因此所有搜索智能体评测均采用该配置.
 
-先前工作 [Liu25a] 提出了上下文管理, 其中 *Discard-all* 会移除全部工具调用历史来重置上下文. 我们进一步观察到, 上下文极长时, 例如超过 100k token, 模型准确率会大幅下降. 因此, 我们采用简单的 *Keep-recent-k* 策略. 当交互历史超过阈值 $k$ 时, 折叠最近 $k$ 轮以前的内容以控制上下文长度. 设轨迹为 $(q,r_{1},a_{1},o_{1},r_{2},a_{2},o_{2},\cdots,r_{n},a_{n},o_{n})$, 其中 $q$ 表示问题, $r_{i}$ 表示第 $i$ 轮推理, $a_{i}$ 表示动作 (我们设计了 *search*, *open*, *find* 和 *python* 4 种工具), $o_{i}$ 表示工具观察结果. 我们只折叠最近 $k$ 轮以前的观察结果: $o_{i}\leftarrow\text{Tool result is omitted to save tokens.}\quad i=1,\ldots,n-k$. 实验中设 $k=5$, 可带来稳定提升, 使 GLM-5 的成绩从未使用 keep-recent-$k$ 时的 55.3% 提升到使用后的 62.0%. 我们还发现, 采用不同的 keep recent $k$ 值, 或在上下文长度达到预设 token 阈值时触发 keep-recent, 均会得到相同结果.
+先前工作 [Dee25a] 提出了上下文管理, 其中 *Discard-all* 会移除全部工具调用历史来重置上下文. 我们进一步观察到, 上下文极长时, 例如超过 100k token, 模型准确率会大幅下降. 因此, 我们采用简单的 *Keep-recent-k* 策略. 当交互历史超过阈值 $k$ 时, 折叠最近 $k$ 轮以前的内容以控制上下文长度. 设轨迹为 $(q,r_{1},a_{1},o_{1},r_{2},a_{2},o_{2},\cdots,r_{n},a_{n},o_{n})$, 其中 $q$ 表示问题, $r_{i}$ 表示第 $i$ 轮推理, $a_{i}$ 表示动作 (我们设计了 *search*, *open*, *find* 和 *python* 4 种工具), $o_{i}$ 表示工具观察结果. 我们只折叠最近 $k$ 轮以前的观察结果: $o_{i}\leftarrow\text{Tool result is omitted to save tokens.}\quad i=1,\ldots,n-k$. 实验中设 $k=5$, 可带来稳定提升, 使 GLM-5 的成绩从未使用 keep-recent-$k$ 时的 55.3% 提升到使用后的 62.0%. 我们还发现, 采用不同的 keep recent $k$ 值, 或在上下文长度达到预设 token 阈值时触发 keep-recent, 均会得到相同结果.
 
 在此基础上, 我们将 keep-recent 与 Discard-all 结合, 形成混合的*分层上下文管理*策略. 在使用 keep-recent 进行推理期间, 若总上下文长度超过阈值 $T$, 就丢弃完整的工具调用历史并以全新上下文重新开始, 同时继续应用 keep-recent 策略. 我们通过参数搜索选定 $T=32k$.
 
@@ -517,7 +517,7 @@ $$
 
 ### 6.1 ARC 基准评测
 
-表 7 给出了 ARC 基准的主要结果, 将 GLM-5 与 GLM-4.7, DeepSeek-V3.2 [Liu25a], Kimi-K2.5 [Kim26a], Claude Opus 4.5 [Ant25a], Gemini 3 Pro [Dee25] 和 GPT-5.2 (xhigh) [Ope25b] 进行比较. 总体而言, GLM-5 相较 GLM-4.7 实现了显著提升, 在开源模型中达到当前最佳性能, 并缩小了与 Claude Opus 4.5 等闭源模型的差距. 评测细节见[第 B.2 节](#b2-arc-基准评测).
+表 7 给出了 ARC 基准的主要结果, 将 GLM-5 与 GLM-4.7, DeepSeek-V3.2 [Dee25a], Kimi-K2.5 [Kim26a], Claude Opus 4.5 [Ant25a], Gemini 3 Pro [Dee25] 和 GPT-5.2 (xhigh) [Ope25b] 进行比较. 总体而言, GLM-5 相较 GLM-4.7 实现了显著提升, 在开源模型中达到当前最佳性能, 并缩小了与 Claude Opus 4.5 等闭源模型的差距. 评测细节见[第 B.2 节](#b2-arc-基准评测).
 
 ![GLM-5 表 7](./glm-5/table-07.png)
 
@@ -537,7 +537,7 @@ $$
 
 #### 6.1.3 智能体能力评测
 
-智能体基准包括 BrowseComp [Wei25], BrowseComp-ZH [Zho25], $\tau^{2}$-Bench [Bar25], MCP-Atlas [Ban26a], Tool-Decathlon [LiWeb], Vending-Bench 2 [Bac25] 和 GDPval-AA [Pat25]. BrowseComp 衡量语言智能体通过浏览 Web 解决困难问题的能力, BrowseComp-ZH 则主要面向中文 Web. BrowseComp 的上下文管理采用与 DeepSeek-V3.2 和 Kimi K2.5 相同的 discard-all 策略. $\tau^{2}$-Bench 评估对话智能体在双控制环境中的能力. 我们对 Retail 和 Telecom 略微调整提示词, 避免用户过早终止导致失败 (见[第 B.3 节](#b3-2-bench-的优化用户模拟器)). 对 Airline, 我们采用 Claude Opus 4.5 系统卡 [Ant25a] 提出的领域修复, 以获得更准确的结果. MCP-Atlas 是一项真实工具使用基准, 评估 LLM 在给定模型上下文协议 (MCP) 服务器时执行多步工作流的表现. 为公平比较, 我们在 500 项公开任务上重新评测所有模型, 并将单项任务的超时时间从 4 分钟延长至 10 分钟, 避免部署条件造成任务失败. MCP-Atlas 使用 Gemini 3 Pro 作为 judge 模型. Tool-Decathlon 也是工具使用基准, 但面向真实长程任务. Vending-Bench 2 衡量 LLM 在模拟环境中长期运营企业的智能体能力, 相比前代 Vending-Bench 引入了更多现实因素. GDPval 则关注 AI 智能体处理具有经济价值任务的表现.
+智能体基准包括 BrowseComp [Wei25], BrowseComp-ZH [Zho25], $\tau^{2}$-Bench [Bar25], MCP-Atlas [Ban26a], Tool-Decathlon [Li25b], Vending-Bench 2 [Bac25] 和 GDPval-AA [Pat25]. BrowseComp 衡量语言智能体通过浏览 Web 解决困难问题的能力, BrowseComp-ZH 则主要面向中文 Web. BrowseComp 的上下文管理采用与 DeepSeek-V3.2 和 Kimi K2.5 相同的 discard-all 策略. $\tau^{2}$-Bench 评估对话智能体在双控制环境中的能力. 我们对 Retail 和 Telecom 略微调整提示词, 避免用户过早终止导致失败 (见[第 B.3 节](#b3-2-bench-的优化用户模拟器)). 对 Airline, 我们采用 Claude Opus 4.5 系统卡 [Ant25a] 提出的领域修复, 以获得更准确的结果. MCP-Atlas 是一项真实工具使用基准, 评估 LLM 在给定模型上下文协议 (MCP) 服务器时执行多步工作流的表现. 为公平比较, 我们在 500 项公开任务上重新评测所有模型, 并将单项任务的超时时间从 4 分钟延长至 10 分钟, 避免部署条件造成任务失败. MCP-Atlas 使用 Gemini 3 Pro 作为 judge 模型. Tool-Decathlon 也是工具使用基准, 但面向真实长程任务. Vending-Bench 2 衡量 LLM 在模拟环境中长期运营企业的智能体能力, 相比前代 Vending-Bench 引入了更多现实因素. GDPval 则关注 AI 智能体处理具有经济价值任务的表现.
 
 表 7 显示, GLM-5 在智能体基准上相较 GLM-4.7 提升显著. 在 BrowseComp 上, 无论是否使用上下文管理, GLM-5 都在前沿 LLM 中达到当前最佳表现. 在 BrowseComp-ZH 上, GLM-5 也优于 Claude Opus 4.5 和 Gemini 3 Pro. 对 $\tau^{2}$-Bench, MCP-Atlas 和 Tool-Decathlon 三项工具使用智能体任务, GLM-5 的表现与 Claude Opus 4.5 相当, 体现出强大的工具使用能力. GLM-5 在 Vending-Bench 2 上获得 \$4,432, 进一步证明其处理长期企业任务的能力. 在经济场景中, GLM-5 在 GDPval-AA 上优于 Claude Opus 4.5, 仅次于 GPT-5.2 (xhigh).
 

@@ -138,7 +138,7 @@ To correct the biased rounding error that arises in flash attention, we adopt th
 
 ### 2.2 Attention Residuals
 
-Standard residual connections [He15] compress all prior information into a single state $\mathbf h_l$ over depth, a bottleneck reminiscent of RNNs over time. For sequence modeling, the Transformer replaced recurrence with attention [Bah14, Vas17], allowing each position to selectively access all previous positions with data-dependent weights. Attention Residuals (AttnRes) [Tea26] applies the same methodology to depth: each layer selectively retrieves representations from all preceding layers rather than accumulating them uniformly.
+Standard residual connections [He16] compress all prior information into a single state $\mathbf h_l$ over depth, a bottleneck reminiscent of RNNs over time. For sequence modeling, the Transformer replaced recurrence with attention [Bah14, Vas17], allowing each position to selectively access all previous positions with data-dependent weights. Attention Residuals (AttnRes) [Tea26] applies the same methodology to depth: each layer selectively retrieves representations from all preceding layers rather than accumulating them uniformly.
 
 #### Full Attention Residuals
 
@@ -647,7 +647,7 @@ We evaluate Kimi K3 on a comprehensive benchmark suite organized along four broa
 
 - **Coding:** DeepSWE [Ela26], ProgramBench [Pro26], Terminal-Bench 2.1 [Mer26], FrontierSWE [Fu24], SWE-Marathon [Mar26], PostTrainBench [Pos26], MLS-Bench-Lite [Lyu26], and SciCode [Tia24, Art26].
 
-- **Agentic:** BrowseComp [Wei25], DeepSearchQA [Ved25], ResearchRubrics [Sha26], Toolathlon-Verified [LiWeb], MCPMark-Verified [Wu25], MCP-Atlas [Ban26a], AutomationBench [She26], JobBench [Li26], GDPval-AA v2 [Pat25], AA-Briefcase [Art26, Age26], Agents' Last Exam (ALE) [Age26a, Sun26a], APEX-Agents [Vid26], OfficeQA Pro [Ops26], SpreadsheetBench 2 [Zhu26], OSWorld-Verified [Xie25] and OSWorld 2.0 [Yua26], SaaS-Bench [Shi26], $\tau^3$-Banking [Ban26, Art26], Harvey Lab-AA [Art26, Har26], CorpFin v2 [Val26], Finance Agent v2 [Fro26], and Legal Research Bench [Val26b].
+- **Agentic:** BrowseComp [Wei25], DeepSearchQA [Ved25], ResearchRubrics [Sha26], Toolathlon-Verified [Li25b], MCPMark-Verified [Wu25], MCP-Atlas [Ban26a], AutomationBench [She26], JobBench [Li26], GDPval-AA v2 [Pat25], AA-Briefcase [Art26, Age26], Agents' Last Exam (ALE) [Age26a, Sun26a], APEX-Agents [Vid26], OfficeQA Pro [Ops26], SpreadsheetBench 2 [Zhu26], OSWorld-Verified [Xie25] and OSWorld 2.0 [Yua26], SaaS-Bench [Shi26], $\tau^3$-Banking [Ban26, Art26], Harvey Lab-AA [Art26, Har26], CorpFin v2 [Val26], Finance Agent v2 [Fro26], and Legal Research Bench [Val26b].
 
 - **Vision:** WorldVQA [Zho26], OmniDocBench [Ouy25], PerceptionBench [Tea26b], Video-MME [GlmWeb], MMVU [Zha25], and BabyVision [Che26] with Python tool. MMMU-Pro [Yue24], CharXiv (RQ) [Wan24a], Math-Vision [Wan24], and ZeroBenchmain [Rob25], each with and without Python tool augmentation.
 

@@ -138,7 +138,7 @@ $$
 
 ### 2.2 Attention Residuals
 
-標準の残りの接続 [He15] は、以前のすべての情報を深度にわたって単一の状態 $\mathbf h_l$ に圧縮します。これは、時間の経過とともに RNN を彷彿とさせるボトルネックになります。シーケンス モデリングの場合、Transformer は繰り返しを注意 [Bah14、Vas17] に置き換え、各位置がデータ依存の重みを使用して以前のすべての位置に選択的にアクセスできるようにしました。 Attention Residuals(AttnRes) [Tea26] は、同じ方法論を深度に適用します。各レイヤーは、表現を均一に蓄積するのではなく、先行するすべてのレイヤーから選択的に取得します。
+標準の残りの接続 [He16] は、以前のすべての情報を深度にわたって単一の状態 $\mathbf h_l$ に圧縮します。これは、時間の経過とともに RNN を彷彿とさせるボトルネックになります。シーケンス モデリングの場合、Transformer は繰り返しを注意 [Bah14、Vas17] に置き換え、各位置がデータ依存の重みを使用して以前のすべての位置に選択的にアクセスできるようにしました。 Attention Residuals(AttnRes) [Tea26] は、同じ方法論を深度に適用します。各レイヤーは、表現を均一に蓄積するのではなく、先行するすべてのレイヤーから選択的に取得します。
 
 #### フル Attention Residuals
 
@@ -647,7 +647,7 @@ Kimi K3 では、いくつかの新しいアーキテクチャ モジュール�
 
 - **コーディング:** DeepSWE [Ela26]、プログラムベンチ [Pro26]、ターミナルベンチ 2.1 [Mer26]、フロンティア SWE [Fu24]、SWE マラソン [Mar26]、ポストトレインベンチ [Pos26]、MLS-Bench-Lite [Lyu26]、および SciCode [Tia24、Art26]。
 
-- **Agentic:** BrowseComp [Wei25]、DeepSearchQA [Ved25]、ResearchRubrics [Sha26]、Toolathlon 検証済み [LiWeb]、MCPMark 検証済み [Wu25]、MCP-Atlas [Ban26a]、AutomationBench [She26]、JobBench [Li26]、GDPval-AA v2 [Pat25]、AA-Briefcase [Art26、Age26]、エージェントの最終試験 (ALE) [Age26a、Sun26a]、APEX-Agents [Vid26]、OfficeQA Pro [Ops26]、SpreadsheetBench 2 [Zhu26]、OSWorld 検証済み [Xie25] および OSWorld 2.0 [Yua26]、 SaaS-Bench [Shi26]、$\tau^3$-Banking [Ban26、Art26]、Harvey Lab-AA [Art26、Har26]、CorpFin v2 [Val26]、財務エージェント v2 [Fro26]、および法務調査ベンチ [Val26b]。
+- **Agentic:** BrowseComp [Wei25]、DeepSearchQA [Ved25]、ResearchRubrics [Sha26]、Toolathlon 検証済み [Li25b]、MCPMark 検証済み [Wu25]、MCP-Atlas [Ban26a]、AutomationBench [She26]、JobBench [Li26]、GDPval-AA v2 [Pat25]、AA-Briefcase [Art26、Age26]、エージェントの最終試験 (ALE) [Age26a、Sun26a]、APEX-Agents [Vid26]、OfficeQA Pro [Ops26]、SpreadsheetBench 2 [Zhu26]、OSWorld 検証済み [Xie25] および OSWorld 2.0 [Yua26]、 SaaS-Bench [Shi26]、$\tau^3$-Banking [Ban26、Art26]、Harvey Lab-AA [Art26、Har26]、CorpFin v2 [Val26]、財務エージェント v2 [Fro26]、および法務調査ベンチ [Val26b]。
 
 - **Vision:** WorldVQA [Zho26]、OmniDocBench [Ouy25]、PerceptionBench [Tea26b]、Video-MME [GlmWeb]、MMVU [Zha25]、BabyVision [Che26]（Python tool を使用）。MMMU-Pro [Yue24]、CharXiv (RQ) [Wan24a]、Math-Vision [Wan24]、ZeroBenchmain [Rob25]（いずれも Python tool 拡張の有無を評価）。
 
