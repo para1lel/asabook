@@ -151,3 +151,66 @@ pre * {
   width: min(100%, 28rem);
   max-height: 13rem;
 }
+
+.paper-wide-table {
+  contain: inline-size paint;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.paper-wide-table > table {
+  display: table;
+  min-width: 900px;
+  margin: 0;
+  overflow: visible;
+}
+
+.tilesight-paper .katex-display .katex-mathml {
+  contain: strict;
+}
+
+@media (max-width: 719px) {
+  .tilesight-paper .katex-display {
+    font-size: 0.7em;
+  }
+
+  .tilesight-paper .vp-doc li .katex {
+    font-size: 0.85em;
+  }
+
+  .tilesight-paper .katex-mathml math {
+    font-size: 0;
+  }
+
+  .paper-wide-table {
+    overflow-x: hidden;
+  }
+
+  .paper-wide-table > table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+    font-size: 0.75rem;
+  }
+
+  .paper-wide-table th,
+  .paper-wide-table td {
+    min-width: 0;
+    padding: 4px 2px;
+    overflow-wrap: anywhere;
+  }
+
+  .paper-wide-table th:first-child,
+  .paper-wide-table td:first-child {
+    width: 46%;
+    text-align: left;
+  }
+
+  .paper-wide-table thead th:not(:first-child) {
+    height: 180px;
+    line-height: 1;
+    white-space: nowrap;
+    writing-mode: vertical-rl;
+  }
+}
