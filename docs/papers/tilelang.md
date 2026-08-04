@@ -249,11 +249,11 @@ AMD CDNA 架构也提供异步复制指令和 DMA 支持, TileLang 通过 HIP �
 
 **图 13.** Nvidia 与 AMD GPU 上的 GEMM 性能.
 
-<span id="figure-14"></span>
-
 ![H100 上的 MLA 性能与代码行数](./tilelang/figure-14a.png)
 
 **图 14(a).** H100 上的 MLA 性能与代码行数.
+
+<span id="figure-14"></span>
 
 ![MI300X 上的 MLA 性能与代码行数](./tilelang/figure-14b.png)
 
@@ -291,6 +291,8 @@ BitBLAS 是一个用于混合精度计算的高性能库, 具有面向张量数�
 
 ## 附录 A 基准中的算子形状
 
+<span id="table-02"></span>
+
 |   | V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | m | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
@@ -303,6 +305,8 @@ BitBLAS 是一个用于混合精度计算的高性能库, 具有面向张量数�
 
 **表 2.** 基准中的矩阵形状.
 
+<span id="table-03"></span>
+
 |   | FA0 | FA1 | FA2 | FA3 | FA4 |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | batch | 1 | 1 | 1 | 1 | 1 |
@@ -312,6 +316,8 @@ BitBLAS 是一个用于混合精度计算的高性能库, 具有面向张量数�
 | causal | true | false | true | false | true |
 
 **表 3.** 基准中的 FlashAttention 形状.
+
+<span id="table-04"></span>
 
 |   | CC0 | CC1 | CC2 | CC3 | CC4 | CC5 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -332,6 +338,8 @@ BitBLAS 是一个用于混合精度计算的高性能库, 具有面向张量数�
 ## 附录 B 内核实现
 
 ### B.1 矩阵乘法 (Matmul)
+
+<span id="figure-16"></span>
 
 ```python
 @tilelang.jit
@@ -354,6 +362,8 @@ def Matmul(A: T.Tensor, B: T.Tensor, C: T.Tensor):
 **图 16.** 矩阵乘法的内核实现.
 
 ### B.2 反量化矩阵乘法
+
+<span id="figure-17"></span>
 
 ```python
 @tilelang.jit
@@ -391,6 +401,8 @@ def matmul_fp16_fp4(
 **图 17.** 使用 TileLang 实现 Weight-Only Quantization ($W_{\mathrm{FP4\_E2M1}}A_{\mathrm{FP16}}$) Matmul, 通过简单形式展示对混合精度计算的支持.
 
 ### B.3 FlashMLA 实现
+
+<span id="figure-18"></span>
 
 ```python
 @tilelang.jit

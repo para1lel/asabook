@@ -15,9 +15,9 @@ Triton、TileLang、CUDA Tile などの近年の GPU プログラミング フ�
 
 Large language model (LLM) の規模拡大により、training system と serving system は hardware limit にますます近づき、kernel efficiency が latency と cost の両方を左右する中心的要因となっています。この性能を引き出すため、開発者は複数の LLM operation を大規模な tile program へと融合するようになっており、その bottleneck は tiling、memory movement、pipeline overlap、wavefront scheduling によって決まります。したがって、performance boundary を明らかにして最適化を導くには、正確かつ高速な white-box performance modeling が必要です。
 
-Kernel 最適化を容易にするため、GPU programming community は共通の paradigm として *tile 中心プログラミング*へ収束してきました。Triton [Til19] は tile-level load、store、dot product を切り開き、PyTorch の custom kernel における事実上の標準となりました。TileLang [Til25g] はさらに、tile level で dataflow と scheduling を分離します。NVIDIA の CUDA Tile [Nvi26] (CUDA 13.1、2025) は、およそ 20 年で最も重要な CUDA の進歩 [Fut26] と説明され、tile を programming primitive として正式に採用しています。一方、CuteDSL [NviCut] は CUTLASS の tile abstraction を Python domain-specific language (DSL) として公開します。この結果、tile は現代の GPU programming における中心的 abstraction となりました。しかし、**性能分析はこの tile 中心 abstraction に追随していません**。Triton は数千 configuration の black-box autotuning に依存し [Til19]、Roofline model [Wil09] は L2 cache miss と shared memory bank conflict を区別できず、ML-based predictor [Lee25, Geo21] は architecture ごとの training を必要とし不透明です。Nsight Compute (NCU) などの profiler や profiling-based tool [Gua25, Hua25] は事後的です。instrumentation や clock の変更によって実行を乱す可能性があり、その counter report は、観測された bottleneck をどの tile、reuse pattern、pipeline stage が引き起こしたかを説明しません。表 1 はこの abstraction mismatch をまとめています。Tile 中心プログラミングの採用が進むにつれ、kernel を実行せずに tile-configuration の変更が性能へ及ぼす影響を予測できる、正確で効率的な *tile 中心 performance model* が強く求められています。
+Kernel 最適化を容易にするため、GPU programming community は共通の paradigm として *tile 中心プログラミング*へ収束してきました。Triton [Til19] は tile-level load、store、dot product を切り開き、PyTorch の custom kernel における事実上の標準となりました。TileLang [Til25g] はさらに、tile level で dataflow と scheduling を分離します。NVIDIA の CUDA Tile [Nvi26] (CUDA 13.1、2025) は、およそ 20 年で最も重要な CUDA の進歩 [Fut26] と説明され、tile を programming primitive として正式に採用しています。一方、CuteDSL [NviCut] は CUTLASS の tile abstraction を Python domain-specific language (DSL) として公開します。この結果、tile は現代の GPU programming における中心的 abstraction となりました。しかし、**性能分析はこの tile 中心 abstraction に追随していません**。Triton は数千 configuration の black-box autotuning に依存し [Til19]、Roofline model [Wil09] は L2 cache miss と shared memory bank conflict を区別できず、ML-based predictor [Lee25, Geo21] は architecture ごとの training を必要とし不透明です。Nsight Compute (NCU) などの profiler や profiling-based tool [Gua25, Hua25] は事後的です。instrumentation や clock の変更によって実行を乱す可能性があり、その counter report は、観測された bottleneck をどの tile、reuse pattern、pipeline stage が引き起こしたかを説明しません。[表 1](#table-01) はこの abstraction mismatch をまとめています。Tile 中心プログラミングの採用が進むにつれ、kernel を実行せずに tile-configuration の変更が性能へ及ぼす影響を予測できる、正確で効率的な *tile 中心 performance model* が強く求められています。
 
-このような model の必要性は、tiled kernel の main loop の*内部*で起こることを考えると、さらに明確になります。GEMM でさえ、性能は FLOP 数と byte 数だけでなく、software-pipeline depth、streaming multiprocessor (SM) あたりの resident tile 数、load-compute overlap に依存します。Fused kernel では問題がさらに顕著になります。図 1 に示す H100 上の FlashAttention-3 (FA-3) は、Tensor Core 上の 2 つの GEMM、CUDA core 上の reduction と softmax、special function unit (SFU) 上の special function を含む 10 種類以上の異なる operation と、その間の細粒度な data dependency を持ちます。これらの operation は異なる hardware resource を占有しており、重なる可能性がありますが、その度合いは scheduling order と pipeline depth に決定的に依存します。Roofline、profiler、autotuner を含む既存 tool は、この tile 内 scheduling structure をほとんど認識できません。さらに、これらの複雑な kernel は*分散*環境でますます必要とされています。たとえば、tensor parallelism (TP)、expert parallelism (EP)、sequence parallelism (SP) は workload を複数 GPU に partition し [Sve25]、compute と重ねる必要がある collective communication を導入します。Distributed kernel の性能は、global tile grid の partition 方法、使用する communication primitive、compute pipeline と communication pipeline の interleave 方法に依存します。これらの判断は現在、直感または高価な trial-and-error によって行われています。
+このような model の必要性は、tiled kernel の main loop の*内部*で起こることを考えると、さらに明確になります。GEMM でさえ、性能は FLOP 数と byte 数だけでなく、software-pipeline depth、streaming multiprocessor (SM) あたりの resident tile 数、load-compute overlap に依存します。Fused kernel では問題がさらに顕著になります。[図 1](#figure-01) に示す H100 上の FlashAttention-3 (FA-3) は、Tensor Core 上の 2 つの GEMM、CUDA core 上の reduction と softmax、special function unit (SFU) 上の special function を含む 10 種類以上の異なる operation と、その間の細粒度な data dependency を持ちます。これらの operation は異なる hardware resource を占有しており、重なる可能性がありますが、その度合いは scheduling order と pipeline depth に決定的に依存します。Roofline、profiler、autotuner を含む既存 tool は、この tile 内 scheduling structure をほとんど認識できません。さらに、これらの複雑な kernel は*分散*環境でますます必要とされています。たとえば、tensor parallelism (TP)、expert parallelism (EP)、sequence parallelism (SP) は workload を複数 GPU に partition し [Sve25]、compute と重ねる必要がある collective communication を導入します。Distributed kernel の性能は、global tile grid の partition 方法、使用する communication primitive、compute pipeline と communication pipeline の interleave 方法に依存します。これらの判断は現在、直感または高価な trial-and-error によって行われています。
 
 これらの課題に対し、tile は GPU system の performance modeling に*自然な第一級 abstraction*をもたらすと私たちは考えます。その理由は 3 つの性質にあります。**(1) 決定性**: tile configuration (shape、pipeline depth、memory layout) が与えられると、各 tile の resource usage は完全に決まり、simulation なしで analytical modeling が可能です。**(2) 合成可能性**: tile information は階層的に合成できます。各 tile は pipeline ごとの resource decomposition (tile 内) を持ち、tile は dependency、concurrent issue、execution order (tile 間) により関連し、tile grid は placement (device 間) を通じて device をまたいで拡張されます。各 level を個別に model 化してから合成できます。**(3) 可搬性**: tile abstraction は多様な GPU architecture で採用されています (本稿では NVIDIA A100、H100、H200、B200、RTX PRO 6000 Blackwell (B6000)、AMD MI210 を扱います)。すべての現代 GPU は類似した階層 memory と compute structure によって tile-shaped workload を実行するためです。
 
@@ -41,9 +41,13 @@ Kernel 最適化を容易にするため、GPU programming community は共通�
 
 ### 2.1 GPU 性能モデリング
 
+<span id="figure-01"></span>
+
 ![H100 上での FlashAttention-3 の実行](../../papers/tilesight/figure-01.png)
 
 **図 1.** H100 上の FlashAttention-3。(a) Tensor Core、CUDA core、SFU にまたがる 10 種類以上の heterogeneous operation。(b) その data-dependency DAG。(c) scheduling order が compute-memory pipeline overlap を決める仕組み。
+
+<span id="figure-02"></span>
 
 ![L2 bandwidth と working-set size の関係](../../papers/tilesight/figure-02.png)
 
@@ -53,7 +57,9 @@ Kernel 最適化を容易にするため、GPU programming community は共通�
 
 ### 2.2 Tile 中心プログラムにおけるモデリングの隔たり
 
-不足している abstraction は 3 level に現れます。**Tile 内**: 各 tile は compute、memory、network にまたがる heterogeneous pipeline を使用するため、単一 bottleneck scalar では overlap を決める per-pipeline structure を捉えられません (図 1)。**Tile 間**: tile dependency は fused body 内の合法的 action ordering を決め、grid 上の tile execution order は cache reuse を決めます。現代 GPU では単一の flat bandwidth 値では不十分です (図 2)。**Device 間**: partition された tile grid は communication pipeline を通じて data を交換し、その時間は独立に加算するのではなく compute と overlap させる必要があります。表 1 は、既存 tool がこれらの level の 1 つ以上を欠く様子をまとめています。
+不足している abstraction は 3 level に現れます。**Tile 内**: 各 tile は compute、memory、network にまたがる heterogeneous pipeline を使用するため、単一 bottleneck scalar では overlap を決める per-pipeline structure を捉えられません ([図 1](#figure-01))。**Tile 間**: tile dependency は fused body 内の合法的 action ordering を決め、grid 上の tile execution order は cache reuse を決めます。現代 GPU では単一の flat bandwidth 値では不十分です ([図 2](#figure-02))。**Device 間**: partition された tile grid は communication pipeline を通じて data を交換し、その時間は独立に加算するのではなく compute と overlap させる必要があります。[表 1](#table-01) は、既存 tool がこれらの level の 1 つ以上を欠く様子をまとめています。
+
+<span id="table-01"></span>
 
 <div class="paper-wide-table">
 
@@ -79,9 +85,13 @@ TileSight は *tile* を第一級の modeling unit として扱い、prologue-st
 
 TileSight への入力は、tiled GEMM、fused attention kernel、all-gather に続く GEMM、GPU 間の Mixture-of-Experts (MoE) routing などの high-level workload です。Workload は tensor とその placement を固定しますが、schedule は未指定のままです。TileSight はそれを tile execution plan へ引き上げ、performance modeling に必要な schedule-relevant choice、すなわち tile shape、loop と reduction の順序、block swizzle、software-pipeline depth、SM あたりの resident block 数、distributed partitioning、collective implementation を明示します。Triton や TileLang などの tile-centric DSL は、この information の大部分を直接公開します。手書き kernel では、同じ field を kernel schedule から手動で与えます。
 
+<span id="figure-03"></span>
+
 ![TileSight の設計概要](../../papers/tilesight/figure-03.png)
 
 **図 3.** All-gather-GEMM (AG-GEMM) における **TileSight の設計概要**。**(a)** workload は operator と tensor placement のみで記述されます ($X$ は $N$ GPU に column-shard)。**(b)** TileSight はそれを、DAG が memory level $L_0$-$L_4$ にまたがる tile schedule へ引き上げます。**(c)** 単一の hardware abstraction が register、SMEM、L2、HBM、GPU 間 fabric を 5-level hierarchy として公開します。**(d)** tile 内 resource vector と tile 間 DAG/concurrency analysis が、再帰的 prologue-steady-epilogue envelope への入力となります。**(e)** engine は envelope を timeline として描画します。software-pipelined load は compute と overlap し、AllGather は `Net` lane 上で *placement から推定*されます。**(f)** latency、utilization、cache hit、overlap rate を含む tile ごとの performance report。
+
+<span id="table-02"></span>
 
 | Field | 側 | Model における役割 |
 | --- | --- | --- |
@@ -231,6 +241,8 @@ TileSight は、tile grid に関連する各 tensor について *tensor access*
 
 *Tile reuse distance* $D_T$ は、同じ tensor block への 2 回の連続 access の間に access される、異なる tile-sized data block の数です。従来の reuse distance は、2 回の access の間にいくつの cache line または memory transaction が介在するかを問います。tile reuse distance は、GPU kernel schedule が公開する unit で同じ問いを立てます。128-byte cache line の代わりに 8 KB tile を model 化すると、追跡する entry は $64\times$ 少なくなり、tile-centric schedule が公開する granularity と一致します。また、block swizzle と traversal order が cache model に直接現れ、trace-level cache simulation を回避できます。
 
+<span id="figure-04"></span>
+
 ![図 4: Tile reuse distance と cache-line reuse distance。左: 従来の cache-line reuse distance は数万の line entry を追跡し、line granularity で exact SDCM を評価します。右: TileSight は reuse distance を tile-sized block へ引き上げ、Gaussian SDCM approximation を適用し、reduction axis に沿って sampling することで、schedule sensitivity を維持しながら cache modeling を軽量化します。](../../papers/tilesight/figure-04.png)
 
 `reuse_dims` を持つ tensor について、TileSight は tile の non-reuse coordinate から reuse key を計算します。
@@ -329,9 +341,11 @@ $$
 
 ### 3.8 可搬な Hardware Abstraction
 
-TileSight が必要とするのは、tile execution plan とその placement descriptor に影響する parameter だけです。この abstraction は tensor-placement hierarchy に対応します。Local placement は register/TMEM/SMEM/cache/DDR resource に、remote placement は GPU/node 間の calibration 済み network hierarchy に対応します (表 3)。値は vendor specification と、practical bandwidth、utilization cap、network parameter のための軽量 microbenchmark から得られます。
+TileSight が必要とするのは、tile execution plan とその placement descriptor に影響する parameter だけです。この abstraction は tensor-placement hierarchy に対応します。Local placement は register/TMEM/SMEM/cache/DDR resource に、remote placement は GPU/node 間の calibration 済み network hierarchy に対応します ([表 3](#table-03))。値は vendor specification と、practical bandwidth、utilization cap、network parameter のための軽量 microbenchmark から得られます。
 
 **表 3: 本稿で評価する GPU architecture の hardware specification。theoretical peak (spec) / microbenchmark-calibrated (meas.)。**
+
+<span id="table-03"></span>
 
 | GPU | SM 数 | VEC FP32 T spec / meas. | TC FP16 T spec / meas. | SFU T spec / meas. | L2 TB/s meas. | DDR TB/s spec / meas. |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -355,20 +369,28 @@ TileSight は Python (約 6K lines) で実装され、NVIDIA GPU と AMD GPU を
 
 **Single GPU から cluster へ。** Single-GPU level では、tile grid 全体を 1 device に schedule します。Node level では、`DistributedTileMap` が grid を GPU 間で partition し、`NetworkHierarchy` が NVLink や PCIe を含む intra-node interconnect を捉えます。TileSight は message size と device count に基づいて ring、recursive-doubling、Rabenseifner などの collective algorithm を選択します。Multi-node cluster では、同じ `NetworkHierarchy` に InfiniBand や NVLink Bridge などの inter-node link を追加します。ユーザーは任意 link の per-hop bandwidth と latency を指定して custom topology を定義できます。`DistributedTileMap` が与えられると、TileSight は partition された tile grid の producer-consumer placement から必要な remote tensor access を推定し、それぞれを $(s,d,b)$ logical exchange の ordered stage に分解し、`NetworkHierarchy` 上で $\alpha$-$\beta$ stage cost を適用します。これにより tile ごとの `Net` resource time が生成され、local compute/memory と同じ pipeline envelope を流れます。
 
+<span id="figure-05"></span>
+
 ![図 5: A100、B200、B6000、H200、MI210 における GEMM latency prediction と measured latency の比較。各点は 1 つの BF16/FP16 tensor-core GEMM shape を表し、対角線は完全な予測を示します。](../../papers/tilesight/figure-05.png)
 
 **表 4: H100 上の FlashAttention-3 modeling と NCU の比較 (Qwen configuration: batch 1、64 heads、head-dim 128)。NCU が ground truth。**
+
+<span id="table-04"></span>
 
 |  | Time (ms) | L2 hit (%) | L2 util. (%) | SMEM (%) | TC (%) | SFU (%) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | NCU | 5.58 | 96.50 | 38.66 | 51.14 | 74.78 | 38.58 |
 | TileSight | 5.73 | 95.26 | 35.72 | 43.13 | 70.30 | 35.42 |
 
-**Composition と calibration。** Modeling chain は bottom-up に動作します。Cache model は tile schedule と reuse distance に基づいて L1.5/L2/DDR traffic fraction を計算します。この traffic data が tile ごとの pipeline overlap model に入力されます。Wave model は tile ごとの結果を device ごとの time へ aggregate し、distributed model は communication を加えて overlap を計算します。Memory/TMEM bandwidth、unit ごとの compute throughput、その他 hardware parameter は、小規模 microbenchmark によって architecture ごとに 1 回 calibration されます。これには図 2 のような working-set size 全体の bandwidth sweep と、数秒しか要しない短い matrix-multiply probe が含まれます。
+**Composition と calibration。** Modeling chain は bottom-up に動作します。Cache model は tile schedule と reuse distance に基づいて L1.5/L2/DDR traffic fraction を計算します。この traffic data が tile ごとの pipeline overlap model に入力されます。Wave model は tile ごとの結果を device ごとの time へ aggregate し、distributed model は communication を加えて overlap を計算します。Memory/TMEM bandwidth、unit ごとの compute throughput、その他 hardware parameter は、小規模 microbenchmark によって architecture ごとに 1 回 calibration されます。これには[図 2](#figure-02) のような working-set size 全体の bandwidth sweep と、数秒しか要しない短い matrix-multiply probe が含まれます。
+
+<span id="figure-06"></span>
 
 ![図 6: 4,680 の GEMM persistent-kernel case における TileSight の L2 hit-rate prediction と NCU ground truth の比較。](../../papers/tilesight/figure-06.png)
 
 ## 5 評価
+
+<span id="figure-07"></span>
 
 ![図 7: H200 $\times 8$ と B200 $\times 8$ における AllGather、AllReduce、ReduceScatter、All-to-All の pure-collective prediction。](../../papers/tilesight/figure-07.png)
 
@@ -388,17 +410,25 @@ TileSight は Python (約 6K lines) で実装され、NVIDIA GPU と AMD GPU を
 
 ### 5.2 Single-Operator Prediction Accuracy
 
+<span id="figure-08"></span>
+
 ![図 8: H200 $\times 8$ と B200 $\times 8$ における fused compute-communication kernel prediction (AllGather+GEMM、GEMM+ReduceScatter、Ulysses Attention)。](../../papers/tilesight/figure-08.png)
+
+<span id="figure-09"></span>
 
 ![図 9: Dense LLM、MoE model、multi-node configuration にわたる vLLM decode throughput prediction。Dense row は A100 $\times 1$、B6000 $\times 2$、B200 $\times 8$、H200-NVL を、MoE row は B200 $\times 8$、B200 $\times 32$、H200-NVL $\times 8$ を対象とします。Bar は measured vLLM tokens per second と TileSight、および対応する場合の PipeWeave を比較します。PipeWeave は MoE に対応しません。](../../papers/tilesight/figure-09.png)
 
+<span id="figure-10"></span>
+
 ![図 10: すべての healthy configuration における predicted decode throughput と measured decode throughput。TileSight: overall 13.52% wMAPE。PipeWeave: 対応する dense row で 31.84% wMAPE。](../../papers/tilesight/figure-10.png)
 
-図 5 では、A100、B200、B6000、H200 上の 703 BF16/FP16 tensor-core GEMM shape を評価し、stream-K path と single-instruction, multiple-thread (SIMT) fallback path を除外した `cutlass_profiler` measurement を ground truth とします。TileSight の pooled MAPE は 12.35% であり、PipeWeave の 21.97%、retraining した NeuSight の 32.95%、Roofline の 33.85%、GenZ の 34.89% と比較して優れています。TileSight は、より新しい B200、B6000、H200 target で最良です。A100 は NeuSight の training distribution に含まれるため、NeuSight が A100 では僅差で上回りますが、この優位性は新しい GPU へ転移しません。これは architecture-specific learned predictor の overfitting risk を示しています。MI210 では、CK が `cutlass_profiler` のような明示的 rasterization (along-$M$/along-$N$) または swizzle control を提供しないため、TileSight は default cache mode で動作します。それでも 23.4% MAPE で首位となり、PipeWeave (25.5%)、NeuSight (26.4%)、Roofline (38.8%)、GenZ (40.4%) を上回ります。Non-GEMM fused operator は、以下の distributed workload と end-to-end workload で評価します。
+[図 5](#figure-05) では、A100、B200、B6000、H200 上の 703 BF16/FP16 tensor-core GEMM shape を評価し、stream-K path と single-instruction, multiple-thread (SIMT) fallback path を除外した `cutlass_profiler` measurement を ground truth とします。TileSight の pooled MAPE は 12.35% であり、PipeWeave の 21.97%、retraining した NeuSight の 32.95%、Roofline の 33.85%、GenZ の 34.89% と比較して優れています。TileSight は、より新しい B200、B6000、H200 target で最良です。A100 は NeuSight の training distribution に含まれるため、NeuSight が A100 では僅差で上回りますが、この優位性は新しい GPU へ転移しません。これは architecture-specific learned predictor の overfitting risk を示しています。MI210 では、CK が `cutlass_profiler` のような明示的 rasterization (along-$M$/along-$N$) または swizzle control を提供しないため、TileSight は default cache mode で動作します。それでも 23.4% MAPE で首位となり、PipeWeave (25.5%)、NeuSight (26.4%)、Roofline (38.8%)、GenZ (40.4%) を上回ります。Non-GEMM fused operator は、以下の distributed workload と end-to-end workload で評価します。
 
-表 4 は fused FA-3 kernel で TileSight と NCU を比較します。最終 model は latency を 2.7% 以内で予測し、主要な resource-utilization component を追跡します。これは non-GEMM fused execution における tile-pipeline model の簡潔な sanity check です。
+[表 4](#table-04) は fused FA-3 kernel で TileSight と NCU を比較します。最終 model は latency を 2.7% 以内で予測し、主要な resource-utilization component を追跡します。これは non-GEMM fused execution における tile-pipeline model の簡潔な sanity check です。
 
 **表 5: TileSight が診断した kernel の performance improvement。**
+
+<span id="table-05"></span>
 
 | Kernel | Framework | Device | Baseline | 問題 | 解決策 | 最適化後 | Speedup |
 | --- | --- | --- | ---: | --- | --- | ---: | ---: |
@@ -410,29 +440,33 @@ TileSight は Python (約 6K lines) で実装され、NVIDIA GPU と AMD GPU を
 | RMS_Norm | Torch.Compile | H100 | 0.21 ms | overlap なし | SM あたり複数 thread block | 0.18 ms | $1.17\times$ |
 | MLA(kv8192 b128 h128) | Triton | MI210 | 66.38 ms | tiling、memory allocation、SMEM conflict | register allocation、larger tile、conflict elimination | 7.40 ms | **$8.97\times$** |
 
+<span id="figure-11"></span>
+
 ![図 11: TileSight が exhaustive autotuning に代わって Triton と TileLang の tile configuration selection を導く場合の H100/MI210 上の kernel performance。Reference line は multi-head attention/grouped-query attention (MHA/GQA) の FlashAttention-3、MLA の FlashMLA、matrix multiplication の cuBLAS/rocBLAS、dequantized matrix multiplication の vendor library です。](../../papers/tilesight/figure-11.png)
+
+<span id="figure-12"></span>
 
 ![図 12: TileLang の cost model としての TileSight。candidate schedule の 95% を prune し、予測上位 5% を残すことで、LLaMA 由来の 10 GEMM-FP16 workload において exhaustive-search best performance の平均 99.66% を達成します。](../../papers/tilesight/figure-12.png)
 
 ### 5.3 L2 Cache Prediction Accuracy
 
-図 6 では、4,680 GEMM persistent-kernel case において tile reuse-distance cache modeling を NCU と比較します。図 2 の bandwidth sweep で calibration した effective cache capacity を用いると、mean absolute L2 hit-rate error は各 GPU で約 1 percentage point にとどまります。A100 で 1.46 pp、H200 で 0.88 pp、B200 で 1.05 pp、B6000 で 0.78 pp です。結果は tile reuse-distance cache modeling の有効性を示します。
+[図 6](#figure-06) では、4,680 GEMM persistent-kernel case において tile reuse-distance cache modeling を NCU と比較します。[図 2](#figure-02) の bandwidth sweep で calibration した effective cache capacity を用いると、mean absolute L2 hit-rate error は各 GPU で約 1 percentage point にとどまります。A100 で 1.46 pp、H200 で 0.88 pp、B200 で 1.05 pp、B6000 で 0.78 pp です。結果は tile reuse-distance cache modeling の有効性を示します。
 
 **SM 間 execution skew の影響。** Reuse-distance model は tile が均一な速度で進むと仮定しますが、SM は同期を失い、同時に異なる $K$-slice を処理します。そのため同時 access される tile は L2 を越えて広がり、deep-$K$ GEMM では measured hit rate が TileSight の lockstep prediction より低くなります (たとえば H200 上の $M{=}N{=}8192$、$K{=}28672$ の GEMM では、予測 82% に対して測定 43%)。このような configuration は稀であるため aggregate error は約 1 percentage point にとどまりますが、この regime では model が系統的に楽観的です。第 7 節で再び取り上げます。
 
 ### 5.4 Distributed Validation
 
-図 7 と図 8 は H200 $\times 8$ と B200 $\times 8$ 上の 304 distributed case、すなわち 152 pure collective と 152 fused compute-communication kernel を検証します。TileSight は logical source-destination exchange を抽出し、calibration 済み NVLink topology 上で routing し、第 3.6 節の $\alpha$-$\beta$ model で各 stage を評価します。Pure collective では TileSight は 12.22% wMAPE を達成し、GenZ は 20.82%、対応する row における PipeWeave は 65.72% です。PipeWeave はこれらの collective に対応する native configurable H200/B200 backend を持たず、H800 random-forest model へ fallback するため、私たちの machine における NVLink4/5 bandwidth の違いを反映できません。B200 Ulysses Attention では、local compute stage は source-aligned SM100 $128\!\times\!128$ FA4 tile pipeline を用い、TMEM traffic、packed grid、sectioned LPT mapping と 4 つの all-to-all stage を合成します。両 baseline が対応しない fused kernel で、TileSight は 14.83% wMAPE を達成します。
+[図 7](#figure-07) と[図 8](#figure-08) は H200 $\times 8$ と B200 $\times 8$ 上の 304 distributed case、すなわち 152 pure collective と 152 fused compute-communication kernel を検証します。TileSight は logical source-destination exchange を抽出し、calibration 済み NVLink topology 上で routing し、第 3.6 節の $\alpha$-$\beta$ model で各 stage を評価します。Pure collective では TileSight は 12.22% wMAPE を達成し、GenZ は 20.82%、対応する row における PipeWeave は 65.72% です。PipeWeave はこれらの collective に対応する native configurable H200/B200 backend を持たず、H800 random-forest model へ fallback するため、私たちの machine における NVLink4/5 bandwidth の違いを反映できません。B200 Ulysses Attention では、local compute stage は source-aligned SM100 $128\!\times\!128$ FA4 tile pipeline を用い、TMEM traffic、packed grid、sectioned LPT mapping と 4 つの all-to-all stage を合成します。両 baseline が対応しない fused kernel で、TileSight は 14.83% wMAPE を達成します。
 
 ### 5.5 vLLM End-to-End Decode
 
-図 9 と図 10 は、dense、MoE、single-node、multi-node serving にまたがる 166 healthy configuration で end-to-end vLLM decode throughput を評価します。評価 system は A100 $\times 1$ と B6000 $\times 2$ から B200 $\times 32$ と H200-NVL $\times 8$ まで広がり、local tile execution と routed distributed stage の両方を実行します。全体として TileSight は 13.52% wMAPE を達成し、B200 extension を備えた PipeWeave は 114/117 dense configuration で 31.84% wMAPE です。PipeWeave は MoE に対応しません。PipeWeave は A100 と B6000 で native collective dataset を使用しますが、H200-NVL と B200 では H800 に fallback します。B200 については B200 hardware specification を与えて PipeWeave を拡張し、GEMM-configuration lookup には最も近い H800 sample、calculator には Hopper calculator を使用します。B200 extension は 19/22 dense configuration で valid prediction を生成します。残る 3 つの large-batch case では、prefill RMSNorm sequence length が PipeWeave の 131K-token MLP training maximum を超えます。PipeWeave は sigmoid により learned utilization factor を $[0,1]$ に制限していますが、これらの out-of-range input は factor を 0 にして division by zero を引き起こし、この case に対する robust end-to-end prediction を妨げます。これは、未見 case へ extrapolate する際の ML-based predictor の robustness limitation を示します。TileSight は machine ごとに 7.5-18.0% wMAPE、MoE configuration で 10.35% wMAPE を達成します。
+[図 9](#figure-09) と[図 10](#figure-10) は、dense、MoE、single-node、multi-node serving にまたがる 166 healthy configuration で end-to-end vLLM decode throughput を評価します。評価 system は A100 $\times 1$ と B6000 $\times 2$ から B200 $\times 32$ と H200-NVL $\times 8$ まで広がり、local tile execution と routed distributed stage の両方を実行します。全体として TileSight は 13.52% wMAPE を達成し、B200 extension を備えた PipeWeave は 114/117 dense configuration で 31.84% wMAPE です。PipeWeave は MoE に対応しません。PipeWeave は A100 と B6000 で native collective dataset を使用しますが、H200-NVL と B200 では H800 に fallback します。B200 については B200 hardware specification を与えて PipeWeave を拡張し、GEMM-configuration lookup には最も近い H800 sample、calculator には Hopper calculator を使用します。B200 extension は 19/22 dense configuration で valid prediction を生成します。残る 3 つの large-batch case では、prefill RMSNorm sequence length が PipeWeave の 131K-token MLP training maximum を超えます。PipeWeave は sigmoid により learned utilization factor を $[0,1]$ に制限していますが、これらの out-of-range input は factor を 0 にして division by zero を引き起こし、この case に対する robust end-to-end prediction を妨げます。これは、未見 case へ extrapolate する際の ML-based predictor の robustness limitation を示します。TileSight は machine ごとに 7.5-18.0% wMAPE、MoE configuration で 10.35% wMAPE を達成します。
 
 ### 5.6 主な応用: Diagnosis と Cost Model
 
-Interpretable な性質により、TileSight は white-box optimization aid として使用できます。図 11 は、TileSight が選択した tile configuration が H100 と MI210 上の attention、MLA、GEMM、dequantized matmul kernel において、強力な vendor baseline と expert baseline に匹敵またはそれを上回ることを示します。図 12 は、同じ model を TileLang cost model として使用した結果です。予測上位 5% の schedule を保持すると candidate の 95% を prune しつつ、exhaustive-search best performance の平均 99.66% に到達します。これは、learned または vendor-tuned cost model が弱い guidance しか提供できない、support の少ない target で特に有用です。Analytical model はその場合も高品質な schedule candidate を見つけられます。
+Interpretable な性質により、TileSight は white-box optimization aid として使用できます。[図 11](#figure-11) は、TileSight が選択した tile configuration が H100 と MI210 上の attention、MLA、GEMM、dequantized matmul kernel において、強力な vendor baseline と expert baseline に匹敵またはそれを上回ることを示します。[図 12](#figure-12) は、同じ model を TileLang cost model として使用した結果です。予測上位 5% の schedule を保持すると candidate の 95% を prune しつつ、exhaustive-search best performance の平均 99.66% に到達します。これは、learned または vendor-tuned cost model が弱い guidance しか提供できない、support の少ない target で特に有用です。Analytical model はその場合も高品質な schedule candidate を見つけられます。
 
-Diagnosis case は、indirect addressing、不十分な pipeline overlap、poor L2 locality、architecture-specific memory-layout issue という 4 つの繰り返し現れる bottleneck class に分類されます。TileSight は各 case で、bottleneck を address unrolling、tile-size adjustment、より高い resident-block occupancy、shared-memory/register-layout fix などの具体的 tile-level change に対応付けます。表 5 は TileSight が indirect addressing、pipeline stall、L2 locality bottleneck を特定し、$1.07$-$8.97\times$ の improvement につながった diagnosis case をまとめています。
+Diagnosis case は、indirect addressing、不十分な pipeline overlap、poor L2 locality、architecture-specific memory-layout issue という 4 つの繰り返し現れる bottleneck class に分類されます。TileSight は各 case で、bottleneck を address unrolling、tile-size adjustment、より高い resident-block occupancy、shared-memory/register-layout fix などの具体的 tile-level change に対応付けます。[表 5](#table-05) は TileSight が indirect addressing、pipeline stall、L2 locality bottleneck を特定し、$1.07$-$8.97\times$ の improvement につながった diagnosis case をまとめています。
 
 ## 6 関連研究
 

@@ -249,11 +249,11 @@ Compared with these manually template-based implementations, TileLang can automa
 
 **Figure 13.** GEMM performance on Nvidia and AMD GPUs.
 
-<span id="figure-14"></span>
-
 ![MLA performance and code lines on H100](../../papers/tilelang/figure-14a.png)
 
 **Figure 14(a).** MLA performance and code lines on H100.
+
+<span id="figure-14"></span>
 
 ![MLA performance and code lines on MI300X](../../papers/tilelang/figure-14b.png)
 
@@ -291,6 +291,8 @@ Our system is open-sourced to support future development and community contribut
 
 ## Appendix A Operator shapes in our benchmark
 
+<span id="table-02"></span>
+
 |   | V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | m | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
@@ -303,6 +305,8 @@ Our system is open-sourced to support future development and community contribut
 
 **Table 2.** Matrix shapes in our benchmark.
 
+<span id="table-03"></span>
+
 |   | FA0 | FA1 | FA2 | FA3 | FA4 |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | batch | 1 | 1 | 1 | 1 | 1 |
@@ -312,6 +316,8 @@ Our system is open-sourced to support future development and community contribut
 | causal | true | false | true | false | true |
 
 **Table 3.** FlashAttention shapes in our benchmark.
+
+<span id="table-04"></span>
 
 |   | CC0 | CC1 | CC2 | CC3 | CC4 | CC5 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -332,6 +338,8 @@ Our system is open-sourced to support future development and community contribut
 ## Appendix B Kernel Implementations
 
 ### B.1 Matrix Multiplication (Matmul)
+
+<span id="figure-16"></span>
 
 ```python
 @tilelang.jit
@@ -354,6 +362,8 @@ def Matmul(A: T.Tensor, B: T.Tensor, C: T.Tensor):
 **Figure 16.** Kernel Implementation of Matrix Multiplication.
 
 ### B.2 Dequantized Matrix Multiplication
+
+<span id="figure-17"></span>
 
 ```python
 @tilelang.jit
@@ -391,6 +401,8 @@ def matmul_fp16_fp4(
 **Figure 17.** Implementation of Weight-Only Quantization ($W_{\mathrm{FP4\_E2M1}}A_{\mathrm{FP16}}$) Matmul using TileLang, showcasing support for mixed-precision computations via a simple form.
 
 ### B.3 FlashMLA Implementation
+
+<span id="figure-18"></span>
 
 ```python
 @tilelang.jit

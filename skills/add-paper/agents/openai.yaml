@@ -1,4 +1,4 @@
 interface:
   display_name: "Add Paper"
   short_description: "Add localized three-language paper editions"
-  default_prompt: "Use $add-paper to add or revise a concise three-language paper edition with localized translations, Plume annotations, validation, and one repository-wide commit."
+  default_prompt: "Use $add-paper to add or revise a concise three-language paper edition with linked figure and table references, localized translations, Plume annotations, validation, and one repository-wide commit."

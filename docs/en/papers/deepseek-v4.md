@@ -10,6 +10,8 @@ permalink: /en/papers/deepseek-v4/
 
 We present a preview version of DeepSeek-V4 series, including two strong Mixture-of-Experts (MoE) language models — DeepSeek-V4-Pro with 1.6T parameters (49B activated) and DeepSeek-V4-Flash with 284B parameters (13B activated) — both supporting a context length of one million tokens. DeepSeek-V4 series incorporate several key upgrades in architecture and optimization: (1) a hybrid attention architecture that combines Compressed Sparse Attention (CSA) and Heavily Compressed Attention (HCA) to improve long-context efficiency; (2) Manifold-Constrained Hyper-Connections (*m*HC) that enhance conventional residual connections; (3) and the Muon optimizer for faster convergence and greater training stability. We pre-train both models on more than 32T diverse and high-quality tokens, followed by a comprehensive post-training pipeline that unlocks and further enhances their capabilities. DeepSeek-V4-Pro-Max, the maximum reasoning effort mode of DeepSeek-V4-Pro, redefines the state-of-the-art for open models, outperforming its predecessors in core tasks. Meanwhile, DeepSeek-V4 series are highly efficient in long-context scenarios. In the one-million-token context setting, DeepSeek-V4-Pro requires only 27% of single-token inference FLOPs and 10% of KV cache compared with DeepSeek-V3.2. This enables us to routinely support one-million-token contexts, thereby making long-horizon tasks and further test-time scaling more feasible. The model checkpoints are available at [https://huggingface.co/collections/deepseek-ai/deepseek-v4](https://huggingface.co/collections/deepseek-ai/deepseek-v4).
 
+<span id="figure-01"></span>
+
 ![DeepSeek-V4 Figure 1](../../papers/deepseek-v4/figure-01.png)
 
 **Figure 1.** **Left**: benchmark performance of DeepSeek-V4-Pro-Max and its counterparts. **Right**: inference FLOPs and KV cache size of DeepSeek-V4 series and DeepSeek-V3.2.
@@ -24,7 +26,7 @@ Compared with the DeepSeek-V3 architecture [Dee24a], DeepSeek-V4 series retain t
 
 To enable efficient training and inference for DeepSeek-V4 series as well as productive development, we introduce several infrastructure optimizations. First, we design and implement a single fused kernel for MoE modules that fully overlaps computation, communication, and memory access. Second, we employ TileLang [Wan26], a Domain-Specific Language (DSL) to balance development productivity and runtime efficiency. Third, we provide efficient batch-invariant and deterministic kernel libraries to ensure bitwise reproducibility across training and inference. Fourth, for the training framework, we extend the autograd framework with tensor-level checkpointing for fine-grained recomputation control; and we enhance training efficiency with a hybrid ZeRO strategy for the Muon optimizer, cost-effective *m*HC implementations via recomputation and fused kernels, and two-stage contextual parallelism to manage compressed attention. Fifth, for the inference framework, we design a heterogeneous KV cache structure with on-disk storage strategies to enable efficient shared-prefix reuse. In addition, during the post-training stage, we incorporate FP4 quantization-aware training for MoE expert weights and the indexer QK path to reduce memory and computation.
 
-By employing hybrid CSA and HCA, along with precision optimizations on computation and storage, DeepSeek-V4 series achieve significantly lower inference FLOPs and a substantially reduced KV cache size compared with DeepSeek-V3.2, especially in long-context settings. The right part of Figure 1 demonstrates the estimated single-token inference FLOPs and accumulated KV cache size of DeepSeek-V3.2 and DeepSeek-V4 series. In the scenario of 1M-token context, even DeepSeek-V4-Pro, which has a larger number of activated parameters, attains only 27% of the single-token FLOPs (measured in equivalent FP8 FLOPs) and 10% of the KV cache size relative to DeepSeek-V3.2. Furthermore, DeepSeek-V4-Flash, with its smaller number of activated parameters, pushes efficiency even further: in the 1M-token context setting, it achieves only 10% of the single-token FLOPs and 7% of the KV cache size compared with DeepSeek-V3.2. Additionally, for DeepSeek-V4 series, the routed expert parameters utilize FP4 precision. While the peak FLOPs for FP4 $\times$ FP8 operations are currently the same as FP8 $\times$ FP8 on existing hardware, they can theoretically be implemented to be $1/3$ more efficient on future hardware, which will further enhance the efficiency of DeepSeek-V4 series.
+By employing hybrid CSA and HCA, along with precision optimizations on computation and storage, DeepSeek-V4 series achieve significantly lower inference FLOPs and a substantially reduced KV cache size compared with DeepSeek-V3.2, especially in long-context settings. The right part of [Figure 1](#figure-01) demonstrates the estimated single-token inference FLOPs and accumulated KV cache size of DeepSeek-V3.2 and DeepSeek-V4 series. In the scenario of 1M-token context, even DeepSeek-V4-Pro, which has a larger number of activated parameters, attains only 27% of the single-token FLOPs (measured in equivalent FP8 FLOPs) and 10% of the KV cache size relative to DeepSeek-V3.2. Furthermore, DeepSeek-V4-Flash, with its smaller number of activated parameters, pushes efficiency even further: in the 1M-token context setting, it achieves only 10% of the single-token FLOPs and 7% of the KV cache size compared with DeepSeek-V3.2. Additionally, for DeepSeek-V4 series, the routed expert parameters utilize FP4 precision. While the peak FLOPs for FP4 $\times$ FP8 operations are currently the same as FP8 $\times$ FP8 on existing hardware, they can theoretically be implemented to be $1/3$ more efficient on future hardware, which will further enhance the efficiency of DeepSeek-V4 series.
 
 During pre-training, we train DeepSeek-V4-Flash on 32T tokens and DeepSeek-V4-Pro on 33T tokens, respectively. After pre-training, these two models can natively and efficiently support 1M-length contexts. In our internal evaluations, DeepSeek-V4-Flash-Base already surpasses DeepSeek-V3.2-Base across a majority of benchmarks with its more parameter-efficient design. DeepSeek-V4-Pro-Base further extends this advantage to set a new performance standard among DeepSeek foundation models, achieving comprehensive superiority across reasoning, coding, long-context, and world knowledge tasks.
 
@@ -38,13 +40,15 @@ The post-training pipeline of DeepSeek-V4 series features a two-stage paradigm: 
 - **Long-Context**: DeepSeek-V4-Pro-Max delivers strong results on synthetic and real use cases with a 1-million-token context window, surpassing even Gemini-3.1-Pro on academic benchmarks.
 - **DeepSeek-V4-Pro v.s. DeepSeek-V4-Flash**: DeepSeek-V4-Flash-Max exhibits lower performance in knowledge evaluations due to its smaller parameter scale. However, it achieves comparable results on reasoning tasks when allocated a larger thinking budget. In agent evaluations, while DeepSeek-V4-Flash-Max matches the performance of DeepSeek-V4-Pro-Max on several benchmarks, it still trails its larger counterpart on more complex, high-difficulty tasks.
 
+<span id="figure-02"></span>
+
 ![DeepSeek-V4 Figure 2](../../papers/deepseek-v4/figure-02.png)
 
 **Figure 2.** Overall architecture of DeepSeek-V4 series. We use hybrid CSA (Compressed Sparse Attention) and HCA (Heavily Compressed Attention) for attention layers, DeepSeekMoE for feed-forward layers, and strengthen conventional residual connections with *m*HC.
 
 ## 2 Architecture
 
-Overall, DeepSeek-V4 series retain the Transformer [Vas17] architecture and Multi-Token Prediction (MTP) modules [Glo24, Dee24a], while introducing several key upgrades over DeepSeek-V3: (1) firstly, we introduce the Manifold-Constrained Hyper-Connections (*m*HC) [Xie26] to strengthen conventional residual connections; (2) secondly, we design a hybrid attention architecture, which greatly improves long-context efficiency through Compressed Sparse Attention and Heavily Compressed Attention. (3) thirdly, we employ Muon [Kel24, Liu25] as the optimizer. For the Mixture-of-Experts (MoE) components, we still adopt the DeepSeekMoE [Dai24] architecture, with only minor adjustments from DeepSeek-V3. The Multi-Token Prediction (MTP) [Qi20, Glo24, Li24g, Dee24a] configuration remains identical to that of DeepSeek-V3. All other unspecified details follow the settings established in DeepSeek-V3 [Dee24a]. Figure 2 illustrates the overall architecture of DeepSeek-V4, and the details are described below.
+Overall, DeepSeek-V4 series retain the Transformer [Vas17] architecture and Multi-Token Prediction (MTP) modules [Glo24, Dee24a], while introducing several key upgrades over DeepSeek-V3: (1) firstly, we introduce the Manifold-Constrained Hyper-Connections (*m*HC) [Xie26] to strengthen conventional residual connections; (2) secondly, we design a hybrid attention architecture, which greatly improves long-context efficiency through Compressed Sparse Attention and Heavily Compressed Attention. (3) thirdly, we employ Muon [Kel24, Liu25] as the optimizer. For the Mixture-of-Experts (MoE) components, we still adopt the DeepSeekMoE [Dai24] architecture, with only minor adjustments from DeepSeek-V3. The Multi-Token Prediction (MTP) [Qi20, Glo24, Li24g, Dee24a] configuration remains identical to that of DeepSeek-V3. All other unspecified details follow the settings established in DeepSeek-V3 [Dee24a]. [Figure 2](#figure-02) illustrates the overall architecture of DeepSeek-V4, and the details are described below.
 
 ### 2.1 Designs Inherited from DeepSeek-V3
 
@@ -58,7 +62,7 @@ As DeepSeek-V3, DeepSeek-V4 series also set MTP modules and objectives. Given th
 
 ### 2.2 Manifold-Constrained Hyper-Connections
 
-As shown in Figure 2, DeepSeek-V4 series incorporate Manifold-Constrained Hyper-Connections (*m*HC) [Xie26] to strengthen the conventional residual connections between adjacent Transformer blocks. Compared with naive Hyper-Connections (HC) [Zhu25], the core idea of *m*HC is to constrain the residual mapping onto a specific manifold, and thus enhance the stability of signal propagation across layers while preserving model expressivity. This subsection briefly introduces the standard HC and describes how we design *m*HC for stable training.
+As shown in [Figure 2](#figure-02), DeepSeek-V4 series incorporate Manifold-Constrained Hyper-Connections (*m*HC) [Xie26] to strengthen the conventional residual connections between adjacent Transformer blocks. Compared with naive Hyper-Connections (HC) [Zhu25], the core idea of *m*HC is to constrain the residual mapping onto a specific manifold, and thus enhance the stability of signal propagation across layers while preserving model expressivity. This subsection briefly introduces the standard HC and describes how we design *m*HC for stable training.
 
 **Standard Hyper-Connections.**
 
@@ -122,13 +126,15 @@ where $\mathcal{T}_{r}$ and $\mathcal{T}_{c}$ denote row and column normalizatio
 
 As the context length reaches extreme scales, the attention mechanism emerges as the dominant computational bottleneck in a model. For DeepSeek-V4, we design two efficient attention architectures — Compressed Sparse Attention (CSA) and Heavily Compressed Attention (HCA) — and employ their interleaved hybrid configuration, which substantially reduces the computational cost of attention in long-text scenarios. CSA integrates both compression and sparse attention strategies: it first compresses the Key-Value (KV) cache of every $m$ tokens into one entry, and then applies DeepSeek Sparse Attention (DSA) [Dee25a] where each query token attends to only $k$ compressed KV entries. HCA aims for extreme compression by consolidating the KV cache of every $m^{\prime}$ ($\gg m$) tokens into a single entry. The hybrid architecture of CSA and HCA remarkably improves the long-context efficiency of DeepSeek-V4 series, making one-million-token context feasible in practice. This subsection describes the core techniques of our hybrid attention architecture, and we also provide an open-source implementation [+1] to specify more details unambiguously.
 
+<span id="figure-03"></span>
+
 ![DeepSeek-V4 Figure 3](../../papers/deepseek-v4/figure-03.png)
 
 **Figure 3.** Core architectures of CSA. It compresses the number of KV entries to $\frac{1}{m}$ times, and then applies DeepSeek Sparse Attention for further acceleration. Additionally, a small set of sliding window KV entries is combined with the selected compressed KV entries to enhance local fine-grained dependencies.
 
 #### 2.3.1 Compressed Sparse Attention
 
-The core architecture of CSA is illustrated in Figure 3, which first compresses the KV cache of each $m$ tokens into one entry, and then applies DeepSeek Sparse Attention for further acceleration.
+The core architecture of CSA is illustrated in [Figure 3](#figure-03), which first compresses the KV cache of each $m$ tokens into one entry, and then applies DeepSeek Sparse Attention for further acceleration.
 
 **Compressed Key-Value Entries.**
 
@@ -202,13 +208,15 @@ where $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ is the core attention output of the $i
 
 In the configuration of DeepSeek-V4, $cn_{h}$ is quite large. Therefore, directly projecting the outputs of the core attention operation $[\mathbf{o}_{t,1};\mathbf{o}_{t,2};...;\mathbf{o}_{t,n_{h}}]=\mathbf{o}_{t}\in\mathbb{R}^{cn_{h}}$ to a $d$-dimensional hidden state will impose a substantial computational burden. To mitigate this cost, we design a grouped output projection strategy. To be specific, we first split $n_{h}$ outputs into $g$ groups, and then for each group of output $\mathbf{o}^{G}_{t,i}\in\mathbb{R}^{c\frac{n_{h}}{g}}$, we project it to a $d_{g}$-dimensional intermediate output $\mathbf{o}^{G^{\prime}}_{t,i}\in\mathbb{R}^{d_{g}}$, where $d_{g}<c\frac{n_{h}}{g}$. Finally, we project the intermediate output $[\mathbf{o}^{G^{\prime}}_{t,1};\mathbf{o}^{G^{\prime}}_{t,2};...;\mathbf{o}^{G^{\prime}}_{t,g}]\in\mathbb{R}^{d_{g}g}$ to the final attention output $\mathbf{\hat{o}}_{t}\in\mathbb{R}^{d}$.
 
+<span id="figure-04"></span>
+
 ![DeepSeek-V4 Figure 4](../../papers/deepseek-v4/figure-04.png)
 
 **Figure 4.** Core architectures of HCA. It performs heavier compression, where the KV entries of $m^{\prime}$ ($\gg m$) tokens will be consolidated into one. Also, we additionally introduce a small set of sliding window KV entries to enhance local fine-grained dependencies.
 
 #### 2.3.2 Heavily Compressed Attention
 
-The core architecture of HCA is illustrated in Figure 4, which compresses the KV cache in a heavier manner, but does not employ sparse attention.
+The core architecture of HCA is illustrated in [Figure 4](#figure-04), which compresses the KV cache in a heavier manner, but does not employ sparse attention.
 
 **Compressed Key-Value Entries.**
 
@@ -284,7 +292,7 @@ where $s_{h,i,j},z_{h,i,j}\in\mathbb{R}$ denote the attention score and attentio
 
 Due to the employment of hybrid CSA and HCA, together with low-precision computation and storage, the attention module of DeepSeek-V4 series achieves remarkable efficiency in both attention FLOPs and KV cache size, especially in long-context scenarios. First, we adopt a mixed storage format for KV entries: BF16 precision is used for the rotary positional embedding (RoPE) dimensions, while FP8 precision is applied to the remaining dimensions. This hybrid representation reduces the KV cache size by nearly half compared with pure BF16 storage. Second, attention computation within the lightning indexer is performed in FP4 precision, which accelerates the attention operation under extremely long contexts. Third, relative to DeepSeek-V3.2, a smaller attention top-k is chosen in DeepSeek-V4 series, thereby improving model efficiency on short- and medium-length texts. Finally, and most importantly, compressed attention and hybrid attention techniques substantially reduce both the KV cache size and the computational FLOPs.
 
-Taking BF16 GQA8 [Ain23] with a head dimension of 128 as the baseline — one of the common configurations of LLM attention — the KV cache size of DeepSeek-V4 series can be dramatically reduced to approximately $2\%$ times of that baseline in the 1M-context setting. Moreover, even when compared with DeepSeek-V3.2 [Dee25a] — already an efficient baseline — DeepSeek-V4 series still exhibits substantial advantages in efficiency. A comparison of their inference FLOPs and KV cache size is provided in the right part of Figure 1.
+Taking BF16 GQA8 [Ain23] with a head dimension of 128 as the baseline — one of the common configurations of LLM attention — the KV cache size of DeepSeek-V4 series can be dramatically reduced to approximately $2\%$ times of that baseline in the 1M-context setting. Moreover, even when compared with DeepSeek-V3.2 [Dee25a] — already an efficient baseline — DeepSeek-V4 series still exhibits substantial advantages in efficiency. A comparison of their inference FLOPs and KV cache size is provided in the right part of [Figure 1](#figure-01).
 
 **Algorithm 1: Muon Optimizer for DeepSeek-V4.**
 
@@ -327,7 +335,9 @@ Mixture-of-Experts (MoE) can be accelerated via Expert Parallelism (EP). However
 
 **Communication Latency Can Be Hidden.**
 
-The key insight of our EP scheme is that the communication latency can be effectively hidden beneath computation in MoE layers. As shown in Figure 5, in DeepSeek-V4 series, each MoE layer can be decomposed mainly into four stages: two communication-bound stages, *Dispatch* and *Combine*, and two computation-bound stages, *Linear-1* and *Linear-2*. Our profiling reveals that within a single MoE layer, the total time of communication is less than that of the computation. Therefore, after fusing communication and computation into a unified pipeline, computation remains the dominant bottleneck, implying that the system can tolerate lower interconnect bandwidth without degrading end-to-end performance.
+The key insight of our EP scheme is that the communication latency can be effectively hidden beneath computation in MoE layers. As shown in [Figure 5](#figure-05), in DeepSeek-V4 series, each MoE layer can be decomposed mainly into four stages: two communication-bound stages, *Dispatch* and *Combine*, and two computation-bound stages, *Linear-1* and *Linear-2*. Our profiling reveals that within a single MoE layer, the total time of communication is less than that of the computation. Therefore, after fusing communication and computation into a unified pipeline, computation remains the dominant bottleneck, implying that the system can tolerate lower interconnect bandwidth without degrading end-to-end performance.
+
+<span id="figure-05"></span>
 
 ![DeepSeek-V4 Figure 5](../../papers/deepseek-v4/figure-05.png)
 
@@ -335,7 +345,7 @@ The key insight of our EP scheme is that the communication latency can be effect
 
 **Fine-Grained EP Scheme.**
 
-To further lower the interconnect bandwidth requirement and amplify the benefits of overlapping, we introduce a finer-grained expert partitioning scheme. Inspired by many related works [Aim25, Zha25d], we split and schedule the experts into *waves*. Each wave consists of a small portion of experts. As soon as all experts within the wave have completed their communication, computation can commence immediately without waiting for other experts. In steady state, computation of current wave, token transfer for the next wave, and result sending of completed experts all proceed concurrently, as demonstrated in Figure 5. This forms a fine-grained pipeline among experts, keeping both computation and communication continuous throughout the wave. The wave-based scheduling speeds up the performance on extreme cases such as Reinforcement Learning (RL) rollout, which usually encounters long-tail small batches.
+To further lower the interconnect bandwidth requirement and amplify the benefits of overlapping, we introduce a finer-grained expert partitioning scheme. Inspired by many related works [Aim25, Zha25d], we split and schedule the experts into *waves*. Each wave consists of a small portion of experts. As soon as all experts within the wave have completed their communication, computation can commence immediately without waiting for other experts. In steady state, computation of current wave, token transfer for the next wave, and result sending of completed experts all proceed concurrently, as demonstrated in [Figure 5](#figure-05). This forms a fine-grained pipeline among experts, keeping both computation and communication continuous throughout the wave. The wave-based scheduling speeds up the performance on extreme cases such as Reinforcement Learning (RL) rollout, which usually encounters long-tail small batches.
 
 **Performance and Open-Sourced Mega-Kernel.**
 
@@ -441,11 +451,13 @@ Our inference framework largely inherits from that of DeepSeek-V3, with some dif
 
 #### 3.5.1 KV Cache Structure and Management
 
-To efficiently manage the heterogeneous KV caches arising from the hybrid attention mechanism in DeepSeek-V4, we design a customized KV cache layout. The layout is illustrated in Figure 6, and we will elaborate on it in detail as follows.
+To efficiently manage the heterogeneous KV caches arising from the hybrid attention mechanism in DeepSeek-V4, we design a customized KV cache layout. The layout is illustrated in [Figure 6](#figure-06), and we will elaborate on it in detail as follows.
 
 **Heterogeneous KV Entries in DeepSeek-V4.**
 
 The hybrid attention mechanism in DeepSeek-V4 series introduces multiple types of KV entries with different Key-Value (KV) cache sizes and update rules. The lightning indexer for sparse selection introduces additional dimensions into the KV cache that possess embedding sizes distinct from those in the primary attention. The compression techniques employed in CSA and HCA reduce the sequence length by factors of $\frac{1}{m}$ and $\frac{1}{m^{\prime}}$, respectively, thereby decreasing the overall KV cache size. As a result, KV cache sizes vary across different layers. Furthermore, Sliding Window Attention (SWA) layers also operate with distinct KV cache sizes, as well as separate cache hit and eviction policies. In the compression branch, one KV entry is generated for every $m$ tokens. When the number of remaining tokens is insufficient for compression, all pending tokens and their associated hidden states must be retained in a buffer until the compression operation can be executed. These buffered tokens represent a sequence state determined by positional context and are also managed within the KV cache framework.
+
+<span id="figure-06"></span>
 
 ![DeepSeek-V4 Figure 6](../../papers/deepseek-v4/figure-06.png)
 
@@ -538,13 +550,15 @@ For the evaluation of the base models, we consider benchmarks spanning four key 
 
 **Long context** benchmarks include LongBench-V2 [Bai25].
 
+<span id="table-01"></span>
+
 ![DeepSeek-V4 Table 1](../../papers/deepseek-v4/table-01.png)
 
 **Table 1.** Comparison among DeepSeek-V3.2-Base, DeepSeek-V4-Flash-Base, and DeepSeek-V4-Pro-Base. All models are evaluated in our internal framework and share the same evaluation setting. Scores with a gap not exceeding 0.3 are considered to be at the same level. The highest score in each row is in **bold font**, and the second is underlined.
 
 #### 4.3.2 Evaluation Results
 
-In Table 1, we provide a detailed comparison of the base models for DeepSeek-V3.2, DeepSeek-V4-Flash, and DeepSeek-V4-Pro, all evaluated under a unified internal framework with strictly consistent settings.
+In [Table 1](#table-01), we provide a detailed comparison of the base models for DeepSeek-V3.2, DeepSeek-V4-Flash, and DeepSeek-V4-Pro, all evaluated under a unified internal framework with strictly consistent settings.
 
 Comparing DeepSeek-V4-Flash-Base with DeepSeek-V3.2-Base reveals a compelling efficiency story. Despite utilizing a substantially smaller number of both activated and total parameters, DeepSeek-V4-Flash-Base outperforms DeepSeek-V3.2-Base across a wide array of benchmarks. This advantage is especially evident in world knowledge tasks and challenging long-context scenarios. These results underscore that architectural improvements, refined data quality, and training optimizations in DeepSeek-V4-Flash-Base yield superior performance even with a more compact parameter budget, effectively surpassing the larger DeepSeek-V3.2-Base on the majority of evaluations.
 
@@ -562,11 +576,15 @@ The development of domain specialists was conducted by adapting the DeepSeek-V3.
 
 **Reasoning Efforts.**
 
-It is widely recognized that a model’s performance on reasoning tasks is fundamentally governed by the computational effort expended. Consequently, we trained distinct specialist models under divergent RL configurations to facilitate the development of models optimized for varying reasoning capacities. As detailed in Table 2, DeepSeek-V4-Pro and DeepSeek-V4-Flash both support three specific reasoning effort modes. For each mode, we apply distinct length penalties and context windows during RL training, which results in varying output token lengths for reasoning. To integrate these distinct reasoning modes, we utilize specialized response formats demarcated by the `<think>` and `</think>` tokens. Furthermore, for the "Think Max" mode, we prepend a specific instruction to the beginning of the system prompt to guide the model’s reasoning process, as shown in Table 3.
+It is widely recognized that a model’s performance on reasoning tasks is fundamentally governed by the computational effort expended. Consequently, we trained distinct specialist models under divergent RL configurations to facilitate the development of models optimized for varying reasoning capacities. As detailed in [Table 2](#table-02), DeepSeek-V4-Pro and DeepSeek-V4-Flash both support three specific reasoning effort modes. For each mode, we apply distinct length penalties and context windows during RL training, which results in varying output token lengths for reasoning. To integrate these distinct reasoning modes, we utilize specialized response formats demarcated by the `<think>` and `</think>` tokens. Furthermore, for the "Think Max" mode, we prepend a specific instruction to the beginning of the system prompt to guide the model’s reasoning process, as shown in [Table 3](#table-03).
+
+<span id="table-02"></span>
 
 ![DeepSeek-V4 Table 2](../../papers/deepseek-v4/table-02.png)
 
 **Table 2.** Comparison of three reasoning modes
+
+<span id="table-03"></span>
 
 ![DeepSeek-V4 Table 3](../../papers/deepseek-v4/table-03.png)
 
@@ -576,13 +594,17 @@ It is widely recognized that a model’s performance on reasoning tasks is funda
 
 Typically, easy-to-verify tasks can be effectively optimized using simple rule-based verifiers or test cases. In contrast, hard-to-verify tasks traditionally rely on Reinforcement Learning from Human Feedback (RLHF), which necessitates extensive human annotation to train a scalar reward model. In the post-training phase of DeepSeek-V4 series, however, we dispense with these conventional scalar-based reward models. Instead, to address hard-to-verify tasks, we curate rubric-guided RL data and employ a Generative Reward Model (GRM) to evaluate policy trajectories. Crucially, we apply RL optimization directly to the GRM itself. In this paradigm, the actor network natively functions as the GRM, enabling the joint optimization of the model’s evaluative (judging) proficiency alongside its standard generative capabilities. By unifying these roles, the model’s internal reasoning capabilities are inherently fused into its evaluative process, resulting in highly robust scoring. Furthermore, this approach achieves superior performance with only a minimal set of diverse human annotations, as the model leverages its own logic to generalize across complex tasks.
 
+<span id="table-04"></span>
+
 ![DeepSeek-V4 Table 4](../../papers/deepseek-v4/table-04.png)
 
 **Table 4.** Tool-call schema for DeepSeek-V4 series.
 
 **Tool-Call Schema and Special Token.**
 
-Consistent with our previous version, we utilize a dedicated `<think></think>` tag to delineate the reasoning path. In DeepSeek-V4 series, we introduce a new tool-call schema that employs a special "|DSML|" token and utilizes an XML-based format for tool invocations, as demonstrated in Table 4. Our experiments demonstrate that the XML format effectively mitigates escaping failures and reduces tool-call errors, providing a more robust interface for model-tool interactions.
+Consistent with our previous version, we utilize a dedicated `<think></think>` tag to delineate the reasoning path. In DeepSeek-V4 series, we introduce a new tool-call schema that employs a special "|DSML|" token and utilizes an XML-based format for tool invocations, as demonstrated in [Table 4](#table-04). Our experiments demonstrate that the XML format effectively mitigates escaping failures and reduces tool-call errors, providing a more robust interface for model-tool interactions.
+
+<span id="figure-07"></span>
 
 ![DeepSeek-V4 Figure 7](../../papers/deepseek-v4/figure-07.png)
 
@@ -592,10 +614,12 @@ Consistent with our previous version, we utilize a dedicated `<think></think>` t
 
 DeepSeek-V3.2 introduced a context management strategy that retains reasoning traces across tool-result rounds but discards them upon the arrival of new user messages. While effective, this still caused unnecessary token waste in complex agentic workflows — each new user turn would flush all accumulated reasoning content, forcing the model to reconstruct its problem-solving state from scratch. Leveraging the expanded 1M-token context window of DeepSeek-V4 series, we further refine this mechanism to maximize the effectiveness of interleaved thinking in agentic environments:
 
-- **Tool-Calling Scenarios.** As illustrated in Figure 7(a), all reasoning content is fully preserved throughout the entire conversation. Unlike DeepSeek-V3.2, which discarded thinking traces upon each new user turn, DeepSeek-V4 series retain the complete reasoning history across all rounds, including across user message boundaries. This allows the model to maintain a coherent, cumulative chain of thought over long-horizon agent tasks.
-- **General Conversational Scenarios.** As illustrated in Figure 7(b), the original strategy is preserved: reasoning content from previous turns is discarded when a new user message arrives, keeping the context concise for settings where persistent reasoning traces provide limited benefit.
+- **Tool-Calling Scenarios.** As illustrated in [Figure 7(a)](#figure-07), all reasoning content is fully preserved throughout the entire conversation. Unlike DeepSeek-V3.2, which discarded thinking traces upon each new user turn, DeepSeek-V4 series retain the complete reasoning history across all rounds, including across user message boundaries. This allows the model to maintain a coherent, cumulative chain of thought over long-horizon agent tasks.
+- **General Conversational Scenarios.** As illustrated in [Figure 7(b)](#figure-07), the original strategy is preserved: reasoning content from previous turns is discarded when a new user message arrives, keeping the context concise for settings where persistent reasoning traces provide limited benefit.
 
 As with DeepSeek-V3.2, agent frameworks that simulate tool interactions via user messages (e.g., Terminus) may not trigger the tool-calling context path and thus may not benefit from enhanced reasoning persistence. We continue to recommend non-think models for such architectures.
+
+<span id="table-05"></span>
 
 ![DeepSeek-V4 Table 5](../../papers/deepseek-v4/table-05.png)
 
@@ -603,7 +627,7 @@ As with DeepSeek-V3.2, agent frameworks that simulate tool interactions via user
 
 **Quick Instruction.**
 
-In chatbot scenarios, a number of auxiliary tasks (e.g., determining whether to trigger a web search, intent recognition, etc.) must be executed before generating the response. Conventionally, these tasks are handled by a separate small model, requiring redundant prefilling since it cannot reuse the existing KV cache. To overcome this limitation, we introduce Quick Instruction. We append a set of dedicated special tokens directly to the input sequence, where each token corresponds to a specific auxiliary task. By directly reusing the already-computed KV cache, this mechanism completely avoids redundant prefilling and allows certain tasks, such as generating search queries and determining authority and domain, to be executed in parallel. Consequently, this approach significantly reduces the user-perceived time-to-first-token (TTFT) and eliminates the engineering overhead of maintaining and iterating an extra small model. The supported Quick Instruction tokens are summarized in Table 5.
+In chatbot scenarios, a number of auxiliary tasks (e.g., determining whether to trigger a web search, intent recognition, etc.) must be executed before generating the response. Conventionally, these tasks are handled by a separate small model, requiring redundant prefilling since it cannot reuse the existing KV cache. To overcome this limitation, we introduce Quick Instruction. We append a set of dedicated special tokens directly to the input sequence, where each token corresponds to a specific auxiliary task. By directly reusing the already-computed KV cache, this mechanism completely avoids redundant prefilling and allows certain tasks, such as generating search queries and determining authority and domain, to be executed in parallel. Consequently, this approach significantly reduces the user-perceived time-to-first-token (TTFT) and eliminates the engineering overhead of maintaining and iterating an extra small model. The supported Quick Instruction tokens are summarized in [Table 5](#table-05).
 
 #### 5.1.2 On-Policy Distillation
 
@@ -697,15 +721,21 @@ For search agent tasks (BrowseComp, HLE w/ tool), we also use an in-house harnes
 
 #### 5.3.2 Evaluation Results
 
+<span id="table-06"></span>
+
 ![DeepSeek-V4 Table 6](../../papers/deepseek-v4/table-06.png)
 
 **Table 6.** Comparison between DeepSeek-V4-Pro-Max and closed/open source models. "Max", "xHigh", and "High" denote reasoning effort. The best results are highlighted in bold; the second-best results are underlined.
+
+<span id="table-07"></span>
 
 ![DeepSeek-V4 Table 7](../../papers/deepseek-v4/table-07.png)
 
 **Table 7.** Comparison among different sizes and modes of DeepSeek-V4 series. "Non-Think", "High", and "Max" denote reasoning effort.
 
-The comparison of DeepSeek-V4-Pro-Max and other closed/open source models is presented in Table 6. Also, we evaluate different modes of DeepSeek-V4-Flash and DeepSeek-V4-Pro and show the results in Table 7.
+The comparison of DeepSeek-V4-Pro-Max and other closed/open source models is presented in [Table 6](#table-06). Also, we evaluate different modes of DeepSeek-V4-Flash and DeepSeek-V4-Pro and show the results in [Table 7](#table-07).
+
+<span id="figure-08"></span>
 
 ![DeepSeek-V4 Figure 8](../../papers/deepseek-v4/figure-08.png)
 
@@ -719,11 +749,13 @@ In addition, a significant performance gap exists between DeepSeek-V4-Flash and 
 
 **Reasoning.**
 
-DeepSeek-V4-Pro-Max outperforms all prior open models across reasoning benchmarks, and matches state-of-the-art closed models on many metrics, while the smaller DeepSeek-V4-Flash-Max also surpasses the previous best open-source model, K2.6-Thinking, on code and math reasoning tasks. Meanwhile, DeepSeek-V4-Pro and DeepSeek-V4-Flash excel in coding competitions. According to our evaluation, their performance is comparable to GPT-5.4, making this the first time an open model has matched a closed model on this task. On the Codeforces leaderboard, DeepSeek-V4-Pro-Max currently ranks 23rd among human candidates. DeepSeek-V4 also demonstrates strong performance on formal mathematical task under both agentic and compute-intensive settings. Under an agentic setup, it achieves state-of-the-art results, shown in Figure 8, outperforming prior models such as Seed Prover [Che25a]. With a more compute-intensive pipeline, performance further improves, surpassing systems including Aristotle[Ach25] and matching the best known results under this setting.
+DeepSeek-V4-Pro-Max outperforms all prior open models across reasoning benchmarks, and matches state-of-the-art closed models on many metrics, while the smaller DeepSeek-V4-Flash-Max also surpasses the previous best open-source model, K2.6-Thinking, on code and math reasoning tasks. Meanwhile, DeepSeek-V4-Pro and DeepSeek-V4-Flash excel in coding competitions. According to our evaluation, their performance is comparable to GPT-5.4, making this the first time an open model has matched a closed model on this task. On the Codeforces leaderboard, DeepSeek-V4-Pro-Max currently ranks 23rd among human candidates. DeepSeek-V4 also demonstrates strong performance on formal mathematical task under both agentic and compute-intensive settings. Under an agentic setup, it achieves state-of-the-art results, shown in [Figure 8](#figure-08), outperforming prior models such as Seed Prover [Che25a]. With a more compute-intensive pipeline, performance further improves, surpassing systems including Aristotle[Ach25] and matching the best known results under this setting.
 
 **Agent.**
 
 The DeepSeek-V4 series demonstrates strong agent performance in evaluations. For code agent tasks, DeepSeek-V4-Pro achieves results comparable to K2.6 and GLM-5.1, though all these open models still lag behind their closed-source counterparts. DeepSeek-V4-Flash underperforms DeepSeek-V4-Pro on coding tasks, particularly on Terminal Bench 2.0. A similar trend is observed across other agent evaluations. It is worth noting that DeepSeek-V4-Pro performs well on MCPAtlas and Toolathlon—two evaluation test sets that include a wide range of tools and MCP services—indicating that our model has excellent generalization capability and does not perform well only on internal frameworks.
+
+<span id="figure-09"></span>
 
 ![DeepSeek-V4 Figure 9](../../papers/deepseek-v4/figure-09.png)
 
@@ -731,7 +763,9 @@ The DeepSeek-V4 series demonstrates strong agent performance in evaluations. For
 
 **1M-Token Context.**
 
-DeepSeek-V4-Pro outperforms Gemini-3.1-Pro on the MRCR task, which measures in-context retrieval, but remains behind Claude Opus 4.6. As illustrated in Figure 9, retrieval performance remains highly stable within a 128K context window. While a performance degradation becomes visible beyond the 128K mark, the model’s retrieval capabilities at 1M tokens remain remarkably strong compared to both proprietary and open-source counterparts. Unlike MRCR, CorpusQA is similar to real scenarios. The evaluation results also indicate that DeepSeek-V4-Pro is better than Gemini-3.1-Pro.
+DeepSeek-V4-Pro outperforms Gemini-3.1-Pro on the MRCR task, which measures in-context retrieval, but remains behind Claude Opus 4.6. As illustrated in [Figure 9](#figure-09), retrieval performance remains highly stable within a 128K context window. While a performance degradation becomes visible beyond the 128K mark, the model’s retrieval capabilities at 1M tokens remain remarkably strong compared to both proprietary and open-source counterparts. Unlike MRCR, CorpusQA is similar to real scenarios. The evaluation results also indicate that DeepSeek-V4-Pro is better than Gemini-3.1-Pro.
+
+<span id="figure-10"></span>
 
 ![DeepSeek-V4 Figure 10](../../papers/deepseek-v4/figure-10.png)
 
@@ -739,7 +773,7 @@ DeepSeek-V4-Pro outperforms Gemini-3.1-Pro on the MRCR task, which measures in-c
 
 **Reasoning Effort.**
 
-As shown in Table 7, the Max mode, which employs longer contexts and reduced length penalties in RL, outperforms the High mode on the most challenging tasks. Figure 10 presents a comparison of performance and cost among DeepSeek-V4-Pro, DeepSeek-V4-Flash, and DeepSeek-V3.2 on representative reasoning and agentic tasks. By scaling test-time compute, DeepSeek-V4 series achieve substantial improvements over the predecessor. Furthermore, on reasoning tasks like HLE, DeepSeek-V4-Pro demonstrates higher token efficiency than DeepSeek-V3.2.
+As shown in [Table 7](#table-07), the Max mode, which employs longer contexts and reduced length penalties in RL, outperforms the High mode on the most challenging tasks. [Figure 10](#figure-10) presents a comparison of performance and cost among DeepSeek-V4-Pro, DeepSeek-V4-Flash, and DeepSeek-V3.2 on representative reasoning and agentic tasks. By scaling test-time compute, DeepSeek-V4 series achieve substantial improvements over the predecessor. Furthermore, on reasoning tasks like HLE, DeepSeek-V4-Pro demonstrates higher token efficiency than DeepSeek-V3.2.
 
 ### 5.4 Performance on Real-World Tasks
 
@@ -747,9 +781,9 @@ Standardized benchmarks often struggle to capture the complexities of diverse, r
 
 #### 5.4.1 Chinese Writing
 
-One of the primary use cases for DeepSeek is Chinese writing. We conducted a rigorous evaluation on functional writing and creative writing. Table 12 presents a pairwise comparison between DeepSeek-V4-Pro and Gemini-3.1-Pro on functional writing tasks. These tasks consist of common daily writing queries, where prompts are typically concise and straightforward. Gemini-3.1-Pro was selected as the baseline, as it stands as the top-performing external model for Chinese writing in our evaluations. The results indicate that DeepSeek-V4-Pro outperforms the baseline with an overall win rate of 62.7% versus 34.1%; this is primarily because Gemini occasionally allows its inherent stylistic preferences to override the user’s explicit requirements in Chinese writing scenarios.
+One of the primary use cases for DeepSeek is Chinese writing. We conducted a rigorous evaluation on functional writing and creative writing. [Table 12](#table-12) presents a pairwise comparison between DeepSeek-V4-Pro and Gemini-3.1-Pro on functional writing tasks. These tasks consist of common daily writing queries, where prompts are typically concise and straightforward. Gemini-3.1-Pro was selected as the baseline, as it stands as the top-performing external model for Chinese writing in our evaluations. The results indicate that DeepSeek-V4-Pro outperforms the baseline with an overall win rate of 62.7% versus 34.1%; this is primarily because Gemini occasionally allows its inherent stylistic preferences to override the user’s explicit requirements in Chinese writing scenarios.
 
-Table 13 presents the creative writing comparison, which is evaluated along two axes: instruction following and writing quality. Compared with Gemini-3.1-Pro, DeepSeek-V4-Pro achieves a 60.0% win rate in instruction following and 77.5% in writing quality, demonstrating a marginal improvement in instruction following and a substantial gain in writing quality. Although DeepSeek-V4-Pro yields superior results in aggregate user case analysis, an evaluation restricted to the most challenging prompts — specifically those involving high-complexity constraints or multi-turn scenarios — reveals that Claude Opus 4.5 retains a performance advantage over DeepSeek-V4-Pro. As shown in Table 14, Claude Opus 4.5 achieves a 52.0% win rate versus 45.9%.
+[Table 13](#table-13) presents the creative writing comparison, which is evaluated along two axes: instruction following and writing quality. Compared with Gemini-3.1-Pro, DeepSeek-V4-Pro achieves a 60.0% win rate in instruction following and 77.5% in writing quality, demonstrating a marginal improvement in instruction following and a substantial gain in writing quality. Although DeepSeek-V4-Pro yields superior results in aggregate user case analysis, an evaluation restricted to the most challenging prompts — specifically those involving high-complexity constraints or multi-turn scenarios — reveals that Claude Opus 4.5 retains a performance advantage over DeepSeek-V4-Pro. As shown in [Table 14](#table-14), Claude Opus 4.5 achieves a 52.0% win rate versus 45.9%.
 
 #### 5.4.2 Search
 
@@ -757,11 +791,11 @@ Search-augmented question answering is a core capability of the DeepSeek chatbot
 
 **Retrieval Augmented Search.**
 
-We conducted a pairwise evaluation comparing DeepSeek-V4-Pro and DeepSeek-V3.2 across both objective and subjective Q&A categories. As presented in Table 11, DeepSeek-V4-Pro outperforms DeepSeek-V3.2 by a substantial margin, demonstrating a consistent advantage across both categories. The most pronounced gains are observed in single-value search and planning & strategy tasks, suggesting that DeepSeek-V4-Pro excels at locating precise factual answers and synthesizing structured plans from retrieved context. However, DeepSeek-V3.2 remains relatively competitive on comparison and recommendation tasks, indicating potential room for improvement for DeepSeek-V4-Pro in scenarios requiring balanced, multi-perspective reasoning over search results.
+We conducted a pairwise evaluation comparing DeepSeek-V4-Pro and DeepSeek-V3.2 across both objective and subjective Q&A categories. As presented in [Table 11](#table-11), DeepSeek-V4-Pro outperforms DeepSeek-V3.2 by a substantial margin, demonstrating a consistent advantage across both categories. The most pronounced gains are observed in single-value search and planning & strategy tasks, suggesting that DeepSeek-V4-Pro excels at locating precise factual answers and synthesizing structured plans from retrieved context. However, DeepSeek-V3.2 remains relatively competitive on comparison and recommendation tasks, indicating potential room for improvement for DeepSeek-V4-Pro in scenarios requiring balanced, multi-perspective reasoning over search results.
 
 **Agentic Search.**
 
-Unlike standard RAG, agentic search empowers the model to iteratively invoke search and fetch tools per query, significantly enhancing overall search performance. For the thinking mode in DeepSeek-Chat, we optimized the agentic search function to maximize response accuracy within a predefined "thinking budget". As shown in Table 9, agentic search consistently outperforms RAG, particularly on complex tasks. Furthermore, its cost remains highly efficient, with agentic search being only marginally more expensive than standard RAG (see Table 10).
+Unlike standard RAG, agentic search empowers the model to iteratively invoke search and fetch tools per query, significantly enhancing overall search performance. For the thinking mode in DeepSeek-Chat, we optimized the agentic search function to maximize response accuracy within a predefined "thinking budget". As shown in [Table 9](#table-09), agentic search consistently outperforms RAG, particularly on complex tasks. Furthermore, its cost remains highly efficient, with agentic search being only marginally more expensive than standard RAG (see [Table 10](#table-10)).
 
 #### 5.4.3 White-Collar Task
 
@@ -774,15 +808,21 @@ Given the open-ended nature of these tasks, automated metrics usually fall short
 - **Content Quality:** Factual accuracy, logical coherence, and professional tone.
 - **Formatting Aesthetics:** Layout readability and visual presentation.
 
-As illustrated in Figure 12, DeepSeek-V4-Pro-Max outperforms Opus-4.6-Max on diverse Chinese white-collar tasks, achieving an impressive non-loss rate of 63%, and demonstrating consistent advantages across analysis, generation, and editing tasks. The detailed dimension scores shown in Figure 12 highlight the model’s primary strengths in Task Completion and Content Quality. Specifically, DeepSeek-V4-Pro-Max proactively anticipates implicit user intents by frequently providing supplementary insights and self-verification steps. It also excels in long-form generation, delivering in-depth, coherent narratives rather than relying on the overly simplistic bullet points frequently produced by Opus-4.6-Max. Additionally, the model strictly conforms to formal professional conventions, such as standardized Chinese hierarchical numbering. However, in terms of Instruction Following, it occasionally overlooks specific formatting constraints and slightly trails Opus. Furthermore, the model is less proficient at condensing extensive text inputs into succinct summaries. Finally, its Formatting Aesthetics still have substantial room for improvement regarding the overall visual design of presentation slides. Figure 13, 14, and 15 present several test cases; due to the extensive length of certain outputs, only partial pages are displayed.
+As illustrated in [Figure 12](#figure-12), DeepSeek-V4-Pro-Max outperforms Opus-4.6-Max on diverse Chinese white-collar tasks, achieving an impressive non-loss rate of 63%, and demonstrating consistent advantages across analysis, generation, and editing tasks. The detailed dimension scores shown in [Figure 12](#figure-12) highlight the model’s primary strengths in Task Completion and Content Quality. Specifically, DeepSeek-V4-Pro-Max proactively anticipates implicit user intents by frequently providing supplementary insights and self-verification steps. It also excels in long-form generation, delivering in-depth, coherent narratives rather than relying on the overly simplistic bullet points frequently produced by Opus-4.6-Max. Additionally, the model strictly conforms to formal professional conventions, such as standardized Chinese hierarchical numbering. However, in terms of Instruction Following, it occasionally overlooks specific formatting constraints and slightly trails Opus. Furthermore, the model is less proficient at condensing extensive text inputs into succinct summaries. Finally, its Formatting Aesthetics still have substantial room for improvement regarding the overall visual design of presentation slides. [Figure 13](#figure-13), [14](#figure-14), and [15](#figure-15) present several test cases; due to the extensive length of certain outputs, only partial pages are displayed.
+
+<span id="figure-11"></span>
 
 ![DeepSeek-V4 Figure 11](../../papers/deepseek-v4/figure-11.png)
 
 **Figure 11.** Win-rate comparison across analysis, generation, editing tasks, and the overall performance.
 
+<span id="figure-12"></span>
+
 ![DeepSeek-V4 Figure 12](../../papers/deepseek-v4/figure-12.png)
 
 **Figure 12.** Detailed dimension scores including Task Completion, Content Quality, Formatting Aesthetics, and Instruction Following.
+
+<span id="figure-13"></span>
 
 ![DeepSeek-V4 Figure 13](../../papers/deepseek-v4/figure-13.png)
 
@@ -790,7 +830,9 @@ As illustrated in Figure 12, DeepSeek-V4-Pro-Max outperforms Opus-4.6-Max on div
 
 #### 5.4.4 Code Agent
 
-To benchmark our coding agent capability, we curate tasks from real internal R&D workloads We collect ${\sim}$200 challenging tasks from 50+ internal engineers, spanning feature development, bug fixing, refactoring, and diagnostics across diverse technology stacks including PyTorch, CUDA, Rust, and C++. Each task is accompanied by its original repository, the corresponding execution environment, and human-annotated scoring rubrics; after rigorous quality filtering, 30 tasks are retained as the evaluation set. As shown in Table 8, DeepSeek-V4-Pro significantly outperforms Claude Sonnet 4.5 and approaches the level of Claude Opus 4.5.
+To benchmark our coding agent capability, we curate tasks from real internal R&D workloads We collect ${\sim}$200 challenging tasks from 50+ internal engineers, spanning feature development, bug fixing, refactoring, and diagnostics across diverse technology stacks including PyTorch, CUDA, Rust, and C++. Each task is accompanied by its original repository, the corresponding execution environment, and human-annotated scoring rubrics; after rigorous quality filtering, 30 tasks are retained as the evaluation set. As shown in [Table 8](#table-08), DeepSeek-V4-Pro significantly outperforms Claude Sonnet 4.5 and approaches the level of Claude Opus 4.5.
+
+<span id="table-08"></span>
 
 ![DeepSeek-V4 Table 8](../../papers/deepseek-v4/table-08.png)
 
@@ -820,33 +862,49 @@ We would like to thank [Dolly Deng](https://www.zhihu.com/people/toyama) and oth
 
 ## Appendix B Evaluation Details
 
+<span id="table-09"></span>
+
 ![DeepSeek-V4 Table 9](../../papers/deepseek-v4/table-09.png)
 
 **Table 9.** Agentic Search vs. Retrieval Augmented Search for DeepSeek-V4-Pro.
+
+<span id="table-10"></span>
 
 ![DeepSeek-V4 Table 10](../../papers/deepseek-v4/table-10.png)
 
 **Table 10.** Cost Comparison:Agentic Search vs. Retrieval Augmented Search (Mean) for DeepSeek-V4-Pro. Most of the tool calls are parallel for Agentic Search.
 
+<span id="table-11"></span>
+
 ![DeepSeek-V4 Table 11](../../papers/deepseek-v4/table-11.png)
 
 **Table 11.** Comparative Evaluation of DeepSeek-V4-Pro and DeepSeek-V3.2 on Search Q&A Tasks.
+
+<span id="table-12"></span>
 
 ![DeepSeek-V4 Table 12](../../papers/deepseek-v4/table-12.png)
 
 **Table 12.** Comparative Analysis of DeepSeek-V4-Pro and Gemini-3.1-Pro in Chinese Functional Writing.
 
+<span id="table-13"></span>
+
 ![DeepSeek-V4 Table 13](../../papers/deepseek-v4/table-13.png)
 
 **Table 13.** Comparative Analysis of DeepSeek-V4-Pro and Gemini-3.1-Pro in Chinese Creative Writing.
+
+<span id="table-14"></span>
 
 ![DeepSeek-V4 Table 14](../../papers/deepseek-v4/table-14.png)
 
 **Table 14.** DeepSeek-V4-Pro vs. Claude-Opus-4.5 on Complex Instruction Following and Multi-Turn Writing.
 
+<span id="figure-14"></span>
+
 ![DeepSeek-V4 Figure 14](../../papers/deepseek-v4/figure-14.png)
 
 **Figure 14.** Example output of a task that requires comparing two regular investment strategies for the NASDAQ.
+
+<span id="figure-15"></span>
 
 ![DeepSeek-V4 Figure 15](../../papers/deepseek-v4/figure-15.png)
 

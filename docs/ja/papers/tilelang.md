@@ -249,11 +249,11 @@ AMD CDNA アーキテクチャも asynchronous copy instruction と DMA support 
 
 **図 13。** Nvidia および AMD GPU 上の GEMM 性能。
 
-<span id="figure-14"></span>
-
 ![H100 上の MLA 性能とコード行数](../../papers/tilelang/figure-14a.png)
 
 **図 14(a)。** H100 上の MLA 性能とコード行数。
+
+<span id="figure-14"></span>
 
 ![MI300X 上の MLA 性能とコード行数](../../papers/tilelang/figure-14b.png)
 
@@ -291,6 +291,8 @@ ThunderKittens [Thu24] と比較して、TileLang は開発者が完全に Pytho
 
 ## 付録 A ベンチマークにおける operator shape
 
+<span id="table-02"></span>
+
 |   | V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | m | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
@@ -303,6 +305,8 @@ ThunderKittens [Thu24] と比較して、TileLang は開発者が完全に Pytho
 
 **表 2。** ベンチマークにおける行列 shape。
 
+<span id="table-03"></span>
+
 |   | FA0 | FA1 | FA2 | FA3 | FA4 |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | batch | 1 | 1 | 1 | 1 | 1 |
@@ -312,6 +316,8 @@ ThunderKittens [Thu24] と比較して、TileLang は開発者が完全に Pytho
 | causal | true | false | true | false | true |
 
 **表 3。** ベンチマークにおける FlashAttention shape。
+
+<span id="table-04"></span>
 
 |   | CC0 | CC1 | CC2 | CC3 | CC4 | CC5 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -332,6 +338,8 @@ ThunderKittens [Thu24] と比較して、TileLang は開発者が完全に Pytho
 ## 付録 B カーネル実装
 
 ### B.1 行列乗算（Matmul）
+
+<span id="figure-16"></span>
 
 ```python
 @tilelang.jit
@@ -354,6 +362,8 @@ def Matmul(A: T.Tensor, B: T.Tensor, C: T.Tensor):
 **図 16。** 行列乗算のカーネル実装。
 
 ### B.2 Dequantized Matrix Multiplication
+
+<span id="figure-17"></span>
 
 ```python
 @tilelang.jit
@@ -391,6 +401,8 @@ def matmul_fp16_fp4(
 **図 17。** TileLang を用いた Weight-Only Quantization（$W_{\mathrm{FP4\_E2M1}}A_{\mathrm{FP16}}$）Matmul の実装。単純な形式による mixed-precision computation のサポートを示す。
 
 ### B.3 FlashMLA Implementation
+
+<span id="figure-18"></span>
 
 ```python
 @tilelang.jit

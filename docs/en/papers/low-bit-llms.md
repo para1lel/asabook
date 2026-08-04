@@ -21,8 +21,10 @@ This efficiency is crucial for enabling advanced LLMs to be accessible on device
 
 In this paper, we aim to provide a survey with a comprehensive overview of low-bit quantization for large language models (LLMs), encompassing the fundamental concepts, system implementations, and algorithmic approaches related to low-bit LLMs.
 Compared with the traditional models, LLMs, as the representative paradigm of the foundation model,
-always feature a vast number of parameters, which presents unique challenges for effective quantization. As depicted in Figure 1, Section 2 introduces the fundamentals of low-bit quantization of LLMs, including new low-bit data formats and quantization granularities specific to LLMs. Section 3 reviews the systems and frameworks supporting low-bit LLMs across various hardware platforms. We then categorize low-bit quantization techniques for efficient training and inference in Sections 4 and 5, respectively. For training, we discuss methods for low-bit training and fine-tuning of LLMs. For inference, we differentiate LLM quantization methods by quantization-aware training and post-training quantization. Quantization-aware training is often used for low-bit settings (such as binary quantization). Post-training quantization is more commonly applied in existing research since it is a resource-efficient pipeline. For a clear understanding, we first cover the widely used techniques of equivalent transformation for reducing outlier influence and weight compensation for mitigating quantization errors. Then the mixed precision, techniques that combine quantization with other compression methods, as well as methods for new quantization forms are discussed. Additionally, we summarize toolkits that integrate these algorithms to support the development of accurate low-bit LLMs. Finally, Section 6 explores future trends and directions, discussing emerging research areas, potential breakthroughs, and the impact of new technologies on LLM quantization.
+always feature a vast number of parameters, which presents unique challenges for effective quantization. As depicted in [Figure 1](#figure-01), Section 2 introduces the fundamentals of low-bit quantization of LLMs, including new low-bit data formats and quantization granularities specific to LLMs. Section 3 reviews the systems and frameworks supporting low-bit LLMs across various hardware platforms. We then categorize low-bit quantization techniques for efficient training and inference in Sections 4 and 5, respectively. For training, we discuss methods for low-bit training and fine-tuning of LLMs. For inference, we differentiate LLM quantization methods by quantization-aware training and post-training quantization. Quantization-aware training is often used for low-bit settings (such as binary quantization). Post-training quantization is more commonly applied in existing research since it is a resource-efficient pipeline. For a clear understanding, we first cover the widely used techniques of equivalent transformation for reducing outlier influence and weight compensation for mitigating quantization errors. Then the mixed precision, techniques that combine quantization with other compression methods, as well as methods for new quantization forms are discussed. Additionally, we summarize toolkits that integrate these algorithms to support the development of accurate low-bit LLMs. Finally, Section 6 explores future trends and directions, discussing emerging research areas, potential breakthroughs, and the impact of new technologies on LLM quantization.
 Our survey provides a detailed description of the fundamentals of low-bit LLMs and gives a comprehensive view of the system implementations for accelerating training and inference through low-bit quantization and algorithms and strategies to maintain and enhance quantized accuracy. We believe this survey can provide valuable insights and advance the development of LLM quantization.
+
+<span id="figure-01"></span>
 
 ![The skeleton of the LLM Quantization methods. The diagram illustrates the main areas in the survey.](../../papers/low-bit-llms/figure-01.png)
 
@@ -85,7 +87,9 @@ where $m=k-1$ and $s\in\{0,1\}$ for signed integers. $m=k$ for unsigned integers
 **Binarized Numbers**. Binarization is the most aggressive quantization technique, which directly abstracts the sign of value [Liu18, Qin22, Li24]. It will lose most information, but bring significant acceleration and parameter compression in inference. The hardware takes $0,1$ for each bit originally, but developers define different logic rules and accumulation algorithms to achieve various binarized computations.
 Therefore, floating-point numbers can be binarized to $\{-1,1\}$ or $\{0,1\}$, depending on what value we expect the single bit to represent in our algorithms. Some studies further extended binarization to ternary quantization. Before the emergence of LLMs, works such as [Bai21, Zha20, Liu22, Liu23a] explored binary or ternary quantization formats.
 
-Table 1 shows the representation ranges of various standard formats. It shows that even with the same bit-width, different numerical representation formats can have significantly different value ranges. The floating-point numbers with larger $E$ have larger representation ranges but sparser points. Therefore, there is a tradeoff between finer data intervals or larger data ranges when determining data formats for a specific model and task.
+[Table 1](#table-01) shows the representation ranges of various standard formats. It shows that even with the same bit-width, different numerical representation formats can have significantly different value ranges. The floating-point numbers with larger $E$ have larger representation ranges but sparser points. Therefore, there is a tradeoff between finer data intervals or larger data ranges when determining data formats for a specific model and task.
+
+<span id="table-01"></span>
 
 ![Min and Max values for different number formats [Iee19].](../../papers/low-bit-llms/table-01.png)
 
@@ -136,11 +140,13 @@ As $\nu$ increases, the peaks of the t-distribution become shorter and wider, an
 
 ### 2.2 Quantization Granularity
 
+<span id="figure-02"></span>
+
 ![Illustrations for different quantization granularity.](../../papers/low-bit-llms/figure-02.png)
 
 **Figure 2.** Illustrations for different quantization granularity.
 
-Quantization granularity refers to the different weight/activation partitions corresponding to each element of the scaling factor and zeropoint. It determines how finely the scale recovers and the zero point shifts. Figure 2 showcases five fundamental types of quantization granularity: tensor-wise, token-wise, channel-wise, group-wise, and element-wise.
+Quantization granularity refers to the different weight/activation partitions corresponding to each element of the scaling factor and zeropoint. It determines how finely the scale recovers and the zero point shifts. [Figure 2](#figure-02) showcases five fundamental types of quantization granularity: tensor-wise, token-wise, channel-wise, group-wise, and element-wise.
 
 **Tensor-wise** is the simplest and coarsest granularity, which takes a single scaling factor and zero point to the entire tensor [Zha24]. It can be the fastest but may lead to the most performance degradation because it is incapable of handling the values with a wide variation. Therefore, it is unsuitable for cases where accuracy is important or the task/model is sensitive to quantization.
 
@@ -150,22 +156,26 @@ Quantization granularity refers to the different weight/activation partitions co
 
 **Group-wise** balances the computational complexity and the quantization error by grouping tensors or channels with the same scaling factor. It also reduces the storage of scaling factors by $g$ if there are $g$ tokens/channels per group [Heo23, Yao22].
 
-**Element-wise** is only applied while training the weight, which is always used together with another quantization granularity, such as tensor-wise (see Figure 2(e)). Before inference, the element-wise scaling is merged into the quantized weight. Therefore, only the tensor-wise scale needs to be computed in inference [Lee23] to recover the value magnitude.
+**Element-wise** is only applied while training the weight, which is always used together with another quantization granularity, such as tensor-wise (see [Figure 2(e)](#figure-02)). Before inference, the element-wise scaling is merged into the quantized weight. Therefore, only the tensor-wise scale needs to be computed in inference [Lee23] to recover the value magnitude.
 
 Different quantization granularity are always combined and adopted together. For example, [Lee23] uses a channel-wise scale for the Key matrix but a token-wise scale for the Value matrix based on the distribution of the data. More algorithms can be found in Section 5.2.3.
 
 ### 2.3 Dynamic and Static Quantization
 
+<span id="figure-03"></span>
+
 ![Dynamic and static quantization. Operations in the green block mean the inference process, while outside the block is the production and preparation process.](../../papers/low-bit-llms/figure-03.png)
 
 **Figure 3.** Dynamic and static quantization. Operations in the green block mean the inference process, while outside the block is the production and preparation process.
 
-Dynamic and static quantization mainly refers to the strategies in PTQ, which are illustrated in Figure 3. We take integer quantization as an example, and other low-bit quantization methods have a similar process.
+Dynamic and static quantization mainly refers to the strategies in PTQ, which are illustrated in [Figure 3](#figure-03). We take integer quantization as an example, and other low-bit quantization methods have a similar process.
 
 **Dynamic Quantization** [Kri18, Liu22a] calibrates and stores quantized weight. Usually, it does not need input data, but searches for the optimal scaling factors $s_{\mathbf{w}}$ and zero-points $Z_{\mathbf{w}}$ by minimizing the quantization error for each tensor of weight. During inference, the activation will be input into the quantization module to compute the optimal scaling factors $s_{\mathbf{x}}$ and $Z_{\mathbf{x}}$, and then quantized to INT8 by the dynamically computed factors before conducting integer GEMM with quantized weight. The scaling and zero point of activation are obtained in real time based on the current batch of input data. Therefore, the scaling factor flexibly adapts the input data distribution, bringing the smallest quantization error. While it takes extra computational complexity to get the scale during inference. It is suitable for scenarios that require rapid deployment because it does not require calibration.
 
-**Static Quantization** [Bai21a] takes calibration data consisting of a small fraction of the training dataset. By inputting the samples into the model, we find the optimal scaling factors for both weight and activation (the middle one in Figure 3) or weight only (the right one), and are fixed during inference. It allows for the evaluation of the quantized model during preparation, ensuring that quantization does not significantly harm the model’s performance.
-As for inference, the middle one in Figure 3 quantizes the activation to low-bit and computes low-bit GEMM [Det22] with quantized weight. For the right one in Figure 3, the weight will be dequantized to floating-point numbers, and the activation will not be quantized before conducting floating-point GEMM [Lin24], thus we name it weight-only quantization.
+**Static Quantization** [Bai21a] takes calibration data consisting of a small fraction of the training dataset. By inputting the samples into the model, we find the optimal scaling factors for both weight and activation (the middle one in [Figure 3](#figure-03)) or weight only (the right one), and are fixed during inference. It allows for the evaluation of the quantized model during preparation, ensuring that quantization does not significantly harm the model’s performance.
+As for inference, the middle one in [Figure 3](#figure-03) quantizes the activation to low-bit and computes low-bit GEMM [Det22] with quantized weight. For the right one in [Figure 3](#figure-03), the weight will be dequantized to floating-point numbers, and the activation will not be quantized before conducting floating-point GEMM [Lin24], thus we name it weight-only quantization.
+
+<span id="table-02"></span>
 
 ![Inference frameworks for quantized large language models.](../../papers/low-bit-llms/table-02.png)
 
@@ -179,14 +189,14 @@ We have selected some well-known representative frameworks and tools related to 
 
 ### 3.1 Inference Framework for Quantization
 
-We list the representative inference frameworks in Table 2. The inference process of Large Language Models (LLMs) consists of two key stages: Prefill and Decode. During the Prefill stage, the input prompt is tokenized and processed through the model’s Transformer layers to generate contextual embeddings, leveraging self-attention mechanisms to capture dependencies between tokens. This stage establishes a rich contextual representation of the input, which is stored for subsequent text generation. In the Decode stage, the model generates text autoregressively, predicting one token at a time by iteratively considering the sequence of previously generated tokens. This involves embedding lookup, attention computation, and token selection based on probability distributions. While the prefill stage processes the entire input at once, making it computationally intensive, the decode stage operates incrementally, building the output sequentially. Together, these stages enable LLMs to produce coherent and contextually relevant text, forming the foundation for optimization techniques like quantization, which aim to enhance efficiency without compromising performance.
+We list the representative inference frameworks in [Table 2](#table-02). The inference process of Large Language Models (LLMs) consists of two key stages: Prefill and Decode. During the Prefill stage, the input prompt is tokenized and processed through the model’s Transformer layers to generate contextual embeddings, leveraging self-attention mechanisms to capture dependencies between tokens. This stage establishes a rich contextual representation of the input, which is stored for subsequent text generation. In the Decode stage, the model generates text autoregressively, predicting one token at a time by iteratively considering the sequence of previously generated tokens. This involves embedding lookup, attention computation, and token selection based on probability distributions. While the prefill stage processes the entire input at once, making it computationally intensive, the decode stage operates incrementally, building the output sequentially. Together, these stages enable LLMs to produce coherent and contextually relevant text, forming the foundation for optimization techniques like quantization, which aim to enhance efficiency without compromising performance.
 Currently, no single inference framework dominates in terms of performance or usage. However, some classic deep learning frameworks, such as TensorRT-LLM ([Link](https://github.com/NVIDIA/TensorRT-LLM)), ONNX-runtime ([Link](https://github.com/microsoft/onnxruntime)), Transformers ([Link](https://huggingface.co/docs/transformers/en/index)) (Huggingface), OpenVINO ([Link](https://github.com/openvinotoolkit/nncf)), PowerInfer ([Link](https://github.com/SJTU-IPADS/PowerInfer)), PPLNN ([Link](https://github.com/openppl-public/ppl.nn)), and Xorbits Inference ([Link](https://github.com/xorbitsai/inference)) have integrated the support for efficient inference of large models. In addition, other inference frameworks emerged after the advent of large models that are specifically proposed for LLMs, such as bitsandbytes ([Link](https://github.com/bitsandbytes-foundation/bitsandbytes)), ctransformers ([Link](https://github.com/marella/ctransformers)), MLC-LLM ([Link](https://github.com/mlc-ai/mlc-llm)), DeepSpeed-MII ([Link](https://github.com/microsoft/DeepSpeed-MII)), vLLM ([Link](https://github.com/vllm-project/vllm)),
 LMDeploy ([Link](https://github.com/InternLM/lmdeploy)),
 LightLLM ([Link](https://github.com/ModelTC/lightllm)), QServe ([Link](https://github.com/mit-han-lab/qserve)), llama.cpp ([Link](https://github.com/ggerganov/llama.cpp)), llama2.c ([Link](https://github.com/karpathy/llama2.c)), inferflow ([Link](https://github.com/inferflow/inferflow)), ScaleLLM ([Link](https://github.com/vectorch-ai/ScaleLLM)), SGLang ([Link](https://github.com/sgl-project/sglang)), gpt-fast ([Link](https://github.com/pytorch-labs/gpt-fast)), FastChat ([Link](https://github.com/lm-sys/FastChat)), OpenLLM ([Link](https://github.com/bentoml/OpenLLM)) and so on. These frameworks are lightweight and have integrated many specialized optimization techniques for large models.
 
 #### 3.1.1 Ready-to-use Algorithms
 
-With the emergence of quantization algorithms for LLMs, some typical methods have already been integrated into most frameworks, while some methods may be developed and published originally on a specific framework. We list the most ready-to-use algorithms in each mainstream framework in Table 2. Some methods are included by most frameworks, such as GPTQ [Fra22], AWQ [Lin24], SmoothQuant [Xia23], and so on. These methods share several advantages: high accuracy and efficient performance after quantization, seamless integration into existing implementation procedures, and user-friendliness.
+With the emergence of quantization algorithms for LLMs, some typical methods have already been integrated into most frameworks, while some methods may be developed and published originally on a specific framework. We list the most ready-to-use algorithms in each mainstream framework in [Table 2](#table-02). Some methods are included by most frameworks, such as GPTQ [Fra22], AWQ [Lin24], SmoothQuant [Xia23], and so on. These methods share several advantages: high accuracy and efficient performance after quantization, seamless integration into existing implementation procedures, and user-friendliness.
 
 In addition, some algorithms are supported by several frameworks. For example, LLM.int8() [Det22] was well supported by bitsandbytes (in HuggingFace), which allows to store and load 8-bit weights directly from the HuggingFace Hub and quantize weight in linear layers to 8-bit.
 FP6-LLM [Xia24] is integrated in DeepSpeed-FastGen ([Link](https://github.com/microsoft/DeepSpeed/tree/master/blogs/deepspeed-fastgen)) [Hol24] to implement the runtime quantization for 6-bit floating-point weight-only quantization. It allows efficient quantization and dequantization of 6-bit weight LLMs through a unified configuration option.
@@ -208,7 +218,7 @@ We also list the quantization granularity. Users should refer to the manual to m
 
 Numerous vendors are competing fiercely in the deep learning hardware. As one of the pioneers in the field of deep learning GPUs today, NVIDIA GPUs are supported by most frameworks. Meanwhile, vLLM, bitsandbytes, llama.cpp, ctransformers, MLC-LLM, and PowerInfer also have the support for AMD GPUs.
 For some other processing units, such as TPU, XPU, Metal, and other hardware, the system support is relatively limited. Some frameworks that are devoted to generalizing LLMs to edge devices are more likely to extend the support for those platforms, such as MLC-LLM, ONNX-Runtime, and llama.cpp.
-However, it should be noted that the frameworks with support for both low-bit quantization and hardware deployment in Table 5 cannot guarantee the deployment of any quantized model on each listed hardware. Users should carefully refer to the manual for guidance. However, the table we compiled may help reduce the time it takes to find a suitable framework that may meet your deployment desire.
+However, it should be noted that the frameworks with support for both low-bit quantization and hardware deployment in [Table 5](#table-05) cannot guarantee the deployment of any quantized model on each listed hardware. Users should carefully refer to the manual for guidance. However, the table we compiled may help reduce the time it takes to find a suitable framework that may meet your deployment desire.
 
 #### 3.1.4 Model Family
 
@@ -219,11 +229,13 @@ However, not all large models included in external model zoos can be smoothly su
 
 In practical implementations, it is perplexing that some quantization algorithms, although reducing the bitwidth of weight or activation, do not lead to a faster inference. Therefore, a critical question comes into mind: *How does quantization actually achieve real acceleration and storage saving?* To answer this question, we must first clarify the data transmission process involved in model inference.
 
+<span id="figure-04"></span>
+
 ![Data transmission of weight and activation in the caching system during inference. The bandwidth and latency are officially reported by NVIDIA A100 as an example. `PCIe` is a high-speed interface standard used for connecting various hardware components, such as GPUs, SSDs. `Async_Copy` means asynchronous data copy using cp.async intrinsic. `ldmatrix` and `lds` are data loading instructions that load matrix from shared memory to registers with a strict layout requirement or in a fine-grained and flexible manner, respectively [Nvi25].](../../papers/low-bit-llms/figure-04.png)
 
 **Figure 4.** Data transmission of weight and activation in the caching system during inference. The bandwidth and latency are officially reported by NVIDIA A100 as an example. `PCIe` is a high-speed interface standard used for connecting various hardware components, such as GPUs, SSDs. `Async_Copy` means asynchronous data copy using cp.async intrinsic. `ldmatrix` and `lds` are data loading instructions that load matrix from shared memory to registers with a strict layout requirement or in a fine-grained and flexible manner, respectively [Nvi25].
 
-The data transmission process of weight and activation in the multi-level caching system is outlined in Figure 4, which shows the general dataflow of quantized LLMs. GPUs typically use a hierarchical cache structure with multiple levels, each with different sizes and IO speeds. On-chip caches (L2 cache, shared memory, and registers) provide faster access but have limited capacity, while off-chip caches (device memory or global memory, host memory) offer more capacity but have slower access speed. Therefore, in today’s LLMs inference frameworks, we need to load and compute data in segments with highly parallel single instruction, multiple threads (SIMT) paradigm to ensure an acceptable inference speed.
+The data transmission process of weight and activation in the multi-level caching system is outlined in [Figure 4](#figure-04), which shows the general dataflow of quantized LLMs. GPUs typically use a hierarchical cache structure with multiple levels, each with different sizes and IO speeds. On-chip caches (L2 cache, shared memory, and registers) provide faster access but have limited capacity, while off-chip caches (device memory or global memory, host memory) offer more capacity but have slower access speed. Therefore, in today’s LLMs inference frameworks, we need to load and compute data in segments with highly parallel single instruction, multiple threads (SIMT) paradigm to ensure an acceptable inference speed.
 
 *Host memory $\rightarrow$ Device memory.* For weight, we load one layer’s weight from the host memory to the device’s global memory. The bandwidth is relatively low, which is 25 GB/s per direction (taking NVIDIA A100 as an example [Smi20]). If quantized, it is always in a compact format, thus the time can be saved. The activation is originally generated on the device during inference, which does not need to be copied from the host.
 
@@ -239,8 +251,10 @@ To achieve the actual inference acceleration and storage saving, we need compreh
 
 In the following sections, we demonstrate the system supports for quantization according to the action scopes: **Weight-only, Weight & Activation, KV Cache, and Quantization & Dequantization**.
 We first provide the common and general practices in most frameworks. While these practices may not be the most efficient, they offer high scalability and generalization, allowing new algorithms and implementations to be quickly and easily integrated. Then, we introduce several custom designs. These studies investigate the speedup and generation quality bottlenecks and propose faster solutions for a certain scope.
-Figure 5 shows how the quantization of weight or activation reduces inference time (4-bit integer quantization is taken as an example, which can also be any other low-bit data format). Figure 6 illustrates how quantized KV Cache affects the inference.
+[Figure 5](#figure-05) shows how the quantization of weight or activation reduces inference time (4-bit integer quantization is taken as an example, which can also be any other low-bit data format). [Figure 6](#figure-06) illustrates how quantized KV Cache affects the inference.
 Speedup Timelines in both figures clearly divide the whole process into three types based on the time consumption compared to the FP16 counterpart: *Speedup* (green line), *Slow down* (dark grey line), and *Not affect* (light grey line).
+
+<span id="figure-05"></span>
 
 ![The data transmission process of quantization for (a) Quantized weight preparation (weight pack), (b) Weight-only quantization, and (c) Weight & Activation quantization.](../../papers/low-bit-llms/figure-05.png)
 
@@ -250,7 +264,7 @@ Speedup Timelines in both figures clearly divide the whole process into three ty
 
 The fundamental bottleneck in model inference before and after the advent of large models is the data transmission and storage costs, which are always neglected in ordinary small models. Due to the large amount of data, the transmission latency can not be overlooked, which even surpasses the computation latency and becomes the major challenge in LLM inference. Therefore, weight-only quantization emerges, which compacts the weight and reduces the data copy burden among levels of caches [Lin24, Fra22].
 
-The processes related to weight-only quantization are illustrated in Figure 5 (a) and (b). Both weight-only and weight & activation quantization require packing weight to lower bitwidth beforehand. The weight packing is only conducted once before inference, and it costs little computation resources and time. The weight data are distributed to multi-threads, with each thread tiles a chunk of data according to the following steps: (1) quantizing the weight to lower bitwidth by pre-obtained scaling factors, (2) densely packing them into `uINT32` units without idle bits, (3) offloading and storing into host memory. Therefore, the packed weight has a significant reduction in storage compared to the floating-point one.
+The processes related to weight-only quantization are illustrated in [Figure 5](#figure-05) (a) and (b). Both weight-only and weight & activation quantization require packing weight to lower bitwidth beforehand. The weight packing is only conducted once before inference, and it costs little computation resources and time. The weight data are distributed to multi-threads, with each thread tiles a chunk of data according to the following steps: (1) quantizing the weight to lower bitwidth by pre-obtained scaling factors, (2) densely packing them into `uINT32` units without idle bits, (3) offloading and storing into host memory. Therefore, the packed weight has a significant reduction in storage compared to the floating-point one.
 
 See speedup timeline in (b), weight-only quantization alleviates the burden of data transmission from host memory to on-chip memory by reducing the data amounts. However, it introduces additional dequantization of weight before conducting the MatMul because the general kernels only receive the same datatype of inputs.
 As long as the time spent on dequantization is shorter than the time saved on data transmission, the weight-only quantization brings benefits in acceleration, which indeed is the case. It is the overload of parameter transmission in LLMs that makes weight-only quantization valuable in practice. Therefore, even using floating-point MatMul kernels, weight-only quantization can still accelerate the inference of LLMs.
@@ -262,7 +276,7 @@ To make full use of storage and reduce the time of dequantizing weight during in
 #### 3.2.2 Weight & Activation Quantization
 
 Following the traditional practice of quantization, both weight and activation are quantized to low bitwidth, and the MatMul kernels are also implemented by low-bit instructions.
-We illustrate the speedup timeline in Figure 5(c) that the accelerated processes are weight transmission in the caching system as well as the low-bit MatMul. The extra operations are the quantization for activation from FP16 to low-bit integer before MatMul, and the datatype casting for the results from INT32 to FP16 after MatMul.
+We illustrate the speedup timeline in [Figure 5(c)](#figure-05) that the accelerated processes are weight transmission in the caching system as well as the low-bit MatMul. The extra operations are the quantization for activation from FP16 to low-bit integer before MatMul, and the datatype casting for the results from INT32 to FP16 after MatMul.
 Weight & activation quantization yields greater acceleration compared to the weight-only quantization because the computationally intensive MatMul usually can be accelerated by lower bitwidth kernels, which use more efficient instructions and a better degree of parallelism. Meanwhile, it is recommended to simplify the complexity of activation quantization to minimize the time spent on runtime quantization.
 However, the actual speedup ratio highly depends on the hardware design, such as the number of floating-point and integer processing units.
 
@@ -270,13 +284,15 @@ As for custom designs, there are two categories of techniques:
 (1) Faster Quantization and Dequantization (or datatype conversion). For example, QQQ [Zha24a] proposes faster FP16$\rightarrow$INT8 for quantizing activation, INT4$\rightarrow$INT8 for dequantizing weight, and INT32$\rightarrow$FP16 for casting the MatMul results to accelerate the data format conversion during inference. This work is based on [Kim22] which firstly introduces a faster INT4$\rightarrow$FP16 datatype conversion. Besides speeding up, other approaches turn to remove the process. Tender [Lee24] proposes a decomposed quantization technique to eliminate runtime dequantization/quantization during inference.
 (2) Faster MatMul Kernel. GEMV can be more flexible and efficient in fitting various bitwidths than GEMM, and even receives input matrices with two bitwidths, such as INT1*INT8 and INT3*INT8 [Wan23]. By assembling several products of a matrix and a vector, we can get the desired results without padding or idle bits. For example, EETQ ([Link](https://github.com/NetEase-FuXi/EETQ)) introduces GEMV operators which are 13-27% faster than GEMM kernel. SqueezeLLM [Kim23] proposes LUT-based MatMul by GEMV, which supports highly efficient 4-bit MatMul kernel on hardware architectures that do not support integer MatMul instruction. AQLM [Egi24] designs W1A16 and W2A8 MatMul kernels to receive input matrices with extremely low bitwidth and calculate them directly without dequantizing or datatype conversion.
 
+<span id="figure-06"></span>
+
 ![Illustration of KV Cache quantization.](../../papers/low-bit-llms/figure-06.png)
 
 **Figure 6.** Illustration of KV Cache quantization.
 
 #### 3.2.3 KV Cache Quantization
 
-KV Cache, or key-value cache, is to optimize the generative models that predict text token by token. Although the model generates only one token at a time, each token depends on the previous context. To avoid repeated calculation, the KV cache acts as a memory bank storing previous key-value results to reuse in the following generations. However, the storage highly depends on the sequence length, hidden size, attention head numbers, and so on. Quantization is an efficient approach to compressing storage. The overall process is illustrated in Figure 6.
+KV Cache, or key-value cache, is to optimize the generative models that predict text token by token. Although the model generates only one token at a time, each token depends on the previous context. To avoid repeated calculation, the KV cache acts as a memory bank storing previous key-value results to reuse in the following generations. However, the storage highly depends on the sequence length, hidden size, attention head numbers, and so on. Quantization is an efficient approach to compressing storage. The overall process is illustrated in [Figure 6](#figure-06).
 
 The KV cache is generated and updated in runtime along with the serialized input data. During inference, the $\mathbf{K}_{\mathrm{new}}$ and $\mathbf{V}_{\mathrm{new}}$ from linear layers are first quantized, then concatenated to the end of the stored key and value lists, which are also quantized, to form new lists. When the cache size exceeds its limit, the earliest key-value pairs will be dropped. Then we dequantize the matrices to FP16 before conducting multi-head attention forward propagation with the newly generated query $\mathbf{Q}_{\mathrm{new}}$. We illustrate how KV cache quantization affects the inference in the Speedup Timeline. Compared to the FP KV cache, the quantized one occupies less storage in device memory and spares less time in KV data transmission in the caching system due to the smaller data bytes.
 
@@ -445,7 +461,9 @@ $$
 \mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.\tag{15}
 $$
 
-$\mathrm{fp8\_format}$ indicates the formats like E4M3 or E5M2. $\mathrm{FP8\_MAX}$ is the relevant max value under that format. $\mathrm{amax}$ is the maximal absolute value of the tensor. Then we can calculate the $\mathrm{new\_scaling\_factor}$ with $\mathrm{exp}$. However, the calculation of $\mathrm{new\_scaling\_factor}$ can not be online since it will introduce much more memory access. The best practice is to employ delayed scaling. This strategy chooses the scaling factor based on the maximums of absolute values seen in some number of previous iterations. This enables the full performance of FP8 computation but requires storing the history of maximums as additional parameters of the FP8 operators. Deepseek V3 [Dee24a], one of the state-of-the-art models, introduces fine-grained block-wise FP8 quantization, enabling highly accurate FP8 training. In Table 3, we list the prevalent frameworks and engines that support low-bit floating-point training, including the Deepspeed ([Link](https://github.com/microsoft/DeepSpeed)) from Microsoft, Megatron-LM ([Link](https://github.com/NVIDIA/Megatron-LM)) from NVIDIA, and UnitScaling ([Link](https://github.com/graphcore-research/unit-scaling)) from GraphCore.
+$\mathrm{fp8\_format}$ indicates the formats like E4M3 or E5M2. $\mathrm{FP8\_MAX}$ is the relevant max value under that format. $\mathrm{amax}$ is the maximal absolute value of the tensor. Then we can calculate the $\mathrm{new\_scaling\_factor}$ with $\mathrm{exp}$. However, the calculation of $\mathrm{new\_scaling\_factor}$ can not be online since it will introduce much more memory access. The best practice is to employ delayed scaling. This strategy chooses the scaling factor based on the maximums of absolute values seen in some number of previous iterations. This enables the full performance of FP8 computation but requires storing the history of maximums as additional parameters of the FP8 operators. Deepseek V3 [Dee24a], one of the state-of-the-art models, introduces fine-grained block-wise FP8 quantization, enabling highly accurate FP8 training. In [Table 3](#table-03), we list the prevalent frameworks and engines that support low-bit floating-point training, including the Deepspeed ([Link](https://github.com/microsoft/DeepSpeed)) from Microsoft, Megatron-LM ([Link](https://github.com/NVIDIA/Megatron-LM)) from NVIDIA, and UnitScaling ([Link](https://github.com/graphcore-research/unit-scaling)) from GraphCore.
+
+<span id="table-03"></span>
 
 ![Systems for low-bit training.](../../papers/low-bit-llms/table-03.png)
 
@@ -497,11 +515,13 @@ Moreover, some methods aim to obtain a deployable quantized and merged model aft
 
 Many methods have recognized that the initialization of LoRA significantly impacts the effectiveness of these quantization-based parameter-efficient fine-tuning methods. As a result, they aim to minimize $\left\|\textbf{W}-(\textbf{W}_{q}+\textbf{A}\textbf{B})\right\|_{F}$ before fine-tuning. LoftQ [Li23b] and LQ-LoRA [Guo23a] both achieve this through iterative computation: $Q_{t}\leftarrow \mathrm{quant}(\textbf{W}-\textbf{A}_{t-1}\textbf{B}_{t-1}^{\top})$ and $\textbf{A}_{t},\textbf{B}_{t}\leftarrow \mathrm{SVD}(\textbf{W}-Q_{t})$. LQ-LoRA also suggests incorporating calibration data, adjusting the minimization objective to $\left\|\sqrt{F}\odot(\textbf{W}-(\textbf{W}_{q}+\textbf{A}\textbf{B}))\right\|_{F}^{2}$, where $F$ is the Fisher information matrix for **W**, and $\odot$ represents the Hadamard product. Additionally, LQ-LoRA introduces dynamic quantization configurations to better adapt to resource constraints.
 
+<span id="figure-07"></span>
+
 ![Illustrations for different LoRA structures.](../../papers/low-bit-llms/figure-07.png)
 
 **Figure 7.** Illustrations for different LoRA structures.
 
-Figure 7 is an illustration of different LoRA structures. Figure 7(a) represents methods like QLoRA that do not alter any part of the LLM during the fine-tuning stage and keep the complete original LoRA structure [Det24, Qin24b, Hay24, Li23b]. Figure 7(b) represents methods like QA-LoRA that also do not change any part of the LLM during fine-tuning but modify the original LoRA structure [Xu23]. Figure 7(c) represents methods like L4Q that modify the original LoRA structure and use a training process similar to QAT [Jeo24].
+[Figure 7](#figure-07) is an illustration of different LoRA structures. [Figure 7(a)](#figure-07) represents methods like QLoRA that do not alter any part of the LLM during the fine-tuning stage and keep the complete original LoRA structure [Det24, Qin24b, Hay24, Li23b]. [Figure 7(b)](#figure-07) represents methods like QA-LoRA that also do not change any part of the LLM during fine-tuning but modify the original LoRA structure [Xu23]. [Figure 7(c)](#figure-07) represents methods like L4Q that modify the original LoRA structure and use a training process similar to QAT [Jeo24].
 Both (a) and (b) require only the quantized LLM weights $W_{q}$ during fine-tuning, while (c) needs to store the pre-trained full-precision weights $W_{\mathrm{fp}}$. (a) is solely intended to reduce training costs and cannot directly produce a quantized model after fine-tuning, while both (b) and (c) can directly integrate the LoRA module after fine-tuning to produce a deployable quantized model. Unlike the weight-only quantization in these methods, RoLoRA [Hua24] incorporates rotations with LoRA for effective weight-activation quantization. Although there are existing LoRA works on MoE [Li24b, Luo24, Gao24], they have not yet focused on quantization. In the context of quantization, it is crucial to assess whether reducing bit precision exacerbates the expert imbalance problem. Additionally, it is important to explore which position should use the LoRA-MoE method for quantization-aware training (including the router and load balancing) and to examine whether allocating more bits to deeper layers is necessary [Gao24].
 
 **Takeaways of subsection 4.2**
@@ -512,13 +532,15 @@ To reduce memory usage during quantization-aware training, a common strategy is 
 
 This section navigates through the algorithms of LLM quantization. Quantization algorithms can be broadly divided into two primary approaches: Quantization-Aware Training (QAT) and Post-Training Quantization (PTQ). QAT integrates quantization into the training/fine-tuning process, enabling the model to learn and adapt to the quantization constraints, thereby minimizing the accuracy loss associated with lower precision. In contrast, in the scenario of PTQ, we are given a pre-trained floating-point model along with a small amount of calibration data, aiming to generate an accurate quantized model without an end-to-end training process. We will delve into these quantization algorithms in detail. By the end of this section, we hope our survey can serve as a thorough and systematic collection of the various quantization algorithms applicable to LLMs, their implementation strategies, and their implications for model performance and efficiency.
 
+<span id="table-04"></span>
+
 ![Comparison of different QAT methods.](../../papers/low-bit-llms/table-04.png)
 
 **Table 4.** Comparison of different QAT methods.
 
 ### 5.1 Quantization-Aware Training
 
-Table 4 summarizes the different QAT methods for LLMs. LLM-QAT [Liu23c] is the pioneering work that investigates the QAT for LLMs. To overcome the training data limits, it proposes data-free knowledge distillation which aligns the teacher logits of full-precision models and student logits of quantized models. Following LLM-QAT, BitDistiller [Du24] employs the asymmetric clipping strategy for asymmetric quantization during the self-distillation stage. EfficientQAT [Che24a] significantly reduces the training cost by splitting the QAT into two consecutive phases. The first phase optimizes all parameters for each block and then the second phase merely optimizes quantization parameters for the entire network. To pave the way for a new era of extreme quantization level, BitNet [Wan23] replaces the BitLinears with original Linears and trains from scratch. Its variant, BitNet b1.58 [Ma24], leverages ternary weight for each parameter which achieves near-lossless performance.
+[Table 4](#table-04) summarizes the different QAT methods for LLMs. LLM-QAT [Liu23c] is the pioneering work that investigates the QAT for LLMs. To overcome the training data limits, it proposes data-free knowledge distillation which aligns the teacher logits of full-precision models and student logits of quantized models. Following LLM-QAT, BitDistiller [Du24] employs the asymmetric clipping strategy for asymmetric quantization during the self-distillation stage. EfficientQAT [Che24a] significantly reduces the training cost by splitting the QAT into two consecutive phases. The first phase optimizes all parameters for each block and then the second phase merely optimizes quantization parameters for the entire network. To pave the way for a new era of extreme quantization level, BitNet [Wan23] replaces the BitLinears with original Linears and trains from scratch. Its variant, BitNet b1.58 [Ma24], leverages ternary weight for each parameter which achieves near-lossless performance.
 
 **Takeaways of subsection 5.1**
 
@@ -526,13 +548,15 @@ Quantization-aware training (QAT) is particularly beneficial in extremely low-bi
 
 ### 5.2 Post-Training Quantization
 
+<span id="figure-08"></span>
+
 ![An overview of the PTQ algorithms.](../../papers/low-bit-llms/figure-08.png)
 
 **Figure 8.** An overview of the PTQ algorithms.
 
 Post-Training Quantization (PTQ) is a technique that applies quantization to a pre-trained model. Unlike QAT, PTQ does not require the model to be trained with quantization modules. This makes PTQ a highly practical approach for deploying models that were originally trained with high precision. PTQ is particularly useful when access to the training data is limited or when retraining is computationally expensive. Therefore, with the development of the LLMs, the past few years have witnessed a remarkable surge in PTQ algorithms because of their small training cost.
 
-To have a better introduction, we systematically divide PTQ algorithms into several categories, as described in Figure 8.
+To have a better introduction, we systematically divide PTQ algorithms into several categories, as described in [Figure 8](#figure-08).
 
 #### 5.2.1 Equivalent Transformation
 
@@ -563,6 +587,8 @@ where $\Delta$ is a shifting factor used to make the distribution of outliers in
 
 Based on the implementation, equivalent transformation can be further subdivided into three types: shifting transformation, scaling transformation, and rotation transformation. We then independently provide a detailed introduction for each type.
 
+<span id="figure-09"></span>
+
 ![Overall diagram of shifting transformation. $\Delta_{1}$ and $\Delta_{2}$ represent two types of shifting operation. $\Delta_{1}$ can be merged into the parameter $\beta$ in Layernorm and the weight metrics. Specifically, $\Delta_{2}$ can not be merged into the weight matrix. Therefore, the shift transformation between value projection $W_{v}$ and out projection $W_{o}$ can only be conducted online, which may raise extra computation burden.](../../papers/low-bit-llms/figure-09.png)
 
 **Figure 9.** Overall diagram of shifting transformation. $\Delta_{1}$ and $\Delta_{2}$ represent two types of shifting operation. $\Delta_{1}$ can be merged into the parameter $\beta$ in Layernorm and the weight metrics. Specifically, $\Delta_{2}$ can not be merged into the weight matrix. Therefore, the shift transformation between value projection $W_{v}$ and out projection $W_{o}$ can only be conducted online, which may raise extra computation burden.
@@ -590,9 +616,11 @@ $$
 where $\mathcal{O}$ represents the mapping function for a transformer block in the LLM, $Q_{w}(\cdot)$ and $Q_{a}(\cdot)$ denote the weight and activation quantizer respectively, $\Delta$ is the shifting parameter. Block-wise minimization is easy to optimize with minimal resource requirements.
 Therefore, by optimizing the objective function block by block, a more effective shifting vector can be obtained compared to the direct computation used in OS+ in an efficient and resource-saving way. However, OmniQuant requires fine-tuning of the learnable parameters; otherwise, issues such as gradient explosion can easily occur. Similar to OmniQuant, AffineQuant [Ma24a] also adopts a learning-based shifting operation.
 
-We illustrate the diagram of shifting transformation as shown in Figure 9. The shifting factor $\Delta$ can be fused in LayerNorm and weight matrix so that no further overhead is needed.
+We illustrate the diagram of shifting transformation as shown in [Figure 9](#figure-09). The shifting factor $\Delta$ can be fused in LayerNorm and weight matrix so that no further overhead is needed.
 
 ##### Scaling Transformation
+
+<span id="figure-10"></span>
 
 ![Overall diagram of scaling transformation. $\Phi$ can be merged into the parameter $\gamma$ in Layernorm and the weight metrices.](../../papers/low-bit-llms/figure-10.png)
 
@@ -647,7 +675,7 @@ where ${\Phi_{x}}$ is the average magnitude of activation (per channel), and use
 
 In addition to searching-based methods, some approaches use learning-based techniques to find the optimal scaling matrix. OmniQuant and AffineQuant also learn the scaling matrix. In Equation 25, OmniQuant learns both the shifting factor $\Delta$ and the scaling matrix $\mathrm{diag}(\Phi)$. However, OmniQuant optimizes only within the range of a diagonal matrix. AffineQuant [Ma24a] argues that this limited search range can lead to significant quantization errors, reducing the generalizability of the quantization method in low-bit scenarios. It proposes learning a general invertible matrix to perform equivalent affine transformations on weights and activations, achieving better results.
 
-We also illustrate the diagram of scaling transformation in Figure 10. The same as shifting transformation, scaling factor $\Phi$ can be merged into layernorm and weight matrix.
+We also illustrate the diagram of scaling transformation in [Figure 10](#figure-10). The same as shifting transformation, scaling factor $\Phi$ can be merged into layernorm and weight matrix.
 
 ##### Rotation Transformation
 
@@ -661,6 +689,8 @@ where $mn$ is the number of the matrix elements and $\|\cdot\|_{F}$ is the Frobe
 
 Both of these two methods target weight-only quantization. Following these approaches, QuaRot [Ash24] introduces a weight&activation quantization method that also quantizes the KV cache. QuaRot operates in two stages. First, the model weights are manipulated in full precision, and two Hadamard operations are added to the model’s forward pass. In the second stage, the weights are quantized using an existing method, and quantization operations are integrated into the forward pass for online activation quantization.
 
+<span id="figure-11"></span>
+
 ![Overall diagram of the rotation transformation. The rotated activations exhibit fewer outliers and are easier to quantize. $R_{1}$ and $R_{2}$ are randomized matrices which can be merged into the weights matrices. $R_{3}$ and $R_{4}$ can not be merged and are usually Hadamard matrices.](../../papers/low-bit-llms/figure-11.png)
 
 **Figure 11.** Overall diagram of the rotation transformation. The rotated activations exhibit fewer outliers and are easier to quantize. $R_{1}$ and $R_{2}$ are randomized matrices which can be merged into the weights matrices. $R_{3}$ and $R_{4}$ can not be merged and are usually Hadamard matrices.
@@ -672,7 +702,7 @@ $$
 \textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).\tag{31}
 $$
 
-Here, $\mathcal{M}$ presents the Stiefel manifold, i.e., the set of all orthogonal matrices. $\mathcal{L}_{Q}(\cdot)$ denotes the task loss. By employing the learned matrix, the performance is improved significantly and the variance becomes much smaller compared with randomized matrices. The diagram in SpinQuant [Liu24a] effectively illustrates the overall process of the rotation transformation, so we have borrowed it for our purposes as shown in Figure 11. Specifically, for Quarot [Ash24], since it employs a head-wise rotation transformation at $R_{2}$, an online Hadamard matrix needs to be inserted before quantizing the attention output to achieve an equivalent transformation. DuQuant [Lin24b] identifies the limitations of these methods in smoothing massive outliers and therefore utilizes rotation and permutation transformations based on prior knowledge. Meanwhile, unlike SpinQuant, a greedy search strategy is employed to optimize the rotation matrix. PrefixQuant [Che24c] discovers the token-wise outliers, especially appearing in initial tokens and low-semantic tokens. Since these tokens remain unchanged across all inputs, PrefixQuant stores their KV cache through offline prefilling.
+Here, $\mathcal{M}$ presents the Stiefel manifold, i.e., the set of all orthogonal matrices. $\mathcal{L}_{Q}(\cdot)$ denotes the task loss. By employing the learned matrix, the performance is improved significantly and the variance becomes much smaller compared with randomized matrices. The diagram in SpinQuant [Liu24a] effectively illustrates the overall process of the rotation transformation, so we have borrowed it for our purposes as shown in [Figure 11](#figure-11). Specifically, for Quarot [Ash24], since it employs a head-wise rotation transformation at $R_{2}$, an online Hadamard matrix needs to be inserted before quantizing the attention output to achieve an equivalent transformation. DuQuant [Lin24b] identifies the limitations of these methods in smoothing massive outliers and therefore utilizes rotation and permutation transformations based on prior knowledge. Meanwhile, unlike SpinQuant, a greedy search strategy is employed to optimize the rotation matrix. PrefixQuant [Che24c] discovers the token-wise outliers, especially appearing in initial tokens and low-semantic tokens. Since these tokens remain unchanged across all inputs, PrefixQuant stores their KV cache through offline prefilling.
 
 We can observe that scaling transformation and rotation transformation can be utilized for the different parts of LLM quantization. QServe [Lin24a] is a co-designed quantization system for efficient LLM serving, combining scaling and rotation transformations. For where additional overhead is required for the online computation of rotation matrices, QServe uses scale transformation as a substitute for rotation operations, thereby avoiding the extra overhead.
 
@@ -784,6 +814,8 @@ For standard Post-Training Quantization (PTQ) of LLMs, equivalent transformation
 
 To quantize the LLMs, there are always three basic strategies, quantization aware-training (QAT), post-training quantization (PTQ), and parameter-efficient fine-tuning (PEFT).
 
+<span id="table-05"></span>
+
 ![Quantization toolkits and benchmarks for large language models.](../../papers/low-bit-llms/table-05.png)
 
 **Table 5.** Quantization toolkits and benchmarks for large language models.
@@ -794,7 +826,7 @@ All the benchmarks are based on one or several inference frameworks as backends,
 
 #### 5.3.2 Evaluation
 
-The evaluation in the benchmarks showcases the most interesting aspects of quantization LLMs, i.e., efficiency and generation quality. We list the detailed tracks in Table 5.
+The evaluation in the benchmarks showcases the most interesting aspects of quantization LLMs, i.e., efficiency and generation quality. We list the detailed tracks in [Table 5](#table-05).
 **For efficiency**, the inference efficiency is measured by deployability and throughput, which are the most crucial features in LLMs compression [Lin24a, Gon24]. Typically, reducing the storage of the parameters can speed up the inference theoretically, but it depends on the actual system implementation. The benchmark provides us with a fair and convenient probe to distinguish the algorithms and implementations that have practical acceleration and storage saving.
 The production efficiency is measured by calibration time, which indicates the time and computational resources cost of the PTQ algorithms [Gon24]. Methods that spare lots of resources usually have better generation quality, while those that require less time may have worse generation performance. It is a trade-off in producing quantized LLMs.
 **For generation quality**, it has many aspects, such as perplexity, accuracy, logic, completion, trustworthiness and so on [Lin24a, Gon24, Li24f, Liu24d]. Most benchmarks evaluate emergent capability, which is the key feature of LLMs. Specifically, models and algorithms are tested under diverse scenarios, like dialogue, long-context, or multi-task [Li24f]. And some benchmarks are aware of the safety of generative contents, and estimate the trustworthiness and robustness of LLMs [Li24f, Liu24d].

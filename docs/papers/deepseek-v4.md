@@ -10,6 +10,8 @@ permalink: /papers/deepseek-v4/
 
 我们推出 DeepSeek-V4 系列的预览版, 其中包括两个性能强劲的混合专家 (MoE) 语言模型: 拥有 1.6T 参数 (激活 49B) 的 DeepSeek-V4-Pro, 以及拥有 284B 参数 (激活 13B) 的 DeepSeek-V4-Flash. 两者均支持 100 万 token 的上下文长度. DeepSeek-V4 系列在架构与优化方面包含多项关键升级: (1) 将压缩稀疏注意力 (CSA) 与高度压缩注意力 (HCA) 相结合的混合注意力架构, 用于提高长上下文效率; (2) 增强传统残差连接的流形约束超连接 (*m*HC); (3) 以及用于加快收敛并提高训练稳定性的 Muon 优化器. 我们使用超过 32T 个多样且高质量的 token 对两个模型进行预训练, 随后采用一套全面的后训练流程来释放并进一步增强其能力. DeepSeek-V4-Pro-Max 是 DeepSeek-V4-Pro 的最高推理强度模式, 它重新定义了开放模型的当前最佳水平, 并在核心任务上超越其前代模型. 与此同时, DeepSeek-V4 系列在长上下文场景中具有很高的效率. 在 100 万 token 的上下文设置下, 与 DeepSeek-V3.2 相比, DeepSeek-V4-Pro 仅需 27% 的单 token 推理 FLOPs 和 10% 的 KV cache. 这使我们能够在常规场景下支持 100 万 token 的上下文, 从而让长程任务和进一步的测试时扩展更具可行性. 模型检查点见 [https://huggingface.co/collections/deepseek-ai/deepseek-v4](https://huggingface.co/collections/deepseek-ai/deepseek-v4).
 
+<span id="figure-01"></span>
+
 ![DeepSeek-V4 图 1](./deepseek-v4/figure-01.png)
 
 **图 1.** **左**: DeepSeek-V4-Pro-Max 及同类模型的基准性能. **右**: DeepSeek-V4 系列与 DeepSeek-V3.2 的推理 FLOPs 和 KV cache 大小.
@@ -24,7 +26,7 @@ permalink: /papers/deepseek-v4/
 
 为了实现 DeepSeek-V4 系列的高效训练与推理并提升开发效率, 我们引入了多项基础设施优化. 第一, 我们为 MoE 模块设计并实现单个融合内核, 使计算, 通信和内存访问完全重叠. 第二, 我们采用领域特定语言 (DSL) TileLang [Wan26], 以平衡开发效率与运行时效率. 第三, 我们提供具备批次不变性和确定性的高效内核库, 确保训练与推理之间的逐位可复现性. 第四, 对于训练框架, 我们使用张量级检查点扩展自动微分框架, 以细粒度控制重计算; 同时通过用于 Muon 优化器的混合 ZeRO 策略, 借助重计算与融合内核实现的成本高效 *m*HC, 以及用于管理压缩注意力的两阶段上下文并行来提高训练效率. 第五, 对于推理框架, 我们设计了带有磁盘存储策略的异构 KV cache 结构, 以实现共享前缀的高效复用. 此外, 在后训练阶段, 我们为 MoE 专家权重和索引器 QK 路径引入 FP4 量化感知训练, 以减少内存与计算开销.
 
-通过采用混合 CSA 与 HCA, 并对计算和存储精度进行优化, 与 DeepSeek-V3.2 相比, DeepSeek-V4 系列显著降低了推理 FLOPs, 并大幅缩小了 KV cache, 在长上下文设置下尤其如此. 图 1 右侧展示了 DeepSeek-V3.2 和 DeepSeek-V4 系列的估算单 token 推理 FLOPs 与累计 KV cache 大小. 在 1M-token 上下文场景中, 即使 DeepSeek-V4-Pro 激活的参数更多, 其单 token FLOPs (按等效 FP8 FLOPs 衡量) 也仅为 DeepSeek-V3.2 的 27%, KV cache 大小仅为后者的 10%. 此外, 激活参数更少的 DeepSeek-V4-Flash 将效率进一步提高: 在 1M-token 上下文设置下, 其单 token FLOPs 仅为 DeepSeek-V3.2 的 10%, KV cache 大小仅为后者的 7%. 另外, DeepSeek-V4 系列的路由专家参数使用 FP4 精度. 在现有硬件上, FP4 $\times$ FP8 运算的峰值 FLOPs 目前与 FP8 $\times$ FP8 相同, 但未来硬件理论上可以将其实现为效率提高 $1/3$, 从而进一步提升 DeepSeek-V4 系列的效率.
+通过采用混合 CSA 与 HCA, 并对计算和存储精度进行优化, 与 DeepSeek-V3.2 相比, DeepSeek-V4 系列显著降低了推理 FLOPs, 并大幅缩小了 KV cache, 在长上下文设置下尤其如此. [图 1](#figure-01) 右侧展示了 DeepSeek-V3.2 和 DeepSeek-V4 系列的估算单 token 推理 FLOPs 与累计 KV cache 大小. 在 1M-token 上下文场景中, 即使 DeepSeek-V4-Pro 激活的参数更多, 其单 token FLOPs (按等效 FP8 FLOPs 衡量) 也仅为 DeepSeek-V3.2 的 27%, KV cache 大小仅为后者的 10%. 此外, 激活参数更少的 DeepSeek-V4-Flash 将效率进一步提高: 在 1M-token 上下文设置下, 其单 token FLOPs 仅为 DeepSeek-V3.2 的 10%, KV cache 大小仅为后者的 7%. 另外, DeepSeek-V4 系列的路由专家参数使用 FP4 精度. 在现有硬件上, FP4 $\times$ FP8 运算的峰值 FLOPs 目前与 FP8 $\times$ FP8 相同, 但未来硬件理论上可以将其实现为效率提高 $1/3$, 从而进一步提升 DeepSeek-V4 系列的效率.
 
 在预训练期间, 我们分别使用 32T 个 token 训练 DeepSeek-V4-Flash, 使用 33T 个 token 训练 DeepSeek-V4-Pro. 预训练后, 这两个模型均可原生且高效地支持长度为 1M token 的上下文. 在内部评测中, 凭借参数效率更高的设计, DeepSeek-V4-Flash-Base 已经在大多数基准上超越 DeepSeek-V3.2-Base. DeepSeek-V4-Pro-Base 进一步发挥这一优势, 在 DeepSeek 基础模型中树立新的性能标准, 并在推理, 编码, 长上下文和世界知识任务上全面领先.
 
@@ -38,13 +40,15 @@ DeepSeek-V4 系列的后训练流程采用两阶段范式: 首先独立培养特
 - **长上下文**: DeepSeek-V4-Pro-Max 在拥有一百万 token 上下文窗口的合成与真实用例上取得强劲结果, 在学术基准上甚至超越 Gemini-3.1-Pro.
 - **DeepSeek-V4-Pro 与 DeepSeek-V4-Flash**: 由于参数规模较小, DeepSeek-V4-Flash-Max 在知识评测中的表现较低. 但分配更多思考预算后, 它在推理任务上取得了相当的结果. 在智能体评测中, DeepSeek-V4-Flash-Max 虽然在多项基准上可与 DeepSeek-V4-Pro-Max 相比, 但在更复杂的高难度任务上仍落后于体量更大的 DeepSeek-V4-Pro-Max.
 
+<span id="figure-02"></span>
+
 ![DeepSeek-V4 图 2](./deepseek-v4/figure-02.png)
 
 **图 2.** DeepSeek-V4 系列的整体架构. 我们在注意力层中使用混合 CSA (压缩稀疏注意力) 与 HCA (高度压缩注意力), 在前馈层中使用 DeepSeekMoE, 并使用 *m*HC 增强传统残差连接.
 
 ## 2 架构
 
-总体而言, DeepSeek-V4 系列保留 Transformer [Vas17] 架构与多 token 预测 (MTP) 模块 [Glo24, Dee24a], 同时相较 DeepSeek-V3 引入多项关键升级: (1) 第一, 我们引入流形约束超连接 (*m*HC) [Xie26] 来增强传统残差连接; (2) 第二, 我们设计了混合注意力架构, 通过压缩稀疏注意力与高度压缩注意力大幅提高长上下文效率; (3) 第三, 我们采用 Muon [Kel24, Liu25] 作为优化器. 对于混合专家 (MoE) 组件, 我们仍采用 DeepSeekMoE [Dai24] 架构, 仅在 DeepSeek-V3 的基础上进行少量调整. 多 token 预测 (MTP) [Qi20, Glo24, Li24g, Dee24a] 的配置与 DeepSeek-V3 保持完全一致. 其他所有未说明的细节均遵循 DeepSeek-V3 [Dee24a] 中确立的设置. 图 2 展示了 DeepSeek-V4 的整体架构, 具体细节如下.
+总体而言, DeepSeek-V4 系列保留 Transformer [Vas17] 架构与多 token 预测 (MTP) 模块 [Glo24, Dee24a], 同时相较 DeepSeek-V3 引入多项关键升级: (1) 第一, 我们引入流形约束超连接 (*m*HC) [Xie26] 来增强传统残差连接; (2) 第二, 我们设计了混合注意力架构, 通过压缩稀疏注意力与高度压缩注意力大幅提高长上下文效率; (3) 第三, 我们采用 Muon [Kel24, Liu25] 作为优化器. 对于混合专家 (MoE) 组件, 我们仍采用 DeepSeekMoE [Dai24] 架构, 仅在 DeepSeek-V3 的基础上进行少量调整. 多 token 预测 (MTP) [Qi20, Glo24, Li24g, Dee24a] 的配置与 DeepSeek-V3 保持完全一致. 其他所有未说明的细节均遵循 DeepSeek-V3 [Dee24a] 中确立的设置. [图 2](#figure-02) 展示了 DeepSeek-V4 的整体架构, 具体细节如下.
 
 ### 2.1 继承自 DeepSeek-V3 的设计
 
@@ -58,7 +62,7 @@ DeepSeek-V4 系列的后训练流程采用两阶段范式: 首先独立培养特
 
 ### 2.2 流形约束超连接
 
-如图 2 所示, DeepSeek-V4 系列引入流形约束超连接 (*m*HC) [Xie26], 以增强相邻 Transformer 块之间的传统残差连接. 与朴素超连接 (HC) [Zhu25] 相比, *m*HC 的核心思想是将残差映射约束到特定流形上, 从而在保持模型表达能力的同时, 提高信号跨层传播的稳定性. 本小节简要介绍标准 HC, 并说明我们如何设计 *m*HC 以实现稳定训练.
+如[图 2](#figure-02) 所示, DeepSeek-V4 系列引入流形约束超连接 (*m*HC) [Xie26], 以增强相邻 Transformer 块之间的传统残差连接. 与朴素超连接 (HC) [Zhu25] 相比, *m*HC 的核心思想是将残差映射约束到特定流形上, 从而在保持模型表达能力的同时, 提高信号跨层传播的稳定性. 本小节简要介绍标准 HC, 并说明我们如何设计 *m*HC 以实现稳定训练.
 
 **标准超连接.**
 
@@ -122,13 +126,15 @@ $$
 
 当上下文长度达到极端规模时, 注意力机制会成为模型的主要计算瓶颈. 对于 DeepSeek-V4, 我们设计了两种高效注意力架构, 即压缩稀疏注意力 (CSA) 与高度压缩注意力 (HCA), 并采用二者交错的混合配置, 从而显著降低长文本场景中的注意力计算成本. CSA 同时整合压缩与稀疏注意力策略: 它先将每 $m$ 个 token 的键值 (KV) cache 压缩为一个条目, 再应用 DeepSeek 稀疏注意力 (DSA) [Dee25a], 使每个查询 token 仅关注 $k$ 个压缩 KV 条目. HCA 旨在实现极致压缩, 将每 $m^{\prime}$ ($\gg m$) 个 token 的 KV cache 合并为单个条目. CSA 与 HCA 的混合架构显著提高了 DeepSeek-V4 系列的长上下文效率, 使一百万 token 上下文在实践中切实可行. 本小节介绍混合注意力架构的核心技术, 我们还提供了一个开源实现 [+1], 用以明确说明更多细节.
 
+<span id="figure-03"></span>
+
 ![DeepSeek-V4 图 3](./deepseek-v4/figure-03.png)
 
 **图 3.** CSA 的核心架构. 它将 KV 条目数量压缩至 $\frac{1}{m}$, 随后应用 DeepSeek 稀疏注意力以进一步加速. 此外, 一小组滑动窗口 KV 条目会与选中的压缩 KV 条目结合, 以增强局部细粒度依赖关系.
 
 #### 2.3.1 压缩稀疏注意力
 
-图 3 展示了 CSA 的核心架构. 它先将每 $m$ 个 token 的 KV cache 压缩为一个条目, 随后应用 DeepSeek 稀疏注意力以进一步加速.
+[图 3](#figure-03) 展示了 CSA 的核心架构. 它先将每 $m$ 个 token 的 KV cache 压缩为一个条目, 随后应用 DeepSeek 稀疏注意力以进一步加速.
 
 **压缩键值条目.**
 
@@ -202,13 +208,15 @@ $$
 
 在 DeepSeek-V4 的配置中, $cn_{h}$ 相当大. 因此, 将核心注意力操作的输出 $[\mathbf{o}_{t,1};\mathbf{o}_{t,2};...;\mathbf{o}_{t,n_{h}}]=\mathbf{o}_{t}\in\mathbb{R}^{cn_{h}}$ 直接投影到 $d$ 维隐藏状态会带来沉重的计算负担. 为降低这一成本, 我们设计了分组输出投影策略. 具体而言, 我们首先将 $n_{h}$ 个输出分成 $g$ 组, 随后对于每组输出 $\mathbf{o}^{G}_{t,i}\in\mathbb{R}^{c\frac{n_{h}}{g}}$, 将其投影为 $d_{g}$ 维中间输出 $\mathbf{o}^{G^{\prime}}_{t,i}\in\mathbb{R}^{d_{g}}$, 其中 $d_{g}<c\frac{n_{h}}{g}$. 最后, 将中间输出 $[\mathbf{o}^{G^{\prime}}_{t,1};\mathbf{o}^{G^{\prime}}_{t,2};...;\mathbf{o}^{G^{\prime}}_{t,g}]\in\mathbb{R}^{d_{g}g}$ 投影为最终注意力输出 $\mathbf{\hat{o}}_{t}\in\mathbb{R}^{d}$.
 
+<span id="figure-04"></span>
+
 ![DeepSeek-V4 图 4](./deepseek-v4/figure-04.png)
 
 **图 4.** HCA 的核心架构. 它执行更强的压缩, 将 $m^{\prime}$ ($\gg m$) 个 token 的 KV 条目合并为一个. 我们还额外引入一小组滑动窗口 KV 条目, 以增强局部细粒度依赖关系.
 
 #### 2.3.2 高度压缩注意力
 
-图 4 展示了 HCA 的核心架构. 它采用更高压缩率来压缩 KV cache, 但不采用稀疏注意力.
+[图 4](#figure-04) 展示了 HCA 的核心架构. 它采用更高压缩率来压缩 KV cache, 但不采用稀疏注意力.
 
 **压缩键值条目.**
 
@@ -284,7 +292,7 @@ $$
 
 通过采用混合 CSA 与 HCA 以及低精度计算和存储, DeepSeek-V4 系列的注意力模块在注意力 FLOPs 与 KV cache 大小两方面都具有出色效率, 在长上下文场景中尤其如此. 第一, 我们为 KV 条目采用混合存储格式: 旋转位置嵌入 (RoPE) 维度使用 BF16 精度, 其余维度使用 FP8 精度. 与纯 BF16 存储相比, 这一混合表示将 KV cache 大小减少了近一半. 第二, Lightning Indexer 内的注意力计算以 FP4 精度执行, 从而在极长上下文下加速注意力操作. 第三, 相较 DeepSeek-V3.2, DeepSeek-V4 系列选择了更小的注意力 top-k, 从而提高模型在短文本与中等长度文本上的效率. 最后也是最重要的一点, 压缩注意力与混合注意力技术大幅降低了 KV cache 大小与计算 FLOPs.
 
-以头维度为 128 的 BF16 GQA8 [Ain23] 作为基线, 这是 LLM 注意力的常见配置之一. 在 1M 上下文设置下, DeepSeek-V4 系列的 KV cache 大小可以大幅降至该基线的约 $2\%$. 此外, 即便与已经相当高效的基线 DeepSeek-V3.2 [Dee25a] 相比, DeepSeek-V4 系列仍展现出显著的效率优势. 图 1 右侧给出了二者推理 FLOPs 与 KV cache 大小的比较.
+以头维度为 128 的 BF16 GQA8 [Ain23] 作为基线, 这是 LLM 注意力的常见配置之一. 在 1M 上下文设置下, DeepSeek-V4 系列的 KV cache 大小可以大幅降至该基线的约 $2\%$. 此外, 即便与已经相当高效的基线 DeepSeek-V3.2 [Dee25a] 相比, DeepSeek-V4 系列仍展现出显著的效率优势. [图 1](#figure-01) 右侧给出了二者推理 FLOPs 与 KV cache 大小的比较.
 
 **算法 1: DeepSeek-V4 的 Muon 优化器.**
 
@@ -327,7 +335,9 @@ DeepSeek-V4 系列的注意力架构允许我们直接对注意力查询与 KV �
 
 **隐藏通信延迟.**
 
-EP 方案的关键在于, MoE 层中的通信延迟可以有效隐藏在计算过程中. 如图 5 所示, DeepSeek-V4 系列中的每个 MoE 层主要可分解为四个阶段: 两个通信受限阶段 *Dispatch* 和 *Combine*, 以及两个计算受限阶段 *Linear-1* 和 *Linear-2*. 性能分析表明, 在单个 MoE 层内, 通信总时间少于计算总时间. 因此, 将通信与计算融合为统一流水线后, 计算仍是主要瓶颈, 这意味着系统能够容忍更低的互连带宽, 而不会降低端到端性能.
+EP 方案的关键在于, MoE 层中的通信延迟可以有效隐藏在计算过程中. 如[图 5](#figure-05) 所示, DeepSeek-V4 系列中的每个 MoE 层主要可分解为四个阶段: 两个通信受限阶段 *Dispatch* 和 *Combine*, 以及两个计算受限阶段 *Linear-1* 和 *Linear-2*. 性能分析表明, 在单个 MoE 层内, 通信总时间少于计算总时间. 因此, 将通信与计算融合为统一流水线后, 计算仍是主要瓶颈, 这意味着系统能够容忍更低的互连带宽, 而不会降低端到端性能.
+
+<span id="figure-05"></span>
 
 ![DeepSeek-V4 图 5](./deepseek-v4/figure-05.png)
 
@@ -335,7 +345,7 @@ EP 方案的关键在于, MoE 层中的通信延迟可以有效隐藏在计算�
 
 **细粒度 EP 方案.**
 
-为进一步降低互连带宽要求并放大重叠的收益, 我们引入更细粒度的专家划分方案. 受多项相关工作 [Aim25, Zha25d] 启发, 我们将专家拆分并调度为多个*波次*. 每个波次由一小部分专家组成. 一旦该波次内所有专家完成通信, 计算即可立即开始, 无需等待其他专家. 如图 5 所示, 在稳态下, 当前波次的计算, 下一波次的 token 传输, 以及已完成专家的结果发送会并发进行. 这在专家之间形成细粒度流水线, 使整个波次中的计算与通信均保持连续. 基于波次的调度可加速强化学习 (RL) rollout 等极端情形, 这类情形通常会遇到长尾小批次.
+为进一步降低互连带宽要求并放大重叠的收益, 我们引入更细粒度的专家划分方案. 受多项相关工作 [Aim25, Zha25d] 启发, 我们将专家拆分并调度为多个*波次*. 每个波次由一小部分专家组成. 一旦该波次内所有专家完成通信, 计算即可立即开始, 无需等待其他专家. 如[图 5](#figure-05) 所示, 在稳态下, 当前波次的计算, 下一波次的 token 传输, 以及已完成专家的结果发送会并发进行. 这在专家之间形成细粒度流水线, 使整个波次中的计算与通信均保持连续. 基于波次的调度可加速强化学习 (RL) rollout 等极端情形, 这类情形通常会遇到长尾小批次.
 
 **性能与开源 Mega-Kernel.**
 
@@ -441,11 +451,13 @@ Muon 优化器需要完整梯度矩阵来计算参数更新, 与零冗余优化�
 
 #### 3.5.1 KV cache 结构与管理
 
-为高效管理 DeepSeek-V4 混合注意力机制产生的异构 KV cache, 我们设计了定制 KV cache 布局. 图 6 展示了该布局, 下面将作详细说明.
+为高效管理 DeepSeek-V4 混合注意力机制产生的异构 KV cache, 我们设计了定制 KV cache 布局. [图 6](#figure-06) 展示了该布局, 下面将作详细说明.
 
 **DeepSeek-V4 中的异构 KV 条目.**
 
 DeepSeek-V4 系列的混合注意力机制引入多种 KV 条目, 它们具有不同的键值 (KV) cache 大小与更新规则. 用于稀疏选择的 Lightning Indexer 为 KV cache 引入额外维度, 其嵌入大小与主要注意力中的维度不同. CSA 与 HCA 采用的压缩技术分别将序列长度缩短至 $\frac{1}{m}$ 和 $\frac{1}{m^{\prime}}$, 从而降低总体 KV cache 大小. 因此, 不同层的 KV cache 大小各不相同. 此外, 滑动窗口注意力 (SWA) 层也采用不同的 KV cache 大小, 以及独立的 cache 命中与逐出策略. 在压缩分支中, 每 $m$ 个 token 生成一个 KV 条目. 当剩余 token 数量不足以压缩时, 所有待处理 token 及其关联隐藏状态必须保留在缓冲区中, 直至可以执行压缩操作. 这些缓冲 token 表示由位置上下文决定的序列状态, 也在 KV cache 框架内管理.
+
+<span id="figure-06"></span>
 
 ![DeepSeek-V4 图 6](./deepseek-v4/figure-06.png)
 
@@ -538,13 +550,15 @@ DeepSeek-V4 系列的混合注意力机制引入多种 KV 条目, 它们具有�
 
 **长上下文**基准包括 LongBench-V2 [Bai25].
 
+<span id="table-01"></span>
+
 ![DeepSeek-V4 表 1](./deepseek-v4/table-01.png)
 
 **表 1.** DeepSeek-V3.2-Base, DeepSeek-V4-Flash-Base 与 DeepSeek-V4-Pro-Base 的比较. 所有模型均在内部框架中评测, 并采用相同评测设置. 分数差距不超过 0.3 时视为同一水平. 每行最高分以**粗体**显示, 第二高分带下划线.
 
 #### 4.3.2 评测结果
 
-表 1 详细比较了 DeepSeek-V3.2, DeepSeek-V4-Flash 与 DeepSeek-V4-Pro 的基础模型, 三者均在统一内部框架下以严格一致的设置评测.
+[表 1](#table-01) 详细比较了 DeepSeek-V3.2, DeepSeek-V4-Flash 与 DeepSeek-V4-Pro 的基础模型, 三者均在统一内部框架下以严格一致的设置评测.
 
 DeepSeek-V4-Flash-Base 与 DeepSeek-V3.2-Base 的比较展现了令人信服的效率优势. 尽管激活参数与总参数数量均大幅减少, DeepSeek-V4-Flash-Base 仍在广泛基准上优于 DeepSeek-V3.2-Base. 这一优势在世界知识任务和具有挑战性的长上下文场景中尤其明显. 这些结果凸显出, DeepSeek-V4-Flash-Base 的架构改进, 数据质量提升与训练优化, 即使在更紧凑的参数预算下也能带来更强性能, 在大多数评测中有效超越规模更大的 DeepSeek-V3.2-Base.
 
@@ -562,11 +576,15 @@ DeepSeek-V4-Flash-Base 与 DeepSeek-V3.2-Base 的比较展现了令人信服的�
 
 **推理强度.**
 
-人们普遍认为, 模型在推理任务上的性能从根本上受所投入计算量支配. 因此, 我们在不同 RL 配置下训练不同的专家模型, 以便开发针对不同推理强度优化的模型. 如表 2 所述, DeepSeek-V4-Pro 与 DeepSeek-V4-Flash 均支持三种特定推理强度模式. 对于每种模式, 我们在 RL 训练期间应用不同的长度惩罚与上下文窗口, 从而产生不同长度的推理输出 token. 为整合这些不同推理模式, 我们使用由 `<think>` 和 `</think>` token 标记的专用回复格式. 此外, 对于 "Think Max" 模式, 我们在系统提示开头添加一条特定指令, 引导模型的推理过程, 如表 3 所示.
+人们普遍认为, 模型在推理任务上的性能从根本上受所投入计算量支配. 因此, 我们在不同 RL 配置下训练不同的专家模型, 以便开发针对不同推理强度优化的模型. 如[表 2](#table-02) 所述, DeepSeek-V4-Pro 与 DeepSeek-V4-Flash 均支持三种特定推理强度模式. 对于每种模式, 我们在 RL 训练期间应用不同的长度惩罚与上下文窗口, 从而产生不同长度的推理输出 token. 为整合这些不同推理模式, 我们使用由 `<think>` 和 `</think>` token 标记的专用回复格式. 此外, 对于 "Think Max" 模式, 我们在系统提示开头添加一条特定指令, 引导模型的推理过程, 如[表 3](#table-03) 所示.
+
+<span id="table-02"></span>
 
 ![DeepSeek-V4 表 2](./deepseek-v4/table-02.png)
 
 **表 2.** 三种推理模式的比较.
+
+<span id="table-03"></span>
 
 ![DeepSeek-V4 表 3](./deepseek-v4/table-03.png)
 
@@ -576,13 +594,17 @@ DeepSeek-V4-Flash-Base 与 DeepSeek-V3.2-Base 的比较展现了令人信服的�
 
 通常, 易验证任务可使用简单的基于规则的验证器或测试用例有效优化. 相比之下, 难验证任务传统上依赖人类反馈强化学习 (RLHF), 这需要大量人工标注来训练标量奖励模型. 然而, 在 DeepSeek-V4 系列的后训练阶段, 我们舍弃了这些传统的标量奖励模型. 取而代之的是, 为处理难验证任务, 我们整理评分准则驱动的 RL 数据, 并使用生成式奖励模型 (GRM) 评估策略轨迹. 关键在于, 我们直接对 GRM 本身应用 RL 优化. 在该范式中, Actor 网络直接充当 GRM, 使模型的评估 (判断) 能力与标准生成能力能够联合优化. 通过统一这些角色, 模型内部推理能力会自然融入评估过程, 从而产生高度稳健的评分. 此外, 由于模型利用自身逻辑在复杂任务间泛化, 该方法仅需极少量多样化人工标注即可实现更强性能.
 
+<span id="table-04"></span>
+
 ![DeepSeek-V4 表 4](./deepseek-v4/table-04.png)
 
 **表 4.** DeepSeek-V4 系列的工具调用 Schema.
 
 **工具调用 Schema 与特殊 token.**
 
-与先前版本一致, 我们使用专用 `<think></think>` 标签标记推理过程. 在 DeepSeek-V4 系列中, 我们引入新的工具调用 Schema, 使用特殊 "|DSML|" token, 并采用基于 XML 的工具调用格式, 如表 4 所示. 实验表明, XML 格式可有效缓解转义失败并减少工具调用错误, 为模型-工具交互提供更稳健的接口.
+与先前版本一致, 我们使用专用 `<think></think>` 标签标记推理过程. 在 DeepSeek-V4 系列中, 我们引入新的工具调用 Schema, 使用特殊 "|DSML|" token, 并采用基于 XML 的工具调用格式, 如[表 4](#table-04) 所示. 实验表明, XML 格式可有效缓解转义失败并减少工具调用错误, 为模型-工具交互提供更稳健的接口.
+
+<span id="figure-07"></span>
 
 ![DeepSeek-V4 图 7](./deepseek-v4/figure-07.png)
 
@@ -592,10 +614,12 @@ DeepSeek-V4-Flash-Base 与 DeepSeek-V3.2-Base 的比较展现了令人信服的�
 
 DeepSeek-V3.2 引入了一种上下文管理策略, 在多轮工具结果间保留推理轨迹, 但收到新用户消息时将其丢弃. 该策略虽有效, 但在复杂智能体工作流中仍会造成不必要的 token 浪费, 每次新用户轮次都会清空所有累积推理内容, 迫使模型从头重建问题解决状态. 利用 DeepSeek-V4 系列扩展至 1M-token 的上下文窗口, 我们进一步改进这一机制, 最大限度发挥智能体环境中交错式思考的作用:
 
-- **工具调用场景.** 如图 7(a) 所示, 整场对话中的所有推理内容都会完整保留. DeepSeek-V3.2 会在每个新用户轮次丢弃思考轨迹, 而 DeepSeek-V4 系列会跨所有轮次保留完整推理历史, 包括用户消息前后的推理内容. 这使模型能在长程智能体任务中保持连贯且累积的思维链.
-- **通用对话场景.** 如图 7(b) 所示, 保留原有策略: 收到新用户消息时丢弃先前轮次的推理内容, 在持续推理轨迹收益有限的设置中保持上下文简洁.
+- **工具调用场景.** 如[图 7(a)](#figure-07) 所示, 整场对话中的所有推理内容都会完整保留. DeepSeek-V3.2 会在每个新用户轮次丢弃思考轨迹, 而 DeepSeek-V4 系列会跨所有轮次保留完整推理历史, 包括用户消息前后的推理内容. 这使模型能在长程智能体任务中保持连贯且累积的思维链.
+- **通用对话场景.** 如[图 7(b)](#figure-07) 所示, 保留原有策略: 收到新用户消息时丢弃先前轮次的推理内容, 在持续推理轨迹收益有限的设置中保持上下文简洁.
 
 与 DeepSeek-V3.2 相同, 通过用户消息模拟工具交互的智能体框架 (例如 Terminus) 可能不会触发工具调用上下文路径, 因而无法受益于增强的推理持久性. 对于此类架构, 我们仍建议使用 Non-think 模型.
+
+<span id="table-05"></span>
 
 ![DeepSeek-V4 表 5](./deepseek-v4/table-05.png)
 
@@ -603,7 +627,7 @@ DeepSeek-V3.2 引入了一种上下文管理策略, 在多轮工具结果间保�
 
 **Quick Instruction.**
 
-在聊天机器人场景中, 生成回复前必须执行多项辅助任务 (例如判断是否触发网页搜索, 意图识别等). 传统上, 这些任务由单独的小模型处理, 由于它无法复用现有 KV cache, 因而需要冗余预填充. 为克服这一限制, 我们引入 Quick Instruction. 我们直接在输入序列后附加一组专用特殊 token, 每个 token 对应一项特定辅助任务. 通过直接复用已计算的 KV cache, 该机制完全避免冗余预填充, 并允许生成搜索查询, 判断权威性与领域等特定任务并行执行. 因此, 该方法显著降低用户感知的首 token 延迟 (TTFT), 并消除维护和迭代额外小模型的工程开销. 表 5 总结了支持的 Quick Instruction token.
+在聊天机器人场景中, 生成回复前必须执行多项辅助任务 (例如判断是否触发网页搜索, 意图识别等). 传统上, 这些任务由单独的小模型处理, 由于它无法复用现有 KV cache, 因而需要冗余预填充. 为克服这一限制, 我们引入 Quick Instruction. 我们直接在输入序列后附加一组专用特殊 token, 每个 token 对应一项特定辅助任务. 通过直接复用已计算的 KV cache, 该机制完全避免冗余预填充, 并允许生成搜索查询, 判断权威性与领域等特定任务并行执行. 因此, 该方法显著降低用户感知的首 token 延迟 (TTFT), 并消除维护和迭代额外小模型的工程开销. [表 5](#table-05) 总结了支持的 Quick Instruction token.
 
 #### 5.1.2 在策略蒸馏
 
@@ -697,15 +721,21 @@ K2.6 与 GLM-5.1 的部分条目留空, 因为其 API 过于繁忙, 未能返回
 
 #### 5.3.2 评测结果
 
+<span id="table-06"></span>
+
 ![DeepSeek-V4 表 6](./deepseek-v4/table-06.png)
 
 **表 6.** DeepSeek-V4-Pro-Max 与闭源/开源模型的比较. "Max", "xHigh" 和 "High" 表示推理强度. 最佳结果以粗体突出显示, 次佳结果带下划线.
+
+<span id="table-07"></span>
 
 ![DeepSeek-V4 表 7](./deepseek-v4/table-07.png)
 
 **表 7.** DeepSeek-V4 系列不同规模与模式的比较. "Non-Think", "High" 和 "Max" 表示推理强度.
 
-表 6 比较了 DeepSeek-V4-Pro-Max 与其他闭源/开源模型. 我们还评测了 DeepSeek-V4-Flash 与 DeepSeek-V4-Pro 的不同模式, 结果见表 7.
+[表 6](#table-06) 比较了 DeepSeek-V4-Pro-Max 与其他闭源/开源模型. 我们还评测了 DeepSeek-V4-Flash 与 DeepSeek-V4-Pro 的不同模式, 结果见[表 7](#table-07).
+
+<span id="figure-08"></span>
 
 ![DeepSeek-V4 图 8](./deepseek-v4/figure-08.png)
 
@@ -719,11 +749,13 @@ K2.6 与 GLM-5.1 的部分条目留空, 因为其 API 过于繁忙, 未能返回
 
 **推理.**
 
-DeepSeek-V4-Pro-Max 在各项推理基准上超越所有先前开放模型, 并在多项指标上达到当前最佳闭源模型水平; 较小的 DeepSeek-V4-Flash-Max 也在代码与数学推理任务上超越此前最佳开源模型 K2.6-Thinking. 与此同时, DeepSeek-V4-Pro 和 DeepSeek-V4-Flash 在编程竞赛中表现出色. 根据我们的评测, 二者性能可与 GPT-5.4 相比, 这是开放模型首次在该任务上达到闭源模型水平. 在 Codeforces 排行榜上, DeepSeek-V4-Pro-Max 目前在人类参赛者中排名第 23. DeepSeek-V4 在智能体与计算密集型设置下的形式数学任务上也展现出强劲性能. 在智能体设置下, 它取得图 8 所示的当前最佳结果, 超越 Seed Prover [Che25a] 等先前模型. 使用计算更密集的流水线后, 性能进一步提升, 超越包括 Aristotle [Ach25] 在内的系统, 并达到该设置下已知最佳结果.
+DeepSeek-V4-Pro-Max 在各项推理基准上超越所有先前开放模型, 并在多项指标上达到当前最佳闭源模型水平; 较小的 DeepSeek-V4-Flash-Max 也在代码与数学推理任务上超越此前最佳开源模型 K2.6-Thinking. 与此同时, DeepSeek-V4-Pro 和 DeepSeek-V4-Flash 在编程竞赛中表现出色. 根据我们的评测, 二者性能可与 GPT-5.4 相比, 这是开放模型首次在该任务上达到闭源模型水平. 在 Codeforces 排行榜上, DeepSeek-V4-Pro-Max 目前在人类参赛者中排名第 23. DeepSeek-V4 在智能体与计算密集型设置下的形式数学任务上也展现出强劲性能. 在智能体设置下, 它取得[图 8](#figure-08) 所示的当前最佳结果, 超越 Seed Prover [Che25a] 等先前模型. 使用计算更密集的流水线后, 性能进一步提升, 超越包括 Aristotle [Ach25] 在内的系统, 并达到该设置下已知最佳结果.
 
 **智能体.**
 
 DeepSeek-V4 系列在评测中展现出强劲的智能体性能. 对于代码智能体任务, DeepSeek-V4-Pro 取得可与 K2.6 和 GLM-5.1 相比的结果, 但这些开放模型仍落后于闭源对照模型. DeepSeek-V4-Flash 在编码任务上不及 DeepSeek-V4-Pro, 在 Terminal Bench 2.0 上尤其如此. 其他智能体评测中也观察到类似趋势. 值得注意的是, DeepSeek-V4-Pro 在 MCPAtlas 与 Toolathlon 上表现良好, 这两个评测集包含广泛的工具与 MCP 服务, 表明模型具有出色的泛化能力, 并非只在内部框架上表现良好.
+
+<span id="figure-09"></span>
 
 ![DeepSeek-V4 图 9](./deepseek-v4/figure-09.png)
 
@@ -731,7 +763,9 @@ DeepSeek-V4 系列在评测中展现出强劲的智能体性能. 对于代码智
 
 **1M-token 上下文.**
 
-DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-Pro, 但仍落后于 Claude Opus 4.6. 如图 9 所示, 检索性能在 128K 上下文窗口内保持高度稳定. 超过 128K 后虽出现可见性能下降, 但与专有及开源对照模型相比, 模型在 1M token 时的检索能力仍非常强. 与 MRCR 不同, CorpusQA 更接近真实场景. 评测结果同样表明 DeepSeek-V4-Pro 优于 Gemini-3.1-Pro.
+DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-Pro, 但仍落后于 Claude Opus 4.6. 如[图 9](#figure-09) 所示, 检索性能在 128K 上下文窗口内保持高度稳定. 超过 128K 后虽出现可见性能下降, 但与专有及开源对照模型相比, 模型在 1M token 时的检索能力仍非常强. 与 MRCR 不同, CorpusQA 更接近真实场景. 评测结果同样表明 DeepSeek-V4-Pro 优于 Gemini-3.1-Pro.
+
+<span id="figure-10"></span>
 
 ![DeepSeek-V4 图 10](./deepseek-v4/figure-10.png)
 
@@ -739,7 +773,7 @@ DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-P
 
 **推理强度.**
 
-如表 7 所示, Max 模式在 RL 中使用更长上下文与更低长度惩罚, 在最具挑战性的任务上优于 High 模式. 图 10 比较了 DeepSeek-V4-Pro, DeepSeek-V4-Flash 与 DeepSeek-V3.2 在代表性推理和智能体任务上的性能与成本. 通过扩展测试时计算, DeepSeek-V4 系列相较前代模型取得显著提升. 此外, 在 HLE 等推理任务上, DeepSeek-V4-Pro 的 token 效率高于 DeepSeek-V3.2.
+如[表 7](#table-07) 所示, Max 模式在 RL 中使用更长上下文与更低长度惩罚, 在最具挑战性的任务上优于 High 模式. [图 10](#figure-10) 比较了 DeepSeek-V4-Pro, DeepSeek-V4-Flash 与 DeepSeek-V3.2 在代表性推理和智能体任务上的性能与成本. 通过扩展测试时计算, DeepSeek-V4 系列相较前代模型取得显著提升. 此外, 在 HLE 等推理任务上, DeepSeek-V4-Pro 的 token 效率高于 DeepSeek-V3.2.
 
 ### 5.4 真实场景任务表现
 
@@ -747,9 +781,9 @@ DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-P
 
 #### 5.4.1 中文写作
 
-中文写作是 DeepSeek 的主要用例之一. 我们对功能性写作与创意写作进行了严格评测. 表 12 给出了 DeepSeek-V4-Pro 与 Gemini-3.1-Pro 在功能性写作任务上的成对比较. 这些任务由常见日常写作查询组成, 提示通常简洁直接. 我们选择 Gemini-3.1-Pro 作为基线, 因为它在评测中是中文写作表现最佳的外部模型. 结果表明, DeepSeek-V4-Pro 以 62.7% 对 34.1% 的总体胜率优于基线; 主要原因是 Gemini 在中文写作场景中偶尔会让其固有风格偏好凌驾于用户明确要求之上.
+中文写作是 DeepSeek 的主要用例之一. 我们对功能性写作与创意写作进行了严格评测. [表 12](#table-12) 给出了 DeepSeek-V4-Pro 与 Gemini-3.1-Pro 在功能性写作任务上的成对比较. 这些任务由常见日常写作查询组成, 提示通常简洁直接. 我们选择 Gemini-3.1-Pro 作为基线, 因为它在评测中是中文写作表现最佳的外部模型. 结果表明, DeepSeek-V4-Pro 以 62.7% 对 34.1% 的总体胜率优于基线; 主要原因是 Gemini 在中文写作场景中偶尔会让其固有风格偏好凌驾于用户明确要求之上.
 
-表 13 给出了创意写作比较, 从指令遵循与写作质量两个维度评测. 与 Gemini-3.1-Pro 相比, DeepSeek-V4-Pro 在指令遵循上的胜率为 60.0%, 写作质量上的胜率为 77.5%, 表明指令遵循略有改善, 写作质量大幅提升. 尽管 DeepSeek-V4-Pro 在整体用户用例评测中取得更好结果, 但仅针对最具挑战性提示, 尤其是涉及高复杂度约束或多轮场景的提示进行评测后发现, Claude Opus 4.5 仍相较 DeepSeek-V4-Pro 保持性能优势. 如表 14 所示, Claude Opus 4.5 的胜率为 52.0%, DeepSeek-V4-Pro 为 45.9%.
+[表 13](#table-13) 给出了创意写作比较, 从指令遵循与写作质量两个维度评测. 与 Gemini-3.1-Pro 相比, DeepSeek-V4-Pro 在指令遵循上的胜率为 60.0%, 写作质量上的胜率为 77.5%, 表明指令遵循略有改善, 写作质量大幅提升. 尽管 DeepSeek-V4-Pro 在整体用户用例评测中取得更好结果, 但仅针对最具挑战性提示, 尤其是涉及高复杂度约束或多轮场景的提示进行评测后发现, Claude Opus 4.5 仍相较 DeepSeek-V4-Pro 保持性能优势. 如[表 14](#table-14) 所示, Claude Opus 4.5 的胜率为 52.0%, DeepSeek-V4-Pro 为 45.9%.
 
 #### 5.4.2 搜索
 
@@ -757,11 +791,11 @@ DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-P
 
 **检索增强搜索.**
 
-我们在客观与主观问答类别上对 DeepSeek-V4-Pro 和 DeepSeek-V3.2 进行成对评测. 如表 11 所示, DeepSeek-V4-Pro 以显著优势超越 DeepSeek-V3.2, 并在两个类别中均展现出一致优势. 最明显的提升出现在单值搜索和规划与策略任务中, 表明 DeepSeek-V4-Pro 擅长定位精确事实答案, 并基于检索上下文制定结构化计划. 然而, DeepSeek-V3.2 在比较与推荐任务上仍相对有竞争力, 这表明 DeepSeek-V4-Pro 在需要针对搜索结果进行均衡多视角推理的场景中仍有潜在改进空间.
+我们在客观与主观问答类别上对 DeepSeek-V4-Pro 和 DeepSeek-V3.2 进行成对评测. 如[表 11](#table-11) 所示, DeepSeek-V4-Pro 以显著优势超越 DeepSeek-V3.2, 并在两个类别中均展现出一致优势. 最明显的提升出现在单值搜索和规划与策略任务中, 表明 DeepSeek-V4-Pro 擅长定位精确事实答案, 并基于检索上下文制定结构化计划. 然而, DeepSeek-V3.2 在比较与推荐任务上仍相对有竞争力, 这表明 DeepSeek-V4-Pro 在需要针对搜索结果进行均衡多视角推理的场景中仍有潜在改进空间.
 
 **智能体搜索.**
 
-与标准 RAG 不同, 智能体搜索使模型能针对每次查询迭代调用搜索与抓取工具, 显著提高总体搜索性能. 对于 DeepSeek-Chat 的思考模式, 我们优化了智能体搜索功能, 以在预定义"思考预算"内最大化回复准确性. 如表 9 所示, 智能体搜索始终优于 RAG, 在复杂任务上尤其如此. 此外, 其成本效率仍然很高, 仅略高于标准 RAG (见表 10).
+与标准 RAG 不同, 智能体搜索使模型能针对每次查询迭代调用搜索与抓取工具, 显著提高总体搜索性能. 对于 DeepSeek-Chat 的思考模式, 我们优化了智能体搜索功能, 以在预定义"思考预算"内最大化回复准确性. 如[表 9](#table-09) 所示, 智能体搜索始终优于 RAG, 在复杂任务上尤其如此. 此外, 其成本效率仍然很高, 仅略高于标准 RAG (见[表 10](#table-10)).
 
 #### 5.4.3 白领任务
 
@@ -774,15 +808,21 @@ DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-P
 - **内容质量:** 事实准确性, 逻辑连贯性与专业语气.
 - **版式美观度:** 布局可读性与视觉呈现.
 
-如图 12 所示, DeepSeek-V4-Pro-Max 在多样化中文白领任务上优于 Opus-4.6-Max, 胜出或持平的比例达到 63%, 并在分析, 生成和编辑任务中展现出一致优势. 图 12 所示的详细维度得分凸显模型在任务完成度与内容质量方面的主要优势. 具体而言, DeepSeek-V4-Pro-Max 会频繁提供补充见解与自验证步骤, 主动预判用户隐含意图. 它也擅长长文生成, 能给出深入连贯的叙述, 而非依赖 Opus-4.6-Max 经常产生的过度简化要点列表. 此外, 模型严格遵守正式专业规范, 例如标准化中文层级编号. 然而, 在指令遵循方面, 它偶尔忽略特定格式约束, 略落后于 Opus. 此外, 模型不太擅长将大量文本输入压缩为简洁摘要. 最后, 其版式美观度在演示文稿幻灯片整体视觉设计方面仍有很大改进空间. 图 13, 14 和 15 展示了多个测试用例; 由于部分输出篇幅很长, 仅显示部分页面.
+如[图 12](#figure-12) 所示, DeepSeek-V4-Pro-Max 在多样化中文白领任务上优于 Opus-4.6-Max, 胜出或持平的比例达到 63%, 并在分析, 生成和编辑任务中展现出一致优势. [图 12](#figure-12) 所示的详细维度得分凸显模型在任务完成度与内容质量方面的主要优势. 具体而言, DeepSeek-V4-Pro-Max 会频繁提供补充见解与自验证步骤, 主动预判用户隐含意图. 它也擅长长文生成, 能给出深入连贯的叙述, 而非依赖 Opus-4.6-Max 经常产生的过度简化要点列表. 此外, 模型严格遵守正式专业规范, 例如标准化中文层级编号. 然而, 在指令遵循方面, 它偶尔忽略特定格式约束, 略落后于 Opus. 此外, 模型不太擅长将大量文本输入压缩为简洁摘要. 最后, 其版式美观度在演示文稿幻灯片整体视觉设计方面仍有很大改进空间. [图 13](#figure-13), [14](#figure-14) 和 [15](#figure-15) 展示了多个测试用例; 由于部分输出篇幅很长, 仅显示部分页面.
+
+<span id="figure-11"></span>
 
 ![DeepSeek-V4 图 11](./deepseek-v4/figure-11.png)
 
 **图 11.** 分析, 生成, 编辑任务与总体性能的胜率比较.
 
+<span id="figure-12"></span>
+
 ![DeepSeek-V4 图 12](./deepseek-v4/figure-12.png)
 
 **图 12.** 详细维度得分, 包括任务完成度, 内容质量, 版式美观度和指令遵循.
+
+<span id="figure-13"></span>
 
 ![DeepSeek-V4 图 13](./deepseek-v4/figure-13.png)
 
@@ -790,7 +830,9 @@ DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-P
 
 #### 5.4.4 代码智能体
 
-为对代码智能体能力进行基准测试, 我们从真实内部研发工作负载中整理任务. 我们向 50 多位内部工程师收集 ${\sim}$200 项具有挑战性的任务, 涵盖功能开发, 缺陷修复, 重构与诊断, 横跨 PyTorch, CUDA, Rust 和 C++ 等多种技术栈. 每项任务均附带原始代码库, 对应执行环境以及人工标注的评分准则; 经过严格质量筛选, 保留 30 项任务作为评测集. 如表 8 所示, DeepSeek-V4-Pro 显著优于 Claude Sonnet 4.5, 并接近 Claude Opus 4.5 的水平.
+为对代码智能体能力进行基准测试, 我们从真实内部研发工作负载中整理任务. 我们向 50 多位内部工程师收集 ${\sim}$200 项具有挑战性的任务, 涵盖功能开发, 缺陷修复, 重构与诊断, 横跨 PyTorch, CUDA, Rust 和 C++ 等多种技术栈. 每项任务均附带原始代码库, 对应执行环境以及人工标注的评分准则; 经过严格质量筛选, 保留 30 项任务作为评测集. 如[表 8](#table-08) 所示, DeepSeek-V4-Pro 显著优于 Claude Sonnet 4.5, 并接近 Claude Opus 4.5 的水平.
+
+<span id="table-08"></span>
 
 ![DeepSeek-V4 表 8](./deepseek-v4/table-08.png)
 
@@ -820,33 +862,49 @@ DeepSeek-V4-Pro 在衡量上下文内检索的 MRCR 任务上优于 Gemini-3.1-P
 
 ## 附录 B 评测细节
 
+<span id="table-09"></span>
+
 ![DeepSeek-V4 表 9](./deepseek-v4/table-09.png)
 
 **表 9.** DeepSeek-V4-Pro 的智能体搜索与检索增强搜索比较.
+
+<span id="table-10"></span>
 
 ![DeepSeek-V4 表 10](./deepseek-v4/table-10.png)
 
 **表 10.** DeepSeek-V4-Pro 的成本比较: 智能体搜索与检索增强搜索 (均值). 智能体搜索的大多数工具调用是并行的.
 
+<span id="table-11"></span>
+
 ![DeepSeek-V4 表 11](./deepseek-v4/table-11.png)
 
 **表 11.** DeepSeek-V4-Pro 与 DeepSeek-V3.2 在搜索问答任务上的比较评测.
+
+<span id="table-12"></span>
 
 ![DeepSeek-V4 表 12](./deepseek-v4/table-12.png)
 
 **表 12.** DeepSeek-V4-Pro 与 Gemini-3.1-Pro 在中文功能性写作上的比较分析.
 
+<span id="table-13"></span>
+
 ![DeepSeek-V4 表 13](./deepseek-v4/table-13.png)
 
 **表 13.** DeepSeek-V4-Pro 与 Gemini-3.1-Pro 在中文创意写作上的比较分析.
+
+<span id="table-14"></span>
 
 ![DeepSeek-V4 表 14](./deepseek-v4/table-14.png)
 
 **表 14.** DeepSeek-V4-Pro 与 Claude-Opus-4.5 在复杂指令遵循与多轮写作上的比较.
 
+<span id="figure-14"></span>
+
 ![DeepSeek-V4 图 14](./deepseek-v4/figure-14.png)
 
 **图 14.** 一项要求比较两种纳斯达克定投策略的任务输出示例.
+
+<span id="figure-15"></span>
 
 ![DeepSeek-V4 图 15](./deepseek-v4/figure-15.png)
 

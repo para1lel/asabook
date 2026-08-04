@@ -10,6 +10,8 @@ permalink: /en/papers/glm-5/
 
 We present GLM-5, a next-generation foundation model designed to transition the paradigm of vibe coding to agentic engineering. Building upon the agentic, reasoning, and coding (ARC) capabilities of its predecessor, GLM-5 adopts DSA to significantly reduce training and inference costs while maintaining long-context fidelity. To advance model alignment and autonomy, we implement a new asynchronous reinforcement learning infrastructure that drastically improves post-training efficiency by decoupling generation from training. Furthermore, we propose novel asynchronous agent RL algorithms that further improve RL quality, enabling the model to learn from complex, long-horizon interactions more effectively. Through these innovations, GLM-5 achieves state-of-the-art performance on major open benchmarks. Most critically, GLM-5 demonstrates unprecedented capability in real-world coding tasks, surpassing previous baselines in handling end-to-end software engineering challenges. Code, models, and more information are available at [https://github.com/zai-org/GLM-5](https://github.com/zai-org/GLM-5).
 
+<span id="figure-01"></span>
+
 ![GLM-5 results across eight ARC benchmarks](../../papers/glm-5/figure-01.png)
 
 **Figure 1.** Results of GLM-5, DeepSeek-V3.2, Claude Opus 4.5, Gemini 3 Pro, and GPT-5.2 (xhigh) on 8 agentic, reasoning, and coding benchmarks: Humanity's Last Exam, SWE-bench Verified, SWE-bench Multilingual, Terminal-Bench 2.0, BrowseComp, MCP-Atlas, $\tau^{2}$-Bench, Vending Bench 2.
@@ -22,25 +24,33 @@ We present GLM-5, our next-generation flagship model designed to overcome these 
 
 **Results.**
 
-Figure 1 shows the results of GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro, and GPT-5.2 (xhigh) on 8 agentic, reasoning, and coding benchmarks: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25], Vending Bench 2 [Bac25]. On average, GLM-5 achieves about 20% improvement over our last version GLM-4.7, and is comparable to Claude Opus 4.5 and GPT-5.2 (xhigh), and better than Gemini 3 Pro.
+[Figure 1](#figure-01) shows the results of GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro, and GPT-5.2 (xhigh) on 8 agentic, reasoning, and coding benchmarks: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25], Vending Bench 2 [Bac25]. On average, GLM-5 achieves about 20% improvement over our last version GLM-4.7, and is comparable to Claude Opus 4.5 and GPT-5.2 (xhigh), and better than Gemini 3 Pro.
 
-GLM-5 scores 50 on the Intelligence Index v4.0 and is the new open weights leader (Cf. Figure 2), up from GLM-4.7's score of 42 - an 8 point jump driven by improvements across agentic performance and knowledge/hallucination. This is the first time an open weights model has achieved a score of 50 on the Artificial Analysis Intelligence Index v4.0.
+GLM-5 scores 50 on the Intelligence Index v4.0 and is the new open weights leader (Cf. [Figure 2](#figure-02)), up from GLM-4.7's score of 42 - an 8 point jump driven by improvements across agentic performance and knowledge/hallucination. This is the first time an open weights model has achieved a score of 50 on the Artificial Analysis Intelligence Index v4.0.
+
+<span id="figure-02"></span>
 
 ![Artificial Analysis Intelligence Index v4.0](../../papers/glm-5/figure-02.png)
 
 **Figure 2.** Artificial Analysis Intelligence Index v4.0 incorporates 10 evaluations: GDPval-AA, $\tau^{2}$-Bench Telecom, Terminal-Bench Hard, SciCode, AA-LCR, AA-Omniscience, IFBench, Humanity's Last Exam, GPQA Diamond, CritPt.
 
+<span id="figure-03"></span>
+
 ![GLM-5 rankings on LMArena Text and Code Arena](../../papers/glm-5/figure-03.png)
 
 **Figure 3.** On LMArena, GLM-5 is the #1 open model in both Text Arena and Code Arena.
+
+<span id="figure-04"></span>
 
 ![GLM-5 results on Vending-Bench 2 and CC-Bench-V2](../../papers/glm-5/figure-04.png)
 
 **Figure 4.** Results on several long-horizon tasks. Left: Vending-Bench 2; Right: CC-Bench-V2.
 
-LMArena, initiated by UC Berkeley, is a transparent, shared space to evaluate and compare frontier AI capabilities by human judgment with millions of real tasks, including writing, coding, reasoning, designing, searching, and creating. The large volume of human interactions generates signals of real-world utility, making it different from the other static benchmarks. Figure 3 shows that GLM-5 again is the #1 open model in both Text Arena and Code Arena, and overall on par with Claude-Opus-4.5 and Gemini-3-pro.
+LMArena, initiated by UC Berkeley, is a transparent, shared space to evaluate and compare frontier AI capabilities by human judgment with millions of real tasks, including writing, coding, reasoning, designing, searching, and creating. The large volume of human interactions generates signals of real-world utility, making it different from the other static benchmarks. [Figure 3](#figure-03) shows that GLM-5 again is the #1 open model in both Text Arena and Code Arena, and overall on par with Claude-Opus-4.5 and Gemini-3-pro.
 
-Long-term coherence in agents becomes more and more important. Coding agents can now write code autonomously for hours, and the length and breadth of tasks AI models are able to complete are likely to increase. We use two benchmarks, Vending-Bench 2 and CC-Bench-V2, to evaluate how GLM-5 is able to complete long-horizon tasks. Vending-Bench 2 is a benchmark for measuring AI model performance in running a business over long time horizons. Models are tasked with running a simulated vending machine business over a year and are scored on their bank account balance at the end. Figure 4 (left) shows that GLM-5 ranks #1 among all open-source models, finishing with a final account balance of \$4,432. It approaches Claude Opus 4.5, demonstrating strong long-term planning and resource management. Figure 4 (right) further shows results on our internal evaluation suite CC-Bench-V2. GLM-5 significantly outperforms GLM-4.7 across frontend, backend, and long-horizon tasks, narrowing the gap with Claude Opus 4.5.
+Long-term coherence in agents becomes more and more important. Coding agents can now write code autonomously for hours, and the length and breadth of tasks AI models are able to complete are likely to increase. We use two benchmarks, Vending-Bench 2 and CC-Bench-V2, to evaluate how GLM-5 is able to complete long-horizon tasks. Vending-Bench 2 is a benchmark for measuring AI model performance in running a business over long time horizons. Models are tasked with running a simulated vending machine business over a year and are scored on their bank account balance at the end. [Figure 4](#figure-04) (left) shows that GLM-5 ranks #1 among all open-source models, finishing with a final account balance of \$4,432. It approaches Claude Opus 4.5, demonstrating strong long-term planning and resource management. [Figure 4](#figure-04) (right) further shows results on our internal evaluation suite CC-Bench-V2. GLM-5 significantly outperforms GLM-4.7 across frontend, backend, and long-horizon tasks, narrowing the gap with Claude Opus 4.5.
+
+<span id="figure-05"></span>
 
 ![GLM-5 overall training pipeline](../../papers/glm-5/figure-05.png)
 
@@ -48,7 +58,7 @@ Long-term coherence in agents becomes more and more important. Coding agents can
 
 **Methods.**
 
-Figure 5 shows the overall training pipeline of GLM-5. Our Base Model training began with a massive 27 trillion token corpus, prioritizing code and reasoning early on. We then employed a distinct Mid-training phase to progressively extend context length from 4K to 200K, focusing specifically on long-context agentic data to ensure stability in complex workflows. In Post-Training, we moved beyond standard SFT. We implemented a sequential Reinforcement Learning pipeline—starting with Reasoning RL, followed by Agentic RL, and finishing with General RL. Crucially, we utilized On-Policy Cross-Stage Distillation throughout this process to prevent catastrophic forgetting, ensuring the model retains its sharp reasoning edge while becoming a robust generalist. In summary, the leap in GLM-5's performance is driven by the following technical contributions:
+[Figure 5](#figure-05) shows the overall training pipeline of GLM-5. Our Base Model training began with a massive 27 trillion token corpus, prioritizing code and reasoning early on. We then employed a distinct Mid-training phase to progressively extend context length from 4K to 200K, focusing specifically on long-context agentic data to ensure stability in complex workflows. In Post-Training, we moved beyond standard SFT. We implemented a sequential Reinforcement Learning pipeline—starting with Reasoning RL, followed by Agentic RL, and finishing with General RL. Crucially, we utilized On-Policy Cross-Stage Distillation throughout this process to prevent catastrophic forgetting, ensuring the model retains its sharp reasoning edge while becoming a robust generalist. In summary, the leap in GLM-5's performance is driven by the following technical contributions:
 
 First, we adopt DSA (DeepSeek Sparse Attention) [Dee25a], a novel architectural innovation that significantly reduces both training and inference costs. While GLM-4.5 improved efficiency through a standard MoE architecture, DSA allows GLM-5 to dynamically allocate attention resources based on token importance, drastically lowering the computational overhead without compromising long-context understanding or reasoning depth. With DSA, we scale the model parameters up to 744B and extend the training token budget to 28.5T tokens.
 
@@ -70,6 +80,8 @@ Similar to GLM-4.5, the base model of GLM-5 goes through two stages: pre-trainin
 
 GLM-5 scales to 256 experts and reduces its layer count to 80 to minimize expert parallelism communication overhead. This results in a 744B parameter model (40B active parameters), doubling the total size of GLM-4.5, which utilized 355B total and 32B active parameters.
 
+<span id="table-01"></span>
+
 ![GLM-5 Table 1](../../papers/glm-5/table-01.png)
 
 **Table 1.** Evaluation results for GQA-8 and variants of MLA.
@@ -78,9 +90,11 @@ GLM-5 scales to 256 experts and reduces its layer count to 80 to minimize expert
 
 By employing reduced key-value vectors, Multi-latent attention (MLA) [Dee24] matches the effectiveness of Grouped-Query Attention (GQA) but offers superior GPU memory savings and faster processing for long-context sequences.
 
-However, in our experiments with Muon optimizer, we find that MLA with a 576-dimension latent KV-cache cannot match the performance of GQA with 8 query groups (denoted as GQA-8, 2048-dimension KV-cache). To overcome the performance gap, we propose an adaptation to the recipe of Muon optimizer in GLM-4.5. In the original recipe, we apply matrix orthogonalization to the up-projection matrices $W^{UQ},W^{UK},W^{UV}$ for multi-head queries, keys, and values. Instead, we split these matrices into smaller matrices for different heads and apply matrix orthogonalization to these independent matrices. The method, denoted as Muon Split, enables projection weights for different attention heads to update at different scales. As shown in Table 1, the method effectively improves the performance of MLA to match that of GQA-8. In practice, we also find that with Muon Split, the scale of attention logits of GLM-5 remains stable during pre-training without any clipping strategy.
+However, in our experiments with Muon optimizer, we find that MLA with a 576-dimension latent KV-cache cannot match the performance of GQA with 8 query groups (denoted as GQA-8, 2048-dimension KV-cache). To overcome the performance gap, we propose an adaptation to the recipe of Muon optimizer in GLM-4.5. In the original recipe, we apply matrix orthogonalization to the up-projection matrices $W^{UQ},W^{UK},W^{UV}$ for multi-head queries, keys, and values. Instead, we split these matrices into smaller matrices for different heads and apply matrix orthogonalization to these independent matrices. The method, denoted as Muon Split, enables projection weights for different attention heads to update at different scales. As shown in [Table 1](#table-01), the method effectively improves the performance of MLA to match that of GQA-8. In practice, we also find that with Muon Split, the scale of attention logits of GLM-5 remains stable during pre-training without any clipping strategy.
 
-Another disadvantage of MLA is its high computational cost during decoding. In decoding, MLA performs a 576-dimensional dot product, higher than the 128-dimensional computation of GQA. While the number of attention heads in DeepSeek-V3 is selected according to the roofline of H800 [Zha25b], it is inappropriate for other hardware. Given the Multi-head Attention (MHA) style of MLA during training and prefilling, we increase the head dimension from 192 to 256 and decrease the number of attention heads by 1/3. This keeps the training computation and the number of parameters constant while decreasing the decoding computation. The variant, denoted as MLA-256 in Table 1, matches the performance of MLA under Muon Split.
+Another disadvantage of MLA is its high computational cost during decoding. In decoding, MLA performs a 576-dimensional dot product, higher than the 128-dimensional computation of GQA. While the number of attention heads in DeepSeek-V3 is selected according to the roofline of H800 [Zha25b], it is inappropriate for other hardware. Given the Multi-head Attention (MHA) style of MLA during training and prefilling, we increase the head dimension from 192 to 256 and decrease the number of attention heads by 1/3. This keeps the training computation and the number of parameters constant while decreasing the decoding computation. The variant, denoted as MLA-256 in [Table 1](#table-01), matches the performance of MLA under Muon Split.
+
+<span id="table-02"></span>
 
 ![GLM-5 Table 2](../../papers/glm-5/table-02.png)
 
@@ -88,9 +102,11 @@ Another disadvantage of MLA is its high computational cost during decoding. In d
 
 **Multi-token Prediction with Parameter Sharing.**
 
-Multi-token prediction (MTP) [Glo24, Dee24a] increases the performance of base models and acts as draft models for speculative decoding [Lev23]. However, during training, to predict the next $n$ tokens, $n$ MTP layers are required. As a result, the memory usage of MTP parameters and the kv cache scales linearly with the number of speculative steps. Instead, DeepSeek-V3 is trained with a single MTP layer and predicts the next 2 tokens during inference. The training-inference discrepancy reduces the acceptance rate of the second token. Therefore, we propose sharing the parameters of 3 MTP layers during training. This keeps the memory cost of the draft model consistent with DeepSeek-V3 while increasing the acceptance rate. In Table 2, we show that the acceptance length of GLM-5 is longer than DeepSeek-V3.2, given the same number of speculative steps (4) in our private prompt set.
+Multi-token prediction (MTP) [Glo24, Dee24a] increases the performance of base models and acts as draft models for speculative decoding [Lev23]. However, during training, to predict the next $n$ tokens, $n$ MTP layers are required. As a result, the memory usage of MTP parameters and the kv cache scales linearly with the number of speculative steps. Instead, DeepSeek-V3 is trained with a single MTP layer and predicts the next 2 tokens during inference. The training-inference discrepancy reduces the acceptance rate of the second token. Therefore, we propose sharing the parameters of 3 MTP layers during training. This keeps the memory cost of the draft model consistent with DeepSeek-V3 while increasing the acceptance rate. In [Table 2](#table-02), we show that the acceptance length of GLM-5 is longer than DeepSeek-V3.2, given the same number of speculative steps (4) in our private prompt set.
 
 #### 2.1.1 Continued Pre-Training with DeepSeek Sparse Attention (DSA)
+
+<span id="table-03"></span>
 
 ![GLM-5 Table 3](../../papers/glm-5/table-03.png)
 
@@ -98,11 +114,13 @@ Multi-token prediction (MTP) [Glo24, Dee24a] increases the performance of base m
 
 We use DSA in our training. The core philosophy of DSA [Dee25a] is to replace the traditional dense $O(L^{2})$ attention—which becomes prohibitively expensive at $128\text{K}$ contexts—with a dynamic, fine-grained selection mechanism. Unlike fixed patterns (like sliding windows), DSA "looks" at the content to decide which tokens are important. What makes DSA particularly interesting from a researcher's perspective is how it was introduced via Continued Pre-Training from a dense base model. This avoided the "astronomical" cost of training from scratch. The transition follows a two-stage "dense warm-up and sparse training adaptation" strategy. DeepSeek-V3.2-Exp maintains the same benchmark performance as its dense predecessor, proving that 90% of attention entries in long contexts are indeed redundant. DSA reduces the attention computation by roughly 1.5-2x for long sequences, which is very important for the reasoning-heavy agents we are building, being able to handle 128K contexts at half the GPU cost.
 
+<span id="figure-06"></span>
+
 ![MLA and DSA SFT loss curves](../../papers/glm-5/figure-06.png)
 
 **Figure 6.** SFT loss curves comparison between MLA and DSA training. Results are smoothed by Running Average with a window size of 50.
 
-The DSA training begins from the base model at the end of mid-training. The warm-up stage goes through 1000 steps with each step trained on 14 sequences of 202,752 tokens and a maximum learning rate of 5e-3. The sparse adaptation stage follows the training data and hyperparameters of mid-training and goes through 20B tokens. Although the training budget is much smaller than that of DeepSeek-V3.2 (943.7B tokens), we find that it is enough to adapt the DSA model to match the performance of the original MLA model. As shown in Table 3, the long-context performance of the DSA model is close to that of the MLA model. To further validate the effectiveness of DSA training, we fine-tune the DSA and MLA models with the same SFT data, respectively, and find that the two models tie in training loss and evaluation benchmarks.
+The DSA training begins from the base model at the end of mid-training. The warm-up stage goes through 1000 steps with each step trained on 14 sequences of 202,752 tokens and a maximum learning rate of 5e-3. The sparse adaptation stage follows the training data and hyperparameters of mid-training and goes through 20B tokens. Although the training budget is much smaller than that of DeepSeek-V3.2 (943.7B tokens), we find that it is enough to adapt the DSA model to match the performance of the original MLA model. As shown in [Table 3](#table-03), the long-context performance of the DSA model is close to that of the MLA model. To further validate the effectiveness of DSA training, we fine-tune the DSA and MLA models with the same SFT data, respectively, and find that the two models tie in training loss and evaluation benchmarks.
 
 #### 2.1.2 Ablation Study of Efficient Attention Variants
 
@@ -113,22 +131,28 @@ Beyond DSA [Dee25a], we explore several alternative efficient attention mechanis
 
 Building on these baselines, we propose two improvements:
 
-- SWA Pattern (Search-Based): Inspired by PostNAS [Gu25a], we introduce a search-based adaptation method that identifies the optimal subset of layers for SWA conversion while retaining full attention in the remaining layers. We employ a beam search strategy to determine the configuration that maximizes performance on long-context downstream tasks. To mitigate computational costs, we conduct the search exclusively at a 16K context length and generalize the resulting pattern to all other input lengths. Specifically, we use a beam size of 8, optimizing two layers per step; for GLM-9B (40 layers), the process converges in approximately 10 steps. At each step, candidate patterns are evaluated on the RULER benchmark [Hsi24] at 16K context length, and the top-8 candidates are retained for the subsequent step. The final derived pattern is `SFSSFFSSSFFFFSSFSFFFFFFSFSFSSFSSFSFSSFSSS`, where `S` and `F` denote SWA and full-attention layers, respectively. As shown in Table 4, this search-based configuration significantly outperforms the fixed interleaved approach. Notably, despite being optimized only at 16K, the pattern exhibits robust length generalization, maintaining effective across all tested context lengths.
+- SWA Pattern (Search-Based): Inspired by PostNAS [Gu25a], we introduce a search-based adaptation method that identifies the optimal subset of layers for SWA conversion while retaining full attention in the remaining layers. We employ a beam search strategy to determine the configuration that maximizes performance on long-context downstream tasks. To mitigate computational costs, we conduct the search exclusively at a 16K context length and generalize the resulting pattern to all other input lengths. Specifically, we use a beam size of 8, optimizing two layers per step; for GLM-9B (40 layers), the process converges in approximately 10 steps. At each step, candidate patterns are evaluated on the RULER benchmark [Hsi24] at 16K context length, and the top-8 candidates are retained for the subsequent step. The final derived pattern is `SFSSFFSSSFFFFSSFSFFFFFFSFSFSSFSSFSFSSFSSS`, where `S` and `F` denote SWA and full-attention layers, respectively. As shown in [Table 4](#table-04), this search-based configuration significantly outperforms the fixed interleaved approach. Notably, despite being optimized only at 16K, the pattern exhibits robust length generalization, maintaining effective across all tested context lengths.
 - SimpleGDN: A minimalist linearization strategy designed for maximal reuse of pre-trained weights, improving upon GDN for continual-training adaptation. We remove the `Conv1d` and explicit gating modules entirely and instead directly map the pre-trained Query, Key, and Value projection weights into the linear recurrence formulation. This simplification eliminates the need for additional parameters while preserving the efficiency benefits of linear attention.
+
+<span id="table-04"></span>
 
 ![GLM-5 Table 4](../../papers/glm-5/table-04.png)
 
 **Table 4.** RULER benchmark results for the GLM-9B baseline and two SWA variants *without any additional training*. Both SWA methods use a 1:1 ratio of full-attention to SWA layers with a 4096-token window size. The search-based SWA pattern is discovered once at 16k context length and applied uniformly across all input lengths.
 
-We evaluate all methods on four long-context benchmarks: RULER [Hsi24], MRCR ([https://huggingface.co/datasets/openai/mrcr](https://huggingface.co/datasets/openai/mrcr)), HELMET-ICL [Yen24], and RepoQA [LiuWeb]. Results are summarized in Table 5. We continually train each method on 190B tokens with a 64K context length, maintaining a 1:1 ratio between efficient attention layers and full attention layers. For the GDN and SimpleGDN methods, we follow the Jet-Nemotron [Gu25a] pipeline.
+We evaluate all methods on four long-context benchmarks: RULER [Hsi24], MRCR ([https://huggingface.co/datasets/openai/mrcr](https://huggingface.co/datasets/openai/mrcr)), HELMET-ICL [Yen24], and RepoQA [LiuWeb]. Results are summarized in [Table 5](#table-05). We continually train each method on 190B tokens with a 64K context length, maintaining a 1:1 ratio between efficient attention layers and full attention layers. For the GDN and SimpleGDN methods, we follow the Jet-Nemotron [Gu25a] pipeline.
+
+<span id="table-05"></span>
 
 ![GLM-5 Table 5](../../papers/glm-5/table-05.png)
 
 **Table 5.** Long-context benchmark results. All efficient attention variants are continual-trained from the GLM-9B full-attention baseline. SWA pattern denotes search-based layer selection; SWA interleave denotes the fixed alternating pattern. $\Delta$@64K and $\Delta$@128K show the difference relative to the full-attention baseline at 64K and 128K context lengths, respectively.
 
-The results in Table 5 reveal a clear trade-off hierarchy among efficient attention methods. Naively interleaved sliding window attention (SWA) causes catastrophic degradation on long-context tasks (e.g., $-$30.35 on RULER@128K), while search-based layer selection substantially narrows this gap by preserving full attention where it matters most. Linear attention variants such as GDN further improve quality but at the cost of additional parameters; SimpleGDN strikes the best balance by maximally reusing pre-trained weights. Nevertheless, all of these methods incur an inherent accuracy gap on fine-grained retrieval tasks—up to 5.69 points on RULER@128K and 7.33 on RepoQA@128K—due to the unavoidable information loss introduced by efficient attention mechanisms during continual-training adaptation, even when half of the layers retain full attention. In contrast, DSA is lossless by construction: its lightning indexer achieves token-level sparsity without discarding any long-range dependencies, enabling application to all layers with no quality degradation.
+The results in [Table 5](#table-05) reveal a clear trade-off hierarchy among efficient attention methods. Naively interleaved sliding window attention (SWA) causes catastrophic degradation on long-context tasks (e.g., $-$30.35 on RULER@128K), while search-based layer selection substantially narrows this gap by preserving full attention where it matters most. Linear attention variants such as GDN further improve quality but at the cost of additional parameters; SimpleGDN strikes the best balance by maximally reusing pre-trained weights. Nevertheless, all of these methods incur an inherent accuracy gap on fine-grained retrieval tasks—up to 5.69 points on RULER@128K and 7.33 on RepoQA@128K—due to the unavoidable information loss introduced by efficient attention mechanisms during continual-training adaptation, even when half of the layers retain full attention. In contrast, DSA is lossless by construction: its lightning indexer achieves token-level sparsity without discarding any long-range dependencies, enabling application to all layers with no quality degradation.
 
-To verify this, we conduct a small-scale DSA experiment on GLM-4.7-Flash ([https://huggingface.co/zai-org/GLM-4.7-Flash](https://huggingface.co/zai-org/GLM-4.7-Flash)) with multi-latent attention. Following the standard DSA recipe, training proceeds in two stages: (i) a warmup phase that trains only the indexer for 1,000 steps (batch size 16) while keeping all base-model weights frozen, followed by (ii) a joint-training phase in which both the model and the indexer are co-trained on 150B tokens. Table 6 summarizes the results on RULER across context lengths from 4K to 128K. Even the warmup-only variant (GLM-4.7-Flash + DSA warmup) already preserves the vast majority of baseline performance; the drop is modest and concentrated at the longest context window (128K: $79.21\to 71.35$), while shorter contexts remain virtually unaffected. After the full 150B-token joint-training phase, GLM-4.7-Flash + DSA closes nearly all of this residual gap: it surpasses the baseline at 16K ($+0.86$), 32K ($+0.49$), and 64K ($+1.72$), while incurring only a 0.35-point deficit at 128K.
+To verify this, we conduct a small-scale DSA experiment on GLM-4.7-Flash ([https://huggingface.co/zai-org/GLM-4.7-Flash](https://huggingface.co/zai-org/GLM-4.7-Flash)) with multi-latent attention. Following the standard DSA recipe, training proceeds in two stages: (i) a warmup phase that trains only the indexer for 1,000 steps (batch size 16) while keeping all base-model weights frozen, followed by (ii) a joint-training phase in which both the model and the indexer are co-trained on 150B tokens. [Table 6](#table-06) summarizes the results on RULER across context lengths from 4K to 128K. Even the warmup-only variant (GLM-4.7-Flash + DSA warmup) already preserves the vast majority of baseline performance; the drop is modest and concentrated at the longest context window (128K: $79.21\to 71.35$), while shorter contexts remain virtually unaffected. After the full 150B-token joint-training phase, GLM-4.7-Flash + DSA closes nearly all of this residual gap: it surpasses the baseline at 16K ($+0.86$), 32K ($+0.49$), and 64K ($+1.72$), while incurring only a 0.35-point deficit at 128K.
+
+<span id="table-06"></span>
 
 ![GLM-5 Table 6](../../papers/glm-5/table-06.png)
 
@@ -190,9 +214,11 @@ To provide better accuracy at low-precision, we apply INT4 QAT in the SFT stage.
 
 ## 3 Post-Training
 
-The post-training phase of GLM-5 aims to transform the base model into a highly capable assistant with robust reasoning, coding, and agentic abilities. As illustrated in Figure 5, our pipeline follows a progressive alignment strategy: starting with multi-task Supervised Fine-Tuning (SFT) that introduces sophisticated interleaved thinking modes, followed by specialized Reinforcement Learning (RL) stages for reasoning and agentic tasks, and concluding with a general RL stage for human-style alignment. By leveraging on-policy cross-stage distillation as the final refinement, GLM-5 effectively mitigates capability regression while harnessing the performance gains from each training stage.
+The post-training phase of GLM-5 aims to transform the base model into a highly capable assistant with robust reasoning, coding, and agentic abilities. As illustrated in [Figure 5](#figure-05), our pipeline follows a progressive alignment strategy: starting with multi-task Supervised Fine-Tuning (SFT) that introduces sophisticated interleaved thinking modes, followed by specialized Reinforcement Learning (RL) stages for reasoning and agentic tasks, and concluding with a general RL stage for human-style alignment. By leveraging on-policy cross-stage distillation as the final refinement, GLM-5 effectively mitigates capability regression while harnessing the performance gains from each training stage.
 
 ### 3.1 Supervised Fine-Tuning
+
+<span id="figure-07"></span>
 
 ![Interleaved Thinking and Preserved Thinking](../../papers/glm-5/figure-07.png)
 
@@ -204,7 +230,7 @@ Compared with GLM-4.5, GLM-5 significantly expands the scale of *Agent* and *Cod
 - **Reasoning**: mathematical, programming, and scientific reasoning;
 - **Coding & Agent**: frontend and backend engineering code, tool calling, coding agents, search agents, and general-purpose agents.
 
-Additionally, GLM-5 extends the maximum context length to 202,752 tokens during SFT. Along with an updated chat template, the model supports three distinct thinking characteristics (see Figure 7), including:
+Additionally, GLM-5 extends the maximum context length to 202,752 tokens during SFT. Along with an updated chat template, the model supports three distinct thinking characteristics (see [Figure 7](#figure-07)), including:
 
 - **Interleaved Thinking**: the model thinks before every response and tool call, improving instruction following and the quality of generation (Interleaved thinking was first introduced by [https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking)).
 - **Preserved Thinking**: in coding agent scenarios, the model automatically retains all thinking blocks across multi-turn conversations, reusing existing reasoning instead of re-deriving it from scratch. This reduces information loss and inconsistencies, and is well-suited for long-horizon, complex tasks (Preserved thinking was also adopted by Claude since Opus 4.5. See [https://platform.claude.com/docs/en/build-with-claude/extended-thinking#thinking-block-preservation-in-claude-opus-4-5-and-later](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#thinking-block-preservation-in-claude-opus-4-5-and-later)).
@@ -452,7 +478,9 @@ Prior work [Dee25a] has introduced context management, where *Discard-all* reset
 
 Building on this, we combine keep-recent with Discard-all to form a hybrid *Hierarchical Context Management* strategy. During inference with keep-recent, if the total context length exceeds a threshold $T$, we discard the entire tool-call history and restart with a fresh context, while continuing to apply the keep-recent strategy. We select $T=32k$ via parameter search.
 
-As shown in Figure 8, under different compute budgets, this strategy effectively frees up context space, enabling the model to execute more steps and consistently improving performance. Compared to using Discard-all alone, combining with keep-recent-k achieves consistent gains across all budgets, reaching a final score of 75.9, outperforming all open-source models equipped with context-management.
+As shown in [Figure 8](#figure-08), under different compute budgets, this strategy effectively frees up context space, enabling the model to execute more steps and consistently improving performance. Compared to using Discard-all alone, combining with keep-recent-k achieves consistent gains across all budgets, reaching a final score of 75.9, outperforming all open-source models equipped with context-management.
+
+<span id="figure-08"></span>
 
 ![BrowseComp context management accuracy](../../papers/glm-5/figure-08.png)
 
@@ -466,7 +494,9 @@ We propose a **multi-level reward formulation**, which partitions reward signals
 
 **Level-1: Static markup attributes.** This level focuses on declarative attributes in the generated HTML, including positioning, spacing, color, typography, saturation, and other stylistic attributes. Grounded in professional design principles, we design a set of rules to regulate the model's behavior when generating such declarations. These rules ensure syntactic parsability of the generated HTML, while constraining the design space at the markup level to a subspace optimized for expressiveness, structural clarity, visual harmony, and readability. Additionally, we introduce hallucinated-image and duplicate-image detection mechanisms to suppress hallucinatory or redundant figures.
 
-**Level-2: Runtime rendering properties.** Unlike static inspection, this level evaluates runtime properties of DOM nodes during rendering, such as element width and height, bounding boxes, and other geometric layout metrics. By constraining these properties, we encourage the generated slides to align more closely with human aesthetic preferences in spatial organization. We develop a distributed rendering service capable of executing rendering jobs at high throughput while extracting the required runtime properties. During training, we observe several forms of reward hacking behaviors, such as hard truncation of overlong content or excessive manipulation of spacing (see Figure 9). To mitigate these issues, we refine the renderer implementation to eliminate exploitable loopholes, ensuring that reward signals genuinely incentivize aesthetically coherent layouts rather than superficial compliance with geometric metrics.
+**Level-2: Runtime rendering properties.** Unlike static inspection, this level evaluates runtime properties of DOM nodes during rendering, such as element width and height, bounding boxes, and other geometric layout metrics. By constraining these properties, we encourage the generated slides to align more closely with human aesthetic preferences in spatial organization. We develop a distributed rendering service capable of executing rendering jobs at high throughput while extracting the required runtime properties. During training, we observe several forms of reward hacking behaviors, such as hard truncation of overlong content or excessive manipulation of spacing (see [Figure 9](#figure-09)). To mitigate these issues, we refine the renderer implementation to eliminate exploitable loopholes, ensuring that reward signals genuinely incentivize aesthetically coherent layouts rather than superficial compliance with geometric metrics.
+
+<span id="figure-09"></span>
 
 ![Reward hacking examples in slide RL training](../../papers/glm-5/figure-09.png)
 
@@ -517,7 +547,9 @@ As illustrated above, GLM-5 marks the transition from vibe coding to a new era o
 
 ### 6.1 Evaluation of ARC Benchmarks
 
-We report the main results of the ARC benchmarks in Table 7 that compare GLM-5 with GLM-4.7, DeepSeek-V3.2 [Dee25a], Kimi-K2.5 [Kim26a], Claude Opus 4.5 [Ant25a], Gemini 3 Pro [Dee25], and GPT-5.2 (xhigh) [Ope25b]. In general, GLM-5 delivers a significant improvement over GLM-4.7 and achieves state-of-the-art performance among open-source models, narrowing the gap to proprietary models such as Claude Opus 4.5. Evaluation details can be found at Section [B.2](#b2-evaluation-of-arc-benchmarks).
+We report the main results of the ARC benchmarks in [Table 7](#table-07) that compare GLM-5 with GLM-4.7, DeepSeek-V3.2 [Dee25a], Kimi-K2.5 [Kim26a], Claude Opus 4.5 [Ant25a], Gemini 3 Pro [Dee25], and GPT-5.2 (xhigh) [Ope25b]. In general, GLM-5 delivers a significant improvement over GLM-4.7 and achieves state-of-the-art performance among open-source models, narrowing the gap to proprietary models such as Claude Opus 4.5. Evaluation details can be found at Section [B.2](#b2-evaluation-of-arc-benchmarks).
+
+<span id="table-07"></span>
 
 ![GLM-5 Table 7](../../papers/glm-5/table-07.png)
 
@@ -527,19 +559,19 @@ We report the main results of the ARC benchmarks in Table 7 that compare GLM-5 w
 
 For reasoning and general benchmarks, Humanity's Last Exam (HLE) [Pha25], AIME 2026, HMMT 2025, IMO-AnswerBench [Luo25], GPQA-Diamond [Rei24], and LongBench v2 [Bai25] are evaluated. For HLE, only the text-based subset is evaluated, and GPT-5.2 (medium) is used as the judge model. Most reasoning tasks are evaluated with a maximum generation length of 131,072 tokens, while 202,752 maximum tokens are used for HLE-with-tools.
 
-From Table 7, GLM-5 achieves comparable performance on reasoning tasks to the strong open-source baseline, Kimi-K2.5. Compared to proprietary models, GLM-5 outperforms Claude Opus 4.5 and Gemini 3 Pro on the HLE (with tools). GLM-5 also achieves significant improvements on the HLE benchmark (both with and without tools) compared to its predecessor, GLM-4.7. On the HMMT Feb./Nov. 2025 benchmarks, GLM-5 gets better performance than Claude Opus 4.5 and Gemini 3 Pro. GLM-5 also makes significant progress on the long-context task, as evidenced by achieving the highest score on the long-context reasoning benchmark LongBench v2, second only to Gemini 3 Pro.
+From [Table 7](#table-07), GLM-5 achieves comparable performance on reasoning tasks to the strong open-source baseline, Kimi-K2.5. Compared to proprietary models, GLM-5 outperforms Claude Opus 4.5 and Gemini 3 Pro on the HLE (with tools). GLM-5 also achieves significant improvements on the HLE benchmark (both with and without tools) compared to its predecessor, GLM-4.7. On the HMMT Feb./Nov. 2025 benchmarks, GLM-5 gets better performance than Claude Opus 4.5 and Gemini 3 Pro. GLM-5 also makes significant progress on the long-context task, as evidenced by achieving the highest score on the long-context reasoning benchmark LongBench v2, second only to Gemini 3 Pro.
 
 #### 6.1.2 Evaluation of Coding Benchmarks
 
 For coding benchmarks, we evaluate LLMs on SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal Bench 2.0 [TeaWeb], and CyberGym [Wan25c]. For SWE-bench Verified & Multilingual, we use the OpenHands framework using a tailored instruction prompt for GLM-5. For Terminal-Bench 2.0, two agent frameworks (i.e., Terminus-2 and Claude Code) are used, and we also report the performance on a verified Terminal-Bench 2.0 that resolves some ambiguous instructions (More information can be found in [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified)). The CyberGym benchmark is evaluated in Claude Code 2.1.18.
 
-From Table 7, GLM-5 achieves SOTA performance on coding benchmarks among open-source LLMs. Compared to proprietary LLMs, GLM-5 performs better than Gemini 3 Pro on SWE-bench Verified, and also beats Gemini 3 Pro and GPT-5.2 (xhigh) on SWE-bench Multilingual. On Terminal-Bench 2.0, GLM-5 achieves comparable results to Claude Opus 4.5 and even better results when fixing ambiguous instructions for this benchmark. To demonstrate the generalization of coding abilities, we evaluate on Terminal Bench 2.0 with two agent frameworks, and GLM-5 shows consistent performance across both frameworks. On the cybersecurity coding benchmark (i.e., CyberGym), GLM-5 makes a significant improvement over GLM-4.7, second only to Claude Opus 4.5.
+From [Table 7](#table-07), GLM-5 achieves SOTA performance on coding benchmarks among open-source LLMs. Compared to proprietary LLMs, GLM-5 performs better than Gemini 3 Pro on SWE-bench Verified, and also beats Gemini 3 Pro and GPT-5.2 (xhigh) on SWE-bench Multilingual. On Terminal-Bench 2.0, GLM-5 achieves comparable results to Claude Opus 4.5 and even better results when fixing ambiguous instructions for this benchmark. To demonstrate the generalization of coding abilities, we evaluate on Terminal Bench 2.0 with two agent frameworks, and GLM-5 shows consistent performance across both frameworks. On the cybersecurity coding benchmark (i.e., CyberGym), GLM-5 makes a significant improvement over GLM-4.7, second only to Claude Opus 4.5.
 
 #### 6.1.3 Evaluation of Agentic Abilities
 
 For agentic benchmarks, we evaluate GLM-5 and frontier models on BrowseComp [Wei25], BrowseComp-ZH [Zho25], $\tau^{2}$-Bench [Bar25], MCP-Atlas [Ban26a], Tool-Decathlon [Li25b], Vending-Bench 2 [Bac25], and GDPval-AA [Pat25]. BrowseComp measures how language agents solve challenging problems by browsing the web, and BrowseComp-ZH mainly targets the Chinese web. We use a discard-all strategy as context management for BrowseComp, which is the same as DeepSeek-V3.2, and Kimi K2.5. $\tau^{2}$-Bench evaluates the ability of conversational agents in a dual-control environment. We add a small prompt adjustment for Retail and Telecom to avoid failures caused by premature user termination (see [B.3](#b3-optimized-user-simulator-for-2-bench)). For Airline, we apply the domain fixes proposed in the Claude Opus 4.5 system card [Ant25a] to obtain more accurate results. MCP-Atlas is a real-world tool-use benchmark that assesses how LLMs perform in multi-step workflows, given Model Context Protocol (MCP) servers. For fair comparison, we re-evaluate all models on the 500-task public set and extend the timeout from 4 minutes to 10 minutes per task to avoid task failures due to deployment conditions. We use Gemini 3 Pro as the judge model for MCP-Atlas. Tool-Decathlon is also a tool-use benchmark but targets real-world, long-horizon tasks. Vending-Bench 2 measures the agentic ability of LLMs in a business scenario over long-time horizons within a simulated environment, which adds more real-world factors to the predecessor Vending-Bench. GDPval focuses on how AI agents perform on economically valuable tasks.
 
-From Table 7, GLM-5 improves significantly over agentic benchmarks compared to GLM-4.7. On BrowseComp, GLM-5 achieves SOTA performance among the frontier LLMs in both with and without context management. On BrowseComp-ZH, GLM-5 also beats Claude Opus 4.5 and Gemini 3 Pro. For the three tool-use agentic tasks (i.e, $\tau^{2}$-Bench, MCP-Atlas, and Tool-Decathlon), GLM-5 achieves comparable performance to Claude Opus 4.5, which shows the strong tool-use abilities of GLM-5. The performance of GLM-5 on Vending-Bench 2 (i.e., \$4,432) further demonstrates the long-horizon ability of the business task. In economic scenarios, GLM-5 performs better than Claude Opus 4.5 on GDPval-AA, second only to GPT-5.2 (xhigh).
+From [Table 7](#table-07), GLM-5 improves significantly over agentic benchmarks compared to GLM-4.7. On BrowseComp, GLM-5 achieves SOTA performance among the frontier LLMs in both with and without context management. On BrowseComp-ZH, GLM-5 also beats Claude Opus 4.5 and Gemini 3 Pro. For the three tool-use agentic tasks (i.e, $\tau^{2}$-Bench, MCP-Atlas, and Tool-Decathlon), GLM-5 achieves comparable performance to Claude Opus 4.5, which shows the strong tool-use abilities of GLM-5. The performance of GLM-5 on Vending-Bench 2 (i.e., \$4,432) further demonstrates the long-horizon ability of the business task. In economic scenarios, GLM-5 performs better than Claude Opus 4.5 on GDPval-AA, second only to GPT-5.2 (xhigh).
 
 ### 6.2 Evaluation of Real-world Agentic Engineering Experience
 
@@ -551,6 +583,8 @@ Real-world experience matters more than leaderboards. We upgraded our internal C
 
 **Long-horizon.** We first evaluate the model's information-seeking ability on large codebases, a prerequisite for locating the right files and understanding project context as a human developer would. We then assess end-to-end correctness through multi-step chained tasks constructed by mining merged Pull Requests with extensive commit histories and clustering their commits into coherent task chains. The agent executes these chains sequentially, testing its ability to maintain context and resolve dependencies between stages. Evaluation combines unit tests with Agent-as-a-Judge to verify both functional correctness and semantic adherence.
 
+<span id="table-08"></span>
+
 ![GLM-5 Table 8](../../papers/glm-5/table-08.png)
 
 **Table 8.** CC-Bench-V2 evaluation results across frontend, backend, and long-horizon tasks. **BSR**: Build Success Rate; **ISR**: Instance Success Rate; **CSR**: Check-item Success Rate.
@@ -561,29 +595,31 @@ We develop a comprehensive automated evaluation benchmark specifically designed 
 
 Each test case consists of a *Task* containing multiple concrete and implementable specifications, paired with a *Checklist* where each check-item is directly derived from the corresponding specifications. The evaluation process follows a two-stage pipeline: 1) **Static Verification**: We first verify whether the generated code can successfully build and run. 2) **Agent-as-a-Judge**: For code that executes correctly, we employ a GUI agent to simulate human testing behavior to interactively verify each check item and assign scores based on the fulfillment of requirements. We define the following metrics: *Build Success Rate (BSR)* measures the ratio of projects that successfully initialize and run. *Instance Success Rate (ISR)* measures the ratio of projects that pass all associated specifications. *Check-item Success Rate (CSR)* measures the fine-grained completion rate across all check-items. More details on the data distribution and the construction and validation process are in Appendix [B.4.1](#b41-frontend-evaluation).
 
+<span id="figure-10"></span>
+
 ![Agent-as-a-Judge evaluation pipeline](../../papers/glm-5/figure-10.png)
 
 **Figure 10.** Agent-as-a-Judge evaluation pipeline. Each generated frontend project is first built to verify static correctness. Successfully built instances are then interactively tested by an autonomous Judge Agent, which determines the functional correctness of each check item.
 
 **Agent-as-a-Judge.**
 
-Frontend correctness is inherently visual and interactive, i.e., bugs often surface only when a user clicks a button or resizes a window, making static analysis and fixed test suites insufficient. We therefore introduce Agent-as-a-Judge (Figure 10): each generated project is deployed in a Docker container and built to verify static correctness. Successfully built instances are then handed to an autonomous Judge Agent (Claude Code with Claude Sonnet 4.5, equipped with Playwright MCP tool) that operates in closed-loop cycles: for each check-item, the agent reads source code, interacts with the live UI (clicks, keystrokes, screenshots), inspects terminal output, and renders a pass/fail verdict.
+Frontend correctness is inherently visual and interactive, i.e., bugs often surface only when a user clicks a button or resizes a window, making static analysis and fixed test suites insufficient. We therefore introduce Agent-as-a-Judge ([Figure 10](#figure-10)): each generated project is deployed in a Docker container and built to verify static correctness. Successfully built instances are then handed to an autonomous Judge Agent (Claude Code with Claude Sonnet 4.5, equipped with Playwright MCP tool) that operates in closed-loop cycles: for each check-item, the agent reads source code, interacts with the live UI (clicks, keystrokes, screenshots), inspects terminal output, and renders a pass/fail verdict.
 
 To validate reliability, we compare Agent-as-a-Judge verdicts against independent human expert judgments along two dimensions. For *point-wise consistency*, we sampled 130 check-items, had human experts score each independently, and compared against the agent's verdicts: the two agree on 94% of items, with disagreements concentrated on subjective visual-quality criteria rather than functional specifications. For *ranking consistency*, we evaluated 8 frontier models (Claude Sonnet 4.5, Claude Opus 4.5, Gemini 3 Pro, GLM-4.7, DeepSeek-V3.2, etc.) using both the automated framework and human experts. The resulting model rankings achieve a Spearman correlation of 85.7%, indicating a strong positive correlation.
 
-As shown in Table 8, GLM-5 achieves 98.0% BSR and is competitive with Claude Opus 4.5 in CSR, yet a notable ISR gap persists in all three stacks, indicating that GLM-5 meets most individual requirements but still falls short of Claude Opus 4.5 in completing an entire task end-to-end.
+As shown in [Table 8](#table-08), GLM-5 achieves 98.0% BSR and is competitive with Claude Opus 4.5 in CSR, yet a notable ISR gap persists in all three stacks, indicating that GLM-5 meets most individual requirements but still falls short of Claude Opus 4.5 in completing an entire task end-to-end.
 
 #### 6.2.2 Backend Evaluation
 
 Backend evaluation measures whether a coding agent can make correct, test-passing modifications to real-world server-side codebases under realistic engineering constraints. We curate 85 tasks spanning six languages (Python, Go, C++, Rust, Java, and TypeScript) covering domains such as search engines, database engines, web frameworks, AI inference services, knowledge management systems, and standalone algorithmic and systems-programming challenges. Task types include feature implementation, bug fixing, regression repair, and performance optimization, reflecting the diversity of day-to-day backend development.
 
-To enable fully automated evaluation, each task is equipped with human-crafted unit tests (5-10 per task) that verify both functional correctness and edge-case handling. Tasks are packaged in a terminal-bench style: each runs inside a Docker container initialized from the project's actual build environment, and the agent receives a natural-language problem statement describing the required change. We report Pass@1, where a task is considered solved only if all its associated unit tests pass. The strict all-or-nothing criterion makes this benchmark particularly challenging: GLM-5 and Claude Opus 4.5 perform comparably (Table 8), both significantly ahead of GLM-4.7.
+To enable fully automated evaluation, each task is equipped with human-crafted unit tests (5-10 per task) that verify both functional correctness and edge-case handling. Tasks are packaged in a terminal-bench style: each runs inside a Docker container initialized from the project's actual build environment, and the agent receives a natural-language problem statement describing the required change. We report Pass@1, where a task is considered solved only if all its associated unit tests pass. The strict all-or-nothing criterion makes this benchmark particularly challenging: GLM-5 and Claude Opus 4.5 perform comparably ([Table 8](#table-08)), both significantly ahead of GLM-4.7.
 
 #### 6.2.3 Long-horizon Evaluation
 
 Long-horizon evaluation targets the capabilities that distinguish production-grade agentic engineering from single-turn vibe coding: navigating massive codebases and executing multi-step development where each action reshapes the context for subsequent ones. We decompose this into two complementary tasks.
 
-**Large Repo Exploration.** A prerequisite for any non-trivial coding task is the ability to locate the right source files in a large, unfamiliar repository. We construct an automated benchmark over real high-star GitHub repositories containing tens of thousands of files. Each question is phrased in natural, user-facing language at the level of business semantics, strictly avoiding any mention of filenames, class names, or function names. Moreover, questions require one or two hops of logical reasoning from the user-facing description to the actual implementation—for instance, a question about misaligned lip-sync in a generated video maps to a parameter-tuning block inside a video generation backend. Target files are selected to maximize navigation difficulty: they reside at least three directory levels deep, carry opaque names that resist keyword-based search, implement unique functionality not duplicated elsewhere in the repository, and lie outside its main feature surface. We report Pass@1 averaged over three runs, where a question is considered solved if the agent successfully reads the target file during exploration. In this task, GLM-5 outperforms Claude Opus 4.5 (Table 8), both far ahead of GLM-4.7. The result suggests that effective repo exploration depends less on raw code generation ability and more on strategic search, i.e., iteratively narrowing the file space via directory-level reasoning and semantic association, where GLM-5's training on agentic tool-use trajectories provides a clear advantage.
+**Large Repo Exploration.** A prerequisite for any non-trivial coding task is the ability to locate the right source files in a large, unfamiliar repository. We construct an automated benchmark over real high-star GitHub repositories containing tens of thousands of files. Each question is phrased in natural, user-facing language at the level of business semantics, strictly avoiding any mention of filenames, class names, or function names. Moreover, questions require one or two hops of logical reasoning from the user-facing description to the actual implementation—for instance, a question about misaligned lip-sync in a generated video maps to a parameter-tuning block inside a video generation backend. Target files are selected to maximize navigation difficulty: they reside at least three directory levels deep, carry opaque names that resist keyword-based search, implement unique functionality not duplicated elsewhere in the repository, and lie outside its main feature surface. We report Pass@1 averaged over three runs, where a question is considered solved if the agent successfully reads the target file during exploration. In this task, GLM-5 outperforms Claude Opus 4.5 ([Table 8](#table-08)), both far ahead of GLM-4.7. The result suggests that effective repo exploration depends less on raw code generation ability and more on strategic search, i.e., iteratively narrowing the file space via directory-level reasoning and semantic association, where GLM-5's training on agentic tool-use trajectories provides a clear advantage.
 
 **Multi-step Chained Tasks.** Mainstream coding benchmarks such as SWE-bench reduce evaluation to single-commit, isolated edits, and therefore cannot assess an agent's ability to perform incremental development where each step alters the codebase state for subsequent steps. To address this, we construct a long-horizon benchmark by mining merged Pull Requests from high-quality repositories and assembling task chains via the following pipeline:
 
@@ -594,17 +630,21 @@ Long-horizon evaluation targets the capabilities that distinguish production-gra
 5. **Task Classification.** Tasks are automatically classified (feature / bug-fix / refactor / test / config) and evaluated along three axes: error elimination, critical-path accuracy, and test passage.
 6. **Environment Validation.** Docker environments are constructed, and golden patches are applied to verify zero regression across the entire chain.
 
-Given a chain of $K$ tasks, the agent starts from the base commit and works sequentially: after completing task $k$, its changes are committed, and the auto-apply patch for task $k{+}1$ is applied, so the codebase state evolves cumulatively. Evaluation checks each commit in turn and cumulatively applies test patches from tasks $1$ through $k$ before running the full test suite, catching both failures on the current task and regressions on earlier ones. We report Pass@1 on individual tasks. This chained and state-recursive design directly evaluates the long-range context tracking, planning, and incremental development abilities that single-commit benchmarks leave untested. As Table 8 shows, GLM-5 improves substantially over GLM-4.7, but a significant gap to Claude Opus 4.5 remains. This is because errors are compounded across the chain: a suboptimal edit in one task can silently break tests in subsequent tasks. Narrowing this gap will require advances in long-context consistency and long-horizon self-correction, both active areas of our ongoing research.
+Given a chain of $K$ tasks, the agent starts from the base commit and works sequentially: after completing task $k$, its changes are committed, and the auto-apply patch for task $k{+}1$ is applied, so the codebase state evolves cumulatively. Evaluation checks each commit in turn and cumulatively applies test patches from tasks $1$ through $k$ before running the full test suite, catching both failures on the current task and regressions on earlier ones. We report Pass@1 on individual tasks. This chained and state-recursive design directly evaluates the long-range context tracking, planning, and incremental development abilities that single-commit benchmarks leave untested. As [Table 8](#table-08) shows, GLM-5 improves substantially over GLM-4.7, but a significant gap to Claude Opus 4.5 remains. This is because errors are compounded across the chain: a suboptimal edit in one task can silently break tests in subsequent tasks. Narrowing this gap will require advances in long-context consistency and long-horizon self-correction, both active areas of our ongoing research.
 
 #### 6.2.4 Evaluation on evolving SWE tasks
 
-We evaluate on SWE-rebench [Bad25] because SWE-bench Verified is a static, public, human-validated test set and released for more than 2 years. In contrast, SWE-rebench is built on an automated pipeline that continuously mines fresh, real GitHub issue-fixing tasks, enabling decontaminated, time-robust evaluation that better measures generalization to new software engineering problems rather than performance on a static benchmark. Table 9 shows the official performance of GLM-5 on SWE-rebench and we observe that GLM-5 can effectively generalize to new SWE problems.
+We evaluate on SWE-rebench [Bad25] because SWE-bench Verified is a static, public, human-validated test set and released for more than 2 years. In contrast, SWE-rebench is built on an automated pipeline that continuously mines fresh, real GitHub issue-fixing tasks, enabling decontaminated, time-robust evaluation that better measures generalization to new software engineering problems rather than performance on a static benchmark. [Table 9](#table-09) shows the official performance of GLM-5 on SWE-rebench and we observe that GLM-5 can effectively generalize to new SWE problems.
+
+<span id="table-09"></span>
 
 ![GLM-5 Table 9](../../papers/glm-5/table-09.png)
 
 **Table 9.** Performance on SWE-rebench, January 2026.
 
 ### 6.3 Evaluation of Real-world General Abilities
+
+<span id="figure-11"></span>
 
 ![GLM-5 real-world general ability comparison](../../papers/glm-5/figure-11.png)
 
@@ -614,7 +654,7 @@ While standardized academic benchmarks provide useful signals, they do not fully
 
 Unlike traditional benchmark-centric evaluation, our goal is to measure improvements that directly translate into user-perceived quality gains. For each capability, we adopt a combination of internal human evaluation, internal automated evaluation, external human assessment, and external automated benchmarks, ensuring both diagnostic granularity and cross-model comparability. When using external benchmarks, we prioritize datasets that reflect realistic interaction patterns rather than narrowly constructed test distributions.
 
-Figure 11 presents the comparative results between GLM-5 and GLM-4.7 across five real-world capability domains. Across all evaluated dimensions, GLM-5 shows consistent improvements in machine translation, multilingual dialogue, instruction following, world knowledge, and tool-calling.
+[Figure 11](#figure-11) presents the comparative results between GLM-5 and GLM-4.7 across five real-world capability domains. Across all evaluated dimensions, GLM-5 shows consistent improvements in machine translation, multilingual dialogue, instruction following, world knowledge, and tool-calling.
 
 Detailed evaluation protocols and dataset descriptions for each ability are provided as follows.
 
@@ -722,9 +762,11 @@ AI Ping, EZmodel, iFlow, OpenRouter, Vercel, Yupp, ZenMux
 
 ## Appendix A Hyper-Parameters
 
-Hyper-parameters related to the model architecture of GLM-5 are shown in Table 10.
+Hyper-parameters related to the model architecture of GLM-5 are shown in [Table 10](#table-10).
 
 For training, we follow the setting of GLM-4.5, including the Muon optimizer, cosine decay, and batch size warmup. The learning rate goes through a warmup stage from 0 to 2e-4, and a decaying stage to 4e-5 until the end of the pre-training stage. In the mid-training stage, the learning rate decreases linearly from 4e-5 to 1e-5. Other hyper-parameters are the same as those of GLM-4.5. For DSA warmup stage, the learning rate goes down from 5e-3 to 2e-4. For DSA sparse adaption stage, we use a constant learning rate of 1e-5.
+
+<span id="table-10"></span>
 
 ![GLM-5 Table 10](../../papers/glm-5/table-10.png)
 
@@ -734,7 +776,9 @@ For training, we follow the setting of GLM-4.5, including the Muon optimizer, co
 
 ### B.1 Evaluation of Base Models
 
-We evaluate the base model of GLM-5 with English, Chinese, code, and math benchmarks in Table 11.
+We evaluate the base model of GLM-5 with English, Chinese, code, and math benchmarks in [Table 11](#table-11).
+
+<span id="table-11"></span>
 
 ![GLM-5 Table 11](../../papers/glm-5/table-11.png)
 
@@ -762,7 +806,7 @@ Vending-Bench 2: Runs are conducted independently by Andon Labs ([https://andonl
 
 ### B.3 Optimized User Simulator for $\tau^{2}$-Bench
 
-We add a small prompt adjustment in Telecom and Retail to avoid failures caused by premature user termination. The optimized prompts are shown in Figure 12 and Figure 13. These optimized prompts are integrated into the system prompt as follows:
+We add a small prompt adjustment in Telecom and Retail to avoid failures caused by premature user termination. The optimized prompts are shown in [Figure 12](#figure-12) and [Figure 13](#figure-13). These optimized prompts are integrated into the system prompt as follows:
 
 ```text
 SYSTEM_PROMPT = """"
@@ -775,6 +819,8 @@ SYSTEM_PROMPT = """"
 {optimized_user_prompt}
 """".strip()
 ```
+
+<span id="figure-12"></span>
 
 ```text
 # Note:
@@ -789,6 +835,8 @@ SYSTEM_PROMPT = """"
 ```
 
 **Figure 12.** The optimized user prompt for $\tau^{2}$-Bench Telecom.
+
+<span id="figure-13"></span>
 
 ```text
 # Rules:
@@ -843,6 +891,8 @@ SYSTEM_PROMPT = """"
 
 Our dataset encompasses seven distinct frontend scenarios designed to evaluate a model's engineering proficiency across diverse functional domains: Business Management Systems, Web Games, SVG/Canvas Rendering, Creative Tools & Editors, Showcase Pages, Forms & Tables and Data Visualization.
 
+<span id="table-12"></span>
+
 ![GLM-5 Table 12](../../papers/glm-5/table-12.png)
 
 **Table 12.** Distribution of frontend application scenarios.
@@ -850,6 +900,8 @@ Our dataset encompasses seven distinct frontend scenarios designed to evaluate a
 **Data Distribution by Coding Languages**
 
 The benchmark provides full coverage of three mainstream paradigms: Vanilla Web Stack (HTML/CSS/JS), React Component-based Framework, and the Vue 3 + Vite Progressive Solution.
+
+<span id="table-13"></span>
 
 ![GLM-5 Table 13](../../papers/glm-5/table-13.png)
 

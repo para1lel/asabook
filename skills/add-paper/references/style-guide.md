@@ -94,6 +94,9 @@ Example:
 - Use stable two-digit numbering: `figure-01.png`, `table-01.png`.
 - Verify image dimensions and inspect the actual pixels after cropping. File existence alone is not sufficient.
 - Format the caption as a separate bold label, for example `**Figure 8.**`, `**图 8.**`, or `**図 8.**`.
+- Put a stable two-digit HTML anchor immediately before every numbered object: `<span id="figure-08"></span>` for figures and `<span id="table-03"></span>` for tables.
+- Link every reference in prose, captions, tables, algorithms, and appendices to that local anchor. Use `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, or `[図 8](#figure-08)` according to the page language.
+- Link each number separately in compound references. A subfigure reference such as `[Figure 16a](#figure-16)` targets the base numbered figure.
 
 ## English
 
@@ -112,6 +115,7 @@ Example:
 - Include an English term on first use only when the source includes it or doing so is necessary to identify an otherwise ambiguous official name; do not add explanatory content.
 - Use half-width punctuation in prose: comma, period, colon, semicolon, and parentheses.
 - Insert one space after a half-width comma, period, colon, or semicolon when more text follows.
+- Keep one space between `图` or `表` and its number, and one space between a linked `图 N` or `表 N` reference and following Han text.
 - Insert one space before a left parenthesis when it follows text: `大语言模型 (LLM)`.
 - Do not place spaces just inside parentheses. Insert a space after the right parenthesis when ordinary text continues.
 - Put spaces between Chinese text and adjacent Latin abbreviations, product names, numbers with Latin units, links, or inline math when they form separate tokens.

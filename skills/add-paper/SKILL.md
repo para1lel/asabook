@@ -1,6 +1,6 @@
 ---
 name: add-paper
-description: Add or revise an arXiv paper in the ASa Book papers collection as English, Simplified Chinese, and Japanese pages. Use when Codex needs to add, typeset, translate, localize, synchronize, validate, revise, or commit a paper from an arXiv identifier or URL; preserve the English source, write natural localized technical Chinese and Japanese without semantic drift, use concise titles and Plume content annotations, omit standalone reference lists, preserve shared figures and inline citations, validate the production build, and commit all current repository changes together.
+description: Add or revise an arXiv paper in the ASa Book papers collection as English, Simplified Chinese, and Japanese pages. Use when Codex needs to add, typeset, translate, localize, synchronize, validate, revise, or commit a paper from an arXiv identifier or URL; preserve the English source, write natural localized technical Chinese and Japanese without semantic drift, use concise titles and Plume content annotations, omit standalone reference lists, preserve shared figures and inline citations, link every figure and table reference to a stable anchor, validate the production build, and commit all current repository changes together.
 ---
 
 # Add an arXiv Paper
@@ -61,6 +61,9 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 4. Remove excessive surrounding whitespace. Preserve labels, legends, axes, footnotes, and border strokes; add only a small consistent safety margin.
 5. Compare every cropped asset with the PDF. Pay particular attention to multi-panel figures and dense tables, where automatic trimming can remove meaningful edge content.
 6. Write localized Markdown alt text and an explicit localized bold caption below each asset.
+7. Add a stable two-digit HTML anchor immediately before every numbered figure or table object, such as `<span id="figure-08"></span>` or `<span id="table-03"></span>`.
+8. Link every figure and table reference in prose, captions, tables, algorithms, and appendices to its local anchor. Use localized labels, for example `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, and `[図 8](#figure-08)`.
+9. Link every number in a compound reference separately. Point subfigure references such as `Figure 16a` to the base figure anchor `#figure-16`. In Chinese, keep one space between `图` or `表` and its number, and one space between the linked reference and following Han text.
 
 ## Register Citations and Navigation
 
@@ -91,11 +94,11 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 2. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
 3. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
-4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, inconsistent captions, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
+4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
 5. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
 6. Run `git diff --check`.
 7. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.
-8. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, or navigation changed. Confirm that equations render, tags remain visible, annotations open correctly, images are legible and tightly framed, captions do not overflow, and citation abbreviations show their explanations.
+8. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, or navigation changed. Confirm that equations render, tags remain visible, annotations open correctly, images are legible and tightly framed, captions do not overflow, figure and table links jump to the intended objects, and citation abbreviations show their explanations.
 9. Stop every development or preview server started for validation.
 
 ## Commit the Repository State

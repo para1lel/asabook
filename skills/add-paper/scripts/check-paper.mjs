@@ -143,6 +143,191 @@ function consecutiveHyphenLines(markdown) {
   return matches
 }
 
+function figureTableReferencePattern() {
+  return /\b(?:Figures?|Tables?)\s+\d+(?:\([a-z]\)|[a-z])?|\b(?:Figs?|Tabs?)\.\s*\d+(?:\([a-z]\)|[a-z])?|(?:图|図|表)\s*\d+(?:\([a-z]\)|[a-z])?/giu
+}
+
+function figureTableTarget(reference) {
+  const number = reference.match(/\d+/)?.[0]
+  const type = /^(?:Figures?|Figs?|图|図)/iu.test(reference) ? 'figure' : 'table'
+  return `${type}-${number.padStart(2, '0')}`
+}
+
+function numberedFigureTableCaptions(markdown) {
+  const captions = []
+  const lines = markdown.split(/\r?\n/)
+  let fenceMarker = null
+
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    const caption = line.match(/^\s*\*\*(Figures?|Tables?|图|図|表)\s*(\d+)(?:\([a-z]\)|[a-z])?[.。:]?/iu)
+    if (!caption) continue
+
+    const type = /^(?:Figures?|图|図)$/iu.test(caption[1]) ? 'figure' : 'table'
+    captions.push({
+      id: `${type}-${caption[2].padStart(2, '0')}`,
+      line: index + 1,
+    })
+  }
+
+  return captions
+}
+
+function numberedFigureTableImages(markdown) {
+  const images = []
+  const lines = markdown.split(/\r?\n/)
+  for (const [index, line] of lines.entries()) {
+    for (const match of line.matchAll(/!\[[^\]]*\]\(([^)\s]+)(?:\s+['"][^)]*['"])?\)/g)) {
+      const basename = path.basename(match[1])
+      const numbered = basename.match(/^(figure|table)-(\d{2})(?:[^0-9].*)?\.[^.]+$/)
+      if (!numbered) continue
+      images.push({
+        id: `${numbered[1]}-${numbered[2]}`,
+        line: index + 1,
+      })
+    }
+  }
+  return images
+}
+
+function validateFigureTableLinks(markdown, locale, label) {
+  const anchorMatches = [...markdown.matchAll(/<span\s+id="((?:figure|table)-[^"]+)"><\/span>/g)]
+  const anchors = new Set()
+  for (const match of anchorMatches) {
+    const id = match[1]
+    if (!/^(?:figure|table)-\d{2}$/.test(id)) {
+      fail(`${label}: nonstandard figure/table anchor ${id}; use a two-digit number`)
+    }
+    if (anchors.has(id)) fail(`${label}: duplicate figure/table anchor ${id}`)
+    anchors.add(id)
+  }
+
+  const captions = numberedFigureTableCaptions(markdown)
+  const images = numberedFigureTableImages(markdown)
+  for (const object of [...captions, ...images]) {
+    if (!anchors.has(object.id)) {
+      fail(`${label}: ${object.id} object at line ${object.line} has no matching anchor`)
+    }
+  }
+
+  const lines = markdown.split(/\r?\n/)
+  for (const [index, line] of lines.entries()) {
+    const anchor = line.match(/^<span id="((?:figure|table)-\d{2})"><\/span>$/)
+    if (!anchor) continue
+
+    let objectIndex = index + 1
+    while (objectIndex < lines.length && lines[objectIndex].trim() === '') objectIndex += 1
+    const object = lines[objectIndex]?.trim() ?? ''
+    if (!/^(?:!\[|\||`{3,}|~{3,}|<(?:div|figure|table|img)\b)/.test(object)) {
+      fail(`${label}: anchor ${anchor[1]} at line ${index + 1} is not immediately before a figure/table object`)
+      continue
+    }
+
+    const image = object.match(/!\[[^\]]*\]\(([^)\s]+)/)
+    if (image) {
+      const basename = path.basename(image[1])
+      const numbered = basename.match(/^(figure|table)-(\d{2})(?:[^0-9].*)?\.[^.]+$/)
+      const expectedAnchor = numbered ? `${numbered[1]}-${numbered[2]}` : null
+      if (expectedAnchor && anchor[1] !== expectedAnchor) {
+        fail(`${label}: anchor ${anchor[1]} at line ${index + 1} precedes image ${expectedAnchor}`)
+      }
+    }
+  }
+
+  let fenceMarker = null
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    const links = [...line.matchAll(/(!?)\[([^\]\n]*)\]\((#[A-Za-z0-9_-]+)\)/g)].map((match) => ({
+      start: match.index,
+      end: match.index + match[0].length,
+      image: match[1] === '!',
+      text: match[2],
+      target: match[3],
+    }))
+    const protectedRanges = []
+    for (const match of line.matchAll(/!\[[^\]]*\]\([^)]*\)|`[^`]*`|\$[^$\n]*\$/g)) {
+      protectedRanges.push([match.index, match.index + match[0].length])
+    }
+    for (const link of links.filter((item) => item.image)) {
+      protectedRanges.push([link.start, link.end])
+    }
+    const caption = line.match(/^\s*\*\*(?:Figures?|Tables?|图|図|表)\s*\d+(?:\([a-z]\)|[a-z])?[.。:]?/iu)
+    if (caption) protectedRanges.push([0, caption[0].length])
+
+    if (locale === 'zh') {
+      for (const match of line.matchAll(/(?:图|表)\s*\d+(?:\([a-z]\)|[a-z])?/gu)) {
+        if (!/^(?:图|表) \d/u.test(match[0])) {
+          fail(`${label}: add a space between the Chinese figure/table label and number at line ${index + 1}`)
+        }
+      }
+    }
+
+    for (const match of line.matchAll(figureTableReferencePattern())) {
+      const start = match.index
+      const end = start + match[0].length
+      const protectedContent = protectedRanges.some(([rangeStart, rangeEnd]) => (
+        start < rangeEnd && end > rangeStart
+      ))
+      if (protectedContent) continue
+
+      const link = links.find((item) => !item.image && start >= item.start && end <= item.end)
+      if (!link) {
+        fail(`${label}: unlinked figure/table reference '${match[0]}' at line ${index + 1}`)
+        continue
+      }
+
+      const expectedTarget = `#${figureTableTarget(match[0])}`
+      if (link.target !== expectedTarget) {
+        fail(`${label}: reference '${match[0]}' at line ${index + 1} targets ${link.target}, expected ${expectedTarget}`)
+      }
+      if (!anchors.has(link.target.slice(1))) {
+        fail(`${label}: reference '${match[0]}' at line ${index + 1} targets missing anchor ${link.target}`)
+      }
+
+      if (locale === 'zh' && /^(?:图|表)/u.test(match[0])) {
+        const after = line.slice(link.end)
+        const renderedAfter = after.replace(/^(?:\*\*|__|[*_])+/u, '')
+        if (/^\p{Script=Han}/u.test(renderedAfter)) {
+          fail(`${label}: add a space after Chinese reference '${match[0]}' at line ${index + 1}`)
+        }
+      }
+    }
+
+    for (const link of links.filter((item) => /^#(?:figure|table)-/.test(item.target))) {
+      if (!anchors.has(link.target.slice(1))) {
+        fail(`${label}: link '${link.text}' at line ${index + 1} targets missing anchor ${link.target}`)
+      }
+      const numericText = link.text.trim().match(/^(\d+)(?:\([a-z]\)|[a-z])?$/i)
+      if (numericText && !link.target.endsWith(`-${numericText[1].padStart(2, '0')}`)) {
+        fail(`${label}: link '${link.text}' at line ${index + 1} targets the wrong figure/table number`)
+      }
+    }
+
+    const bareContinuation = /\[(?:[^\]]+)\]\(#(?:figure|table)-\d{2}\)(?:,\s*|、\s*|\s+(?:and|or|to|through|和|或)\s+)(\d+(?:\([a-z]\)|[a-z])?)/giu
+    for (const match of line.matchAll(bareContinuation)) {
+      fail(`${label}: unlinked figure/table number '${match[1]}' in a compound reference at line ${index + 1}`)
+    }
+  }
+
+  return captions.map((caption) => caption.id)
+}
+
 if (!fs.existsSync(configPath)) fail('missing docs/.vuepress/config.ts')
 if (!fs.existsSync(pdfPath)) fail(`missing PDF docs/.vuepress/public/paper/${slug}.pdf`)
 
@@ -189,6 +374,7 @@ for (const page of pages) {
   if (badHyphenLines.length > 0) {
     fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)
   }
+  const figureTableCaptions = validateFigureTableLinks(markdown, page.locale, label)
 
   pageData.push({
     ...page,
@@ -199,6 +385,7 @@ for (const page of pages) {
     images: extractImageBasenames(markdown, page.path, label),
     headings: numberedHeadings(markdown),
     tags: equationTags(markdown),
+    figureTableCaptions,
   })
 }
 
@@ -208,7 +395,7 @@ if (pageData.length === pages.length) {
     if (page.frontmatter.title !== base.frontmatter.title) {
       fail(`${page.label}: title differs from ${base.label}`)
     }
-    for (const field of ['headings', 'tags', 'images']) {
+    for (const field of ['headings', 'tags', 'images', 'figureTableCaptions']) {
       if (JSON.stringify(page[field]) !== JSON.stringify(base[field])) {
         fail(`${page.label}: ${field} sequence differs from ${base.label}`)
       }
