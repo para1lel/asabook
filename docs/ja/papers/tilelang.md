@@ -49,9 +49,9 @@ TileLang の使いやすさを高めるため、柔軟なプログラミング�
 
 TVM のようにスケジューリングと計算を分離する既存の機械学習コンパイラでは、ユーザーが計算とスケジューリングを明示的に区別する必要がある。さらに、最適な性能を達成するには、新しい tensor instruction を手動で登録し、バッファレイアウトを指定しなければならない。しかし、スケジューリングプログラムの記述と理解は依然として困難である。Triton のような現代的フレームワークはユーザーが tile-level programming に集中できるようにするが、データフロー表現が不明瞭なことが多く、masked conditional load のような回避策や Tensor Memory Accelerator（TMA）のようなハードウェア固有機能を使う必要がある。ThunderKitten のようなフレームワークは、プログラムを tile 粒度の load、compute、store、synchronization 操作の組合せとして抽象化するが、データフローは依然として十分に透過的ではなく、ユーザーが追加の最適化を適用する能力を制限している。さらに、Python ベースの深層学習フレームワーク [PyT17, Wol19] が広く採用されているため、最適化のためにモデルを手動で C++ へ変換することは現実的ではない。そこで TileLang の設計では、次の 3 原則を重視する。（1）**Pythonic design**：Python エコシステムとシームレスに統合し、使い慣れたコーディング体験を提供して学習曲線を緩和する。（2）**Dataflow-centric**：低水準のスケジューリングの複雑さを抽象化しつつ、ユーザーが主にデータフローへ集中できるようにする。thread binding、memory layout、tensorization、pipelining などのスケジューリング要素をデータフローから分離し、カスタマイズ可能な注釈とプリミティブの集合としてカプセル化して、プログラマビリティと保守性の両方を高める。（3）**Composability**：kernel、primitive、scheduling strategy をシームレスに組み合わせて複雑な設計を構築できるようにする。
 
-以下では、TileLang で汎用行列乗算（GEMM）カーネルを実装し、基本構文を示すとともに、生産性をどのように向上させるかを説明する。[図 11](#figure-11)(a) に示すように、実装は GEMM カーネルの入力と出力を定義し（8 行目）、その形状とデータ型を指定することから始まる。続いて、グリッドサイズと総スレッド数を決めるカーネルコンテキストを初期化し（9-11 行目）、その後にオンチップメモリ割当てとデータフロー管理を含むカーネル本体（12-27 行目）が続く。TileLang は Python embedded programming language であるため、Python のすべての命令型構造（`if-else`、`for`、`while` など）をサポートするが、ユーザーが関数引数と変数宣言に明示的な型注釈を付けなければならない点が重要な違いである。この要件は、Python の動的型付けが、正確なデータ bitwidth を決める静的データ型が不可欠なデバイスコード生成（CUDA/HIP など）に本質的には適さない可能性があるためである。TileLang では、型注釈が要素型と tensor shape を明示的に定義し、正しさと効率的なコード生成を保証する。さらに TileLang は明示的なメモリ割当てを可能にし、データ配置とアクセスパターンをより細かく制御できる。提示した実装では、TileLang は `T.alloc_shared` を用いて $A$ と $B$ の部分行列を共有メモリへ格納し、`T.alloc_fragments` を用いてブロックレベルのレジスタファイルに accumulator を割り当てる。また、pipelined execution（`T.Pipelined`）を用いるとメモリ転送と計算を重ね合わせられ、メモリレイテンシを効果的に隠して全体スループットを向上させられる。`T.gemm` 演算は NVIDIA CUTLASS または手書きの HIP コードを利用し、tile-level matrix computation を効率的に実行する。低水準のスケジューリングと同期を自動化することで、TileLang は開発者がハードウェア固有の最適化ではなくアルゴリズム設計に集中できるようにし、計算効率を保ちながら生産性を高める。
+以下では、TileLang で汎用行列乗算（GEMM）カーネルを実装し、基本構文を示すとともに、生産性をどのように向上させるかを説明する。[図 1](#figure-01)(a) に示すように、実装は GEMM カーネルの入力と出力を定義し（8 行目）、その形状とデータ型を指定することから始まる。続いて、グリッドサイズと総スレッド数を決めるカーネルコンテキストを初期化し（9-11 行目）、その後にオンチップメモリ割当てとデータフロー管理を含むカーネル本体（12-27 行目）が続く。TileLang は Python embedded programming language であるため、Python のすべての命令型構造（`if-else`、`for`、`while` など）をサポートするが、ユーザーが関数引数と変数宣言に明示的な型注釈を付けなければならない点が重要な違いである。この要件は、Python の動的型付けが、正確なデータ bitwidth を決める静的データ型が不可欠なデバイスコード生成（CUDA/HIP など）に本質的には適さない可能性があるためである。TileLang では、型注釈が要素型と tensor shape を明示的に定義し、正しさと効率的なコード生成を保証する。さらに TileLang は明示的なメモリ割当てを可能にし、データ配置とアクセスパターンをより細かく制御できる。提示した実装では、TileLang は `T.alloc_shared` を用いて $A$ と $B$ の部分行列を共有メモリへ格納し、`T.alloc_fragments` を用いてブロックレベルのレジスタファイルに accumulator を割り当てる。また、pipelined execution（`T.Pipelined`）を用いるとメモリ転送と計算を重ね合わせられ、メモリレイテンシを効果的に隠して全体スループットを向上させられる。`T.gemm` 演算は NVIDIA CUTLASS または手書きの HIP コードを利用し、tile-level matrix computation を効率的に実行する。低水準のスケジューリングと同期を自動化することで、TileLang は開発者がハードウェア固有の最適化ではなくアルゴリズム設計に集中できるようにし、計算効率を保ちながら生産性を高める。
 
-最後に、`tilelang.compile` を呼び出して（31 行目）、[図 11](#figure-11)(b) に示すように `tilelang` プログラムを中間表現（IR）へ lower する。この IR はさらに実行可能形式へコンパイルされ、[図 11](#figure-11)(c) に示す最終的な最適化コードを生成する。
+最後に、`tilelang.compile` を呼び出して（31 行目）、[図 1](#figure-01)(b) に示すように `tilelang` プログラムを中間表現（IR）へ lower する。この IR はさらに実行可能形式へコンパイルされ、[図 1](#figure-01)(c) に示す最終的な最適化コードを生成する。
 
 ## 3 Tile Language
 
@@ -80,7 +80,7 @@ TVM のようにスケジューリングと計算を分離する既存の機械�
 
 ### 3.1 Tile-based Programming Model
 
-[図 11](#figure-11)は TileLang による簡潔な行列乗算（GEMM）の例を示し、開発者が tile、memory placement、pipelining、operator call などの高水準構造を用いて、データ移動と計算を細粒度に制御する方法を説明している。特に、このスニペットの[図 11](#figure-11)(a) は、multi-level tiling が異なるメモリ階層（global、shared、register）を利用して帯域幅利用率を最適化し、レイテンシを低減する方法を示す。全体として、[図 11](#figure-11) (b) は、TileLang の Python-like syntax により、使いやすいプログラミングモデルの中で性能上重要な最適化を開発者が推論できることを示している。
+[図 3](#figure-03)は TileLang による簡潔な行列乗算（GEMM）の例を示し、開発者が tile、memory placement、pipelining、operator call などの高水準構造を用いて、データ移動と計算を細粒度に制御する方法を説明している。特に、このスニペットの[図 3](#figure-03)(a) は、multi-level tiling が異なるメモリ階層（global、shared、register）を利用して帯域幅利用率を最適化し、レイテンシを低減する方法を示す。全体として、[図 3](#figure-03) (b) は、TileLang の Python-like syntax により、使いやすいプログラミングモデルの中で性能上重要な最適化を開発者が推論できることを示している。
 
 <span id="figure-03"></span>
 
@@ -95,7 +95,7 @@ TVM のようにスケジューリングと計算を分離する既存の機械�
 - **T.alloc_shared**：高速なオンチップストレージ空間にメモリを割り当てる。これは NVIDIA GPU 上の共有メモリに対応する。共有メモリはグローバルメモリより大幅に高速で、同じ thread block 内のスレッド間で効率的にデータを共有できるため、計算中の中間データのキャッシュに適している。例えば行列乗算では、行列の tile を共有メモリへ読み込むことで、グローバルメモリ帯域幅の要求を削減し、性能を向上させられる。
 - **T.alloc_fragment**：fragment memory に accumulator を割り当てる。これは NVIDIA GPU 上のレジスタファイルに対応する。入力と部分和をレジスタまたはハードウェアレベルのキャッシュへ保持することで、レイテンシをさらに最小化できる。この tile program では各 tile が共有メモリと同じローカルバッファを割り当てるため、共有メモリの方が一般に高速かつ豊富である一方、レジスタファイルは限られており、直感に反するように見えるかもしれない。これは、ここでの割当てが thread block 全体のレジスタファイルを指しているためである。TileLang はコンパイル中に Layout Inference Pass を使用して Layout object `T.Fragment` を導出し、各スレッドへ対応するレジスタファイルをどのように割り当てるかを決定する。この処理については後の節で詳しく説明する。
 
-グローバルメモリとハードウェア固有メモリ間のデータ転送は `T.copy` で管理できる。さらに、ハードウェア固有バッファは `T.clear` または `T.fill` を用いて初期化できる。データ代入では、[8](#figure-08)に示すように `T.Parallel` を用いて操作を並列実行することもできる。
+グローバルメモリとハードウェア固有メモリ間のデータ転送は `T.copy` で管理できる。さらに、ハードウェア固有バッファは `T.clear` または `T.fill` を用いて初期化できる。データ代入では、[図 8](#figure-08)に示すように `T.Parallel` を用いて操作を並列実行することもできる。
 
 ### 3.2 Dataflow Centric Tile Operator
 
@@ -118,7 +118,7 @@ TileLang は Tile Operator の集合を抽象化し、各 tile operation の低�
 
 データフローパターンは計算編成の基盤を成すが、現代の高性能計算では実行パターンに対するより細粒度の制御が求められる。この要求に対応するため、TileLang は[表 1](#table-01)に示す包括的な scheduling primitive を提供し、開発者がアプリケーションの性能上重要な側面を精密に調整できるようにする。
 
-- **Pipelined**：`T.Pipelined` primitive は、計算とメモリ操作を重ね合わせて性能を高めるため、ループを効率的に pipelined execution できるようにする。[図 11](#figure-11)では、`k`（reduction dimension）を反復するループが `num_stages=3` で pipeline 化され、3-stage pipeline を形成する。この pipeline はデータ転送、計算、後続データ準備を重ね合わせ、メモリボトルネックを効果的に削減して計算スループットを向上させる。`T.Pipelined` から CUDA ソースコードへの lowering process の詳細設計は[4.4 節](#_4-4-software-defined-pipeline)で説明する。
+- **Pipelined**：`T.Pipelined` primitive は、計算とメモリ操作を重ね合わせて性能を高めるため、ループを効率的に pipelined execution できるようにする。[図 3](#figure-03)では、`k`（reduction dimension）を反復するループが `num_stages=3` で pipeline 化され、3-stage pipeline を形成する。この pipeline はデータ転送、計算、後続データ準備を重ね合わせ、メモリボトルネックを効果的に削減して計算スループットを向上させる。`T.Pipelined` から CUDA ソースコードへの lowering process の詳細設計は[4.4 節](#_4-4-software-defined-pipeline)で説明する。
 - **Parallel**：`T.Parallel` primitive は、反復をスレッドへマッピングしてループを自動的に並列化する。[図 8](#figure-08)では、`A_shared` へデータをコピーする操作が `T.Parallel(8, 32)` を用い、`8` と `32` の両次元にわたって並列化されている。ハードウェア並列性を利用して性能を高めるだけでなく、スレッドを反復へ自動マッピングし、追加最適化のための vectorization もサポートする。
 - **annotate_layout**：`T.annotate_layout` primitive により、ユーザー定義の memory layout を用いて共有メモリまたはグローバルメモリの memory layout optimization を指定できる。デフォルトでは、TileLang は Nvidia と AMD の両 GPU で bank conflict を最小化するよう設計された最適化済み memory layout を採用する。
 - **use_swizzle**：`T.use_swizzle` primitive は swizzled memory access を有効化して L2 cache locality を改善する。rasterization におけるデータ再利用を改善する。この primitive は tiled data を並列 thread block で処理する場合に特に有効である。
@@ -141,7 +141,7 @@ TileLang では、`A[i, k]` のような高水準インターフェースを用�
 
 TileLang は non-bijective layout transformation もサポートする。例えば[図 5](#figure-05)(c) は、layout を用いて buffer access へ padding を適用する方法を示す。これらの layout transformation は composable であり、TileLang は GPU の共有メモリ bank conflict を緩和するために一般的に使われる layout swizzling など、複数の組込み layout strategy を備える。
 
-さらに TileLang は、**Layout** 抽象を拡張した **Fragment** を導入する。標準 layout と異なり、Fragment Layout は常に $f : \mathbb{K}^n \to \mathbb{K}^2$ という形式の出力を生成し、2 つの出力次元はそれぞれレジスタファイル内でのスレッドの位置と、ローカルレジスタファイルへの index を表す。例えば[図 11](#figure-11)では、カーネルが block-level でレジスタファイル $C_{\mathrm{local}}$ を割り当てる。しかし GPU レジスタファイルは block 内のスレッド間で分割する必要があるため、Fragment Layout はこの分割方式を正確に記述する。
+さらに TileLang は、**Layout** 抽象を拡張した **Fragment** を導入する。標準 layout と異なり、Fragment Layout は常に $f : \mathbb{K}^n \to \mathbb{K}^2$ という形式の出力を生成し、2 つの出力次元はそれぞれレジスタファイル内でのスレッドの位置と、ローカルレジスタファイルへの index を表す。例えば[図 3](#figure-03)では、カーネルが block-level でレジスタファイル $C_{\mathrm{local}}$ を割り当てる。しかし GPU レジスタファイルは block 内のスレッド間で分割する必要があるため、Fragment Layout はこの分割方式を正確に記述する。
 
 [図 6](#figure-06)(a) は Fragment Layout の定義を示し、TileLang は既存の Fragment Layout の拡張を支援する 4 つの primitive operation を提供する。[図 6](#figure-06)(b) は、`mma_ldmatrix` 命令で `m16k16` matrix fragment に使われる base layout から、完全な block-level layout を導出するためにこれらの primitive を使う例を示す。ここで `base_layout` は、1 つの warp が `m16k16` 行列を消費する layout を表す。この layout は `repeat` primitive によって `warp_layout` へ拡張され、1 つの warp が `m32k16` 行列を消費できるようになる。[図 6](#figure-06)(c) はこの変換を可視化している。さらに `warp_layout` は、`repeat_on_thread` や `replicate` などの primitive によって `block_layout` へ拡張され、4 つの warp が共同で `m128k16` 行列を消費することを表現する。
 
@@ -179,7 +179,7 @@ Fragment Layout 抽象を基礎としたとき、実行時にこれらの layout
 
 現代のハードウェアアーキテクチャは、同じ計算操作を実装する複数の命令経路をサポートすることが多い。例えば NVIDIA GPU では、8-bit multiply-accumulate operation を複数種類の命令で実現できる。`IMAD` 命令は scalar fused multiply-add operation を実行して $d = a \cdot b + c$ を計算し、すべての operand は内部で 32-bit integer へ昇格して計算される。`DP4A` 命令は vectorized dot-product operation を可能にし、$d = \langle \mathbf{a}, \mathbf{b} \rangle + c = \sum_{i=0}^{3} a_i b_i + c$ を評価する。ここで $\mathbf{a}$ と $\mathbf{b}$ は長さ 4 の 8-bit integer vector であり、bias $c$ と出力 $d$ はともに 32-bit integer precision で表現される。さらに高スループットの行列計算では、`MMA` 命令が Tensor Core を利用して $\mathbf{D} = \mathbf{A} \cdot \mathbf{B} + \mathbf{C}$ を実行する。ここで $\mathbf{A} \in \mathbb{R}^{16 \times 32}, \mathbf{B} \in \mathbb{R}^{32 \times 8}, \mathbf{C}, \mathbf{D} \in \mathbb{R}^{16 \times 8}$ である。この場合、$\mathbf{A}$ と $\mathbf{B}$ は 8-bit integer matrix で、$\mathbf{C}$ と累積結果 $\mathbf{D}$ は 32-bit integer precision を使用する。NVIDIA RTX 3090 GPU 上では、これらの命令のスループットはそれぞれ約 17.8 TOPS、71.2 TOPS、284 TOPS である。さらに `MMA` 命令は、同じ precision setting でさまざまな shape をサポートする。
 
-TileLang では、[図 10](#figure-10)(a) と (b) に示すように、ハードウェア tensor instruction を呼び出す 2 つの方法がある。第 1 の方法（[図 10](#figure-10)(a)）は C++ source injection を用い、`dp4a` のような命令を C++ template で手動ラップし、`T.import_source` と `T.call_extern` を介してカーネルへ注入する。これにより、使い慣れた C-style syntax を活用しながら低水準の制御が可能になる。注入された関数は生成コードの先頭で定義され、カーネル内で呼び出される。別の方法として、[図 10](#figure-10)(b) に示すように、TileLang は inline PTX instruction（`mma.m16n8k32.row.col.s32.s8.s8.s32` など）をカーネル内で直接発行できる組込み `T.ptx` primitive を提供する。これは特に warp-level operation で専用命令を利用するための、もう 1 つの低水準機構となる。
+TileLang では、[図 9](#figure-09)(a) と (b) に示すように、ハードウェア tensor instruction を呼び出す 2 つの方法がある。第 1 の方法（[図 9](#figure-09)(a)）は C++ source injection を用い、`dp4a` のような命令を C++ template で手動ラップし、`T.import_source` と `T.call_extern` を介してカーネルへ注入する。これにより、使い慣れた C-style syntax を活用しながら低水準の制御が可能になる。注入された関数は生成コードの先頭で定義され、カーネル内で呼び出される。別の方法として、[図 9](#figure-09)(b) に示すように、TileLang は inline PTX instruction（`mma.m16n8k32.row.col.s32.s8.s8.s32` など）をカーネル内で直接発行できる組込み `T.ptx` primitive を提供する。これは特に warp-level operation で専用命令を利用するための、もう 1 つの低水準機構となる。
 
 <span id="figure-09"></span>
 
@@ -187,7 +187,7 @@ TileLang では、[図 10](#figure-10)(a) と (b) に示すように、ハード
 
 **図 9。** `tilelang` で高性能ハードウェア命令を使用する異なる方法
 
-しかし、入力 shape と data type に基づいて最適な命令を選ぶことは難しい場合がある。この処理を簡略化するため、TileLang は[図 10](#figure-10)(c) に示す Tile Library との統合もサポートする。NVIDIA の `cute` や AMD の `composable kernel (ck)` などの Tile Library は、GEMM のような操作に高水準で標準化された tile-based API（`tl::gemm_ss` など）を提供する。これらのライブラリはハードウェア固有の詳細を抽象化し、与えられた入力 configuration に対して最も効率的な命令を基礎実装が自動選択できるようにする。TileLang では、開発者が `T.call_extern` を用いて、これらのライブラリを直接的かつ一貫した方法で呼び出せる。
+しかし、入力 shape と data type に基づいて最適な命令を選ぶことは難しい場合がある。この処理を簡略化するため、TileLang は[図 9](#figure-09)(c) に示す Tile Library との統合もサポートする。NVIDIA の `cute` や AMD の `composable kernel (ck)` などの Tile Library は、GEMM のような操作に高水準で標準化された tile-based API（`tl::gemm_ss` など）を提供する。これらのライブラリはハードウェア固有の詳細を抽象化し、与えられた入力 configuration に対して最も効率的な命令を基礎実装が自動選択できるようにする。TileLang では、開発者が `T.call_extern` を用いて、これらのライブラリを直接的かつ一貫した方法で呼び出せる。
 
 要約すると、TileLang は高性能命令を活用する 2 つの相補的な方法を提供する。第 1 の方法は Tile Library を利用し、統合を簡略化してベンダー最適化された性能の恩恵を受ける。ただし、高水準の抽象化は低水準の制御を制限する場合がある。例えば `cute::gemm_ss` インターフェースは共有メモリ入力で GEMM operation を行うが、shared memory から register へのデータフローは `cute` template が内部管理する。そのため外部から internal layout を注釈または上書きできず、柔軟性が低下する。さらに、template の多用によってコンパイルが大幅に遅くなる可能性がある。NVCC 12.8 trace tool を用いた解析では、`tilelang` が生成する CUDA コードのコンパイル時間の約 90% を template expansion が占めることが示された。
 

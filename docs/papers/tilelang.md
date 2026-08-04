@@ -45,19 +45,19 @@ permalink: /papers/tilelang/
 
 ![TileLang 程序, 降低后的 IR 与生成的 CUDA C 代码示例](./tilelang/figure-01.png)
 
-**图 1.** TileLang 程序及其对应的降低后 ir 和生成的 cuda c 代码示例. 为便于演示, 代码片段经过简化.
+**图 1.** TileLang 程序及其对应的降低后 ir 和生成的 cuda 代码示例. 为便于演示, 代码片段经过简化.
 
 将调度与计算分离的现有机器学习编译器 (例如 TVM) 要求用户显式区分计算与调度. 此外, 用户必须手动注册新的张量指令并指定缓冲区布局, 才能获得最优性能. 然而, 编写和理解调度程序仍然很有挑战性. 虽然 Triton 等现代框架允许用户专注于 tile 级编程, 但其数据流表示往往不够清晰, 并且需要使用某些变通方法—例如带掩码的条件加载—或 Tensor Memory Accelerator (TMA) 等硬件特定功能. 虽然 ThunderKitten 等框架将程序抽象为 tile 粒度的加载, 计算, 存储和同步操作组合, 但其数据流仍不够透明, 限制了用户应用进一步优化的能力. 此外, 随着基于 Python 的深度学习框架 [PyT17, Wol19] 广泛采用, 手动将模型翻译成 C++ 进行优化并不现实. 因此, 在设计 TileLang 时, 我们强调三个关键原则: (1) **Pythonic 设计**, 与 Python 生态系统无缝集成, 提供熟悉的编码体验并降低学习曲线; (2) **以数据流为中心**, 使用户能够主要关注数据流, 同时抽象掉底层调度复杂性. 它将线程绑定, 内存布局, 张量化和流水线等调度方面与数据流解耦, 并将其封装为一组可定制的注解和原语, 从而提高可编程性和可维护性; 以及 (3) **可组合性**, 确保内核, 原语和调度策略可以无缝组合以构建复杂设计.
 
-下面, 我们在 TileLang 中实现一个通用矩阵乘法 (GEMM) 内核, 以说明其基本语法并展示它如何提高生产力. 如[图 11](#figure-11)(a) 所示, 该实现首先定义 GEMM 内核的输入和输出 (第 8 行), 并指定它们的形状和数据类型. 随后, 我们初始化内核上下文 (第 9-11 行), 它确定网格大小和线程总数; 接着是内核主体 (第 12-27 行), 其中包括片上内存分配和数据流管理. 由于 TileLang 是一种嵌入 Python 的编程语言, 它支持 Python 的所有命令式结构 (例如 `if-else`, `for` 和 `while`), 关键区别是用户必须为函数参数和变量声明提供显式类型注解. 之所以有这一要求, 是因为 Python 的动态类型可能并不天然适合设备代码生成 (例如 CUDA/HIP), 而静态数据类型对于确定精确的数据位宽至关重要. 在 TileLang 中, 类型注解显式定义元素类型和张量形状, 从而确保正确性并实现高效代码生成. 此外, TileLang 允许显式分配内存, 以便更好地控制数据放置和访问模式. 在给出的实现中, TileLang 使用 `T.alloc_shared` 将 $A$ 和 $B$ 的子矩阵存储在共享内存中, 而 `T.alloc_fragments` 用于在块级寄存器文件中分配累加器. 此外, 使用流水线执行 (`T.Pipelined`) 可以重叠内存传输与计算, 从而有效隐藏内存延迟并提高整体吞吐量. `T.gemm` 操作利用 NVIDIA CUTLASS 或手工编写的 HIP 代码高效执行 tile 级矩阵计算. 通过自动完成底层调度和同步, TileLang 使开发者可以专注于算法设计而非硬件特定优化, 从而在保持计算效率的同时提高生产力.
+下面, 我们在 TileLang 中实现一个通用矩阵乘法 (GEMM) 内核, 以说明其基本语法并展示它如何提高生产力. 如[图 1](#figure-01)(a) 所示, 该实现首先定义 GEMM 内核的输入和输出 (第 8 行), 并指定它们的形状和数据类型. 随后, 我们初始化内核上下文 (第 9-11 行), 它确定网格大小和线程总数; 接着是内核主体 (第 12-27 行), 其中包括片上内存分配和数据流管理. 由于 TileLang 是一种嵌入 Python 的编程语言, 它支持 Python 的所有命令式结构 (例如 `if-else`, `for` 和 `while`), 关键区别是用户必须为函数参数和变量声明提供显式类型注解. 之所以有这一要求, 是因为 Python 的动态类型可能并不天然适合设备代码生成 (例如 CUDA/HIP), 而静态数据类型对于确定精确的数据位宽至关重要. 在 TileLang 中, 类型注解显式定义元素类型和张量形状, 从而确保正确性并实现高效代码生成. 此外, TileLang 允许显式分配内存, 以便更好地控制数据放置和访问模式. 在给出的实现中, TileLang 使用 `T.alloc_shared` 将 $A$ 和 $B$ 的子矩阵存储在共享内存中, 而 `T.alloc_fragments` 用于在块级寄存器文件中分配累加器. 此外, 使用流水线执行 (`T.Pipelined`) 可以重叠内存传输与计算, 从而有效隐藏内存延迟并提高整体吞吐量. `T.gemm` 操作利用 NVIDIA CUTLASS 或手工编写的 HIP 代码高效执行 tile 级矩阵计算. 通过自动完成底层调度和同步, TileLang 使开发者可以专注于算法设计而非硬件特定优化, 从而在保持计算效率的同时提高生产力.
 
-最后, 我们调用 `tilelang.compile` (第 31 行) 将 `tilelang` 程序降低为中间表示 (IR), 如[图 11](#figure-11)(b) 所示. 随后, 该 IR 被进一步编译为可执行文件, 生成最终的优化代码, 如[图 11](#figure-11)(c) 所示.
+最后, 我们调用 `tilelang.compile` (第 31 行) 将 `tilelang` 程序降低为中间表示 (IR), 如[图 1](#figure-01)(b) 所示. 随后, 该 IR 被进一步编译为可执行文件, 生成最终的优化代码, 如[图 1](#figure-01)(c) 所示.
 
 ## 3 Tile Language
 
 本节将介绍 tile-based 编程模型的基础, 解释 TileLang 如何系统而高效地管理 AI 内核开发, 并概述 TileLang 将数据流与其他调度空间分离的设计理念.
 
-[图 2](#figure-02)展示了 TileLang 的五阶段编译流水线. 首先, 开发者使用 TileLang 编写高级程序, 以描述计算逻辑和数据访问模式. 在 Parser 阶段, TileLang 程序被解析为 Python AST, 随后转换为 TileLang AST. 接下来, IR Builder 将 AST 转换为 TVM 中间表示 (IR), 使我们能够利用 TVM 的语法树和相关基础设施. 此后, Optimization 阶段执行一系列图优化和调度变换, 以提高执行效率. 最后, Codegen 阶段将优化后的 IR 转换为 LLVM IR, CUDA C/C++ 或 HIP C/C++ 等后端代码, 从而支持多种硬件平台.
+[图 2](#figure-02) 展示了 TileLang 的五阶段编译流水线. 首先, 开发者使用 TileLang 编写高级程序, 以描述计算逻辑和数据访问模式. 在 Parser 阶段, TileLang 程序被解析为 Python AST, 随后转换为 TileLang AST. 接下来, IR Builder 将 AST 转换为 TVM 中间表示 (IR), 使我们能够利用 TVM 的语法树和相关基础设施. 此后, Optimization 阶段执行一系列图优化和调度变换, 以提高执行效率. 最后, Codegen 阶段将优化后的 IR 转换为 LLVM IR, CUDA C/C++ 或 HIP C/C++ 等后端代码, 从而支持多种硬件平台.
 
 <span id="figure-02"></span>
 
@@ -65,7 +65,7 @@ permalink: /papers/tilelang/
 
 **图 2.** TileLang 编译流水线的各个阶段.
 
-[表 1](#table-01)展示了 TileLang 提供的数据流算子和调度原语中具有代表性的子集. Tile Language 采用以数据为中心的编程范式, 其中核心计算语义通过 `T.copy`, `T.gemm` 和 `T.reduce` 等 tile 级算子表达. 作为这些算子的补充, TileLang 暴露了一组调度原语, 使开发者可以微调并行性, 流水线和内存布局等对性能至关重要的方面. 我们将在后续各节中说明这两个组成部分的设计.
+[表 1](#table-01) 展示了 TileLang 提供的数据流算子和调度原语中具有代表性的子集. Tile Language 采用以数据为中心的编程范式, 其中核心计算语义通过 `T.copy`, `T.gemm` 和 `T.reduce` 等 tile 级算子表达. 作为这些算子的补充, TileLang 暴露了一组调度原语, 使开发者可以微调并行性, 流水线和内存布局等对性能至关重要的方面. 我们将在后续各节中说明这两个组成部分的设计.
 
 <span id="table-01"></span>
 
@@ -80,7 +80,7 @@ permalink: /papers/tilelang/
 
 ### 3.1 Tile-based 编程模型
 
-[图 11](#figure-11)给出了 TileLang 中简洁的矩阵乘法 (GEMM) 示例, 展示开发者如何使用 tile, 内存放置, 流水线和算子调用等高级结构, 对数据移动和计算进行细粒度控制. 特别是, 该代码片段的[图 11](#figure-11)(a) 展示了多级 tiling 如何利用不同的内存层次结构 (全局内存, 共享内存和寄存器) 来优化带宽利用率并降低延迟. 总体而言, [图 11](#figure-11) (b) 展示了 TileLang 类 Python 的语法如何让开发者在易用的编程模型中推理对性能至关重要的优化.
+[图 3](#figure-03) 给出了 TileLang 中简洁的矩阵乘法 (GEMM) 示例, 展示开发者如何使用 tile, 内存放置, 流水线和算子调用等高级结构, 对数据移动和计算进行细粒度控制. 特别是, 该代码片段的[图 3](#figure-03)(a) 展示了多级 tiling 如何利用不同的内存层次结构 (全局内存, 共享内存和寄存器) 来优化带宽利用率并降低延迟. 总体而言, [图 3](#figure-03) (b) 展示了 TileLang 类 Python 的语法如何让开发者在易用的编程模型中推理对性能至关重要的优化.
 
 <span id="figure-03"></span>
 
@@ -95,11 +95,11 @@ permalink: /papers/tilelang/
 - **T.alloc_shared**: 在快速的片上存储空间中分配内存, 对应 NVIDIA GPU 上的共享内存. 共享内存非常适合在计算期间缓存中间数据, 因为它比全局内存快得多, 并允许同一线程块中的线程高效共享数据. 例如, 在矩阵乘法中, 可以将矩阵的 tile 加载到共享内存中, 从而减少全局内存带宽需求并提高性能.
 - **T.alloc_fragment**: 在 fragment 内存中分配累加器, 对应 NVIDIA GPU 上的寄存器文件. 通过将输入和部分和保存在寄存器或硬件级缓存中, 可以进一步最小化延迟. 请注意, 在这个 tile 程序中, 每个 tile 分配与共享内存相同的局部缓冲区, 这看起来可能有违直觉, 因为共享内存通常更快但更充裕, 而寄存器文件则有限. 这是因为这里的分配是指整个线程块的寄存器文件. TileLang 在编译期间使用 Layout Inference Pass 推导 Layout 对象 `T.Fragment`, 它决定如何为每个线程分配相应的寄存器文件. 后续各节将详细讨论这一过程.
 
-全局内存与硬件特定内存之间的数据传输可以使用 `T.copy` 管理. 此外, 可以使用 `T.clear` 或 `T.fill` 初始化硬件特定缓冲区. 对于数据赋值, 还可以使用 `T.Parallel` 并行执行操作, 如[8](#figure-08)所示.
+全局内存与硬件特定内存之间的数据传输可以使用 `T.copy` 管理. 此外, 可以使用 `T.clear` 或 `T.fill` 初始化硬件特定缓冲区. 对于数据赋值, 还可以使用 `T.Parallel` 并行执行操作, 如[图 8](#figure-08) 所示.
 
 ### 3.2 以数据流为中心的 Tile 算子
 
-TileLang 抽象了一组 Tile Operator, 使开发者可以专注于数据流逻辑, 而无需管理每个 tile 操作的底层实现细节. [图 4](#figure-04)展示了 Tile Operator 的接口以及若干代表性示例, 包括 `GEMM`, `Copy` 和 `Parallel`. 每个 Tile Operator 都必须实现两个关键接口: `Lower` 和 `InferLayout`. `Lower` 接口定义如何将高级 Tile Operator 降低为更低级的 IR, 例如线程绑定或向量化内存访问. 例如, `Copy` 可以降低为带有显式线程绑定和向量化加载/存储的循环. `InferLayout` 接口负责确定与 Tile Operator 关联的内存布局和循环布局. 这包括推断缓冲区布局 (例如 swizzled memory) 或循环级布局 (例如线程绑定). 例如, `T.gemm` 对共享内存输入应用 swizzled layout, 并使用矩阵特定布局写回 MMA fragment. 类似地, `T.Parallel` 中的并行循环结构可以用线程级绑定和向量化访问模式表示, 二者都通过 layout inference 推导. [第 4.1 节](#_4-1-内存布局组合)将更详细地讨论布局组合及其在降低过程中的作用.
+TileLang 抽象了一组 Tile Operator, 使开发者可以专注于数据流逻辑, 而无需管理每个 tile 操作的底层实现细节. [图 4](#figure-04) 展示了 Tile Operator 的接口以及若干代表性示例, 包括 `GEMM`, `Copy` 和 `Parallel`. 每个 Tile Operator 都必须实现两个关键接口: `Lower` 和 `InferLayout`. `Lower` 接口定义如何将高级 Tile Operator 降低为更低级的 IR, 例如线程绑定或向量化内存访问. 例如, `Copy` 可以降低为带有显式线程绑定和向量化加载/存储的循环. `InferLayout` 接口负责确定与 Tile Operator 关联的内存布局和循环布局. 这包括推断缓冲区布局 (例如 swizzled memory) 或循环级布局 (例如线程绑定). 例如, `T.gemm` 对共享内存输入应用 swizzled layout, 并使用矩阵特定布局写回 MMA fragment. 类似地, `T.Parallel` 中的并行循环结构可以用线程级绑定和向量化访问模式表示, 二者都通过 layout inference 推导. [第 4.1 节](#_4-1-内存布局组合)将更详细地讨论布局组合及其在降低过程中的作用.
 
 <span id="figure-04"></span>
 
@@ -107,7 +107,7 @@ TileLang 抽象了一组 Tile Operator, 使开发者可以专注于数据流逻�
 
 **图 4.** Tile-Operator 的接口和 TileOP 示例实例.
 
-[表 1](#table-01)列出了 TileLang 中用于简化 tile-based 编程常见操作的部分算子. 这些内置算子抽象了硬件内存访问和计算的底层细节, 使开发者可以从数据流视角专注于高级算法设计, 同时保持对性能关键方面的细粒度控制. 每个算子都被设计为与 tile 编程模型无缝集成, 从而确保数据在硬件内存层次结构中高效移动和计算. 下面, 我们描述若干关键算子及其在优化内存传输和算术计算方面的作用.
+[表 1](#table-01) 列出了 TileLang 中用于简化 tile-based 编程常见操作的部分算子. 这些内置算子抽象了硬件内存访问和计算的底层细节, 使开发者可以从数据流视角专注于高级算法设计, 同时保持对性能关键方面的细粒度控制. 每个算子都被设计为与 tile 编程模型无缝集成, 从而确保数据在硬件内存层次结构中高效移动和计算. 下面, 我们描述若干关键算子及其在优化内存传输和算术计算方面的作用.
 
 - **copy**: copy op 是带内存复制的 `T.Parallel` 语法糖, 它允许从寄存器的 fragment scope, 静态共享内存的 shared scope, 动态共享内存的 shared.dyn 以及全局内存的 global scope 复制数据, 也允许复制到这些 scope.
 - **gemm**: 内置 `T.gemm` 算子是通用矩阵乘法的高度优化实现, 支持多种内存访问模式 (`ss`, `sr`, `rs`, `rr`), 其中 `r` 表示寄存器内存, `s` 表示共享内存. 该算子会根据内核配置自动选择最优实现. 对于 CUDA 后端, `T.gemm` 使用 Nvidia 的 CUTLASS 库高效利用 Tensor Core 或 CUDA Core; 对于 AMD GPU, 它同时使用 composable kernel 和手工编写的 HIP 代码进行性能优化. 用户还可以通过在 Python 中注册自定义原语来扩展 `T.gemm`, 使其灵活适应特定用例.
@@ -116,10 +116,10 @@ TileLang 抽象了一组 Tile Operator, 使开发者可以专注于数据流逻�
 
 ### 3.3 调度注解与原语
 
-虽然数据流模式构成了计算组织的基础, 但现代高性能计算需要对执行模式进行更细粒度的控制. 为满足这一需求, TileLang 提供了一套全面的调度原语, 使开发者能够精确调节应用程序中对性能至关重要的方面, 如[表 1](#table-01)所示:
+虽然数据流模式构成了计算组织的基础, 但现代高性能计算需要对执行模式进行更细粒度的控制. 为满足这一需求, TileLang 提供了一套全面的调度原语, 使开发者能够精确调节应用程序中对性能至关重要的方面, 如[表 1](#table-01) 所示:
 
-- **Pipelined**: `T.Pipelined` 原语允许高效地流水线执行循环, 通过重叠计算和内存操作来提高性能. 在[图 11](#figure-11)中, 遍历 `k` (规约维度) 的循环使用 `num_stages=3` 进行流水线化, 形成一个 3 级流水线. 该流水线允许数据传输, 计算和后续数据准备相互重叠, 从而有效减少内存瓶颈并提高计算吞吐量. 从 `T.Pipelined` 降低到 CUDA 源代码的详细流程设计将在[第 4.4 节](#_4-4-软件定义流水线)中讨论.
-- **Parallel**: `T.Parallel` 原语通过将迭代映射到线程来自动并行化循环. 在[图 8](#figure-08)中, 将数据复制到 `A_shared` 的操作使用 `T.Parallel(8, 32)` 在 `8` 和 `32` 两个维度上并行化. 它不仅通过利用硬件并行性提高性能, 还会自动将线程映射到迭代并支持向量化以进一步优化.
+- **Pipelined**: `T.Pipelined` 原语允许高效地流水线执行循环, 通过重叠计算和内存操作来提高性能. 在[图 3](#figure-03) 中, 遍历 `k` (规约维度) 的循环使用 `num_stages=3` 进行流水线化, 形成一个 3 级流水线. 该流水线允许数据传输, 计算和后续数据准备相互重叠, 从而有效减少内存瓶颈并提高计算吞吐量. 从 `T.Pipelined` 降低到 CUDA 源代码的详细流程设计将在[第 4.4 节](#_4-4-软件定义流水线)中讨论.
+- **Parallel**: `T.Parallel` 原语通过将迭代映射到线程来自动并行化循环. 在[图 8](#figure-08) 中, 将数据复制到 `A_shared` 的操作使用 `T.Parallel(8, 32)` 在 `8` 和 `32` 两个维度上并行化. 它不仅通过利用硬件并行性提高性能, 还会自动将线程映射到迭代并支持向量化以进一步优化.
 - **annotate_layout**: `T.annotate_layout` 原语允许你使用用户定义的内存布局, 为共享内存或全局内存指定内存布局优化. 默认情况下, TileLang 采用为 NVIDIA 和 AMD GPU 上最小化 bank conflict 而设计的优化内存布局.
 - **use_swizzle**: `T.use_swizzle` 原语通过启用 swizzled 内存访问来改善 L2 缓存局部性. 从而改善光栅化的数据复用. 在并行线程块中处理 tiled 数据时, 该原语尤其有效.
 
@@ -141,7 +141,7 @@ TileLang 抽象了一组 Tile Operator, 使开发者可以专注于数据流逻�
 
 TileLang 还支持非双射布局变换. 例如, [图 5](#figure-05)(c) 展示了如何使用布局为缓冲区访问添加 padding. 这些布局变换可以组合, TileLang 还包括若干内置布局策略, 例如通常用于缓解 GPU 共享内存 bank conflict 的 layout swizzling.
 
-此外, TileLang 引入了 **Layout** 抽象的扩展, 称为 **Fragment**. 与标准布局不同, Fragment Layout 总是产生 $f : \mathbb{K}^n \to \mathbb{K}^2$ 形式的输出, 其中两个输出维度分别表示线程在寄存器文件中的位置以及局部寄存器文件的索引. 例如, 在[图 11](#figure-11)中, 内核在块级分配了寄存器文件 $C_{\mathrm{local}}$. 然而, 由于 GPU 寄存器文件必须在线程块内的线程之间划分, Fragment Layout 可以准确描述这种划分方案.
+此外, TileLang 引入了 **Layout** 抽象的扩展, 称为 **Fragment**. 与标准布局不同, Fragment Layout 总是产生 $f : \mathbb{K}^n \to \mathbb{K}^2$ 形式的输出, 其中两个输出维度分别表示线程在寄存器文件中的位置以及局部寄存器文件的索引. 例如, 在[图 3](#figure-03) 中, 内核在块级分配了寄存器文件 $C_{\mathrm{local}}$. 然而, 由于 GPU 寄存器文件必须在线程块内的线程之间划分, Fragment Layout 可以准确描述这种划分方案.
 
 [图 6](#figure-06)(a) 展示了 Fragment Layout 的定义, TileLang 提供四种原语操作, 帮助用户扩展现有 Fragment Layout. [图 6](#figure-06)(b) 给出了使用这些原语的示例, 它从 `mma_ldmatrix` 指令中用于 `m16k16` 矩阵 fragment 的基础布局推导出完整的块级布局. 这里, `base_layout` 表示单个 warp 消费 `m16k16` 矩阵时的布局. 该布局通过 `repeat` 原语扩展为 `warp_layout`, 使单个 warp 可以消费 `m32k16` 矩阵. [图 6](#figure-06)(c) 可视化了这一变换. 随后, `warp_layout` 使用 `repeat_on_thread` 和 `replicate` 等原语进一步扩展为 `block_layout`, 表示四个 warp 共同消费 `m128k16` 矩阵.
 
@@ -159,7 +159,7 @@ TileLang 还支持非双射布局变换. 例如, [图 5](#figure-05)(c) 展示�
 
 基于这些观察, 我们提出了一种基于 Layout 和 Fragment 对象的推断方案, 用于优化缓冲区布局和线程绑定. 为系统地管理缓冲区布局, 我们维护一个记录所有缓冲区布局信息的 LayoutMap. 我们为 tile 算子布局定义了分层优先级系统, 其中更高的优先级表示更严格的布局要求和更大的性能影响. TileLang 以自顶向下的方式处理布局推断, 按从最高到最低的优先级依次推断布局. 在每个优先级上, TileLang 会尝试推断所有尚未确定的缓冲区布局, 直到无法取得进一步进展, 然后再转到下一个较低优先级.
 
-如[图 7](#figure-07)所示, 考虑这样一种场景: 矩阵 C 表示 GEMM 操作的结果, 对应一个 Fragment 对象, 并且需要在 GEMM 计算后加上偏置 D. 由于 GEMM 在推断过程中具有最高优先级, 它的线程绑定配置已经预先确定, 而 D 的线程绑定策略仍有待确定. 输出矩阵 C 的维度为 4×4, 分布在 8 个线程上, 每个线程负责 2 个元素. 因此, 偏置缓冲区 D 的布局必须与这一配置对齐. 由于张量 C 的每一行由 2 个线程处理, 两个线程都需要访问 D 中相同的元素来执行加法操作. 因此, 必须复制 D, 以确保每个线程都能访问对应元素. 可以用相同方法推断 D 的布局.
+如[图 7](#figure-07) 所示, 考虑这样一种场景: 矩阵 C 表示 GEMM 操作的结果, 对应一个 Fragment 对象, 并且需要在 GEMM 计算后加上偏置 D. 由于 GEMM 在推断过程中具有最高优先级, 它的线程绑定配置已经预先确定, 而 D 的线程绑定策略仍有待确定. 输出矩阵 C 的维度为 4×4, 分布在 8 个线程上, 每个线程负责 2 个元素. 因此, 偏置缓冲区 D 的布局必须与这一配置对齐. 由于张量 C 的每一行由 2 个线程处理, 两个线程都需要访问 D 中相同的元素来执行加法操作. 因此, 必须复制 D, 以确保每个线程都能访问对应元素. 可以用相同方法推断 D 的布局.
 
 <span id="figure-07"></span>
 
@@ -167,7 +167,7 @@ TileLang 还支持非双射布局变换. 例如, [图 5](#figure-05)(c) 展示�
 
 **图 7.** Fragment 的线程绑定推断示例.
 
-[图 8](#figure-08)展示了线程绑定推断过程的一个示例. 具体而言, [图 8](#figure-08)(a) 给出了复制数据的简单代码片段, 它描述了从全局内存向共享内存传输 subtile 的数据流. 适当的线程绑定和向量化访问可以充分利用 GPU 的并行性, 并利用高性能内存访问指令. 在[图 8](#figure-08)(b) 中, `T.copy` 操作被展开为多个循环轴. 应用 Layout Inference Pass 后, 如[图 8](#figure-08)(c) 所示, 程序会自动向量化和并行化. 最后, 在[图 8](#figure-08)(d) 所示的阶段应用 Layout Swizzling.
+[图 8](#figure-08) 展示了线程绑定推断过程的一个示例. 具体而言, [图 8](#figure-08)(a) 给出了复制数据的简单代码片段, 它描述了从全局内存向共享内存传输 subtile 的数据流. 适当的线程绑定和向量化访问可以充分利用 GPU 的并行性, 并利用高性能内存访问指令. 在[图 8](#figure-08)(b) 中, `T.copy` 操作被展开为多个循环轴. 应用 Layout Inference Pass 后, 如[图 8](#figure-08)(c) 所示, 程序会自动向量化和并行化. 最后, 在[图 8](#figure-08)(d) 所示的阶段应用 Layout Swizzling.
 
 <span id="figure-08"></span>
 
@@ -179,7 +179,7 @@ TileLang 还支持非双射布局变换. 例如, [图 5](#figure-05)(c) 展示�
 
 现代硬件架构通常支持通过多条指令路径实现同一计算操作. 例如, 在 NVIDIA GPU 上, 8-bit 乘加操作可以通过多类指令实现. `IMAD` 指令执行标量融合乘加操作, 计算 $d = a \cdot b + c$, 其中所有操作数在内部都会提升为 32-bit 整数进行计算. `DP4A` 指令支持向量化点积操作, 计算 $d = \langle \mathbf{a}, \mathbf{b} \rangle + c = \sum_{i=0}^{3} a_i b_i + c$, 其中 $\mathbf{a}$ 和 $\mathbf{b}$ 是长度为 4 的 8-bit 整数向量, 偏置 $c$ 和输出 $d$ 均以 32-bit 整数精度表示. 对于吞吐量更高的矩阵计算, `MMA` 指令利用 Tensor Core 执行 $\mathbf{D} = \mathbf{A} \cdot \mathbf{B} + \mathbf{C}$, 其中 $\mathbf{A} \in \mathbb{R}^{16 \times 32}, \mathbf{B} \in \mathbb{R}^{32 \times 8}, \mathbf{C}, \mathbf{D} \in \mathbb{R}^{16 \times 8}$; 在这种情况下, $\mathbf{A}$ 和 $\mathbf{B}$ 是 8-bit 整数矩阵, 而 $\mathbf{C}$ 和累加结果 $\mathbf{D}$ 使用 32-bit 整数精度. 在 NVIDIA RTX 3090 GPU 上, 这些指令的吞吐量分别约为 17.8 TOPS, 71.2 TOPS 和 284 TOPS. 此外, `MMA` 指令在相同精度设置下支持多种形状.
 
-在 TileLang 中, 如[图 10](#figure-10)(a) 和 (b) 所示, 有两种调用硬件张量指令的方法. 第一种方法 ([图 10](#figure-10)(a)) 使用 C++ 源代码注入, 其中 `dp4a` 等指令通过 C++ 模板手动封装, 并通过 `T.import_source` 和 `T.call_extern` 注入内核. 这样可以在利用熟悉的 C 风格语法时实现底层控制. 注入的函数在生成代码的开头定义, 并在内核中调用. 另一种方法如[图 10](#figure-10)(b) 所示, TileLang 提供内置 `T.ptx` 原语, 允许在内核中直接发出内联 PTX 指令 (例如 `mma.m16n8k32.row.col.s32.s8.s8.s32`). 这为利用专用指令提供了另一种底层机制, 尤其适合 warp 级操作.
+在 TileLang 中, 如[图 9](#figure-09)(a) 和 (b) 所示, 有两种调用硬件张量指令的方法. 第一种方法 ([图 9](#figure-09)(a)) 使用 C++ 源代码注入, 其中 `dp4a` 等指令通过 C++ 模板手动封装, 并通过 `T.import_source` 和 `T.call_extern` 注入内核. 这样可以在利用熟悉的 C 风格语法时实现底层控制. 注入的函数在生成代码的开头定义, 并在内核中调用. 另一种方法如[图 9](#figure-09)(b) 所示, TileLang 提供内置 `T.ptx` 原语, 允许在内核中直接发出内联 PTX 指令 (例如 `mma.m16n8k32.row.col.s32.s8.s8.s32`). 这为利用专用指令提供了另一种底层机制, 尤其适合 warp 级操作.
 
 <span id="figure-09"></span>
 
@@ -187,7 +187,7 @@ TileLang 还支持非双射布局变换. 例如, [图 5](#figure-05)(c) 展示�
 
 **图 9.** 在 `tilelang` 中使用高性能硬件指令的不同方法
 
-然而, 根据输入形状和数据类型选择最合适的指令可能很有挑战性. 为简化这一过程, TileLang 还支持与 Tile Library 集成, 如[图 10](#figure-10)(c) 所示. Tile Library—例如 NVIDIA 的 `cute` 或 AMD 的 `composable kernel (ck)`—为 GEMM 等操作提供高级且标准化的 tile-based API (例如 `tl::gemm_ss`). 这些库抽象了硬件特定细节, 并允许底层实现为给定输入配置自动选择最高效的指令. 在 TileLang 中, 开发者可以使用 `T.call_extern` 以直接且一致的方式调用这些库.
+然而, 根据输入形状和数据类型选择最合适的指令可能很有挑战性. 为简化这一过程, TileLang 还支持与 Tile Library 集成, 如[图 9](#figure-09)(c) 所示. Tile Library—例如 NVIDIA 的 `cute` 或 AMD 的 `composable kernel (ck)`—为 GEMM 等操作提供高级且标准化的 tile-based API (例如 `tl::gemm_ss`). 这些库抽象了硬件特定细节, 并允许底层实现为给定输入配置自动选择最高效的指令. 在 TileLang 中, 开发者可以使用 `T.call_extern` 以直接且一致的方式调用这些库.
 
 总之, TileLang 提供两种互补的方法来利用高性能指令. 第一种利用 Tile Library, 它简化了集成并受益于供应商优化的性能. 然而, 高级抽象可能限制底层控制. 例如, `cute::gemm_ss` 接口对共享内存输入执行 GEMM 操作, 但从共享内存到寄存器的数据流由 `cute` 模板在内部管理. 这使得外部无法注解或覆盖内部布局, 因而降低了灵活性. 此外, 大量使用模板可能显著减慢编译速度. 使用 NVCC 12.8 trace 工具的分析表明, 对 `tilelang` 生成的 CUDA 代码而言, 模板展开约占编译时间的 90%.
 
@@ -263,11 +263,11 @@ AMD CDNA 架构也提供异步复制指令和 DMA 支持, TileLang 通过 HIP �
 
 **Multi-Head Latent Attention 性能.**
 
-[图 14](#figure-14)展示了 H100 和 MI300X GPU 上 MLA 的性能以及相应内核实现的代码行数 (LOC). 在 H100 上, TileLang 相比 Torch 实现 $1075.9\times$ 的加速, 显著优于 Triton 和 FlashInfer, 并达到手工优化 FlashMLA 实现性能的 98%. 此外, TileLang 只需要大约 70 行 Python 代码, 与其他基线相比展现出显著更好的易用性. 在 MI300X 上, TileLang 相比 Torch 实现 $129.2\times$ 的加速, 并在性能和代码紧凑性方面均超过 Triton. 与手工编写的 AITER 库相比, TileLang 达到其 95% 的性能. 由于 AITER 的内核实现没有开源, 图中未包含其 LOC.
+[图 14](#figure-14) 展示了 H100 和 MI300X GPU 上 MLA 的性能以及相应内核实现的代码行数 (LOC). 在 H100 上, TileLang 相比 Torch 实现 $1075.9\times$ 的加速, 显著优于 Triton 和 FlashInfer, 并达到手工优化 FlashMLA 实现性能的 98%. 此外, TileLang 只需要大约 70 行 Python 代码, 与其他基线相比展现出显著更好的易用性. 在 MI300X 上, TileLang 相比 Torch 实现 $129.2\times$ 的加速, 并在性能和代码紧凑性方面均超过 Triton. 与手工编写的 AITER 库相比, TileLang 达到其 95% 的性能. 由于 AITER 的内核实现没有开源, 图中未包含其 LOC.
 
 **Matmul 性能.**
 
-[图 13](#figure-13)展示了 NVIDIA 和 AMD GPU 上 GEMM 工作负载的性能, 比较了 TileLang, Triton 和供应商优化库. 在 RTX 4090, A100, H100 和 MI300X 上, TileLang 相比供应商库分别实现 $1.10\times$, $0.97\times$, $1.00\times$ 和 $1.04\times$ 的加速. 与 Triton 相比, TileLang 在相同 GPU 上分别实现 $1.08\times$, $1.03\times$, $1.13\times$ 和 $1.25\times$ 的加速. 对于矩阵乘法, TileLang 使用简单语法即可达到供应商优化库的性能. 此外, 通过采用 Layout Swizzling, TileLang 确保在所有测试设备上无 bank conflict 地执行.
+[图 13](#figure-13) 展示了 NVIDIA 和 AMD GPU 上 GEMM 工作负载的性能, 比较了 TileLang, Triton 和供应商优化库. 在 RTX 4090, A100, H100 和 MI300X 上, TileLang 相比供应商库分别实现 $1.10\times$, $0.97\times$, $1.00\times$ 和 $1.04\times$ 的加速. 与 Triton 相比, TileLang 在相同 GPU 上分别实现 $1.08\times$, $1.03\times$, $1.13\times$ 和 $1.25\times$ 的加速. 对于矩阵乘法, TileLang 使用简单语法即可达到供应商优化库的性能. 此外, 通过采用 Layout Swizzling, TileLang 确保在所有测试设备上无 bank conflict 地执行.
 
 **反量化 Matmul 性能.**
 
