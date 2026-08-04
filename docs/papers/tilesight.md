@@ -9,7 +9,7 @@ pageClass: tilesight-paper
 
 ## 摘要
 
-近期的 GPU 编程框架, 如 Triton, TileLang 和 CUDA Tile, 已将 tile 作为一等语言原语, 使以 tile 为中心的编程成为编写高性能 GPU kernel 的主流方法. 然而, 面向 tile 程序的性能分析工具并未同步发展: 程序员仍然只能依赖粗粒度的 Roofline 界限, 不透明的基于机器学习的预测器, 或事后 profiler 来推断 kernel 的实际运行方式. 对于现代 AI 工作负载, 这一缺口日益突出, 因为 kernel 融合和分布式推理取决于 Tensor Core, CUDA core, cache 层次结构, 内存 pipeline 与 GPU 间网络之间的相互作用. 我们用 TileSight 弥合这一缺口. TileSight 是一种以 tile 为中心的性能建模工具, 它将 tile 从编程原语提升为分析原语. 在单个 GPU core 内, TileSight 对计算与内存 pipeline 的重叠建模. 在同一芯片的多个 core 之间, TileSight 对 cache 层次结构建模. 在多个 GPU 之间, 它对节点间通信建模. 这三层共享 tile 抽象: *1)* tile 内层把每个 tile 的工作表示为横跨网络, 内存与计算 pipeline 的资源向量; *2)* tile 间层调度存在依赖且有序的 tile action, 以揭示合法的重叠, 并通过 tile 复用距离推断多级 cache 命中率; *3)* 跨设备层把远程张量访问映射到 placement, 并通过 $\alpha$--$\beta$ 阶段代价对其路由. 在 A100, H200, B200 和 B6000 上评估时, TileSight 对实测单 GPU kernel 延迟的总体平均绝对百分比误差 (MAPE) 为 12.35%, 优于最先进的 baseline, 且在这四种架构之间具有更好的迁移能力. 在每种 GPU 上, 它预测的 L2 cache 命中率与实测值的差距都约为一个百分点. 扩展到 32 GPU 部署后, TileSight 在融合分布式 kernel 上达到 16.18% 的加权 MAPE (wMAPE), 在端到端 vLLM serving 上达到 13.52% wMAPE. 将 TileSight 用于优化循环时, 它在本文报告的案例研究中选择出的 tile 配置可与强大的厂商和专家 baseline 竞争. TileSight 将在论文发表时开源.
+近期的 GPU 编程框架, 如 Triton, TileLang 和 CUDA Tile, 已将 tile 作为一等语言原语, 使以 tile 为中心的编程成为编写高性能 GPU kernel 的主流方法. 然而, 面向 tile 程序的性能分析工具并未同步发展: 程序员仍然只能依赖粗粒度的 Roofline 界限, 不透明的基于机器学习的预测器, 或事后 profiler 来推断 kernel 的实际运行方式. 对于现代 AI 工作负载, 这一缺口日益突出, 因为 kernel 融合和分布式推理取决于 Tensor Core, CUDA core, cache 层次结构, 内存 pipeline 与 GPU 间网络之间的相互作用. 我们用 TileSight 弥合这一缺口. TileSight 是一种以 tile 为中心的性能建模工具, 它将 tile 从编程原语提升为分析原语. 在单个 GPU core 内, TileSight 对计算与内存 pipeline 的重叠建模. 在同一芯片的多个 core 之间, TileSight 对 cache 层次结构建模. 在多个 GPU 之间, 它对节点间通信建模. 这三层共享 tile 抽象: *1)* tile 内层把每个 tile 的工作表示为横跨网络, 内存与计算 pipeline 的资源向量; *2)* tile 间层调度存在依赖且有序的 tile action, 以揭示合法的重叠, 并通过 tile 复用距离推断多级 cache 命中率; *3)* 跨设备层把远程张量访问映射到 placement, 并通过 $\alpha$-$\beta$ 阶段代价对其路由. 在 A100, H200, B200 和 B6000 上评估时, TileSight 对实测单 GPU kernel 延迟的总体平均绝对百分比误差 (MAPE) 为 12.35%, 优于最先进的 baseline, 且在这四种架构之间具有更好的迁移能力. 在每种 GPU 上, 它预测的 L2 cache 命中率与实测值的差距都约为一个百分点. 扩展到 32 GPU 部署后, TileSight 在融合分布式 kernel 上达到 16.18% 的加权 MAPE (wMAPE), 在端到端 vLLM serving 上达到 13.52% wMAPE. 将 TileSight 用于优化循环时, 它在本文报告的案例研究中选择出的 tile 配置可与强大的厂商和专家 baseline 竞争. TileSight 将在论文发表时开源.
 
 ## 1 引言
 
@@ -24,8 +24,8 @@ pageClass: tilesight-paper
 基于这些洞见, 我们提出 TileSight, 一个*统一的以 tile 为中心的分析执行引擎*. Roofline 模型把性能归因于单一瓶颈资源, 与之不同, TileSight 以分析方式模拟 tile execution plan 如何在硬件上展开, 捕获决定真实 kernel 性能的 prologue, steady-state overlap 和 epilogue 结构. 该仿真使用统一的 tile 抽象组合三个层级:
 
 - **Tile 内**: 每个 tile 由操作, src/dst placement descriptor 和 footprint 表征, 三者共同生成每 tile 的*资源向量*, 把工作分解为网络, 内存和计算等可独立调度的硬件 pipeline 上的时间. 同一种 placement descriptor 统一了融合 (中间结果保存在 register 或 shared memory (SMEM) 中) 与跨设备移动.
-- **Tile 间**: tile 通过 producer--consumer 依赖, 并发 issue 和执行顺序关联. 它们共同驱动对 tile-action 有向无环图 (DAG) 的拓扑顺序搜索, 选择融合 kernel body 内最佳的合法 pipeline 重叠; 同时, 采用带有 stochastic distance-based cache modeling (SDCM) 的多级 *tile 复用距离*分析, 从 grid traversal 中推导隐含的 cache 命中率.
-- **跨设备**: 跨设备执行是同一 tile 内抽象的一种 placement 情形---只要 tile 的 source 或 destination 跨越设备, 它就会获得一个由底层远程张量访问的路由 $\alpha$--$\beta$ 代价计算出的 `Net` 项, 因而仍可应用同一个 envelope.
+- **Tile 间**: tile 通过 producer-consumer 依赖, 并发 issue 和执行顺序关联. 它们共同驱动对 tile-action 有向无环图 (DAG) 的拓扑顺序搜索, 选择融合 kernel body 内最佳的合法 pipeline 重叠; 同时, 采用带有 stochastic distance-based cache modeling (SDCM) 的多级 *tile 复用距离*分析, 从 grid traversal 中推导隐含的 cache 命中率.
+- **跨设备**: 跨设备执行是同一 tile 内抽象的一种 placement 情形—只要 tile 的 source 或 destination 跨越设备, 它就会获得一个由底层远程张量访问的路由 $\alpha$-$\beta$ 代价计算出的 `Net` 项, 因而仍可应用同一个 envelope.
 
 关键在于, 这三个层级以共享的核心抽象联合设计: `HardwareUsage` 表示按 pipeline 分解的时间, *tile action* 是可组合的调度单元, `TileGrid` 是工作负载 descriptor. 总而言之, 我们做出以下贡献:
 
@@ -35,7 +35,7 @@ pageClass: tilesight-paper
 
 **(3) Tile 复用距离 cache 建模**, 使 cache 行为成为 tile execution plan 的自然结果, 而非独立的 trace-simulation 问题. TileSight 以与 GPU 调度相同的粒度推理复用, 从而在分析性能模型内部实现快速且对调度敏感的多级 cache 建模, 同时通过轻量级近似和采样技术保持准确性 (第 3.5 节).
 
-**(4) 通过 tile placement 实现可组合的分布式扩展**, 其中跨设备执行是同一 tile 抽象的一种 placement 情形: 由 producer--consumer placement 推断远程张量访问并将其分解为有序的逻辑交换阶段, 其路由 $\alpha$--$\beta$ 代价填入每 tile 资源向量的网络项, 使跨设备移动可以通过同一 envelope 与本地计算组合 (第 3.6 节).
+**(4) 通过 tile placement 实现可组合的分布式扩展**, 其中跨设备执行是同一 tile 抽象的一种 placement 情形: 由 producer-consumer placement 推断远程张量访问并将其分解为有序的逻辑交换阶段, 其路由 $\alpha$-$\beta$ 代价填入每 tile 资源向量的网络项, 使跨设备移动可以通过同一 envelope 与本地计算组合 (第 3.6 节).
 
 ## 2 背景与动机
 
@@ -73,7 +73,7 @@ pageClass: tilesight-paper
 
 ## 3 分层 Tile-Pipeline 模型
 
-TileSight 将 *tile* 视为一等建模单元, 并采用 prologue--steady--epilogue pipeline envelope, 在程序的每一层递归应用. Tile 携带 *tile 内*信息 (操作, src/dst placement, footprint, 以及它在每条可独立调度的硬件 pipeline 上占用的资源), 同时参与 *tile 间*关系 (producer--consumer 依赖, 并发 issue, 以及跨循环, tile grid 和 wave 的执行顺序). 因而 tiled 工作负载就是一个 *tile execution plan*: 一个由 tile 构成并以这两类信息注解的图. 分布式执行共享同一种基于 tile 的抽象: source 或 destination 跨越设备的 tile 只需在其资源向量中增加一个 `Net` 项, 同一个 envelope 仍然适用.
+TileSight 将 *tile* 视为一等建模单元, 并采用 prologue-steady-epilogue pipeline envelope, 在程序的每一层递归应用. Tile 携带 *tile 内*信息 (操作, src/dst placement, footprint, 以及它在每条可独立调度的硬件 pipeline 上占用的资源), 同时参与 *tile 间*关系 (producer-consumer 依赖, 并发 issue, 以及跨循环, tile grid 和 wave 的执行顺序). 因而 tiled 工作负载就是一个 *tile execution plan*: 一个由 tile 构成并以这两类信息注解的图. 分布式执行共享同一种基于 tile 的抽象: source 或 destination 跨越设备的 tile 只需在其资源向量中增加一个 `Net` 项, 同一个 envelope 仍然适用.
 
 ### 3.1 从工作负载到 Tile Execution Plan
 
@@ -81,7 +81,7 @@ TileSight 的输入是高层工作负载, 如 tiled GEMM, 融合 attention kerne
 
 ![TileSight 设计概览](./tilesight/figure-03.png)
 
-**图 3.** All-gather--GEMM (AG-GEMM) 上的 **TileSight 设计概览**. **(a)** 工作负载仅由算子和张量 placement 描述 ($X$ 在 $N$ 个 GPU 上按列分片). **(b)** TileSight 将其提升为 DAG 横跨内存层级 $L_0$--$L_4$ 的 tile 调度. **(c)** 单一硬件抽象把 register, SMEM, L2, HBM 和 GPU 间 fabric 表示为 5 级层次结构. **(d)** Tile 内资源向量与 tile 间 DAG/并发分析共同输入递归的 prologue--steady--epilogue envelope. **(e)** 引擎把 envelope 呈现为 timeline: software-pipelined load 与计算重叠, 而 AllGather 是在 `Net` lane 上*根据 placement 推断*的. **(f)** 包含延迟, 利用率, cache 命中率和重叠率的每 tile 性能报告.
+**图 3.** All-gather-GEMM (AG-GEMM) 上的 **TileSight 设计概览**. **(a)** 工作负载仅由算子和张量 placement 描述 ($X$ 在 $N$ 个 GPU 上按列分片). **(b)** TileSight 将其提升为 DAG 横跨内存层级 $L_0$-$L_4$ 的 tile 调度. **(c)** 单一硬件抽象把 register, SMEM, L2, HBM 和 GPU 间 fabric 表示为 5 级层次结构. **(d)** Tile 内资源向量与 tile 间 DAG/并发分析共同输入递归的 prologue-steady-epilogue envelope. **(e)** 引擎把 envelope 呈现为 timeline: software-pipelined load 与计算重叠, 而 AllGather 是在 `Net` lane 上*根据 placement 推断*的. **(f)** 包含延迟, 利用率, cache 命中率和重叠率的每 tile 性能报告.
 
 | 字段 | 侧别 | 在模型中的作用 |
 | --- | --- | --- |
@@ -89,7 +89,7 @@ TileSight 的输入是高层工作负载, 如 tiled GEMM, 融合 attention kerne
 | 操作类型 | Tile 内 | Tile 执行的 action: load, store, tensor-core 或 CUDA-core matmul, reduction, exponential, rescaling, remote transfer 或 fused composite. |
 | 资源向量 | Tile 内 | 每个可独立调度资源上的每 tile 时间 (tensor core (TC), CUDA core, SFU, TMEM, SMEM, L1.5, L2, DDR, Net); 由操作, footprint, placement 和校准后的硬件速率推导. |
 | Tile grid | Tile 间 | 空间 tile shape, launch order, swizzle, loop/reduction depth 和 distributed partition. 决定 tile 执行顺序, wave 和每设备的本地工作量. |
-| Producer--consumer DAG | Tile 间 | 基于张量产生和消费的 tile 间 edge; 与 placement 一起确定单次迭代内的合法顺序. |
+| Producer-consumer DAG | Tile 间 | 基于张量产生和消费的 tile 间 edge; 与 placement 一起确定单次迭代内的合法顺序. |
 | 并发与深度 | Tile 间 | Software-pipeline stage, 每个 SM 的 resident block, 以及哪些 tile 可以同时 issue. 设定有效 pipeline 深度. |
 
 **表 2.** Tile execution plan 按字段描述的是孤立的单个 tile (tile 内) 还是 tile 之间的关系 (tile 间) 对字段分组.
@@ -98,7 +98,7 @@ TileSight 的输入是高层工作负载, 如 tiled GEMM, 融合 attention kerne
 
 ### 3.2 Tile 内: Tile 及其资源向量
 
-一个 tile 由其*操作* (load, store, tensor-core 或 CUDA-core matmul, reduction, exponential, rescaling, remote transfer 或 fused composite), *footprint* (每 tile byte 和 FLOP), 以及记录输入在何处产生和输出位于何处的 *src*/*dst placement descriptor* 表征---可以是 register, 架构特定 tensor memory (TMEM), shared-memory scratchpad, L1.5 或 L2 cache, 本地设备上的 DDR, 或 GPU group 上的 shard/replica. Placement 是让同一种 tile 内表示同时描述融合与跨设备移动的核心抽象: 把中间输出标记为 register, TMEM 或 SMEM scope 会移除 global-memory store (融合), 而把 load source 标记为 remote shard 会将 load 变成跨设备 transfer (分布式).
+一个 tile 由其*操作* (load, store, tensor-core 或 CUDA-core matmul, reduction, exponential, rescaling, remote transfer 或 fused composite), *footprint* (每 tile byte 和 FLOP), 以及记录输入在何处产生和输出位于何处的 *src*/*dst placement descriptor* 表征—可以是 register, 架构特定 tensor memory (TMEM), shared-memory scratchpad, L1.5 或 L2 cache, 本地设备上的 DDR, 或 GPU group 上的 shard/replica. Placement 是让同一种 tile 内表示同时描述融合与跨设备移动的核心抽象: 把中间输出标记为 register, TMEM 或 SMEM scope 会移除 global-memory store (融合), 而把 load source 标记为 remote shard 会将 load 变成跨设备 transfer (分布式).
 
 对于每个 tile, TileSight 将这些属性转换为可独立调度的硬件资源上的时间向量:
 
@@ -140,9 +140,9 @@ $$
 
 ### 3.3 Tile 间: 依赖, 并发与顺序
 
-Tile 通过三类 tile 间信息连接. *1)* *Producer--consumer 依赖*确定单次迭代内的合法顺序: 在 FlashAttention 中, $Q$/$K$ load 先于 gemm1 ($Q\!@\!K$), gemm1 先于 softmax, 而 softmax 先于 gemm2 ($P\!@\!V$). 它与 placement 和依赖共同决定哪些中间结果保留在 register/TMEM/SMEM 中, 哪些 spill 到 global memory. *2)* *并发 issue* 允许资源向量不发生争用的无依赖 tile 一起运行, 例如一边 load attention 的下一个 $K$-block, 一边计算当前 block, 或沿同一个 $K$ slice 同时 issue GEMM 的 A 和 B load. 同一组 tile 可以采用多种合法顺序, 在共享 pipeline 上产生不同的重叠. *3)* 跨循环迭代和 tile grid 的 *tile 执行顺序*决定哪些 load 能在 cache 中找到已驻留的数据: row-panel traversal 为相邻 $M$-row 保留 B-tile 复用, block swizzle 重新排列序列, persistent-block 调度则把 tile 固定在 SM 上. 这三部分正是 pipeline envelope 所需的输入.
+Tile 通过三类 tile 间信息连接. *1)* *Producer-consumer 依赖*确定单次迭代内的合法顺序: 在 FlashAttention 中, $Q$/$K$ load 先于 gemm1 ($Q\!@\!K$), gemm1 先于 softmax, 而 softmax 先于 gemm2 ($P\!@\!V$). 它与 placement 和依赖共同决定哪些中间结果保留在 register/TMEM/SMEM 中, 哪些 spill 到 global memory. *2)* *并发 issue* 允许资源向量不发生争用的无依赖 tile 一起运行, 例如一边 load attention 的下一个 $K$-block, 一边计算当前 block, 或沿同一个 $K$ slice 同时 issue GEMM 的 A 和 B load. 同一组 tile 可以采用多种合法顺序, 在共享 pipeline 上产生不同的重叠. *3)* 跨循环迭代和 tile grid 的 *tile 执行顺序*决定哪些 load 能在 cache 中找到已驻留的数据: row-panel traversal 为相邻 $M$-row 保留 B-tile 复用, block swizzle 重新排列序列, persistent-block 调度则把 tile 固定在 SM 上. 这三部分正是 pipeline envelope 所需的输入.
 
-### 3.4 Pipeline Envelope: Prologue--Steady--Epilogue
+### 3.4 Pipeline Envelope: Prologue-Steady-Epilogue
 
 给定一组带资源向量和 tile 间关系的 tile, TileSight 将执行评估为 pipeline. 对于具有 $N$ 次逻辑迭代和有效深度 $d$ 的重复单元:
 
@@ -183,7 +183,7 @@ $$
 
 实践中的搜索规模很小, 因为真实融合 kernel DAG 受到很强约束. 对 MLA decode, 11 个 tile action 从 $11!$ 个无约束排列缩减为 132 个合法拓扑顺序. 该搜索并非 autotuning run: 它是对 tile plan 的分析调度步骤, 因而仍足够廉价, 可以在 cost model 内运行.
 
-**边界代价.** Prologue 和 epilogue 使用相同的资源向量计算, 但重叠较少. 对 load--compute pipeline, prologue 主要由填充 pipeline 的 memory tile 构成, epilogue 则由剩余计算和最终 store 构成. 融合 tile body 会向一个或两个边界添加 reduction 或 normalization. 这种区分十分重要, 因为在循环次数很少或只 launch 少量 wave 时, 即便两种调度具有相同的 steady-state 瓶颈, 端到端时间也可能不同.
+**边界代价.** Prologue 和 epilogue 使用相同的资源向量计算, 但重叠较少. 对 load-compute pipeline, prologue 主要由填充 pipeline 的 memory tile 构成, epilogue 则由剩余计算和最终 store 构成. 融合 tile body 会向一个或两个边界添加 reduction 或 normalization. 这种区分十分重要, 因为在循环次数很少或只 launch 少量 wave 时, 即便两种调度具有相同的 steady-state 瓶颈, 端到端时间也可能不同.
 
 **Resident tile 与 wave.** Occupancy 改变的不仅是利用率, 还会改变重叠结构. 若一个 SM 上驻留 $p$ 个 tile-block, 模型把它们视为同一 tile pipeline 的交错实例; resident 数量受 shared memory, register, warp 限制以及架构特定的每 SM 最大 block 数约束. 同一种 wave decomposition 也处理 tail 效应: tail wave 可能只使用一部分 SM, 这些 active SM 会获得更大的共享 L2/DDR 带宽份额, 因而会使用其 active-SM 数量重新计算 envelope. 算法 2 展开了这一评估, 递归遍历 tile loop 结构并枚举符合依赖的顺序.
 
@@ -223,11 +223,11 @@ $$
 
 ### 3.5 通过 Tile 复用距离计算 Cache 流量
 
-对于 memory tile, L1.5/L2/DDR 的划分并不是 tile 自身的孤立属性: 同一个 load-tile 坐标可能命中 cache, 也可能落到 DDR, 这取决于 swizzle, wave occupancy, 以及哪些相邻 tile 共享张量数据. 在 GEMM 的 $M$ 轴 tile 之间保留 B-tile 复用可将 DDR 流量减少约 ${\sim}4\times$, 而在我们的动机示例中, block swizzling 将 L2 命中率从 35% 改变到 72%; 现代 GPU 还增加了中间 L1.5/LRC 层 (H200, B200), 因而单一的平坦带宽项并不充分. 复用距离分析已广泛用于 cache 建模 [Lam91], [Con98], [Nug14], [Ara19], [Ara20], [Niu12], 但传统形式作用于 cache-line trace, 粒度太低, 无法放入分析式调度搜索. TileSight 转而将复用距离提升到 tile execution plan: 把符号化 tile 顺序作为待分析序列, 把 tile 大小的张量 block 作为复用全集---据我们所知, 这是首个通过 tile 粒度复用距离抽象, 使对调度敏感的多级 cache 建模在分析式 GPU 性能模型中切实可行的方法.
+对于 memory tile, L1.5/L2/DDR 的划分并不是 tile 自身的孤立属性: 同一个 load-tile 坐标可能命中 cache, 也可能落到 DDR, 这取决于 swizzle, wave occupancy, 以及哪些相邻 tile 共享张量数据. 在 GEMM 的 $M$ 轴 tile 之间保留 B-tile 复用可将 DDR 流量减少约 ${\sim}4\times$, 而在我们的动机示例中, block swizzling 将 L2 命中率从 35% 改变到 72%; 现代 GPU 还增加了中间 L1.5/LRC 层 (H200, B200), 因而单一的平坦带宽项并不充分. 复用距离分析已广泛用于 cache 建模 [Lam91], [Con98], [Nug14], [Ara19], [Ara20], [Niu12], 但传统形式作用于 cache-line trace, 粒度太低, 无法放入分析式调度搜索. TileSight 转而将复用距离提升到 tile execution plan: 把符号化 tile 顺序作为待分析序列, 把 tile 大小的张量 block 作为复用全集—据我们所知, 这是首个通过 tile 粒度复用距离抽象, 使对调度敏感的多级 cache 建模在分析式 GPU 性能模型中切实可行的方法.
 
 #### 3.5.1 Tensor Access 与 Tile 复用距离
 
-TileSight 为 tile grid 关联的每个张量引入一个 *tensor access*: 包含每 tile footprint, placement descriptor, 重复访问次数, 以及复用同一 data block 的 grid 维度. 复用维度 `reuse_dims` 使一条规则覆盖多种算子: 张量的复用 key 是 tile 坐标在非复用维度上的投影. 对 GEMM grid $(M_t,N_t)$, A tile 沿 $N_t$ 复用, B tile 沿 $M_t$ 复用. 对 MLA decode, key--value (KV)-cache tile 在同一 batch element 的 attention head 之间复用. 对 convolution, weight 和 activation 在 batch, output-channel 与 spatial axis 上具有不同的复用维度. 这样既避免了算子特定的 cache 公式, 又保留了决定复用的调度信息.
+TileSight 为 tile grid 关联的每个张量引入一个 *tensor access*: 包含每 tile footprint, placement descriptor, 重复访问次数, 以及复用同一 data block 的 grid 维度. 复用维度 `reuse_dims` 使一条规则覆盖多种算子: 张量的复用 key 是 tile 坐标在非复用维度上的投影. 对 GEMM grid $(M_t,N_t)$, A tile 沿 $N_t$ 复用, B tile 沿 $M_t$ 复用. 对 MLA decode, key-value (KV)-cache tile 在同一 batch element 的 attention head 之间复用. 对 convolution, weight 和 activation 在 batch, output-channel 与 spatial axis 上具有不同的复用维度. 这样既避免了算子特定的 cache 公式, 又保留了决定复用的调度信息.
 
 *Tile 复用距离* $D_T$ 是连续两次访问同一个 tensor block 之间所访问的不同 tile 大小 data block 的数量. 传统复用距离询问两次访问之间经过了多少 cache line 或 memory transaction, tile 复用距离则以 GPU kernel 调度所暴露的单元提出相同问题. 使用 8 KB tile 而非 128-byte cache line 建模, 可将跟踪的 entry 数量减少 $64\times$, 与以 tile 为中心的调度所暴露的粒度一致, 让 block swizzle 和 traversal order 直接呈现在 cache 模型中, 并避免 trace 级 cache 仿真.
 
@@ -280,7 +280,7 @@ D_T \cdot \frac{A}{B_T}
 \tag{9}
 $$
 
-$Q(x)$ 表示标准正态分布的互补累积分布函数 (CDF). 为进一步降低开销, 我们对 CDF $\Phi(x)$ 使用 Zelen--Severo 近似 [Abr65]:
+$Q(x)$ 表示标准正态分布的互补累积分布函数 (CDF). 为进一步降低开销, 我们对 CDF $\Phi(x)$ 使用 Zelen-Severo 近似 [Abr65]:
 
 $$
 \Phi(x)
@@ -297,15 +297,15 @@ $$
 
 #### 3.5.3 两级级联, Swizzle 与 Wave
 
-在具有中间 L1.5/LRC 层的 GPU 上, TileSight 以级联方式应用 SDCM---每个物理 SM group 内使用 L1.5, 全局使用 L2, DDR 承载剩余 miss 流量; 若无此设计, L1.5 命中概率为零, 模型退化为单次 L2 评估. Block swizzle, row-panel, Z-order 或 persistent-block 调度都只是输入复用距离仿真的具体 tile 坐标序列. 在一个 wave 内, TileSight 会针对硬件非确定性, 顺序 tensor load 和跨张量 cache aging 扰动 $D_T$; 所有因素都由 tile execution plan 与硬件分组推导, 不需要 kernel 特定的 profiling. Tail wave 使用部分 SM, 因而获得更大的共享带宽份额, 所以会为 tail 重新计算 envelope. 得到的 L1.5/L2/DDR byte 数填入式 1 的相应项, 因而 cache 行为会改变 pipeline envelope 本身, 而不只改变最终延迟.
+在具有中间 L1.5/LRC 层的 GPU 上, TileSight 以级联方式应用 SDCM—每个物理 SM group 内使用 L1.5, 全局使用 L2, DDR 承载剩余 miss 流量; 若无此设计, L1.5 命中概率为零, 模型退化为单次 L2 评估. Block swizzle, row-panel, Z-order 或 persistent-block 调度都只是输入复用距离仿真的具体 tile 坐标序列. 在一个 wave 内, TileSight 会针对硬件非确定性, 顺序 tensor load 和跨张量 cache aging 扰动 $D_T$; 所有因素都由 tile execution plan 与硬件分组推导, 不需要 kernel 特定的 profiling. Tail wave 使用部分 SM, 因而获得更大的共享带宽份额, 所以会为 tail 重新计算 envelope. 得到的 L1.5/L2/DDR byte 数填入式 1 的相应项, 因而 cache 行为会改变 pipeline envelope 本身, 而不只改变最终延迟.
 
 ### 3.6 跨设备 Tile
 
-跨设备执行是同一 tile 内抽象的 placement 扩展: tile 的 source 或 destination 可以指向另一 GPU 上的 shard 或 replica, 其资源向量会增加一个非零 `Net` 项. Tensor, expert, sequence 或 data-parallel mapping 会同时划分 tile grid 及其 tensor tile, 产生覆盖 GPU group 的 placement descriptor. 划分后, 本地 tile wave 可能需要由另一设备产生的 tensor tile, replicated activation, 或必须在后续 tile 消费前 reduce 的 partial result. TileSight 将这些视为*远程张量访问*: 所需 collective 或 point-to-point transfer 直接从 producer--consumer placement 推断, 每一个都成为带有 source/destination device, byte volume 和 `Net` 资源使用的 tile.
+跨设备执行是同一 tile 内抽象的 placement 扩展: tile 的 source 或 destination 可以指向另一 GPU 上的 shard 或 replica, 其资源向量会增加一个非零 `Net` 项. Tensor, expert, sequence 或 data-parallel mapping 会同时划分 tile grid 及其 tensor tile, 产生覆盖 GPU group 的 placement descriptor. 划分后, 本地 tile wave 可能需要由另一设备产生的 tensor tile, replicated activation, 或必须在后续 tile 消费前 reduce 的 partial result. TileSight 将这些视为*远程张量访问*: 所需 collective 或 point-to-point transfer 直接从 producer-consumer placement 推断, 每一个都成为带有 source/destination device, byte volume 和 `Net` 资源使用的 tile.
 
-**逻辑交换与拓扑.** 对每个推断出的远程张量访问, TileSight 将所需 tensor-tile 移动分解为有序阶段. 一个阶段由逻辑 source--destination exchange $(s,d,b)$ 表示, 其中 $s$ 是拥有或产生 tensor tile 的设备, $d$ 表示其 tile wave 消费该 tile 的设备, $b$ 表示从 tensor access 推导出的 tile 或 shard byte volume. Collective algorithm 只需给出不同的阶段分解: ring all-reduce 使用 reduce-scatter 和 all-gather step, tree algorithm 使用 reduction 和 broadcast level, irregular routing 仍为 point-to-point. 这种表示是 tile 级而非 packet 级. 它保留推理通信量所需的 tensor-placement 信息, 同时让硬件拓扑决定每次交换由哪些物理 network-on-chip (NoC) 或 interconnect link 承载.
+**逻辑交换与拓扑.** 对每个推断出的远程张量访问, TileSight 将所需 tensor-tile 移动分解为有序阶段. 一个阶段由逻辑 source-destination exchange $(s,d,b)$ 表示, 其中 $s$ 是拥有或产生 tensor tile 的设备, $d$ 表示其 tile wave 消费该 tile 的设备, $b$ 表示从 tensor access 推导出的 tile 或 shard byte volume. Collective algorithm 只需给出不同的阶段分解: ring all-reduce 使用 reduce-scatter 和 all-gather step, tree algorithm 使用 reduction 和 broadcast level, irregular routing 仍为 point-to-point. 这种表示是 tile 级而非 packet 级. 它保留推理通信量所需的 tensor-placement 信息, 同时让硬件拓扑决定每次交换由哪些物理 network-on-chip (NoC) 或 interconnect link 承载.
 
-**每阶段路由代价.** 对一个阶段中的 exchange 路由后, TileSight 使用 $\alpha$--$\beta$ 通信模型 [Tha05] 估计阶段时间, 该模型对应 hop latency 与 bottleneck-link serialization 的分解:
+**每阶段路由代价.** 对一个阶段中的 exchange 路由后, TileSight 使用 $\alpha$-$\beta$ 通信模型 [Tha05] 估计阶段时间, 该模型对应 hop latency 与 bottleneck-link serialization 的分解:
 
 $$
 T_k
@@ -325,7 +325,7 @@ $$
 
 ### 3.7 组合各部分
 
-有了上述组件, 算法 1 的完整含义便清晰起来: cache 分析 (第 3.5 节) 根据 tile 间执行顺序填充 $\mathbf{u}(o)$ 的 L1.5/L2/DDR 项; 远程张量访问 (第 3.6 节) 根据路由 $\alpha$--$\beta$ 阶段代价填充 `Net` 项; envelope (第 3.4 节) 随后消费完整的资源向量和依赖/并发 edge (第 3.3 节), 并递归应用于 nested loop, wave 和 network stage. 这些都不是事后修正---每一部分要么填充, 要么消费在 envelope 中流动的同一个每 tile 资源向量.
+有了上述组件, 算法 1 的完整含义便清晰起来: cache 分析 (第 3.5 节) 根据 tile 间执行顺序填充 $\mathbf{u}(o)$ 的 L1.5/L2/DDR 项; 远程张量访问 (第 3.6 节) 根据路由 $\alpha$-$\beta$ 阶段代价填充 `Net` 项; envelope (第 3.4 节) 随后消费完整的资源向量和依赖/并发 edge (第 3.3 节), 并递归应用于 nested loop, wave 和 network stage. 这些都不是事后修正—每一部分要么填充, 要么消费在 envelope 中流动的同一个每 tile 资源向量.
 
 ### 3.8 可移植硬件抽象
 
@@ -353,7 +353,7 @@ TileSight 使用 Python 实现 (约 6K 行), 支持 NVIDIA 和 AMD GPU. 用户�
 
 **Software pipeline 与 occupancy.** 对 pipelined kernel, 用户提供 pipeline 深度, 对应 Triton 中的 `num_stages` 或 TileLang 中的显式 stage 数. 给定 kernel 资源使用, 如每 tile shared memory 和 register 数量, TileSight 计算受资源约束的每 SM resident tile 数量最小值. 这决定有效 pipeline 深度和每 SM 带宽分配. TileSight 分别对 head wave 和 tail wave 建模: tail wave 的 active SM 较少, 因而每个 SM 获得更大的 L2 和 DDR 带宽份额, 这会反映在每 tile 延迟计算中.
 
-**从单 GPU 到 cluster.** 在单 GPU 层面, 整个 tile grid 调度到一个设备上. 在节点层面, `DistributedTileMap` 将 grid 划分到多个 GPU, `NetworkHierarchy` 捕获包括 NVLink 或 PCIe 在内的节点内互连. TileSight 根据 message size 和 device count 选择 ring, recursive-doubling, Rabenseifner 等 collective algorithm. 对多节点 cluster, 相同的 `NetworkHierarchy` 扩展加入 InfiniBand 或 NVLink Bridge 等节点间 link. 用户可以通过提供任意 link 的每 hop 带宽和延迟指定自定义拓扑. 给定 `DistributedTileMap`, TileSight 从划分后的 tile grid 的 producer--consumer placement 推断所需远程张量访问, 将每个访问分解为 $(s,d,b)$ 逻辑 exchange 的有序阶段, 并在 `NetworkHierarchy` 上应用 $\alpha$--$\beta$ 阶段代价, 生成每 tile 的 `Net` 资源时间; 该时间与本地计算和内存一起流经同一个 pipeline envelope.
+**从单 GPU 到 cluster.** 在单 GPU 层面, 整个 tile grid 调度到一个设备上. 在节点层面, `DistributedTileMap` 将 grid 划分到多个 GPU, `NetworkHierarchy` 捕获包括 NVLink 或 PCIe 在内的节点内互连. TileSight 根据 message size 和 device count 选择 ring, recursive-doubling, Rabenseifner 等 collective algorithm. 对多节点 cluster, 相同的 `NetworkHierarchy` 扩展加入 InfiniBand 或 NVLink Bridge 等节点间 link. 用户可以通过提供任意 link 的每 hop 带宽和延迟指定自定义拓扑. 给定 `DistributedTileMap`, TileSight 从划分后的 tile grid 的 producer-consumer placement 推断所需远程张量访问, 将每个访问分解为 $(s,d,b)$ 逻辑 exchange 的有序阶段, 并在 `NetworkHierarchy` 上应用 $\alpha$-$\beta$ 阶段代价, 生成每 tile 的 `Net` 资源时间; 该时间与本地计算和内存一起流经同一个 pipeline envelope.
 
 ![图 5: A100, B200, B6000, H200 和 MI210 上 GEMM 延迟预测与实测延迟的比较. 每个点代表一个 BF16/FP16 tensor-core GEMM shape; 对角线表示预测完全准确.](./tilesight/figure-05.png)
 
@@ -382,7 +382,7 @@ TileSight 使用 Python 实现 (约 6K 行), 支持 NVIDIA 和 AMD GPU. 用户�
 
 **工作负载.** Kernel 级实验涵盖 BF16/FP16 GEMM, persistent-kernel cache sweep, collective 和融合计算-通信 kernel. 端到端 vLLM 实验包括 Qwen, Llama 和 DeepSeek 系列的 dense 与 MoE 模型, 范围从单 GPU serving 到最多 32 个 GPU 上的 tensor, expert 和 data-parallel serving. 我们总计评估 703 种 GEMM shape, 4,680 个用于 cache 建模的 persistent-kernel case, 以及 166 种 vLLM decode 配置.
 
-**Baseline.** 对单算子预测, 我们与 Roofline [Wil09], NeuSight [Lee25][+1], PipeWeave [Zha26p] 和 GenZ [Bam24] 比较. NeuSight 使用来自六种 PipeWeave GPU (包括 A100) 的 BF16/FP16 GEMM 数据训练. PipeWeave 数据集覆盖 A100 和 Hopper-class 机器, 因而 PipeWeave 在这些架构上不是 zero-shot baseline. 对分布式 kernel 和端到端 serving, 我们与 PipeWeave 和 GenZ 比较. PipeWeave 的 collective 模型是每 GPU 的 random forest, 不提供可配置的 $\alpha$--$\beta$ 或拓扑参数; 在我们的目标中, A100 和 B6000 (RTX PRO 6000 Blackwell) 有原生 PipeWeave collective 数据集, 而 H200-NVL 和 B200 不受支持, 我们使用其 H800 数据集作为最接近的替代. 对端到端 serving, 我们向 PipeWeave 提供所需的厂商硬件规格.
+**Baseline.** 对单算子预测, 我们与 Roofline [Wil09], NeuSight [Lee25][+1], PipeWeave [Zha26p] 和 GenZ [Bam24] 比较. NeuSight 使用来自六种 PipeWeave GPU (包括 A100) 的 BF16/FP16 GEMM 数据训练. PipeWeave 数据集覆盖 A100 和 Hopper-class 机器, 因而 PipeWeave 在这些架构上不是 zero-shot baseline. 对分布式 kernel 和端到端 serving, 我们与 PipeWeave 和 GenZ 比较. PipeWeave 的 collective 模型是每 GPU 的 random forest, 不提供可配置的 $\alpha$-$\beta$ 或拓扑参数; 在我们的目标中, A100 和 B6000 (RTX PRO 6000 Blackwell) 有原生 PipeWeave collective 数据集, 而 H200-NVL 和 B200 不受支持, 我们使用其 H800 数据集作为最接近的替代. 对端到端 serving, 我们向 PipeWeave 提供所需的厂商硬件规格.
 
 [+1]: 原始 NeuSight 只在 FP32 GEMM 上训练; 为公平比较, 我们使用 PipeWeave 的 FP16 数据集重新训练它.
 
@@ -422,23 +422,23 @@ TileSight 使用 Python 实现 (约 6K 行), 支持 NVIDIA 和 AMD GPU. 用户�
 
 ### 5.4 分布式验证
 
-图 7 和图 8 在 H200 $\times 8$ 和 B200 $\times 8$ 上验证了 304 个分布式 case: 152 个纯 collective 和 152 个融合计算-通信 kernel. TileSight 提取逻辑 source--destination exchange, 在校准后的 NVLink 拓扑上路由, 并使用第 3.6 节的 $\alpha$--$\beta$ 模型评估每个阶段. 在纯 collective 上, TileSight 达到 12.22% wMAPE, 而 GenZ 为 20.82%, PipeWeave 在受支持的行上为 65.72%. PipeWeave 没有适用于这些 collective 且可原生配置的 H200/B200 backend, 只能回退到 H800 random-forest 模型, 因而无法反映我们机器中 NVLink4/5 的带宽差异. 对 B200 Ulysses Attention, 本地计算阶段使用与源码一致的 SM100 $128\!\times\!128$ FA4 tile pipeline, 包括 TMEM 流量, packed grid 和 sectioned LPT mapping, 并与四个 all-to-all 阶段组合. 在两个 baseline 都不支持的融合 kernel 上, TileSight 达到 14.83% wMAPE.
+图 7 和图 8 在 H200 $\times 8$ 和 B200 $\times 8$ 上验证了 304 个分布式 case: 152 个纯 collective 和 152 个融合计算-通信 kernel. TileSight 提取逻辑 source-destination exchange, 在校准后的 NVLink 拓扑上路由, 并使用第 3.6 节的 $\alpha$-$\beta$ 模型评估每个阶段. 在纯 collective 上, TileSight 达到 12.22% wMAPE, 而 GenZ 为 20.82%, PipeWeave 在受支持的行上为 65.72%. PipeWeave 没有适用于这些 collective 且可原生配置的 H200/B200 backend, 只能回退到 H800 random-forest 模型, 因而无法反映我们机器中 NVLink4/5 的带宽差异. 对 B200 Ulysses Attention, 本地计算阶段使用与源码一致的 SM100 $128\!\times\!128$ FA4 tile pipeline, 包括 TMEM 流量, packed grid 和 sectioned LPT mapping, 并与四个 all-to-all 阶段组合. 在两个 baseline 都不支持的融合 kernel 上, TileSight 达到 14.83% wMAPE.
 
 ### 5.5 vLLM 端到端 Decode
 
-图 9 和图 10 在 166 个健康配置上评估端到端 vLLM decode 吞吐量, 涵盖 dense, MoE, 单节点和多节点 serving. 所评估系统从 A100 $\times 1$ 和 B6000 $\times 2$ 到 B200 $\times 32$ 和 H200-NVL $\times 8$, 同时测试本地 tile 执行和路由后的分布式阶段. 总体上, TileSight 达到 13.52% wMAPE, 而带 B200 扩展的 PipeWeave 在 114/117 个 dense 配置上达到 31.84% wMAPE. PipeWeave 不支持 MoE. PipeWeave 对 A100 和 B6000 使用原生 collective 数据集, 对 H200-NVL 和 B200 则回退到 H800. 对 B200, 我们通过提供 B200 硬件规格扩展 PipeWeave, 同时使用其最接近的 H800 sample 进行 GEMM 配置查找, 并使用其 Hopper calculator. B200 扩展在 19/22 个 dense 配置上生成有效预测. 在剩余三个大 batch case 中, prefill RMSNorm sequence length 超出 PipeWeave 的 131K-token MLP 训练上限. 虽然 PipeWeave 使用 sigmoid 将其学习到的利用率因子限制在 $[0,1]$ 内, 但这些超出范围的输入会使其变为零, 引发除零并使其无法对这些 case 给出稳健的端到端预测. 这突显了基于 ML 的预测器外推到未见 case 时的稳健性局限. TileSight 的每机器 wMAPE 为 7.5--18.0%, 在 MoE 配置上为 10.35% wMAPE.
+图 9 和图 10 在 166 个健康配置上评估端到端 vLLM decode 吞吐量, 涵盖 dense, MoE, 单节点和多节点 serving. 所评估系统从 A100 $\times 1$ 和 B6000 $\times 2$ 到 B200 $\times 32$ 和 H200-NVL $\times 8$, 同时测试本地 tile 执行和路由后的分布式阶段. 总体上, TileSight 达到 13.52% wMAPE, 而带 B200 扩展的 PipeWeave 在 114/117 个 dense 配置上达到 31.84% wMAPE. PipeWeave 不支持 MoE. PipeWeave 对 A100 和 B6000 使用原生 collective 数据集, 对 H200-NVL 和 B200 则回退到 H800. 对 B200, 我们通过提供 B200 硬件规格扩展 PipeWeave, 同时使用其最接近的 H800 sample 进行 GEMM 配置查找, 并使用其 Hopper calculator. B200 扩展在 19/22 个 dense 配置上生成有效预测. 在剩余三个大 batch case 中, prefill RMSNorm sequence length 超出 PipeWeave 的 131K-token MLP 训练上限. 虽然 PipeWeave 使用 sigmoid 将其学习到的利用率因子限制在 $[0,1]$ 内, 但这些超出范围的输入会使其变为零, 引发除零并使其无法对这些 case 给出稳健的端到端预测. 这突显了基于 ML 的预测器外推到未见 case 时的稳健性局限. TileSight 的每机器 wMAPE 为 7.5-18.0%, 在 MoE 配置上为 10.35% wMAPE.
 
 ### 5.6 关键应用: 诊断与 Cost Model
 
 由于具有可解释性, TileSight 可以用作白盒优化辅助. 图 11 表明, TileSight 选择的 tile 配置在 H100 和 MI210 上的 attention, MLA, GEMM 和 dequantized matmul kernel 中可以追平或超过强大的厂商和专家 baseline. 图 12 展示了同一模型作为 TileLang cost model 的结果: 保留预测排名前 5% 的调度可剪枝 95% 的候选, 同时平均达到穷举搜索最佳性能的 99.66%. 这对支持较弱的目标尤其有用: 学习式或厂商调优的 cost model 在这些目标上提供的指导较弱, 而分析模型仍能找出高质量调度候选.
 
-诊断 case 可归入四种反复出现的瓶颈类型: 间接寻址, pipeline 重叠不足, L2 locality 较差, 以及架构特定的内存布局问题. 在每种情形下, TileSight 都会把瓶颈映射到具体的 tile 级变化, 如地址展开, tile-size 调整, 更高的 resident-block occupancy, 或 shared-memory/register-layout 修复. 表 5 总结了 TileSight 识别出间接寻址, pipeline stall 和 L2 locality 瓶颈的诊断 case, 由此获得 $1.07$--$8.97\times$ 改进.
+诊断 case 可归入四种反复出现的瓶颈类型: 间接寻址, pipeline 重叠不足, L2 locality 较差, 以及架构特定的内存布局问题. 在每种情形下, TileSight 都会把瓶颈映射到具体的 tile 级变化, 如地址展开, tile-size 调整, 更高的 resident-block occupancy, 或 shared-memory/register-layout 修复. 表 5 总结了 TileSight 识别出间接寻址, pipeline stall 和 L2 locality 瓶颈的诊断 case, 由此获得 $1.07$-$8.97\times$ 改进.
 
 ## 6 相关工作
 
 **以 Tile 为中心的编程框架.** Triton [Til19], TileLang [Til25g], TileLink [Zhe25t], CUTLASS/CUTE [Nvi24], CuteDSL [NviCut], ThunderKittens [Ben25], FractalTensor [Liu24t] 和 NVIDIA CUDA Tile [Nvi26] 推动 GPU 编程转向以 tile 为中心的抽象. 但它们都没有附带以 tile 为中心的性能模型: Triton 依赖黑盒 autotuning, TileLang 依赖 heuristic, tritonBLAS [Swa25] 依赖 GEMM 特定的分析选择. TileSight 填补了这一空白, 为这些框架提供统一的以 tile 为中心的 cost model 和诊断 backend.
 
-**性能建模与预测.** Roofline [Wil09] 及其变体 (例如 GenZ [Bam24], [Mor24], [Yua24t], [Pat25t], [Dav25]) 为 LLM 推理提供了有用的一阶界限, 但无法区分 FLOP/byte 计数相同而调度不同的 kernel, 也无法捕获不同 tile 顺序下的 L2 复用等调度相关效应. Karami 等人 [Kar25] 进一步指出, 非 GEMM 操作占推理延迟的比例可达 74%, 这挑战了以 GEMM 为中心的假设. Dataflow 探索框架 [Par19], [Gao19t], [Kwo20], [Zhe23], [Wu22], [Cai23] 为 spatial accelerator 的 loop nest 和数据复用建模, 但依赖简化的硬件假设, 限制了其对 GPU 的适用性. 混合式和基于 ML 的方法---PipeWeave [Zha26p], NeuSight [Lee25], CDMPP [Hu24t], TAO [Pan24], Omniwise [Wan25o], 以及其他方法 [Geo21], [Li23t]---通过学习模型预测运行时间 (端到端预测或作为分析估计之上的残差), 通常很准确, 但属于黑盒, 无法揭示 kernel 为何缓慢. TileSight 的不同之处在于它完全基于第一性原理且不含学习组件, 同时能够达到或超过这些预测器的准确度, 并提供对调度敏感的 tile 粒度诊断, 把性能分解为可操作的组成部分.
+**性能建模与预测.** Roofline [Wil09] 及其变体 (例如 GenZ [Bam24], [Mor24], [Yua24t], [Pat25t], [Dav25]) 为 LLM 推理提供了有用的一阶界限, 但无法区分 FLOP/byte 计数相同而调度不同的 kernel, 也无法捕获不同 tile 顺序下的 L2 复用等调度相关效应. Karami 等人 [Kar25] 进一步指出, 非 GEMM 操作占推理延迟的比例可达 74%, 这挑战了以 GEMM 为中心的假设. Dataflow 探索框架 [Par19], [Gao19t], [Kwo20], [Zhe23], [Wu22], [Cai23] 为 spatial accelerator 的 loop nest 和数据复用建模, 但依赖简化的硬件假设, 限制了其对 GPU 的适用性. 混合式和基于 ML 的方法—PipeWeave [Zha26p], NeuSight [Lee25], CDMPP [Hu24t], TAO [Pan24], Omniwise [Wan25o], 以及其他方法 [Geo21], [Li23t]—通过学习模型预测运行时间 (端到端预测或作为分析估计之上的残差), 通常很准确, 但属于黑盒, 无法揭示 kernel 为何缓慢. TileSight 的不同之处在于它完全基于第一性原理且不含学习组件, 同时能够达到或超过这些预测器的准确度, 并提供对调度敏感的 tile 粒度诊断, 把性能分解为可操作的组成部分.
 
 **GPU Profiling 与 Instrumentation.** 厂商 profiler (Nsight Compute [Nvi25n], OmniPerf [AMD25]) 报告指标, 但几乎不提供根因指导. KPerfIR [Gua25] 和 Neutrino [Hua25] 推进了基于 compiler 和 probe 的 GPU instrumentation, binary-level 工具 [She18], [Zho21a], [Zho21b], [Zen24] 则提供低层可见性. 它们全都是*事后*工具, 需要执行且无法预测未见配置. TileSight 在执行前预测性能, 并把瓶颈映射到 tile 级调度决策.
 

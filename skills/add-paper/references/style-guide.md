@@ -7,6 +7,7 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - [Page Structure](#page-structure)
 - [Citations and Abbreviations](#citations-and-abbreviations)
 - [Content Annotations](#content-annotations)
+- [Hyphens and Dashes](#hyphens-and-dashes)
 - [Math](#math)
 - [Algorithms](#algorithms)
 - [Figures and Tables](#figures-and-tables)
@@ -40,6 +41,14 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - Define its content separately as `[+label]: content`. Indent continuation lines by two spaces.
 - Use the same stable labels in English, Chinese, and Japanese, and preserve every link and detail from the source footnote.
 - Confirm `markdown.annotation` is enabled and verify the built page renders each marker as an interactive annotation.
+
+## Hyphens and Dashes
+
+- Never render consecutive ASCII hyphens in article headings, prose, captions, alt text, annotations, algorithms, or table content.
+- Use one ASCII hyphen (`-`) when the mark links words, tokens, symbols, or the endpoints of a range, for example `producer-consumer`, `$\alpha$-$\beta$`, and `7.5-18.0%`.
+- Use the full-width em dash (`—`) when the mark functions as a dash within a sentence.
+- Treat conversion of source `--` and `---` sequences to these forms as a required Markdown representation change in every language, including English.
+- Do not alter structural syntax such as YAML frontmatter fences, Markdown table separator rows, fenced or inline code, URLs, TeX commands, or mathematical minus signs.
 
 ## Math
 

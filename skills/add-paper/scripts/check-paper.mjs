@@ -108,6 +108,41 @@ function equationTags(markdown) {
   return [...markdown.matchAll(/\\tag\{([^}]+)\}/g)].map((match) => match[1])
 }
 
+function consecutiveHyphenLines(markdown) {
+  const withoutComments = markdown.replace(/<!--[\s\S]*?-->/g, (comment) => comment.replace(/[^\r\n]/g, ' '))
+  const lines = withoutComments.split(/\r?\n/)
+  const matches = []
+  let inFrontmatter = lines[0] === '---'
+  let fenceMarker = null
+
+  for (const [index, line] of lines.entries()) {
+    if (inFrontmatter) {
+      if (index > 0 && line === '---') inFrontmatter = false
+      continue
+    }
+
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    const tableCells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|')
+    const isTableSeparator = tableCells.length > 0 && tableCells.every((cell) => /^\s*:?-{3,}:?\s*$/.test(cell))
+    if (isTableSeparator || /^\s*-{3,}\s*$/.test(line)) continue
+
+    const visibleText = line
+      .replace(/(`+).*?\1/g, '')
+      .replace(/\]\((?:\\.|[^)])*\)/g, ']')
+    if (visibleText.includes('--')) matches.push(index + 1)
+  }
+
+  return matches
+}
+
 if (!fs.existsSync(configPath)) fail('missing docs/.vuepress/config.ts')
 if (!fs.existsSync(pdfPath)) fail(`missing PDF docs/.vuepress/public/paper/${slug}.pdf`)
 
@@ -149,6 +184,10 @@ for (const page of pages) {
   if (/\\tag\{[^}]+\}/.test(withoutMath)) fail(`${label}: equation tag appears outside math delimiters`)
   if (/^```pseudocode/m.test(markdown)) {
     warn(`${label}: review pseudocode fence; math-heavy algorithms must use nested unordered lists`)
+  }
+  const badHyphenLines = consecutiveHyphenLines(markdown)
+  if (badHyphenLines.length > 0) {
+    fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)
   }
 
   pageData.push({
