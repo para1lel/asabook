@@ -40,7 +40,7 @@ After testing, stop any local development or preview servers started for the tas
 
 ## Add Paper Skill
 
-When the user supplies an arXiv identifier or asks to add, typeset, translate, synchronize, or commit a paper, read and follow `skills/add-paper/SKILL.md`. Unless the user narrows the scope, complete the English, Simplified Chinese, and Japanese pages, validate the production build, and finish with a scoped commit.
+When the user supplies an arXiv identifier or asks to add, typeset, translate, synchronize, or commit a paper, read and follow `skills/add-paper/SKILL.md`. Unless the user narrows the scope, complete the English, Simplified Chinese, and Japanese pages, validate the production build, and use the repository-wide commit behavior defined by that skill.
 
 ## Commit & Pull Request Guidelines
 

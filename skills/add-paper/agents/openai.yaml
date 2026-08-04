@@ -1,4 +1,4 @@
 interface:
   display_name: "Add Paper"
-  short_description: "Add faithful three-language arXiv paper editions"
-  default_prompt: "Use $add-paper to add an arXiv paper as exact English and faithful Chinese and Japanese pages, validate them, and commit the result."
+  short_description: "Add localized three-language paper editions"
+  default_prompt: "Use $add-paper to add or revise a concise three-language paper edition with localized translations, Plume annotations, validation, and one repository-wide commit."

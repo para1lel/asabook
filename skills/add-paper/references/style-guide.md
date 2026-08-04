@@ -2,12 +2,25 @@
 
 Apply these rules to English, Simplified Chinese, and Japanese paper pages. Treat the paper's TeX source and PDF as authoritative when an example does not cover a case.
 
+## Contents
+
+- [Page Structure](#page-structure)
+- [Citations and Abbreviations](#citations-and-abbreviations)
+- [Content Annotations](#content-annotations)
+- [Math](#math)
+- [Algorithms](#algorithms)
+- [Figures and Tables](#figures-and-tables)
+- [English](#english)
+- [Simplified Chinese](#simplified-chinese)
+- [Japanese](#japanese)
+- [Final Consistency Pass](#final-consistency-pass)
+
 ## Page Structure
 
-- Keep the paper title untranslated in all languages.
-- Preserve numbered section and subsection structure unless a heading exists only for print layout rather than content.
+- Use the same concise English title in all languages and keep it at 50 characters or fewer. Preserve the full source title in the provenance link when shortening it.
+- Preserve numbered section and subsection structure unless a heading exists only for print layout rather than content. Remove an empty generic `Appendix`, `附录`, or `付録` heading when the next heading is the actual Appendix A section.
 - Preserve citations and equation, figure, table, and algorithm numbering.
-- Reproduce the complete paper in source order. Do not abridge, summarize, expand, or omit material for a shorter Web reading edition.
+- Reproduce the complete substantive paper in source order. Do not abridge, summarize, expand, or omit body material, but omit the standalone reference list.
 - Use one shared set of image files. Localize alt text and captions, not the pixels in an original scholarly figure.
 - Keep author links identical across languages and in the paper's original order.
 
@@ -18,10 +31,20 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - Include citations attached to expanded terms, for example `Low-Rank Adaptation (LoRA) [Hu21]`.
 - Preserve a paper's reference identity across languages. Never translate titles in bibliography definitions.
 - Prefer the canonical paper page, DOI, conference page, or arXiv abstract as the bibliography link.
+- Do not render `References`, `参考文献`, or any other standalone reference-list section in a paper page. Keep inline citations and their `paperAbbreviations` definitions.
+
+## Content Annotations
+
+- Use Plume content annotations for all source footnotes; never use Markdown footnotes.
+- Insert a marker as `[+label]` with a space before it. Keep the marker outside adjacent bold or italic markup.
+- Define its content separately as `[+label]: content`. Indent continuation lines by two spaces.
+- Use the same stable labels in English, Chinese, and Japanese, and preserve every link and detail from the source footnote.
+- Confirm `markdown.annotation` is enabled and verify the built page renders each marker as an interactive annotation.
 
 ## Math
 
 - Use `$...$` for inline math and `$$...$$` for display math. Keep `\tag{N}` inside the same display-math delimiters as its equation.
+- Write every matrix transpose as `^\top`, never `^{T}`.
 - Verify every numbered display equation in the built page. A literal `\tag{N}` in prose or outside math is invalid.
 - Put every multi-letter word or abbreviation inside `\mathrm{}` in every formula, including subscripts and superscripts. Examples: `X_{\mathrm{FP}32}`, `X^{\mathrm{unscaled}}`, `\mathrm{round}(x)`, and `\mathrm{LZD}(b)`.
 - Leave single-letter mathematical variables such as `x`, `m`, `W`, and `R` unwrapped.
@@ -73,24 +96,25 @@ Example:
 
 ## Simplified Chinese
 
-- Keep the paper title untranslated.
+- Use the shared concise English title.
 - Translate every source sentence faithfully and in the same order, keeping the closest practical one-to-one sentence correspondence.
-- Preserve every claim, qualification, logical dependency, example, repetition, and citation. Do not summarize, paraphrase, omit, combine, expand, explain, or add material absent from the source.
-- Use established technical Chinese. Include an English term on first use only when the source includes it or doing so is necessary to identify an otherwise ambiguous official name; do not add explanatory content.
+- Preserve every claim, qualification, logical dependency, example, repetition, citation, and degree of certainty. Do not omit, combine, expand, explain, or add material absent from the source.
+- Use established, natural technical Chinese that follows local documentation conventions and is easy to understand. Prefer idiomatic phrasing over literal calques, while keeping the original meaning and sentence boundary.
+- Include an English term on first use only when the source includes it or doing so is necessary to identify an otherwise ambiguous official name; do not add explanatory content.
 - Use half-width punctuation in prose: comma, period, colon, semicolon, and parentheses.
 - Insert one space after a half-width comma, period, colon, or semicolon when more text follows.
 - Insert one space before a left parenthesis when it follows text: `大语言模型 (LLM)`.
 - Do not place spaces just inside parentheses. Insert a space after the right parenthesis when ordinary text continues.
 - Put spaces between Chinese text and adjacent Latin abbreviations, product names, numbers with Latin units, links, or inline math when they form separate tokens.
 - Do not mechanically translate method names, model names, APIs, datasets, or code identifiers.
-- Reorder words only as required by Chinese grammar without changing sentence boundaries or meaning.
+- Reorder or rephrase within a sentence as required by Chinese technical prose without changing its logical relationships or claim strength.
 
 ## Japanese
 
-- Keep the paper title untranslated.
+- Use the shared concise English title.
 - Translate every source sentence faithfully and in the same order, keeping the closest practical one-to-one sentence correspondence.
-- Preserve every claim, qualification, logical dependency, example, repetition, and citation. Do not summarize, paraphrase, omit, combine, expand, explain, or add material absent from the source.
-- Use grammatical Japanese technical prose, but reorder words only as required by Japanese grammar without changing sentence boundaries or meaning.
+- Preserve every claim, qualification, logical dependency, example, repetition, citation, and degree of certainty. Do not omit, combine, expand, explain, or add material absent from the source.
+- Use grammatical, idiomatic Japanese technical prose that follows local documentation conventions and is easy to understand. Prefer natural phrasing over literal calques, and rephrase within a sentence when needed without changing its logical relationships or claim strength.
 - Use Japanese punctuation and full-width Japanese parentheses in prose.
 - Add spaces around Latin technical abbreviations, product names, and inline math where the surrounding pages do so.
 - Preserve established katakana terminology and official method, model, dataset, and API names.
@@ -102,6 +126,9 @@ Example:
 - Compare the English page against the TeX source and PDF sentence by sentence for exact wording and complete coverage.
 - Compare each Chinese and Japanese sentence against the same source for additions, omissions, and semantic drift.
 - Compare equation tags, citation-token sets, image basenames, and algorithm step counts.
+- Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
+- Confirm no standalone reference-list or empty generic appendix heading remains.
+- Confirm every title is at most 50 characters and every matrix transpose uses `^\top`.
 - Confirm that internal section references use the localized label but the same target number.
-- Confirm that the title, authors, author URLs, arXiv version, DOI, and publication facts match across languages.
+- Confirm that the concise title, authors, author URLs, arXiv version, DOI, and publication facts match across languages, and that the provenance link preserves the full source title.
 - Confirm sidebar placement uses the first arXiv submission date and is identical in all locales.
