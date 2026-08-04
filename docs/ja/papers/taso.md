@@ -230,7 +230,7 @@ TASO はまた、ソース グラフとターゲット グラフに共通のサ�
 
 ```pseudocode:line-numbers title="アルゴリズム 2：コストベースのバックトラッキング探索"
 Input: An input graph G_in, verified substitutions S,
-       a cost model Cost(.), and hyperparameter alpha.
+  a cost model Cost(.), and hyperparameter alpha.
 Output: An optimized graph.
 
 P = {G_in}  // Priority queue sorted by Cost.

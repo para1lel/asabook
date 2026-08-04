@@ -352,9 +352,9 @@ def Matmul(A: T.Tensor, B: T.Tensor, C: T.Tensor):
 
     T.clear(C_local)
     for k in T.Pipelined(K // block_K, num_stages=2):
-        T.copy(A[by * block_M, k * block_K], A_shared)
-        T.copy(B[k * block_K, bx * block_N], B_shared)
-        T.gemm(A_shared, B_shared, C_local)
+      T.copy(A[by * block_M, k * block_K], A_shared)
+      T.copy(B[k * block_K, bx * block_N], B_shared)
+      T.gemm(A_shared, B_shared, C_local)
 
     T.copy(C_local, C[by * block_M, bx * block_N])
 ```
@@ -368,34 +368,34 @@ def Matmul(A: T.Tensor, B: T.Tensor, C: T.Tensor):
 ```python
 @tilelang.jit
 def matmul_fp16_fp4(
-    A: T.Tensor(A_shape, in_dtype),
-    B: T.Tensor(B_shape, storage_dtype),
-    Ct: T.Tensor((N, M), out_dtype),
+  A: T.Tensor(A_shape, in_dtype),
+  B: T.Tensor(B_shape, storage_dtype),
+  Ct: T.Tensor((N, M), out_dtype),
 ):
-    with T.Kernel(T.ceildiv(N, block_N), T.ceildiv(M, block_M), threads=threads) as (bx, by):
-        A_shared = T.alloc_shared(A_shared_shape, in_dtype)
-        B_shared = T.alloc_shared(B_shared_shape, storage_dtype)
-        B_local = T.alloc_fragment(B_shared_shape, storage_dtype)
-        B_dequantize_local = T.alloc_fragment(B_dequantize_shared_shape, in_dtype)
-        Ct_local = T.alloc_fragment((block_N, block_M), accum_dtype)
+  with T.Kernel(T.ceildiv(N, block_N), T.ceildiv(M, block_M), threads=threads) as (bx, by):
+    A_shared = T.alloc_shared(A_shared_shape, in_dtype)
+    B_shared = T.alloc_shared(B_shared_shape, storage_dtype)
+    B_local = T.alloc_fragment(B_shared_shape, storage_dtype)
+    B_dequantize_local = T.alloc_fragment(B_dequantize_shared_shape, in_dtype)
+    Ct_local = T.alloc_fragment((block_N, block_M), accum_dtype)
 
-        T.clear(Ct_local)
-        for k in T.Pipelined(
-            T.ceildiv(K, block_K),
-            num_stages=num_stages
-        ):
-            T.copy(A[by * block_M, k * block_K], A_shared)
-            T.copy(B[bx * block_N, k * block_K // num_elems_per_byte], B_shared)
-            T.copy(B_shared, B_local)
-            for i, j in T.Parallel(block_N, block_K):
-                B_dequantize_local[i, j] = _tir_packed_to_unsigned_convert("int", 8)(
-                    num_bits,
-                    B_local[i, j // 2],
-                    j % 2,
-                    dtype=in_dtype,
-                )
-            T.gemm(B_dequantize_local, A_shared, Ct_local, transpose_B=True)
-        T.copy(Ct_local, Ct[bx * block_N, by * block_M])
+    T.clear(Ct_local)
+    for k in T.Pipelined(
+      T.ceildiv(K, block_K),
+      num_stages=num_stages
+    ):
+      T.copy(A[by * block_M, k * block_K], A_shared)
+      T.copy(B[bx * block_N, k * block_K // num_elems_per_byte], B_shared)
+      T.copy(B_shared, B_local)
+      for i, j in T.Parallel(block_N, block_K):
+        B_dequantize_local[i, j] = _tir_packed_to_unsigned_convert("int", 8)(
+          num_bits,
+          B_local[i, j // 2],
+          j % 2,
+          dtype=in_dtype,
+        )
+      T.gemm(B_dequantize_local, A_shared, Ct_local, transpose_B=True)
+    T.copy(Ct_local, Ct[bx * block_N, by * block_M])
 ```
 
 **Figure 17.** Implementation of Weight-Only Quantization ($W_{\mathrm{FP4\_E2M1}}A_{\mathrm{FP16}}$) Matmul using TileLang, showcasing support for mixed-precision computations via a simple form.
@@ -407,67 +407,67 @@ def matmul_fp16_fp4(
 ```python
 @tilelang.jit
 def flash_attn(
-        Q: T.Tensor([batch, heads, dim], dtype),
-        Q_pe: T.Tensor([batch, heads, pe_dim], dtype),
-        KV: T.Tensor([batch, seqlen_kv, kv_head_num, dim], dtype),
-        K_pe: T.Tensor([batch, seqlen_kv, kv_head_num, pe_dim], dtype),
-        Output: T.Tensor([batch, heads, dim], dtype),
+  Q: T.Tensor([batch, heads, dim], dtype),
+  Q_pe: T.Tensor([batch, heads, pe_dim], dtype),
+  KV: T.Tensor([batch, seqlen_kv, kv_head_num, dim], dtype),
+  K_pe: T.Tensor([batch, seqlen_kv, kv_head_num, pe_dim], dtype),
+  Output: T.Tensor([batch, heads, dim], dtype),
 ):
-    with T.Kernel(batch, heads // min(block_H, kv_group_num), threads=256) as (bx, by):
-        Q_shared = T.alloc_shared([block_H, dim], dtype)
-        S_shared = T.alloc_shared([block_H, block_N], dtype)
-        Q_pe_shared = T.alloc_shared([block_H, pe_dim], dtype)
-        KV_shared = T.alloc_shared([block_N, dim], dtype)
-        K_pe_shared = T.alloc_shared([block_N, pe_dim], dtype)
-        O_shared = T.alloc_shared([block_H, dim], dtype)
-        acc_s = T.alloc_fragment([block_H, block_N], accum_dtype)
-        acc_o = T.alloc_fragment([block_H, dim], accum_dtype)
-        scores_max = T.alloc_fragment([block_H], accum_dtype)
-        scores_max_prev = T.alloc_fragment([block_H], accum_dtype)
-        scores_scale = T.alloc_fragment([block_H], accum_dtype)
-        scores_sum = T.alloc_fragment([block_H], accum_dtype)
-        logsum = T.alloc_fragment([block_H], accum_dtype)
+  with T.Kernel(batch, heads // min(block_H, kv_group_num), threads=256) as (bx, by):
+    Q_shared = T.alloc_shared([block_H, dim], dtype)
+    S_shared = T.alloc_shared([block_H, block_N], dtype)
+    Q_pe_shared = T.alloc_shared([block_H, pe_dim], dtype)
+    KV_shared = T.alloc_shared([block_N, dim], dtype)
+    K_pe_shared = T.alloc_shared([block_N, pe_dim], dtype)
+    O_shared = T.alloc_shared([block_H, dim], dtype)
+    acc_s = T.alloc_fragment([block_H, block_N], accum_dtype)
+    acc_o = T.alloc_fragment([block_H, dim], accum_dtype)
+    scores_max = T.alloc_fragment([block_H], accum_dtype)
+    scores_max_prev = T.alloc_fragment([block_H], accum_dtype)
+    scores_scale = T.alloc_fragment([block_H], accum_dtype)
+    scores_sum = T.alloc_fragment([block_H], accum_dtype)
+    logsum = T.alloc_fragment([block_H], accum_dtype)
 
-        cur_kv_head = by // (kv_group_num // block_H)
-        T.use_swizzle(10)
+    cur_kv_head = by // (kv_group_num // block_H)
+    T.use_swizzle(10)
 
-        T.copy(Q[bx, by * VALID_BLOCK_H:(by + 1) * VALID_BLOCK_H, :], Q_shared)
-        T.copy(Q_pe[bx, by * VALID_BLOCK_H:(by + 1) * VALID_BLOCK_H, :], Q_pe_shared)
-        T.fill(acc_o, 0)
-        T.fill(logsum, 0)
-        T.fill(scores_max, -T.infinity(accum_dtype))
+    T.copy(Q[bx, by * VALID_BLOCK_H:(by + 1) * VALID_BLOCK_H, :], Q_shared)
+    T.copy(Q_pe[bx, by * VALID_BLOCK_H:(by + 1) * VALID_BLOCK_H, :], Q_pe_shared)
+    T.fill(acc_o, 0)
+    T.fill(logsum, 0)
+    T.fill(scores_max, -T.infinity(accum_dtype))
 
-        loop_range = T.ceildiv(seqlen_kv, block_N)
-        for k in T.Pipelined(loop_range, num_stages=2):
-            T.copy(KV[bx, k * block_N:(k + 1) * block_N, cur_kv_head, :], KV_shared)
-            T.copy(K_pe[bx, k * block_N:(k + 1) * block_N, cur_kv_head, :], K_pe_shared)
-            T.clear(acc_s)
-            T.gemm(
-                Q_shared, KV_shared, acc_s, transpose_B=True, policy=T.GemmWarpPolicy.FullCol)
-            T.gemm(
-                Q_pe_shared,
-                K_pe_shared,
-                acc_s,
-                transpose_B=True,
-                policy=T.GemmWarpPolicy.FullCol)
-            T.copy(scores_max, scores_max_prev)
-            T.fill(scores_max, -T.infinity(accum_dtype))
-            T.reduce_max(acc_s, scores_max, dim=1, clear=False)
-            for i in T.Parallel(block_H):
-                scores_scale[i] = T.exp2(scores_max_prev[i] * scale - scores_max[i] * scale)
-            for i, j in T.Parallel(block_H, block_N):
-                acc_s[i, j] = T.exp2(acc_s[i, j] * scale - scores_max[i] * scale)
-            T.reduce_sum(acc_s, scores_sum, dim=1)
-            T.copy(acc_s, S_shared)
-            for i in T.Parallel(block_H):
-                logsum[i] = logsum[i] * scores_scale[i] + scores_sum[i]
-            for i, j in T.Parallel(block_H, dim):
-                acc_o[i, j] *= scores_scale[i]
-            T.gemm(S_shared, KV_shared, acc_o, policy=T.GemmWarpPolicy.FullCol)
-        for i, j in T.Parallel(block_H, dim):
-            acc_o[i, j] /= logsum[i]
-        T.copy(acc_o, O_shared)
-        T.copy(O_shared, Output[bx, by * VALID_BLOCK_H:(by + 1) * VALID_BLOCK_H, :])
+    loop_range = T.ceildiv(seqlen_kv, block_N)
+    for k in T.Pipelined(loop_range, num_stages=2):
+      T.copy(KV[bx, k * block_N:(k + 1) * block_N, cur_kv_head, :], KV_shared)
+      T.copy(K_pe[bx, k * block_N:(k + 1) * block_N, cur_kv_head, :], K_pe_shared)
+      T.clear(acc_s)
+      T.gemm(
+        Q_shared, KV_shared, acc_s, transpose_B=True, policy=T.GemmWarpPolicy.FullCol)
+      T.gemm(
+        Q_pe_shared,
+        K_pe_shared,
+        acc_s,
+        transpose_B=True,
+        policy=T.GemmWarpPolicy.FullCol)
+      T.copy(scores_max, scores_max_prev)
+      T.fill(scores_max, -T.infinity(accum_dtype))
+      T.reduce_max(acc_s, scores_max, dim=1, clear=False)
+      for i in T.Parallel(block_H):
+        scores_scale[i] = T.exp2(scores_max_prev[i] * scale - scores_max[i] * scale)
+      for i, j in T.Parallel(block_H, block_N):
+        acc_s[i, j] = T.exp2(acc_s[i, j] * scale - scores_max[i] * scale)
+      T.reduce_sum(acc_s, scores_sum, dim=1)
+      T.copy(acc_s, S_shared)
+      for i in T.Parallel(block_H):
+        logsum[i] = logsum[i] * scores_scale[i] + scores_sum[i]
+      for i, j in T.Parallel(block_H, dim):
+        acc_o[i, j] *= scores_scale[i]
+      T.gemm(S_shared, KV_shared, acc_o, policy=T.GemmWarpPolicy.FullCol)
+    for i, j in T.Parallel(block_H, dim):
+      acc_o[i, j] /= logsum[i]
+    T.copy(acc_o, O_shared)
+    T.copy(O_shared, Output[bx, by * VALID_BLOCK_H:(by + 1) * VALID_BLOCK_H, :])
 ```
 
 **Figure 18.** Implementation of FlashMLA with TileLang.

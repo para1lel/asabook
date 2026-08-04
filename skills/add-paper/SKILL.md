@@ -53,6 +53,12 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 4. Preserve the complete footnote content, Markdown links, and its logical attachment point. Keep the annotation marker outside surrounding bold or italic markup.
 5. Confirm `markdown.annotation` is enabled in the Plume configuration and verify the built page contains interactive annotation components.
 
+## Format Code Blocks
+
+1. Use two spaces for each indentation level in every fenced code block on all English, Simplified Chinese, and Japanese paper pages. This applies to Python, pseudocode, shell commands, configuration, and literal prompt examples; never use tabs or a four-space base indentation.
+2. Keep the first indented level at two spaces and increase nested levels in two-space steps. Preserve the source program's behavior and visible content while normalizing indentation.
+3. Keep corresponding code blocks identically indented across all three languages.
+
 ## Prepare Shared Media
 
 1. Store all page-specific raster assets in `docs/papers/<slug>/` with deterministic names such as `figure-01.png` and `table-01.png`.
@@ -94,7 +100,7 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 2. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
 3. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
-4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
+4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
 5. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
 6. Run `git diff --check`.
 7. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.

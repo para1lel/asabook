@@ -143,6 +143,45 @@ function consecutiveHyphenLines(markdown) {
   return matches
 }
 
+function validateFencedCodeIndentation(markdown, label) {
+  const lines = markdown.split(/\r?\n/)
+  let fenceMarker = null
+  let fenceLine = null
+  let indentationWidths = []
+
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) {
+        fenceMarker = marker
+        fenceLine = index + 1
+        indentationWidths = []
+      } else if (fenceMarker === marker) {
+        if (indentationWidths.length > 0 && Math.min(...indentationWidths) !== 2) {
+          fail(`${label}: fenced code block at line ${fenceLine} must start indentation at two spaces`)
+        }
+        fenceMarker = null
+        fenceLine = null
+        indentationWidths = []
+      }
+      continue
+    }
+    if (fenceMarker === null) continue
+
+    const indentation = line.match(/^[ \t]+(?=\S)/)?.[0]
+    if (!indentation) continue
+    if (indentation.includes('\t')) {
+      fail(`${label}: fenced code block at line ${fenceLine} uses a tab at line ${index + 1}`)
+      continue
+    }
+    if (indentation.length % 2 !== 0) {
+      fail(`${label}: fenced code block at line ${fenceLine} uses non-two-space indentation at line ${index + 1}`)
+    }
+    indentationWidths.push(indentation.length)
+  }
+}
+
 function figureTableReferencePattern() {
   return /\b(?:Figures?|Tables?)\s+\d+(?:\([a-z]\)|[a-z])?|\b(?:Figs?|Tabs?)\.\s*\d+(?:\([a-z]\)|[a-z])?|(?:图|図|表)\s*\d+(?:\([a-z]\)|[a-z])?/giu
 }
@@ -370,6 +409,7 @@ for (const page of pages) {
   if (/^```pseudocode/m.test(markdown)) {
     warn(`${label}: review pseudocode fence; math-heavy algorithms must use nested unordered lists`)
   }
+  validateFencedCodeIndentation(markdown, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {
     fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)

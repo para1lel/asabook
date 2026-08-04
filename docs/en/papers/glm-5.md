@@ -825,13 +825,13 @@ SYSTEM_PROMPT = """"
 ```text
 # Note:
 - Do not generate the '###TRANSFER###' before agent clearly tells "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.".
- Example:
- Case1:
- - agent: "Would you like me to transfer you to a human agent who can assist you with these options and help get your service restored?"
- - user: "Yes, please transfer me to a human agent.".
- Case2:
- - user: "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
- - user: "###TRANSFER###"
+  Example:
+  Case1:
+  - agent: "Would you like me to transfer you to a human agent who can assist you with these options and help get your service restored?"
+  - user: "Yes, please transfer me to a human agent.".
+  Case2:
+  - user: "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
+  - user: "###TRANSFER###"
 ```
 
 **Figure 12.** The optimized user prompt for $\tau^{2}$-Bench Telecom.
@@ -843,12 +843,12 @@ SYSTEM_PROMPT = """"
 - Just generate one line at a time to simulate the user's message.
 - Do not give away all the instruction at once. Only provide the information that is necessary for the current step.
 - Do not hallucinate information that is not provided in the instruction. Follow these guidelines:
- 1. If the agent asks for information NOT in the instruction:
- - Say you don't remember or don't have it
- - Offer alternative information that IS mentioned in the instruction
- 2. Examples:
- - If asked for order ID (not in instruction): "Sorry, I don't remember the order ID, can you search for it? My name/email/phone number/zipcode is ..."
- - If asked for email (not in instruction): "I don't have my email handy, but I can give you my name and zip code which are..."
+  1. If the agent asks for information NOT in the instruction:
+  - Say you don't remember or don't have it
+  - Offer alternative information that IS mentioned in the instruction
+  2. Examples:
+  - If asked for order ID (not in instruction): "Sorry, I don't remember the order ID, can you search for it? My name/email/phone number/zipcode is ..."
+  - If asked for email (not in instruction): "I don't have my email handy, but I can give you my name and zip code which are..."
 - Do not repeat the exact instruction in the conversation. Instead, use your own words to convey the same information.
 - Try to make the conversation as natural as possible, and stick to the personalities in the instruction.
 # Constraint Handling:
@@ -860,14 +860,14 @@ SYSTEM_PROMPT = """"
 - Specific terms (e.g., "same" must not be replaced with "similar")
 - Core Rule: Any attribute NOT mentioned in the instruction can be either changed or kept the same
 - Examples:
- - If instruction says "exchange red item to blue": Only color must change, other attributes (size, material, etc.) are flexible
- - If instruction says "exchange red item to blue, keep the same size": Both color must change AND size must stay the same
+  - If instruction says "exchange red item to blue": Only color must change, other attributes (size, material, etc.) are flexible
+  - If instruction says "exchange red item to blue, keep the same size": Both color must change AND size must stay the same
 - Exception: Only follow additional constraints when explicitly stated in the instruction
 # Domain-Specific Rules:
 ## For Retail scenarios:
 - Focus on product attributes and exchange/return processes as specified in instructions.
 - During confirmations: Always respond based strictly on the original instruction, never deviate to match agent's provided options. Restate your requirement from the instruction rather than selecting from agent's choices.
- - Example: If the agent provides specific options (A/B/C) but the instruction states a general requirement (e.g., "same as pending order"), always restate or confirm based on what the instruction says, not by directly selecting from the agent's provided options.
+  - Example: If the agent provides specific options (A/B/C) but the instruction states a general requirement (e.g., "same as pending order"), always restate or confirm based on what the instruction says, not by directly selecting from the agent's provided options.
 # When NOT to finish the conversation:
 - Do not end until you have clearly and completely expressed all your requirements and constraints.
 - Do not end until the agent has completed all tasks mentioned in the instruction and verified no operations were missed.
@@ -912,16 +912,16 @@ The benchmark provides full coverage of three mainstream paradigms: Vanilla Web 
 Each test case is composed of three components: the **Task**, the **Checklist**, and a **Dedicated Environment**. Below is a representative example of a test case:
 
 ```text
- Task: Develop an online drawing tool that includes a brush, an eraser, a white canvas, and a save button.
- The brush color and thickness should be selectable via buttons on the left. Users can draw on the canvas by clicking and dragging the mouse.
- The eraser size should be selectable via buttons on the left. Users can erase content by clicking and dragging the mouse over the canvas.
- Once the drawing is complete, clicking the "Save" button should allow the user to save the image locally.
- Please implement this using the React framework in the current directory.
+  Task: Develop an online drawing tool that includes a brush, an eraser, a white canvas, and a save button.
+  The brush color and thickness should be selectable via buttons on the left. Users can draw on the canvas by clicking and dragging the mouse.
+  The eraser size should be selectable via buttons on the left. Users can erase content by clicking and dragging the mouse over the canvas.
+  Once the drawing is complete, clicking the "Save" button should allow the user to save the image locally.
+  Please implement this using the React framework in the current directory.
 
- Checklist:
- The user can select the brush color and thickness using the left-hand buttons, and drawing is functional via mouse click-and-drag on the canvas.
- The user can select the eraser size using the left-hand buttons, and erasing is functional via mouse click-and-drag on the canvas.
- Upon clicking the "Save" button, the generated image is successfully saved to the local machine.
+  Checklist:
+  The user can select the brush color and thickness using the left-hand buttons, and drawing is functional via mouse click-and-drag on the canvas.
+  The user can select the eraser size using the left-hand buttons, and erasing is functional via mouse click-and-drag on the canvas.
+  Upon clicking the "Save" button, the generated image is successfully saved to the local machine.
 ```
 
 **Data Construction and Validation**

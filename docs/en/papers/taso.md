@@ -230,7 +230,7 @@ When applying a substitution to a matched subgraph, TASO enumerates possible lay
 
 ```pseudocode:line-numbers title="Algorithm 2: Cost-based backtracking search"
 Input: An input graph G_in, verified substitutions S,
-       a cost model Cost(.), and hyperparameter alpha.
+  a cost model Cost(.), and hyperparameter alpha.
 Output: An optimized graph.
 
 P = {G_in}  // Priority queue sorted by Cost.
