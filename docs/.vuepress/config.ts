@@ -535,6 +535,24 @@ const paperAbbreviations = {
   'Zho24': "Yinmin Zhong et al. \"DistServe: Disaggregating Prefill and Decoding for Goodput-Optimized Large Language Model Serving.\" OSDI. 2024.",
   'Zho21b': "Keren Zhou et al. \"An Automated Tool for Analysis and Tuning of GPU-Accelerated Code in HPC Applications.\" IEEE Transactions on Parallel and Distributed Systems 33(4). 2021.",
   'Zho21a': "Keren Zhou et al. \"GPA: A GPU Performance Advisor Based on Instruction Sampling.\" CGO. 2021.",
+  'Amd23': "Advanced Micro Devices, Inc. \"AMD CDNA 3 Architecture.\" Technical report. 2023. [Link](https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/white-papers/amd-cdna-3-white-paper.pdf)",
+  'AmdWeb': "Advanced Micro Devices, Inc. \"AMD CDNA Architecture.\" [Link](https://www.amd.com/en/technologies/cdna)",
+  'AmdWeba': "Advanced Micro Devices, Inc. \"AMD Composable Kernel.\" [Link](https://github.com/ROCm/composable_kernel)",
+  'Dao22': "Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, Christopher Ré. \"FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness.\" Advances in Neural Information Processing Systems. 2022. [Link](https://arxiv.org/abs/2205.14135)",
+  'Goo24': "Google. \"Google Assistant with Bard: Generative AI.\" 2024. [Link](https://blog.google/products/assistant/google-assistant-bard-generative-ai/)",
+  'Hag23': "Bastian Hagedorn, Bin Fan, Hanfeng Chen, Cris Cecka, Michael Garland, Vinod Grover. \"Graphene: An IR for Optimized Tensor Computations on GPUs.\" Proceedings of the 28th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 3. 2023. [DOI](https://doi.org/10.1145/3582016.3582048)",
+  'Mic24': "Microsoft. \"The New Bing.\" 2024. [Link](https://www.microsoft.com/en-us/edge/features/the-new-bing?form=MT00D8)",
+  'Nvi20': "NVIDIA Corporation. \"NVIDIA A100 Tensor Core GPU Architecture.\" Technical report. 2020. [Link](https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf)",
+  'Nvi23': "NVIDIA Corporation. \"NVIDIA H100 Tensor Core GPU Architecture.\" Technical report. 2023. [Link](https://resources.nvidia.com/en-us-tensor-core)",
+  'NviWeb': "NVIDIA Corporation. \"NVIDIA Tensor Cores.\" [Link](https://www.nvidia.com/en-us/data-center/tensor-cores/)",
+  'Ope22': "OpenAI. \"Introducing ChatGPT.\" 2022. [Link](https://openai.com/index/chatgpt/)",
+  'Pho19': "Phitchaya Mangpo Phothilimthana, Archibald Samuel Elliott, An Wang, Abhinav Jangda, Bastian Hagedorn, Henrik Barthels, Samuel J. Kaufman, Vinod Grover, Emina Torlak, Rastislav Bodik. \"Swizzle Inventor: Data Movement Synthesis for GPU Kernels.\" Proceedings of the Twenty-Fourth International Conference on Architectural Support for Programming Languages and Operating Systems. 2019. [DOI](https://doi.org/10.1145/3293882.3330559)",
+  'Sha24f': "Jay Shah, Ganesh Bikshandi, Ying Zhang, Vijay Thakkar, Pradeep Ramani, Tri Dao. \"FlashAttention-3: Fast and Accurate Attention with Asynchrony and Low-Precision.\" arXiv preprint arXiv:2407.08608. 2024. [Link](https://arxiv.org/abs/2407.08608)",
+  'Thu24': "Hazy Research. \"ThunderKittens.\" 2024. [Link](https://github.com/HazyResearch/ThunderKittens)",
+  'Wan24l': "Lei Wang, Lingxiao Ma, Shijie Cao, Quanlu Zhang, Jilong Xue, Yining Shi, Ningxin Zheng, Ziming Miao, Fan Yang, Ting Cao, et al. \"Ladder: Enabling Efficient Low-Precision Deep Learning Computing through Hardware-aware Tensor Transformation.\" 18th USENIX Symposium on Operating Systems Design and Implementation (OSDI 24). 2024. [Link](https://www.usenix.org/conference/osdi24/presentation/wang-lei)",
+  'Wol19': "Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Clement Delangue, Anthony Moi, Pierric Cistac, Tim Rault, Rémi Louf, Morgan Funtowicz, et al. \"HuggingFace's Transformers: State-of-the-Art Natural Language Processing.\" arXiv preprint arXiv:1910.03771. 2019. [Link](https://arxiv.org/abs/1910.03771)",
+  'Yan23': "Ling Yang, Zhilong Zhang, Yang Song, Shenda Hong, Runsheng Xu, Yue Zhao, Wentao Zhang, Bin Cui, Ming-Hsuan Yang. \"Diffusion Models: A Comprehensive Survey of Methods and Applications.\" ACM Computing Surveys 56(4). 2023. [DOI](https://doi.org/10.1145/3626235)",
+  'Zhu22': "Hongyu Zhu, Ruofan Wu, Yijia Diao, Shanbin Ke, Haoyu Li, Chen Zhang, Jilong Xue, Lingxiao Ma, Yuqing Xia, Wei Cui, Fan Yang, Mao Yang, Lidong Zhou, Asaf Cidon, Gennady Pekhimenko. \"ROLLER: Fast and Efficient Tensor Compilation for Deep Learning.\" 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI 22). 2022. [Link](https://www.usenix.org/conference/osdi22/presentation/zhu)",
 }
 
 interface YokubiSidebarLabels {
@@ -762,7 +780,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['taso', 'pet', 'tilesight'],
+                items: ['taso', 'pet', 'tilelang', 'tilesight'],
               },
               {
                 text: '量化',
@@ -864,7 +882,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['taso', 'pet', 'tilesight'],
+                items: ['taso', 'pet', 'tilelang', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -1076,7 +1094,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['taso', 'pet', 'tilesight'],
+                items: ['taso', 'pet', 'tilelang', 'tilesight'],
               },
               {
                 text: '量子化',
