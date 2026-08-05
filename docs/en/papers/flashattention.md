@@ -84,17 +84,15 @@ This problem is exacerbated by other elementwise operations applied to the atten
 
 In [Section 3.2](#S3.SS2 "3.2 Analysis: IO Complexity of FlashAttention ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), we will show that the standard attention implementation performs HBM accesses quadratic in the sequence length $N$. We also compare the number of FLOPs and number of HBM accesses of standard attention and of our method (FlashAttention).
 
-Algorithm 0 Standard Attention Implementation
+<span id="alg0"></span>
 
-0:  Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM.
+**Algorithm 0: Standard Attention Implementation**
 
-1:   Load $\mathbf{Q},\mathbf{K}$ by blocks from HBM, compute $\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}$, write $\mathbf{S}$ to HBM.
-
-2:   Read $\mathbf{S}$ from HBM, compute $\mathbf{P}=\mathrm{softmax}(\mathbf{S})$, write $\mathbf{P}$ to HBM.
-
-3:   Load $\mathbf{P}$ and $\mathbf{V}$ by blocks from HBM, compute $\mathbf{O}=\mathbf{P}\mathbf{V}$, write $\mathbf{O}$ to HBM.
-
-4:  Return $\mathbf{O}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM.
+- <span id="alg0.l1"></span> Load $\mathbf{Q},\mathbf{K}$ by blocks from HBM, compute $\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}$, write $\mathbf{S}$ to HBM.
+- <span id="alg0.l2"></span> Read $\mathbf{S}$ from HBM, compute $\mathbf{P}=\mathrm{softmax}(\mathbf{S})$, write $\mathbf{P}$ to HBM.
+- <span id="alg0.l3"></span> Load $\mathbf{P}$ and $\mathbf{V}$ by blocks from HBM, compute $\mathbf{O}=\mathbf{P}\mathbf{V}$, write $\mathbf{O}$ to HBM.
+- **Return:** $\mathbf{O}$.
 
 ## 3 FlashAttention: Algorithm, Analysis, and Extensions
 
@@ -130,41 +128,25 @@ Recomputation. One of our goals is to not store $O(N^{2})$ intermediate values f
 
 Implementation details: Kernel fusion. Tiling enables us to implement our algorithm in one CUDA kernel, loading input from HBM, performing all the computation steps (matrix multiply, softmax, optionally masking and dropout, matrix multiply), then write the result back to HBM (masking and dropout in [Appendix B](#A2 "Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")). This avoids repeatedly reading and writing of inputs and outputs from and to HBM.
 
-Algorithm 1 FlashAttention
+<span id="alg1"></span>
 
-0:  Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, on-chip SRAM of size $M$.
+**Algorithm 1: FlashAttention**
 
-1:  Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
-
-2:   Initialize $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ in HBM.
-
-3:   Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
-
-4:  Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
-
-5:  for $1\leq j\leq T_{c}$ do
-
-6:      Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
-
-7:     for $1\leq i\leq T_{r}$ do
-
-8:         Load $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
-
-9:         On chip, compute $\mathbf{S}_{\mathrm{ij}}=\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-10:         On chip, compute $\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$ (pointwise), $\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$.
-
-11:        On chip, compute $m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$.
-
-12:         Write $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}\mathbf{V}_{j})$ to HBM.
-
-13:        Write $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$, $m_{i}\leftarrow m_{i}^{\mathrm{new}}$ to HBM.
-
-14:     end for
-
-15:  end for
-
-16:  Return $\mathbf{O}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, on-chip SRAM of size $M$.
+- Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
+- <span id="alg1.l2"></span> Initialize $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ in HBM.
+- <span id="alg1.l3"></span> Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
+- Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
+- <span id="alg1.l5"></span> **For** $1\leq j\leq T_{c}$ **do:**
+  - <span id="alg1.l6"></span> Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
+  - **For** $1\leq i\leq T_{r}$ **do:**
+    - <span id="alg1.l8"></span> Load $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
+    - <span id="alg1.l9"></span> On chip, compute $\mathbf{S}_{\mathrm{ij}}=\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - <span id="alg1.l10"></span> On chip, compute $\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$ (pointwise), $\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$.
+    - On chip, compute $m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$.
+    - <span id="alg1.l12"></span> Write $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}\mathbf{V}_{j})$ to HBM.
+    - Write $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$, $m_{i}\leftarrow m_{i}^{\mathrm{new}}$ to HBM.
+- **Return:** $\mathbf{O}$.
 
 We show FlashAttention’s correctness, runtime, and memory requirement (proof in [Appendix C](#A3 "Appendix C Proofs ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")).
 
@@ -522,47 +504,28 @@ where $\tau\in\mathbb{R}$ is some softmax scaling (typically $\frac{1}{\sqrt{d}}
 
 The full algorithm is in [Algorithm 2](#alg2 "In B.3 FlashAttention: Forward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"). We save the output $\mathbf{O}$, the softmax statistics $\ell$ and $m$, and the pseudo-random number generator state ${\cal R}$ for the backward pass.
 
-Algorithm 2 FlashAttention Forward Pass
+<span id="alg2"></span>
 
-0:  Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$.
+**Algorithm 2: FlashAttention Forward Pass**
 
-1:  Initialize the pseudo-random number generator state ${\cal R}$ and save to HBM.
-
-2:  Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
-
-3:  Initialize $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ in HBM.
-
-4:  Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
-
-5:  Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
-
-6:  for $1\leq j\leq T_{c}$ do
-
-7:     Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
-
-8:     for $1\leq i\leq T_{r}$ do
-
-9:        Load $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
-
-10:        On chip, compute $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-11:        On chip, compute $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$.
-
-12:        On chip, compute $\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$, $\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$ (pointwise), $\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$.
-
-13:        On chip, compute $m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$.
-
-14:        On chip, compute $\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$.
-
-15:        Write $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ to HBM.
-
-16:        Write $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$, $m_{i}\leftarrow m_{i}^{\mathrm{new}}$ to HBM.
-
-17:     end for
-
-18:  end for
-
-19:  Return $\mathbf{O},\ell,m,{\cal R}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$.
+- Initialize the pseudo-random number generator state ${\cal R}$ and save to HBM.
+- Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
+- Initialize $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ in HBM.
+- Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
+- Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
+- **For** $1\leq j\leq T_{c}$ **do:**
+  - Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
+  - **For** $1\leq i\leq T_{r}$ **do:**
+    - Load $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
+    - On chip, compute $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - On chip, compute $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$.
+    - On chip, compute $\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$, $\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$ (pointwise), $\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$.
+    - On chip, compute $m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$.
+    - On chip, compute $\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$.
+    - Write $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ to HBM.
+    - Write $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$, $m_{i}\leftarrow m_{i}^{\mathrm{new}}$ to HBM.
+- **Return:** $\mathbf{O},\ell,m,{\cal R}$.
 
 ### B.4 FlashAttention: Backward Pass
 
@@ -570,21 +533,17 @@ We describe the full details of FlashAttention backward pass. Given input sequen
 
 We first describe the standard attention backward pass in [Algorithm 3](#alg3 "In B.4 FlashAttention: Backward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") for completeness.
 
-Algorithm 3 Standard Attention Backward Pass
+<span id="alg3"></span>
 
-0:  Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$, $\mathbf{P}\in\mathbb{R}^{N\times N}$ in HBM.
+**Algorithm 3: Standard Attention Backward Pass**
 
-1:  Load $\mathbf{P},\mathbf{\mathrm{dO}}$ by blocks from HBM, compute $\mathbf{\mathrm{dV}}=\mathbf{P}^{\top}\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$, write $\mathbf{\mathrm{dV}}$ to HBM.
-
-2:  Load $\mathbf{\mathrm{dO}},\mathbf{V}$ by blocks from HBM, compute $\mathbf{\mathrm{dP}}=\mathbf{\mathrm{dO}}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$, write $\mathbf{\mathrm{dP}}$ to HBM.
-
-3:  Read $\mathbf{P},\mathbf{\mathrm{dP}}$ from HBM, compute $\mathbf{\mathrm{dS}}\in\mathbb{R}^{N\times N}$ where $\mathrm{dS}_{\mathrm{ij}}=P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-\sum_{l}P_{\mathrm{il}}\mathrm{dP}_{\mathrm{il}})$, write $\mathbf{\mathrm{dS}}$ to HBM.
-
-4:  Load $\mathbf{\mathrm{dS}}$ and $\mathbf{K}$ by blocks from HBM, compute $\mathbf{\mathrm{dQ}}=\mathbf{\mathrm{dS}}\mathbf{K}$, write $\mathbf{\mathrm{dQ}}$ to HBM.
-
-5:  Load $\mathbf{\mathrm{dS}}$ and $\mathbf{Q}$ by blocks from HBM, compute $\mathbf{\mathrm{dK}}=\mathbf{\mathrm{dS}}^{\top}\mathbf{Q}$, write $\mathbf{\mathrm{dK}}$ to HBM.
-
-6:  Return $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$, $\mathbf{P}\in\mathbb{R}^{N\times N}$ in HBM.
+- Load $\mathbf{P},\mathbf{\mathrm{dO}}$ by blocks from HBM, compute $\mathbf{\mathrm{dV}}=\mathbf{P}^{\top}\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$, write $\mathbf{\mathrm{dV}}$ to HBM.
+- Load $\mathbf{\mathrm{dO}},\mathbf{V}$ by blocks from HBM, compute $\mathbf{\mathrm{dP}}=\mathbf{\mathrm{dO}}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$, write $\mathbf{\mathrm{dP}}$ to HBM.
+- Read $\mathbf{P},\mathbf{\mathrm{dP}}$ from HBM, compute $\mathbf{\mathrm{dS}}\in\mathbb{R}^{N\times N}$ where $\mathrm{dS}_{\mathrm{ij}}=P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-\sum_{l}P_{\mathrm{il}}\mathrm{dP}_{\mathrm{il}})$, write $\mathbf{\mathrm{dS}}$ to HBM.
+- Load $\mathbf{\mathrm{dS}}$ and $\mathbf{K}$ by blocks from HBM, compute $\mathbf{\mathrm{dQ}}=\mathbf{\mathrm{dS}}\mathbf{K}$, write $\mathbf{\mathrm{dQ}}$ to HBM.
+- Load $\mathbf{\mathrm{dS}}$ and $\mathbf{Q}$ by blocks from HBM, compute $\mathbf{\mathrm{dK}}=\mathbf{\mathrm{dS}}^{\top}\mathbf{Q}$, write $\mathbf{\mathrm{dK}}$ to HBM.
+- **Return:** $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$.
 
 We now make two observations about FlashAttention backward pass:
 
@@ -598,61 +557,35 @@ We now make two observations about FlashAttention backward pass:
 
 The full FlashAttention backward pass algorithm is in [Algorithm 4](#alg4 "In B.4 FlashAttention: Backward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"). Conceptually it is just a block version of the derivation in [Section B.2](#A2.SS2 "B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness").
 
-Algorithm 4 FlashAttention Backward Pass
+<span id="alg4"></span>
 
-0:  Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$ in HBM, vectors $\ell,m\in\mathbb{R}^{N}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$, pseudo-random number generator state ${\cal R}$ from the forward pass.
+**Algorithm 4: FlashAttention Backward Pass**
 
-1:  Set the pseudo-random number generator state to ${\cal R}$.
-
-2:  Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
-
-3:  Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
-
-4:  Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\mathbf{\mathrm{dO}}$ into $T_{r}$ blocks $\mathbf{\mathrm{dO}}_{i},\dots,\mathbf{\mathrm{dO}}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
-
-5:  Initialize $\mathbf{\mathrm{dQ}}=(0)_{N\times d}$ in HBM and divide it into $T_{r}$ blocks $\mathbf{\mathrm{dQ}}_{1},\dots,\mathbf{\mathrm{dQ}}_{T_{r}}$ of size $B_{r}\times d$ each. Initialize $\mathbf{\mathrm{dK}}=(0)_{N\times d},\mathbf{\mathrm{dV}}=(0)_{N\times d}$ in HBM and divide $\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$ in to $T_{c}$ blocks $\mathbf{\mathrm{dK}}_{1},\dots,\mathbf{\mathrm{dK}}_{T_{c}}$ and $\mathbf{\mathrm{dV}}_{1},\dots,\mathbf{\mathrm{dV}}_{T_{c}}$, of size $B_{c}\times d$ each.
-
-6:  for $1\leq j\leq T_{c}$ do
-
-7:     Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
-
-8:     Initialize $\tilde{\mathbf{\mathrm{dK}}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{\mathrm{dV}}}_{j}=(0)_{B_{c}\times d}$ on SRAM.
-
-9:     for $1\leq i\leq T_{r}$ do
-
-10:        Load $\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{\mathrm{dO}}_{i},\mathbf{\mathrm{dQ}}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
-
-11:        On chip, compute $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-12:        On chip, compute $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$.
-
-13:        On chip, compute $\mathbf{P}_{\mathrm{ij}}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-14:        On chip, compute dropout mask $\mathbf{Z}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}\times B_{c}}$ where each entry has value $\frac{1}{1-p_{\mathrm{drop}}}$ with probability $1-p_{\mathrm{drop}}$ and value 0 with probability $p_{\mathrm{drop}}$.
-
-15:        On chip, compute $\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{P}_{\mathrm{ij}}\circ\mathbf{Z}_{\mathrm{ij}}$ (pointwise multiply).
-
-16:        On chip, compute $\tilde{\mathbf{\mathrm{dV}}_{j}}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}+(\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}})^{\top}\mathbf{\mathrm{dO}}_{i}\in\mathbb{R}^{B_{c}\times d}$.
-
-17:        On chip, compute $\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{\mathrm{dO}}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-18:        On chip, compute $\mathbf{\mathrm{dP}}_{\mathrm{ij}}=\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}\circ\mathbf{Z}_{\mathrm{ij}}$ (pointwise multiply).
-
-19:        On chip, compute $D_{i}=\mathrm{rowsum}(\mathbf{\mathrm{dO}}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$.
-
-20:        On chip, compute $\mathbf{\mathrm{dS}}_{\mathrm{ij}}=\mathbf{P}_{\mathrm{ij}}\circ(\mathbf{\mathrm{dP}}_{\mathrm{ij}}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-21:        Write $\mathbf{\mathrm{dQ}}_{i}\leftarrow\mathbf{\mathrm{dQ}}_{i}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$ to HBM.
-
-22:        On chip, compute $\tilde{\mathbf{\mathrm{dK}}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}}_{j}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$.
-
-23:     end for
-
-24:     Write $\mathbf{\mathrm{dK}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}_{j}},\mathbf{\mathrm{dV}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}$ to HBM.
-
-25:  end for
-
-26:  Return $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$ in HBM, vectors $\ell,m\in\mathbb{R}^{N}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$, pseudo-random number generator state ${\cal R}$ from the forward pass.
+- Set the pseudo-random number generator state to ${\cal R}$.
+- Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
+- Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
+- Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\mathbf{\mathrm{dO}}$ into $T_{r}$ blocks $\mathbf{\mathrm{dO}}_{i},\dots,\mathbf{\mathrm{dO}}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
+- Initialize $\mathbf{\mathrm{dQ}}=(0)_{N\times d}$ in HBM and divide it into $T_{r}$ blocks $\mathbf{\mathrm{dQ}}_{1},\dots,\mathbf{\mathrm{dQ}}_{T_{r}}$ of size $B_{r}\times d$ each. Initialize $\mathbf{\mathrm{dK}}=(0)_{N\times d},\mathbf{\mathrm{dV}}=(0)_{N\times d}$ in HBM and divide $\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$ in to $T_{c}$ blocks $\mathbf{\mathrm{dK}}_{1},\dots,\mathbf{\mathrm{dK}}_{T_{c}}$ and $\mathbf{\mathrm{dV}}_{1},\dots,\mathbf{\mathrm{dV}}_{T_{c}}$, of size $B_{c}\times d$ each.
+- **For** $1\leq j\leq T_{c}$ **do:**
+  - Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
+  - Initialize $\tilde{\mathbf{\mathrm{dK}}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{\mathrm{dV}}}_{j}=(0)_{B_{c}\times d}$ on SRAM.
+  - **For** $1\leq i\leq T_{r}$ **do:**
+    - Load $\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{\mathrm{dO}}_{i},\mathbf{\mathrm{dQ}}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
+    - On chip, compute $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - On chip, compute $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$.
+    - On chip, compute $\mathbf{P}_{\mathrm{ij}}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - On chip, compute dropout mask $\mathbf{Z}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}\times B_{c}}$ where each entry has value $\frac{1}{1-p_{\mathrm{drop}}}$ with probability $1-p_{\mathrm{drop}}$ and value 0 with probability $p_{\mathrm{drop}}$.
+    - On chip, compute $\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{P}_{\mathrm{ij}}\circ\mathbf{Z}_{\mathrm{ij}}$ (pointwise multiply).
+    - On chip, compute $\tilde{\mathbf{\mathrm{dV}}_{j}}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}+(\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}})^{\top}\mathbf{\mathrm{dO}}_{i}\in\mathbb{R}^{B_{c}\times d}$.
+    - On chip, compute $\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{\mathrm{dO}}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - On chip, compute $\mathbf{\mathrm{dP}}_{\mathrm{ij}}=\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}\circ\mathbf{Z}_{\mathrm{ij}}$ (pointwise multiply).
+    - On chip, compute $D_{i}=\mathrm{rowsum}(\mathbf{\mathrm{dO}}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$.
+    - On chip, compute $\mathbf{\mathrm{dS}}_{\mathrm{ij}}=\mathbf{P}_{\mathrm{ij}}\circ(\mathbf{\mathrm{dP}}_{\mathrm{ij}}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - Write $\mathbf{\mathrm{dQ}}_{i}\leftarrow\mathbf{\mathrm{dQ}}_{i}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$ to HBM.
+    - On chip, compute $\tilde{\mathbf{\mathrm{dK}}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}}_{j}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$.
+  - Write $\mathbf{\mathrm{dK}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}_{j}},\mathbf{\mathrm{dV}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}$ to HBM.
+- **Return:** $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$.
 
 We see that similar to the forward pass, the backward pass performs $O(N^{2})$ FLOPs and only requires $O(N)$ extra memory beyond inputs, output, output gradient, and input gradients.
 
@@ -859,49 +792,28 @@ $$
 
 We describe the full block-sparse FlashAttention algorithm in [Algorithm 5](#alg5 "In D.1 Block-sparse FlashAttention ‣ Appendix D Extension Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"). The algorithm is identical to [Algorithm 2](#alg2 "In B.3 FlashAttention: Forward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), except that we skip zero blocks.
 
-Algorithm 5 Block-Sparse FlashAttention Forward Pass
+<span id="alg5"></span>
 
-0:  Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$, block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$, block sparsity mask $M\in\{0,1\}^{N/B_{r}\times N/B_{c}}$..
+**Algorithm 5: Block-Sparse FlashAttention Forward Pass**
 
-1:  Initialize the pseudo-random number generator state ${\cal R}$ and save to HBM.
-
-2:  Initialize $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ in HBM.
-
-3:  Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
-
-4:  Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
-
-5:  for $1\leq j\leq T_{c}$ do
-
-6:     Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
-
-7:     for $1\leq i\leq T_{r}$ do
-
-8:        if $M_{\mathrm{ij}}\neq 0$ then
-
-9:           Load $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
-
-10:           On chip, compute $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
-
-11:           On chip, compute $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$.
-
-12:           On chip, compute $\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$, $\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$ (pointwise), $\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$.
-
-13:           On chip, compute $m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$.
-
-14:           On chip, compute $\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$.
-
-15:           Write $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ to HBM.
-
-16:           Write $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$, $m_{i}\leftarrow m_{i}^{\mathrm{new}}$ to HBM.
-
-17:        end if
-
-18:     end for
-
-19:  end for
-
-20:  Return $\mathbf{O},\ell,m,{\cal R}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$, block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$, block sparsity mask $M\in\{0,1\}^{N/B_{r}\times N/B_{c}}$..
+- Initialize the pseudo-random number generator state ${\cal R}$ and save to HBM.
+- Initialize $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ in HBM.
+- Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
+- Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
+- **For** $1\leq j\leq T_{c}$ **do:**
+  - Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
+  - **For** $1\leq i\leq T_{r}$ **do:**
+    - **If** $M_{\mathrm{ij}}\neq 0$:
+      - Load $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
+      - On chip, compute $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
+      - On chip, compute $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$.
+      - On chip, compute $\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$, $\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$ (pointwise), $\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$.
+      - On chip, compute $m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$, $\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$.
+      - On chip, compute $\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$.
+      - Write $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ to HBM.
+      - Write $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$, $m_{i}\leftarrow m_{i}^{\mathrm{new}}$ to HBM.
+- **Return:** $\mathbf{O},\ell,m,{\cal R}$.
 
 We prove the IO-complexity of block-sparse FlashAttention.
 

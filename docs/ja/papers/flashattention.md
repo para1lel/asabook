@@ -84,17 +84,15 @@ $$
 
 [セクション 3.2](#S3.SS2) では、標準アテンション実装がシーケンス長 $N$ に対して HBM アクセスを二乗的に行うことを示します。また、標準アテンションと我々の手法（FlashAttention）の FLOPs 数および HBM アクセス数を比較します。
 
-アルゴリズム 0 標準アテンション実装
+<span id="alg0"></span>
 
-0： 行列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ を HBM に配置する。
+**アルゴリズム 0: 標準アテンション実装**
 
-1： HBMからブロック単位で$\mathbf{Q},\mathbf{K}$をロードし、$\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}$を計算して、$\mathbf{S}$をHBMに書き込む。
-
-2： HBMから$\mathbf{S}$を読み込み、$\mathbf{P}=\mathrm{softmax}(\mathbf{S})$を計算して、$\mathbf{P}$をHBMに書き込む。
-
-3： HBMから$\mathbf{P}$と$\mathbf{V}$をブロック単位でロードし、$\mathbf{O}=\mathbf{P}\mathbf{V}$を計算して、$\mathbf{O}$をHBMに書き込む。
-
-4： $\mathbf{O}$を返す。
+- **入力:** 行列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ を HBM に配置する。
+- <span id="alg0.l1"></span> HBMからブロック単位で$\mathbf{Q},\mathbf{K}$をロードし、$\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}$を計算して、$\mathbf{S}$をHBMに書き込む。
+- <span id="alg0.l2"></span> HBMから$\mathbf{S}$を読み込み、$\mathbf{P}=\mathrm{softmax}(\mathbf{S})$を計算して、$\mathbf{P}$をHBMに書き込む。
+- <span id="alg0.l3"></span> HBMから$\mathbf{P}$と$\mathbf{V}$をブロック単位でロードし、$\mathbf{O}=\mathbf{P}\mathbf{V}$を計算して、$\mathbf{O}$をHBMに書き込む。
+- **返却:** $\mathbf{O}$を返す。
 
 ## 3 FlashAttention： アルゴリズム、解析、拡張
 
@@ -130,41 +128,25 @@ $$
 
 実装の詳細： カーネルフュージョン。タイル化により、HBMから入力を読み込み、すべての計算ステップ（行列乗算、ソフトマックス、必要に応じてマスキングとドロップアウト、行列乗算）を実行し、結果をHBMに書き戻すというアルゴリズムを1つのCUDAカーネルで実装することが可能になります（マスキングとドロップアウトは[付録 B](#A2)に記載されています）。これにより、HBMへの入力と出力の読み書きを繰り返すことを回避できます。
 
-アルゴリズム1 FlashAttention
+<span id="alg1"></span>
 
-0： HBMにある行列$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、オンチップSRAMのサイズ$M$。
+**アルゴリズム 1: FlashAttention**
 
-1： ブロックサイズ$B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$を設定する。
-
-2： HBM内で$\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$を初期化する。
-
-3： $\mathbf{Q}$を各$B_{r}\times d$サイズの$\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ブロックに分割し、$\mathbf{K},\mathbf{V}$を各$B_{c}\times d$サイズの$T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ブロックおよび$\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$と$\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$に分割する。
-
-4： $\mathbf{O}$ を $T_{r}$ ブロック $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\ell$ を $T_{r}$ ブロック $\ell_{i},\dots,\ell_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とし、$m$ を $T_{r}$ ブロック $m_{1},\dots,m_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とする。
-
-5： $1\leq j\leq T_{c}$ に対して繰り返す
-
-6：     $\mathbf{K}_{j},\mathbf{V}_{j}$ を HBM からオンチップ SRAM にロード。
-
-7：     $1\leq i\leq T_{r}$ に対して繰り返す
-
-8：         $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ を HBM からオンチップ SRAM にロード。
-
-9： チップ上で、$\mathbf{S}_{\mathrm{ij}}=\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$ を計算します。
-
-10： チップ上で、$\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$（要素ごと）、$\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$ を計算します。
-
-11： チップ上で、$m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$ を計算します。
-
-12： $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}\mathbf{V}_{j})$ を HBM に書き込む。
-
-13：        $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$、$m_{i}\leftarrow m_{i}^{\mathrm{new}}$ を HBM に書き込む。
-
-14：     for ループ終了
-
-15：  for ループ終了
-
-16：  $\mathbf{O}$ を返す。
+- **入力:** HBMにある行列$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、オンチップSRAMのサイズ$M$。
+- ブロックサイズ$B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$を設定する。
+- <span id="alg1.l2"></span> HBM内で$\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$を初期化する。
+- <span id="alg1.l3"></span> $\mathbf{Q}$を各$B_{r}\times d$サイズの$\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ブロックに分割し、$\mathbf{K},\mathbf{V}$を各$B_{c}\times d$サイズの$T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ブロックおよび$\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$と$\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$に分割する。
+- $\mathbf{O}$ を $T_{r}$ ブロック $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\ell$ を $T_{r}$ ブロック $\ell_{i},\dots,\ell_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とし、$m$ を $T_{r}$ ブロック $m_{1},\dots,m_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とする。
+- <span id="alg1.l5"></span> **$1\leq j\leq T_{c}$ に対して繰り返す:**
+  - <span id="alg1.l6"></span> $\mathbf{K}_{j},\mathbf{V}_{j}$ を HBM からオンチップ SRAM にロード。
+  - **$1\leq i\leq T_{r}$ に対して繰り返す:**
+    - <span id="alg1.l8"></span> $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ を HBM からオンチップ SRAM にロード。
+    - <span id="alg1.l9"></span> チップ上で、$\mathbf{S}_{\mathrm{ij}}=\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$ を計算します。
+    - <span id="alg1.l10"></span> チップ上で、$\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$（要素ごと）、$\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$ を計算します。
+    - チップ上で、$m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$ を計算します。
+    - <span id="alg1.l12"></span> $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}\mathbf{V}_{j})$ を HBM に書き込む。
+    - $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$、$m_{i}\leftarrow m_{i}^{\mathrm{new}}$ を HBM に書き込む。
+- **返却:** $\mathbf{O}$ を返す。
 
 FlashAttention の正確性、実行時間、メモリ要件を示す（証明は [付録 C](#A3) に記載）。
 
@@ -522,47 +504,28 @@ $$
 
 完全なアルゴリズムは [Algorithm 2](#alg2) にあります。出力 $\mathbf{O}$、ソフトマックス統計 $\ell$ および $m$、そして擬似乱数生成器の状態 ${\cal R}$ を逆伝播用に保存します。
 
-アルゴリズム 2 FlashAttention フォワードパス
+<span id="alg2"></span>
 
-0： HBM 内の行列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、サイズ $M$ のオンチップ SRAM、ソフトマックススケーリング定数 $\tau\in\mathbb{R}$、マスキング関数 mask、ドロップアウト確率 $p_{\mathrm{drop}}$。
+**アルゴリズム 2: FlashAttention フォワードパス**
 
-1： 疑似乱数生成器の状態${\cal R}$を初期化し、HBMに保存。
-
-2： ブロックサイズを $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$ に設定する。
-
-3： HBM 内に $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ を初期化。
-
-4： $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ 個のブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分け、それぞれのサイズを $B_{r}\times d$ にして、 $\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ 個のブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ と $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分け、それぞれのサイズを $B_{c}\times d$ にする。
-
-5： $\mathbf{O}$ を $T_{r}$ 個のブロック $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ に分け、それぞれのサイズを $B_{r}\times d$ にする。$\ell$ を $T_{r}$ 個のブロック $\ell_{i},\dots,\ell_{T_{r}}$ に分け、それぞれのサイズを $B_{r}$ にする。$m$ を $T_{r}$ 個のブロック $m_{1},\dots,m_{T_{r}}$ に分け、それぞれのサイズを $B_{r}$ にする。
-
-6： $1\leq j\leq T_{c}$について実行
-
-7： HBMからオンチップSRAMに$\mathbf{K}_{j},\mathbf{V}_{j}$をロードする。
-
-8：     $1\leq i\leq T_{r}$ に対して行う
-
-9：        $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ を HBM からオンチップ SRAM にロードする。
-
-10：        チップ上で $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$ を計算します。
-
-11：        チップ上で $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$ を計算します。
-
-12： チップ上で、$\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$、$\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$（ポイントごと）、$\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$ を計算する。
-
-13： チップ上で、$m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$ を計算する。
-
-14： チップ上で、$\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$ を計算する。
-
-15： $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ を HBM に書き込む。
-
-16：        $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$、$m_{i}\leftarrow m_{i}^{\mathrm{new}}$ を HBM に書き込む。
-
-17：        for ループ終了
-
-18：        for ループ終了
-
-19：        $\mathbf{O},\ell,m,{\cal R}$ を返す。
+- **入力:** HBM 内の行列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、サイズ $M$ のオンチップ SRAM、ソフトマックススケーリング定数 $\tau\in\mathbb{R}$、マスキング関数 mask、ドロップアウト確率 $p_{\mathrm{drop}}$。
+- 疑似乱数生成器の状態${\cal R}$を初期化し、HBMに保存。
+- ブロックサイズを $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$ に設定する。
+- HBM 内に $\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$ を初期化。
+- $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ 個のブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分け、それぞれのサイズを $B_{r}\times d$ にして、 $\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ 個のブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ と $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分け、それぞれのサイズを $B_{c}\times d$ にする。
+- $\mathbf{O}$ を $T_{r}$ 個のブロック $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ に分け、それぞれのサイズを $B_{r}\times d$ にする。$\ell$ を $T_{r}$ 個のブロック $\ell_{i},\dots,\ell_{T_{r}}$ に分け、それぞれのサイズを $B_{r}$ にする。$m$ を $T_{r}$ 個のブロック $m_{1},\dots,m_{T_{r}}$ に分け、それぞれのサイズを $B_{r}$ にする。
+- **$1\leq j\leq T_{c}$について実行:**
+  - HBMからオンチップSRAMに$\mathbf{K}_{j},\mathbf{V}_{j}$をロードする。
+  - **$1\leq i\leq T_{r}$ に対して行う:**
+    - $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ を HBM からオンチップ SRAM にロードする。
+    - チップ上で $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$ を計算します。
+    - チップ上で $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$ を計算します。
+    - チップ上で、$\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$、$\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$（ポイントごと）、$\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$ を計算する。
+    - チップ上で、$m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$ を計算する。
+    - チップ上で、$\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$ を計算する。
+    - $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ を HBM に書き込む。
+    - $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$、$m_{i}\leftarrow m_{i}^{\mathrm{new}}$ を HBM に書き込む。
+- **返却:** $\mathbf{O},\ell,m,{\cal R}$ を返す。
 
 ### B.4 FlashAttention： Backward パス
 
@@ -570,21 +533,17 @@ FlashAttention の逆伝播の詳細を説明する。入力シーケンス $\ma
 
 完全性のために、まず[アルゴリズム3](#alg3)で標準的なアテンションの逆伝播を説明します。
 
-アルゴリズム3 標準アテンション逆伝播
+<span id="alg3"></span>
 
-0：行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$、HBMにおける$\mathbf{P}\in\mathbb{R}^{N\times N}$。
+**アルゴリズム 3: 標準アテンション逆伝播**
 
-1：HBMからブロック単位で$\mathbf{P},\mathbf{\mathrm{dO}}$をロードし、$\mathbf{\mathrm{dV}}=\mathbf{P}^{\top}\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$を計算し、HBMに$\mathbf{\mathrm{dV}}$を書き込みます。
-
-2：HBMからブロック単位で$\mathbf{\mathrm{dO}},\mathbf{V}$を読み込み、$\mathbf{\mathrm{dP}}=\mathbf{\mathrm{dO}}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathbf{\mathrm{dP}}$を書き込む。
-
-3：HBMから$\mathbf{P},\mathbf{\mathrm{dP}}$を読み込み、$\mathrm{dS}_{\mathrm{ij}}=P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-\sum_{l}P_{\mathrm{il}}\mathrm{dP}_{\mathrm{il}})$ $\mathbf{\mathrm{dS}}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathbf{\mathrm{dS}}$を書き込む。
-
-4：HBMからブロック単位で$\mathbf{\mathrm{dS}}$・$\mathbf{K}$を読み込み、計算$\mathbf{\mathrm{dQ}}=\mathbf{\mathrm{dS}}\mathbf{K}$、HBMに$\mathbf{\mathrm{dQ}}$を書き込む。
-
-5：HBMからブロック単位で$\mathbf{\mathrm{dS}}$・$\mathbf{Q}$を読み込み、$\mathbf{\mathrm{dK}}=\mathbf{\mathrm{dS}}^{\top}\mathbf{Q}$を計算し、HBMに$\mathbf{\mathrm{dK}}$を書き込む。
-
-6：$\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$を返す。
+- **入力:** 行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$、HBMにおける$\mathbf{P}\in\mathbb{R}^{N\times N}$。
+- HBMからブロック単位で$\mathbf{P},\mathbf{\mathrm{dO}}$をロードし、$\mathbf{\mathrm{dV}}=\mathbf{P}^{\top}\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$を計算し、HBMに$\mathbf{\mathrm{dV}}$を書き込みます。
+- HBMからブロック単位で$\mathbf{\mathrm{dO}},\mathbf{V}$を読み込み、$\mathbf{\mathrm{dP}}=\mathbf{\mathrm{dO}}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathbf{\mathrm{dP}}$を書き込む。
+- HBMから$\mathbf{P},\mathbf{\mathrm{dP}}$を読み込み、$\mathrm{dS}_{\mathrm{ij}}=P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-\sum_{l}P_{\mathrm{il}}\mathrm{dP}_{\mathrm{il}})$ $\mathbf{\mathrm{dS}}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathbf{\mathrm{dS}}$を書き込む。
+- HBMからブロック単位で$\mathbf{\mathrm{dS}}$・$\mathbf{K}$を読み込み、計算$\mathbf{\mathrm{dQ}}=\mathbf{\mathrm{dS}}\mathbf{K}$、HBMに$\mathbf{\mathrm{dQ}}$を書き込む。
+- HBMからブロック単位で$\mathbf{\mathrm{dS}}$・$\mathbf{Q}$を読み込み、$\mathbf{\mathrm{dK}}=\mathbf{\mathrm{dS}}^{\top}\mathbf{Q}$を計算し、HBMに$\mathbf{\mathrm{dK}}$を書き込む。
+- **返却:** $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$を返す。
 
 次に FlashAttention の逆伝播について 2 つの観察を行います：
 
@@ -598,61 +557,35 @@ FlashAttention の逆伝播の詳細を説明する。入力シーケンス $\ma
 
 フル FlashAttention の逆伝播アルゴリズムは [Algorithm 4](#alg4) にあります。概念的には、これは [Section B.2](#A2.SS2) の導出のブロック版に過ぎません。
 
-アルゴリズム 4 FlashAttention 逆伝播
+<span id="alg4"></span>
 
-0：  HBM上の行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$、HBM上のベクトル$\ell,m\in\mathbb{R}^{N}$、サイズ$M$のオンチップSRAM、ソフトマックススケーリング定数$\tau\in\mathbb{R}$、マスキング関数mask、ドロップアウト確率$p_{\mathrm{drop}}$、順伝播からの擬似乱数生成器の状態${\cal R}$。
+**アルゴリズム 4: FlashAttention 逆伝播**
 
-1： 疑似乱数生成器の状態を ${\cal R}$ に設定する。
-
-2： ブロックサイズを $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$ に設定する。
-
-3： $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ ブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ ブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ および $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分割し、それぞれのサイズは $B_{c}\times d$ とする。
-
-4：  $\mathbf{O}$をサイズ$B_{r}\times d$の$\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ブロックの$T_{r}$に分割し、$\mathbf{\mathrm{dO}}$をサイズ$B_{r}\times d$の$\mathbf{\mathrm{dO}}_{i},\dots,\mathbf{\mathrm{dO}}_{T_{r}}$ブロックの$T_{r}$に分割し、$\ell$をサイズ$B_{r}$の$\ell_{i},\dots,\ell_{T_{r}}$ブロックの$T_{r}$に分割し、$m$をサイズ$B_{r}$の$m_{1},\dots,m_{T_{r}}$ブロックの$T_{r}$に分割する。
-
-5： HBMで$\mathbf{\mathrm{dQ}}=(0)_{N\times d}$を初期化し、それを$T_{r}$ブロック$\mathbf{\mathrm{dQ}}_{1},\dots,\mathbf{\mathrm{dQ}}_{T_{r}}$に、各$B_{r}\times d$のサイズに分割する。HBMで$\mathbf{\mathrm{dK}}=(0)_{N\times d},\mathbf{\mathrm{dV}}=(0)_{N\times d}$を初期化し、$\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$を$T_{c}$ブロック$\mathbf{\mathrm{dK}}_{1},\dots,\mathbf{\mathrm{dK}}_{T_{c}}$および$\mathbf{\mathrm{dV}}_{1},\dots,\mathbf{\mathrm{dV}}_{T_{c}}$に、各$B_{c}\times d$のサイズに分割する。
-
-6： $1\leq j\leq T_{c}$について実行
-
-7： HBMからオンチップSRAMに$\mathbf{K}_{j},\mathbf{V}_{j}$をロードする。
-
-8： SRAM上で$\tilde{\mathbf{\mathrm{dK}}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{\mathrm{dV}}}_{j}=(0)_{B_{c}\times d}$を初期化する。
-
-9： $1\leq i\leq T_{r}$について実行
-
-10： HBMからオンチップSRAMに$\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{\mathrm{dO}}_{i},\mathbf{\mathrm{dQ}}_{i},\ell_{i},m_{i}$をロードする。
-
-11： オンチップで$\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$を計算する。
-
-12： オンチップで$\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$を計算する。
-
-13： オンチップで$\mathbf{P}_{\mathrm{ij}}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算する。
-
-14： チップ上で、各要素が確率$1-p_{\mathrm{drop}}$で値$\frac{1}{1-p_{\mathrm{drop}}}$を持ち、確率$p_{\mathrm{drop}}$で値0を持つドロップアウトマスク$\mathbf{Z}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
-
-15： チップ上で、$\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{P}_{\mathrm{ij}}\circ\mathbf{Z}_{\mathrm{ij}}$（要素ごとの掛け算）を計算します。
-
-16： チップ上で、$\tilde{\mathbf{\mathrm{dV}}_{j}}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}+(\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}})^{\top}\mathbf{\mathrm{dO}}_{i}\in\mathbb{R}^{B_{c}\times d}$を計算します。
-
-17： チップ上で、$\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{\mathrm{dO}}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
-
-18： チップ上で、$\mathbf{\mathrm{dP}}_{\mathrm{ij}}=\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}\circ\mathbf{Z}_{\mathrm{ij}}$（要素ごとの掛け算）を計算します。
-
-19： チップ上で、$D_{i}=\mathrm{rowsum}(\mathbf{\mathrm{dO}}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$を計算します。
-
-20： チップ上で、$\mathbf{\mathrm{dS}}_{\mathrm{ij}}=\mathbf{P}_{\mathrm{ij}}\circ(\mathbf{\mathrm{dP}}_{\mathrm{ij}}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
-
-21： $\mathbf{\mathrm{dQ}}_{i}\leftarrow\mathbf{\mathrm{dQ}}_{i}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$をHBMに書き込みます。
-
-22： チップ上で $\tilde{\mathbf{\mathrm{dK}}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}}_{j}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$ を計算する。
-
-23：     for 文の終了
-
-24： $\mathbf{\mathrm{dK}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}_{j}},\mathbf{\mathrm{dV}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}$ を HBM に書き込む。
-
-25：  for 文の終了
-
-26： $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$ を返す。
+- **入力:** HBM上の行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{\mathrm{dO}}\in\mathbb{R}^{N\times d}$、HBM上のベクトル$\ell,m\in\mathbb{R}^{N}$、サイズ$M$のオンチップSRAM、ソフトマックススケーリング定数$\tau\in\mathbb{R}$、マスキング関数mask、ドロップアウト確率$p_{\mathrm{drop}}$、順伝播からの擬似乱数生成器の状態${\cal R}$。
+- 疑似乱数生成器の状態を ${\cal R}$ に設定する。
+- ブロックサイズを $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$ に設定する。
+- $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ ブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ ブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ および $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分割し、それぞれのサイズは $B_{c}\times d$ とする。
+- $\mathbf{O}$をサイズ$B_{r}\times d$の$\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ブロックの$T_{r}$に分割し、$\mathbf{\mathrm{dO}}$をサイズ$B_{r}\times d$の$\mathbf{\mathrm{dO}}_{i},\dots,\mathbf{\mathrm{dO}}_{T_{r}}$ブロックの$T_{r}$に分割し、$\ell$をサイズ$B_{r}$の$\ell_{i},\dots,\ell_{T_{r}}$ブロックの$T_{r}$に分割し、$m$をサイズ$B_{r}$の$m_{1},\dots,m_{T_{r}}$ブロックの$T_{r}$に分割する。
+- HBMで$\mathbf{\mathrm{dQ}}=(0)_{N\times d}$を初期化し、それを$T_{r}$ブロック$\mathbf{\mathrm{dQ}}_{1},\dots,\mathbf{\mathrm{dQ}}_{T_{r}}$に、各$B_{r}\times d$のサイズに分割する。HBMで$\mathbf{\mathrm{dK}}=(0)_{N\times d},\mathbf{\mathrm{dV}}=(0)_{N\times d}$を初期化し、$\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$を$T_{c}$ブロック$\mathbf{\mathrm{dK}}_{1},\dots,\mathbf{\mathrm{dK}}_{T_{c}}$および$\mathbf{\mathrm{dV}}_{1},\dots,\mathbf{\mathrm{dV}}_{T_{c}}$に、各$B_{c}\times d$のサイズに分割する。
+- **$1\leq j\leq T_{c}$について実行:**
+  - HBMからオンチップSRAMに$\mathbf{K}_{j},\mathbf{V}_{j}$をロードする。
+  - SRAM上で$\tilde{\mathbf{\mathrm{dK}}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{\mathrm{dV}}}_{j}=(0)_{B_{c}\times d}$を初期化する。
+  - **$1\leq i\leq T_{r}$について実行:**
+    - HBMからオンチップSRAMに$\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{\mathrm{dO}}_{i},\mathbf{\mathrm{dQ}}_{i},\ell_{i},m_{i}$をロードする。
+    - オンチップで$\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$を計算する。
+    - オンチップで$\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$を計算する。
+    - オンチップで$\mathbf{P}_{\mathrm{ij}}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算する。
+    - チップ上で、各要素が確率$1-p_{\mathrm{drop}}$で値$\frac{1}{1-p_{\mathrm{drop}}}$を持ち、確率$p_{\mathrm{drop}}$で値0を持つドロップアウトマスク$\mathbf{Z}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
+    - チップ上で、$\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{P}_{\mathrm{ij}}\circ\mathbf{Z}_{\mathrm{ij}}$（要素ごとの掛け算）を計算します。
+    - チップ上で、$\tilde{\mathbf{\mathrm{dV}}_{j}}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}+(\mathbf{P}_{\mathrm{ij}}^{\mathrm{dropped}})^{\top}\mathbf{\mathrm{dO}}_{i}\in\mathbb{R}^{B_{c}\times d}$を計算します。
+    - チップ上で、$\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathbf{\mathrm{dO}}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
+    - チップ上で、$\mathbf{\mathrm{dP}}_{\mathrm{ij}}=\mathbf{\mathrm{dP}}_{\mathrm{ij}}^{\mathrm{dropped}}\circ\mathbf{Z}_{\mathrm{ij}}$（要素ごとの掛け算）を計算します。
+    - チップ上で、$D_{i}=\mathrm{rowsum}(\mathbf{\mathrm{dO}}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$を計算します。
+    - チップ上で、$\mathbf{\mathrm{dS}}_{\mathrm{ij}}=\mathbf{P}_{\mathrm{ij}}\circ(\mathbf{\mathrm{dP}}_{\mathrm{ij}}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
+    - $\mathbf{\mathrm{dQ}}_{i}\leftarrow\mathbf{\mathrm{dQ}}_{i}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$をHBMに書き込みます。
+    - チップ上で $\tilde{\mathbf{\mathrm{dK}}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}}_{j}+\tau\mathbf{\mathrm{dS}}_{\mathrm{ij}}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$ を計算する。
+  - $\mathbf{\mathrm{dK}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dK}}_{j}},\mathbf{\mathrm{dV}}_{j}\leftarrow\tilde{\mathbf{\mathrm{dV}}_{j}}$ を HBM に書き込む。
+- **返却:** $\mathbf{\mathrm{dQ}},\mathbf{\mathrm{dK}},\mathbf{\mathrm{dV}}$ を返す。
 
 前向きパスと同様に、後向きパスは $O(N^{2})$ FLOPs を実行し、入力、出力、出力勾配、入力勾配に加えて $O(N)$ の追加メモリのみを必要とすることがわかる。
 
@@ -859,49 +792,28 @@ $$
 
 我々は、[アルゴリズム5](#alg5)で完全なブロックスパースFlashAttentionアルゴリズムを説明します。このアルゴリズムは、ゼロブロックをスキップする点を除けば、[アルゴリズム2](#alg2)と同一です。
 
-アルゴリズム5 ブロックスパースFlashAttention 順方向計算
+<span id="alg5"></span>
 
-0： サイズ$M$のHBM上の行列$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、ソフトマックススケーリング定数$\tau\in\mathbb{R}$、マスキング関数mask、ドロップアウト確率$p_{\mathrm{drop}}$、ブロックサイズ$B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$、ブロックスパースマスク$M\in\{0,1\}^{N/B_{r}\times N/B_{c}}$。
+**アルゴリズム 5: ブロックスパースFlashAttention 順方向計算**
 
-1： 疑似乱数生成器の状態${\cal R}$を初期化し、HBMに保存。
-
-2： HBM上の$\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$を初期化。
-
-3： $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ ブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ ブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ および $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分割し、それぞれのサイズは $B_{c}\times d$ とする。
-
-4： $\mathbf{O}$ を $T_{r}$ ブロック $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\ell$ を $T_{r}$ ブロック $\ell_{i},\dots,\ell_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とし、$m$ を $T_{r}$ ブロック $m_{1},\dots,m_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とする。
-
-5： $1\leq j\leq T_{c}$ に対して繰り返す
-
-6：     $\mathbf{K}_{j},\mathbf{V}_{j}$ を HBM からオンチップ SRAM にロードする。
-
-7：     $1\leq i\leq T_{r}$ に対して繰り返す
-
-8：        もし $M_{\mathrm{ij}}\neq 0$ なら
-
-9：           $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ を HBM からオンチップ SRAM にロードする。
-
-10：           チップ上で $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$ を計算します。
-
-11：           チップ上で $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$ を計算します。
-
-12：           チップ上で、$\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$、$\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$（点ごとに）、$\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$ を計算します。
-
-13：           チップ上で、$m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$ を計算します。
-
-14：           チップ上で、$\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$ を計算します。
-
-15：           $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ を HBM に書き込みます。
-
-16：           $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$、$m_{i}\leftarrow m_{i}^{\mathrm{new}}$をHBMに書き込む。
-
-17：        end if
-
-18：     end for
-
-19：  end for
-
-20：  $\mathbf{O},\ell,m,{\cal R}$を返す。
+- **入力:** サイズ$M$のHBM上の行列$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、ソフトマックススケーリング定数$\tau\in\mathbb{R}$、マスキング関数mask、ドロップアウト確率$p_{\mathrm{drop}}$、ブロックサイズ$B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$、ブロックスパースマスク$M\in\{0,1\}^{N/B_{r}\times N/B_{c}}$。
+- 疑似乱数生成器の状態${\cal R}$を初期化し、HBMに保存。
+- HBM上の$\mathbf{O}=(0)_{N\times d}\in\mathbb{R}^{N\times d},\ell=(0)_{N}\in\mathbb{R}^{N},m=(-\infty)_{N}\in\mathbb{R}^{N}$を初期化。
+- $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ ブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ ブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ および $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分割し、それぞれのサイズは $B_{c}\times d$ とする。
+- $\mathbf{O}$ を $T_{r}$ ブロック $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\ell$ を $T_{r}$ ブロック $\ell_{i},\dots,\ell_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とし、$m$ を $T_{r}$ ブロック $m_{1},\dots,m_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}$ とする。
+- **$1\leq j\leq T_{c}$ に対して繰り返す:**
+  - $\mathbf{K}_{j},\mathbf{V}_{j}$ を HBM からオンチップ SRAM にロードする。
+  - **$1\leq i\leq T_{r}$ に対して繰り返す:**
+    - **もし** $M_{\mathrm{ij}}\neq 0$ **なら:**
+      - $\mathbf{Q}_{i},\mathbf{O}_{i},\ell_{i},m_{i}$ を HBM からオンチップ SRAM にロードする。
+      - チップ上で $\mathbf{S}_{\mathrm{ij}}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$ を計算します。
+      - チップ上で $\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{\mathrm{ij}})$ を計算します。
+      - チップ上で、$\tilde{m}_{\mathrm{ij}}=\mathrm{rowmax}(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}})\in\mathbb{R}^{B_{r}}$、$\tilde{\mathbf{P}}_{\mathrm{ij}}=\exp(\mathbf{S}_{\mathrm{ij}}^{\mathrm{masked}}-\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}\times B_{c}}$（点ごとに）、$\tilde{\ell}_{\mathrm{ij}}=\mathrm{rowsum}(\tilde{\mathbf{P}}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$ を計算します。
+      - チップ上で、$m_{i}^{\mathrm{new}}=\max(m_{i},\tilde{m}_{\mathrm{ij}})\in\mathbb{R}^{B_{r}}$、$\ell_{i}^{\mathrm{new}}=e^{m_{i}-m_{i}^{\mathrm{new}}}\ell_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\ell}_{\mathrm{ij}}\in\mathbb{R}^{B_{r}}$ を計算します。
+      - チップ上で、$\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}=\mathrm{dropout}(\tilde{\mathbf{P}}_{\mathrm{ij}},p_{\mathrm{drop}})$ を計算します。
+      - $\mathbf{O}_{i}\leftarrow\mathrm{diag}(\ell_{i}^{\mathrm{new}})^{-1}(\mathrm{diag}(\ell_{i})e^{m_{i}-m_{i}^{\mathrm{new}}}\mathbf{O}_{i}+e^{\tilde{m}_{\mathrm{ij}}-m_{i}^{\mathrm{new}}}\tilde{\mathbf{P}}_{\mathrm{ij}}^{\mathrm{dropped}}\mathbf{V}_{j})$ を HBM に書き込みます。
+      - $\ell_{i}\leftarrow\ell_{i}^{\mathrm{new}}$、$m_{i}\leftarrow m_{i}^{\mathrm{new}}$をHBMに書き込む。
+- **返却:** $\mathbf{O},\ell,m,{\cal R}$を返す。
 
 ブロックスパースFlashAttentionのIO複雑度を証明する。
 

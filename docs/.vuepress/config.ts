@@ -3323,6 +3323,16 @@ const paperAbbreviations = {
   // CSE 291 readings: generated citations end
 }
 
+const normalizedPaperAbbreviations = Object.fromEntries(
+  Object.entries(paperAbbreviations).map(([key, value]) => [
+    key,
+    value.replace(
+      /^(?:[^.\n]+? et al\.?|[^.\n]+? and [^.\n]+?|[^.\n]+? & [^.\n]+?)\s*,?\s*(?:\[(?:19|20)\d{2}[a-z]?\]|\((?:19|20)\d{2}[a-z]?\))\s+/i,
+      '',
+    ),
+  ]),
+)
+
 interface YokubiSidebarLabels {
   introduction: string
   introductionLink: string
@@ -3959,7 +3969,7 @@ export default defineUserConfig({
       colorizedBrackets: true
     },
     markdown: {
-      abbr: paperAbbreviations,
+      abbr: normalizedPaperAbbreviations,
       annotation: true,
       mermaid: true,
       youtube: true,
