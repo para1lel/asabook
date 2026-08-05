@@ -562,7 +562,11 @@ We would like to thank Shibo Wang, Yu Emma Wang, Jinliang Wei, Zhen Zhang, Siyua
 
 ## Appendix A Proof of Submesh Shape Covering
 
-We prove the following theorem which shows we can always find a solution that fully covers the cluster mesh $(N,M)$ with our selected submesh shapes in §5.2: (1) one-dimensional submeshes of shape $(1,1),(1,2),(1,4)\ldots(1,2^{m})$ where $2^{m}=M$ and (2) two-dimensional submeshes of shape $(2,M),(3,M),\ldots,(N,M)$ .
+We prove the following theorem which shows we can always find a solution that fully covers the cluster mesh $(N,M)$ with our selected submesh shapes in §5.2:
+
+1. one-dimensional submeshes of shape $(1,1),(1,2),(1,4)\ldots(1,2^{m})$ where $2^{m}=M$ and
+
+2. two-dimensional submeshes of shape $(2,M),(3,M),\ldots,(N,M)$ .
 
 ###### Theorem 1.
 

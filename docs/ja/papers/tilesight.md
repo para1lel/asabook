@@ -29,13 +29,13 @@ Kernel 最適化を容易にするため、GPU programming community は共通�
 
 重要なのは、この 3 level が共有 core abstraction によって共同設計されていることです。`HardwareUsage` は pipeline ごとの time decomposition、*tile action* は合成可能な scheduling unit、`TileGrid` は workload descriptor です。まとめると、本稿の貢献は次のとおりです。
 
-**(1) 統一 tile 中心 analytical execution engine**。Tile execution plan が hardware pipeline 上でどのように展開されるかを simulate し、tile ごとの resource decomposition (tile 内)、dependency-driven DAG ordering と tile reuse-distance cache modeling (tile 間)、placement-based device 間 tile access を、共有 abstraction を持つ 1 つの framework で扱います (第 3 節)。
+1. **統一 tile 中心 analytical execution engine**。Tile execution plan が hardware pipeline 上でどのように展開されるかを simulate し、tile ごとの resource decomposition (tile 内)、dependency-driven DAG ordering と tile reuse-distance cache modeling (tile 間)、placement-based device 間 tile access を、共有 abstraction を持つ 1 つの framework で扱います (第 3 節)。
 
-**(2) Tile-pipeline overlap analysis**。通常の software-pipelined loop (GEMM の load-compute overlap など) と複雑な fused kernel (FlashAttention や multi-head latent attention (MLA) decode など) の両方を、dependency-constrained tile-action DAG 上の反復 tile pipeline として model 化します。Pipeline depth、resident tile interleaving、合法的 tile-action ordering を組み合わせることで、TileSight は単純な Roofline model が見落とす prologue、steady-state、epilogue cost を予測します (第 3.4 節)。
+2. **Tile-pipeline overlap analysis**。通常の software-pipelined loop (GEMM の load-compute overlap など) と複雑な fused kernel (FlashAttention や multi-head latent attention (MLA) decode など) の両方を、dependency-constrained tile-action DAG 上の反復 tile pipeline として model 化します。Pipeline depth、resident tile interleaving、合法的 tile-action ordering を組み合わせることで、TileSight は単純な Roofline model が見落とす prologue、steady-state、epilogue cost を予測します (第 3.4 節)。
 
-**(3) Tile reuse-distance cache modeling**。Cache behavior を独立した trace-simulation 問題ではなく、tile execution plan の自然な帰結とします。GPU schedule と同じ granularity で reuse を推論することで、TileSight は analytical performance model 内で高速かつ schedule-sensitive な multi-level cache modeling を実現し、軽量な approximation と sampling technique により accuracy を維持します (第 3.5 節)。
+3. **Tile reuse-distance cache modeling**。Cache behavior を独立した trace-simulation 問題ではなく、tile execution plan の自然な帰結とします。GPU schedule と同じ granularity で reuse を推論することで、TileSight は analytical performance model 内で高速かつ schedule-sensitive な multi-level cache modeling を実現し、軽量な approximation と sampling technique により accuracy を維持します (第 3.5 節)。
 
-**(4) Tile placement による合成可能な distributed extension**。Device 間実行を同じ tile abstraction の placement case として扱います。Remote tensor access を producer-consumer placement から推定し、logical exchange の順序付き stage へ分解します。その routed $\alpha$-$\beta$ cost が tile ごとの resource vector の network entry を埋めるため、device 間 movement は同じ envelope を介して local compute と合成されます (第 3.6 節)。
+4. **Tile placement による合成可能な distributed extension**。Device 間実行を同じ tile abstraction の placement case として扱います。Remote tensor access を producer-consumer placement から推定し、logical exchange の順序付き stage へ分解します。その routed $\alpha$-$\beta$ cost が tile ごとの resource vector の network entry を埋めるため、device 間 movement は同じ envelope を介して local compute と合成されます (第 3.6 節)。
 
 ## 2 背景と動機
 

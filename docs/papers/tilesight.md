@@ -29,13 +29,13 @@ pageClass: tilesight-paper
 
 关键在于, 这三个层级以共享的核心抽象联合设计: `HardwareUsage` 表示按 pipeline 分解的时间, *tile action* 是可组合的调度单元, `TileGrid` 是工作负载 descriptor. 总而言之, 我们做出以下贡献:
 
-**(1) 一个统一的以 tile 为中心的分析执行引擎**, 用于模拟 tile execution plan 如何在硬件 pipeline 上展开, 包括每 tile 的资源分解 (tile 内), 由依赖驱动的 DAG 排序与 tile 复用距离 cache 建模 (tile 间), 以及基于 placement 的跨设备 tile 访问, 全部置于具有共享抽象的同一框架内 (第 3 节).
+1. **一个统一的以 tile 为中心的分析执行引擎**, 用于模拟 tile execution plan 如何在硬件 pipeline 上展开, 包括每 tile 的资源分解 (tile 内), 由依赖驱动的 DAG 排序与 tile 复用距离 cache 建模 (tile 间), 以及基于 placement 的跨设备 tile 访问, 全部置于具有共享抽象的同一框架内 (第 3 节).
 
-**(2) Tile-pipeline 重叠分析**, 将常规 software-pipelined 循环 (例如 GEMM 的 load-compute 重叠) 和复杂融合 kernel (例如 FlashAttention 和 multi-head latent attention (MLA) decode) 都建模为依赖约束 tile-action DAG 上重复的 tile pipeline. TileSight 结合 pipeline 深度, resident tile 交错和合法的 tile-action 顺序, 预测简单 Roofline 模型遗漏的 prologue, steady-state 和 epilogue 代价 (第 3.4 节).
+2. **Tile-pipeline 重叠分析**, 将常规 software-pipelined 循环 (例如 GEMM 的 load-compute 重叠) 和复杂融合 kernel (例如 FlashAttention 和 multi-head latent attention (MLA) decode) 都建模为依赖约束 tile-action DAG 上重复的 tile pipeline. TileSight 结合 pipeline 深度, resident tile 交错和合法的 tile-action 顺序, 预测简单 Roofline 模型遗漏的 prologue, steady-state 和 epilogue 代价 (第 3.4 节).
 
-**(3) Tile 复用距离 cache 建模**, 使 cache 行为成为 tile execution plan 的自然结果, 而非独立的 trace-simulation 问题. TileSight 以与 GPU 调度相同的粒度推理复用, 从而在分析性能模型内部实现快速且对调度敏感的多级 cache 建模, 同时通过轻量级近似和采样技术保持准确性 (第 3.5 节).
+3. **Tile 复用距离 cache 建模**, 使 cache 行为成为 tile execution plan 的自然结果, 而非独立的 trace-simulation 问题. TileSight 以与 GPU 调度相同的粒度推理复用, 从而在分析性能模型内部实现快速且对调度敏感的多级 cache 建模, 同时通过轻量级近似和采样技术保持准确性 (第 3.5 节).
 
-**(4) 通过 tile placement 实现可组合的分布式扩展**, 其中跨设备执行是同一 tile 抽象的一种 placement 情形: 由 producer-consumer placement 推断远程张量访问并将其分解为有序的逻辑交换阶段, 其路由 $\alpha$-$\beta$ 代价填入每 tile 资源向量的网络项, 使跨设备移动可以通过同一 envelope 与本地计算组合 (第 3.6 节).
+4. **通过 tile placement 实现可组合的分布式扩展**, 其中跨设备执行是同一 tile 抽象的一种 placement 情形: 由 producer-consumer placement 推断远程张量访问并将其分解为有序的逻辑交换阶段, 其路由 $\alpha$-$\beta$ 代价填入每 tile 资源向量的网络项, 使跨设备移动可以通过同一 envelope 与本地计算组合 (第 3.6 节).
 
 ## 2 背景与动机
 

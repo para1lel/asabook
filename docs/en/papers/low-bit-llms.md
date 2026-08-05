@@ -184,8 +184,13 @@ As for inference, the middle one in [Figure 3](#figure-03) quantizes the activat
 ## 3 Frameworks and System Support
 
 In the few short years since the large language model emerged, there have arisen many frameworks to support the easy usage of LLMs.
-We have selected some well-known representative frameworks and tools related to quantization, summarized and introduced them in this section according to the following categories: (1) **Inference framework for quantization**, which provides comprehensive libraries and APIs for the rapid development and deployment of LLM applications,
-(2) **System support for quantization**, which supports the underlying core functionality for quantization methods. In the following, our emphasis is on the quantization of LLMs across various frameworks and libraries.
+We have selected some well-known representative frameworks and tools related to quantization, summarized and introduced them in this section according to the following categories:
+
+1. **Inference framework for quantization**, which provides comprehensive libraries and APIs for the rapid development and deployment of LLM applications,
+
+2. **System support for quantization**, which supports the underlying core functionality for quantization methods.
+
+In the following, our emphasis is on the quantization of LLMs across various frameworks and libraries.
 
 ### 3.1 Inference Framework for Quantization
 
@@ -281,8 +286,10 @@ Weight & activation quantization yields greater acceleration compared to the wei
 However, the actual speedup ratio highly depends on the hardware design, such as the number of floating-point and integer processing units.
 
 As for custom designs, there are two categories of techniques:
-(1) Faster Quantization and Dequantization (or datatype conversion). For example, QQQ [Zha24a] proposes faster FP16$\rightarrow$INT8 for quantizing activation, INT4$\rightarrow$INT8 for dequantizing weight, and INT32$\rightarrow$FP16 for casting the MatMul results to accelerate the data format conversion during inference. This work is based on [Kim22] which firstly introduces a faster INT4$\rightarrow$FP16 datatype conversion. Besides speeding up, other approaches turn to remove the process. Tender [Lee24] proposes a decomposed quantization technique to eliminate runtime dequantization/quantization during inference.
-(2) Faster MatMul Kernel. GEMV can be more flexible and efficient in fitting various bitwidths than GEMM, and even receives input matrices with two bitwidths, such as INT1*INT8 and INT3*INT8 [Wan23]. By assembling several products of a matrix and a vector, we can get the desired results without padding or idle bits. For example, EETQ ([Link](https://github.com/NetEase-FuXi/EETQ)) introduces GEMV operators which are 13-27% faster than GEMM kernel. SqueezeLLM [Kim23] proposes LUT-based MatMul by GEMV, which supports highly efficient 4-bit MatMul kernel on hardware architectures that do not support integer MatMul instruction. AQLM [Egi24] designs W1A16 and W2A8 MatMul kernels to receive input matrices with extremely low bitwidth and calculate them directly without dequantizing or datatype conversion.
+
+1. Faster Quantization and Dequantization (or datatype conversion). For example, QQQ [Zha24a] proposes faster FP16$\rightarrow$INT8 for quantizing activation, INT4$\rightarrow$INT8 for dequantizing weight, and INT32$\rightarrow$FP16 for casting the MatMul results to accelerate the data format conversion during inference. This work is based on [Kim22] which firstly introduces a faster INT4$\rightarrow$FP16 datatype conversion. Besides speeding up, other approaches turn to remove the process. Tender [Lee24] proposes a decomposed quantization technique to eliminate runtime dequantization/quantization during inference.
+
+2. Faster MatMul Kernel. GEMV can be more flexible and efficient in fitting various bitwidths than GEMM, and even receives input matrices with two bitwidths, such as INT1*INT8 and INT3*INT8 [Wan23]. By assembling several products of a matrix and a vector, we can get the desired results without padding or idle bits. For example, EETQ ([Link](https://github.com/NetEase-FuXi/EETQ)) introduces GEMV operators which are 13-27% faster than GEMM kernel. SqueezeLLM [Kim23] proposes LUT-based MatMul by GEMV, which supports highly efficient 4-bit MatMul kernel on hardware architectures that do not support integer MatMul instruction. AQLM [Egi24] designs W1A16 and W2A8 MatMul kernels to receive input matrices with extremely low bitwidth and calculate them directly without dequantizing or datatype conversion.
 
 <span id="figure-06"></span>
 
@@ -296,8 +303,15 @@ KV Cache, or key-value cache, is to optimize the generative models that predict 
 
 The KV cache is generated and updated in runtime along with the serialized input data. During inference, the $\mathbf{K}_{\mathrm{new}}$ and $\mathbf{V}_{\mathrm{new}}$ from linear layers are first quantized, then concatenated to the end of the stored key and value lists, which are also quantized, to form new lists. When the cache size exceeds its limit, the earliest key-value pairs will be dropped. Then we dequantize the matrices to FP16 before conducting multi-head attention forward propagation with the newly generated query $\mathbf{Q}_{\mathrm{new}}$. We illustrate how KV cache quantization affects the inference in the Speedup Timeline. Compared to the FP KV cache, the quantized one occupies less storage in device memory and spares less time in KV data transmission in the caching system due to the smaller data bytes.
 
-There are mainly four techniques for quantizing KV cache: (1) Quantizing to lower bitwidth. QoQ [Lin24a] compresses KV to 4-bit and proposes SmoothAttention to prevent the accuracy drop due to the lower bitwidth. KIVI [Liu24b] even developed a tuning-free 2-bit KV cache quantization algorithm. [Yan24c] proposes a mixed-precision strategy that quantizes the earliest KV to lower bitwidth, while keeping the new KV with more bits. (2) Quantizing window. Many studies [Zha24b, Dua24] postpone the quantization of KV pairs, but only quantize them in a batch when the length of the full-precision KV list exceeds the window size. For example, SKVQ [Dua24] employs a sliding-window mechanism, determining the quantization parameters within the window.
-(3) Skipping the dequantization of $\mathbf{K}_{\mathrm{new}}$. Methods like WKVQuant [Yue24a] concatenates the FP $\mathbf{K}_{\mathrm{new}}$ and $\mathbf{V}_{\mathrm{new}}$ to the dequantized $\mathbf{K}_{\mathrm{prev}}$ and $\mathbf{V}_{\mathrm{prev}}$, which preserves more information of current token in $\mathbf{K}$ and $\mathbf{V}$ matrices, then quantizes the $\mathbf{K}_{\mathrm{new}}$ and $\mathbf{V}_{\mathrm{new}}$ and stores them into the KV cache (when meets the condition). (4) Optimizing outliers. There are token-wise outliers in KV matrices, so methods such as storing the outliers with higher bitwidth or mitigating the outlier magnitudes can improve the performance [Don24, Liu24, Kan24, Lin24a]. We omit the details of this category, as the general practices are similar to the quantization methods used for the entire model.
+There are mainly four techniques for quantizing KV cache:
+
+1. Quantizing to lower bitwidth. QoQ [Lin24a] compresses KV to 4-bit and proposes SmoothAttention to prevent the accuracy drop due to the lower bitwidth. KIVI [Liu24b] even developed a tuning-free 2-bit KV cache quantization algorithm. [Yan24c] proposes a mixed-precision strategy that quantizes the earliest KV to lower bitwidth, while keeping the new KV with more bits.
+
+2. Quantizing window. Many studies [Zha24b, Dua24] postpone the quantization of KV pairs, but only quantize them in a batch when the length of the full-precision KV list exceeds the window size. For example, SKVQ [Dua24] employs a sliding-window mechanism, determining the quantization parameters within the window.
+
+3. Skipping the dequantization of $\mathbf{K}_{\mathrm{new}}$. Methods like WKVQuant [Yue24a] concatenates the FP $\mathbf{K}_{\mathrm{new}}$ and $\mathbf{V}_{\mathrm{new}}$ to the dequantized $\mathbf{K}_{\mathrm{prev}}$ and $\mathbf{V}_{\mathrm{prev}}$, which preserves more information of current token in $\mathbf{K}$ and $\mathbf{V}$ matrices, then quantizes the $\mathbf{K}_{\mathrm{new}}$ and $\mathbf{V}_{\mathrm{new}}$ and stores them into the KV cache (when meets the condition).
+
+4. Optimizing outliers. There are token-wise outliers in KV matrices, so methods such as storing the outliers with higher bitwidth or mitigating the outlier magnitudes can improve the performance [Don24, Liu24, Kan24, Lin24a]. We omit the details of this category, as the general practices are similar to the quantization methods used for the entire model.
 
 #### 3.2.4 Quantization and Dequantization
 
@@ -307,13 +321,13 @@ In this section, we roughly categorize the quantization into three types: (1) *F
 
 Quantizing higher bitwidth floating-point to lower is actually the clip of mantissa bits. That is because the source value with higher bitwidth usually has more or equal bits for both exponent and mantissa parts compared to the target value with lower bitwidth. Algorithm 1 provides an example of quantizing FP32 to FP8. And we follow [Mic22] to summarize the general process as follows:
 
-(1) *Scale.* Since the target value occupies less bitwidth, the representation range may shrink drastically, and not be able to convey most of the data. Scaling the source value to a suitable range can best preserve the information after quantized to FP8. The scaling is pre-obtained by learning or calibration.
+1. *Scale.* Since the target value occupies less bitwidth, the representation range may shrink drastically, and not be able to convey most of the data. Scaling the source value to a suitable range can best preserve the information after quantized to FP8. The scaling is pre-obtained by learning or calibration.
 
-(2) *Check Overflow/Underflow.* Check whether the source value overflows the FP8 range, either from the upper or lower bound. If so, return the maximum or minimum directly.
-If it is not overflow, check if the exponent part underflows from the smallest positive normal number that the FP8 format can present. If so, we divide the value by the smallest subnormal number in FP$x$, round to the nearest integer, and then multiply the smallest subnormal number. The integer determines the value of mantissa bits and the exponent bits are all set to zero.
+2. *Check Overflow/Underflow.* Check whether the source value overflows the FP8 range, either from the upper or lower bound. If so, return the maximum or minimum directly.
+   If it is not overflow, check if the exponent part underflows from the smallest positive normal number that the FP8 format can present. If so, we divide the value by the smallest subnormal number in FP$x$, round to the nearest integer, and then multiply the smallest subnormal number. The integer determines the value of mantissa bits and the exponent bits are all set to zero.
 
-(3) *Copy and Round.* If the value is neither overflowing nor underflowing of FP8, we copy the lower $e$ bits from the source FP32 value to the target FP8 value. Then we clip the mantissa to $m$ bits by rounding to the nearest.
-It is notable that rounding and overflow/underflow handling are both crucial for maintaining numerical stability and precision in real applications. However, since the reduction of mantissa bits, precision degradation is inevitable while converting to lower bitwidth.
+3. *Copy and Round.* If the value is neither overflowing nor underflowing of FP8, we copy the lower $e$ bits from the source FP32 value to the target FP8 value. Then we clip the mantissa to $m$ bits by rounding to the nearest.
+   It is notable that rounding and overflow/underflow handling are both crucial for maintaining numerical stability and precision in real applications. However, since the reduction of mantissa bits, precision degradation is inevitable while converting to lower bitwidth.
 
 **Algorithm 1: Quantization to lower-bit floating-point values.**
 

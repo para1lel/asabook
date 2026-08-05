@@ -34,21 +34,21 @@ Based on these observations, we develop *ZeRO*-DP, ZeRO-powered data parallelism
 
 *ZeRO*-DP has three main optimization stages (as depicted in [Figure 1](#figure-01)), which correspond to the partitioning of optimizer states, gradients, and parameters. When enabled cumulatively:
 
-1) Optimizer State Partitioning ($P_{\mathrm{os}}$): 4x memory reduction, same communication volume as DP;
+1. Optimizer State Partitioning ($P_{\mathrm{os}}$): 4x memory reduction, same communication volume as DP;
 
-2) Add Gradient Partitioning ($P_{\mathrm{os}+g}$): 8x memory reduction, same communication volume as DP;
+2. Add Gradient Partitioning ($P_{\mathrm{os}+g}$): 8x memory reduction, same communication volume as DP;
 
-3) Add Parameter Partitioning ($P_{\mathrm{os}+g+p}$): Memory reduction is linear with DP degree $N_{d}$. For example, splitting across 64 GPUs ($N_{d}$ = 64) will yield a 64x memory reduction. There is a modest 50% increase in communication volume.
+3. Add Parameter Partitioning ($P_{\mathrm{os}+g+p}$): Memory reduction is linear with DP degree $N_{d}$. For example, splitting across 64 GPUs ($N_{d}$ = 64) will yield a 64x memory reduction. There is a modest 50% increase in communication volume.
 
 ZeRO-DP eliminates memory redundancies and makes the full aggregate memory capacity of a cluster available. With all three stages enabled, ZeRO can train a trillion-parameter model on just 1024 NVIDIA GPUs. A trillion-parameter model with an optimizer like Adam [ICLRb15] in 16-bit precision requires approximately 16 terabytes (TB) of memory to hold the optimizer states, gradients, and parameters. 16TB divided by 1024 is 16GB, which is well within a reasonable bound for a GPU (e.g., with 32GB of on-device memory).
 
 Optimizing Residual State Memory After *ZeRO*-DP boosts memory efficiency for model states, the rest of the memory consumed by activations, temporary buffers, and unusable memory fragments could become a secondary memory bottleneck. We develop *ZeRO*-R to optimize the residual memory consumed by these three factors respectively.
 
-1) For activations (stored from forward pass in order to perform backward pass), we noticed checkpointing [CoRRk16] helps but not sufficient for large models. Thus *ZeRO*-R optimizes activation memory by identifying and removing activation replication in existing MP approaches through activation partitioning. It also offloads activations to CPU when appropriate.
+1. For activations (stored from forward pass in order to perform backward pass), we noticed checkpointing [CoRRk16] helps but not sufficient for large models. Thus *ZeRO*-R optimizes activation memory by identifying and removing activation replication in existing MP approaches through activation partitioning. It also offloads activations to CPU when appropriate.
 
-2) *ZeRO*-R defines appropriate size for temporary buffers to strike for a balance of memory and computation efficiency.
+2. *ZeRO*-R defines appropriate size for temporary buffers to strike for a balance of memory and computation efficiency.
 
-3) We observe fragmented memory during training due to variations in the lifetime of different tensors. Lack of contiguous memory due to fragmentation can cause memory allocation failure, even when enough free memory is available. *ZeRO*-R proactively manages memory based on the different lifetime of tensors, preventing memory fragmentation.
+3. We observe fragmented memory during training due to variations in the lifetime of different tensors. Lack of contiguous memory due to fragmentation can cause memory allocation failure, even when enough free memory is available. *ZeRO*-R proactively manages memory based on the different lifetime of tensors, preventing memory fragmentation.
 
 *ZeRO*-DP and *ZeRO*-R combined together forms a powerful system of memory optimizations for DL training that we collectively refer to as *ZeRO*.
 
