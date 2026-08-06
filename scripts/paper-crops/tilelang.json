@@ -1,0 +1,125 @@
+[
+  {
+    "name": "figure-01",
+    "preserveSource": true,
+    "sourceHeight": 1440,
+    "sourceWidth": 3606
+  },
+  {
+    "name": "figure-02",
+    "preserveSource": true,
+    "sourceHeight": 357,
+    "sourceWidth": 3363
+  },
+  {
+    "name": "figure-03",
+    "page": 6,
+    "x": 45.5,
+    "y": 194.5,
+    "width": 395,
+    "height": 146,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-04",
+    "page": 7,
+    "x": 45.5,
+    "y": 381,
+    "width": 395,
+    "height": 57,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-05",
+    "preserveSource": true,
+    "sourceHeight": 687,
+    "sourceWidth": 2808
+  },
+  {
+    "name": "figure-06",
+    "preserveSource": true,
+    "sourceHeight": 2049,
+    "sourceWidth": 4041
+  },
+  {
+    "name": "figure-07",
+    "preserveSource": true,
+    "sourceHeight": 639,
+    "sourceWidth": 2538
+  },
+  {
+    "name": "figure-08",
+    "preserveSource": true,
+    "sourceHeight": 1635,
+    "sourceWidth": 2949
+  },
+  {
+    "name": "figure-09",
+    "page": 12,
+    "x": 45.5,
+    "y": 365,
+    "width": 395,
+    "height": 77,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-10",
+    "page": 13,
+    "x": 144,
+    "y": 121.5,
+    "width": 198,
+    "height": 101.5,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-11",
+    "page": 13,
+    "x": 45.5,
+    "y": 450.5,
+    "width": 395,
+    "height": 66,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-12",
+    "page": 15,
+    "x": 102,
+    "y": 262,
+    "width": 280,
+    "height": 208,
+    "matchScore": 0.859,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-13",
+    "preserveSource": true,
+    "sourceHeight": 685,
+    "sourceWidth": 2936
+  },
+  {
+    "name": "figure-14a",
+    "page": 16,
+    "x": 44,
+    "y": 196,
+    "width": 193,
+    "height": 146,
+    "matchScore": 0.881,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-14b",
+    "page": 16,
+    "x": 249,
+    "y": 196,
+    "width": 193,
+    "height": 146,
+    "matchScore": 0.878,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-15",
+    "preserveSource": true,
+    "sourceHeight": 1001,
+    "sourceWidth": 2872
+  }
+]

@@ -93,11 +93,13 @@ Example:
 ## Figures and Tables
 
 - Prefer source image files over screenshots. Use PDF rendering when source assets cannot reproduce the published composite figure.
+- Render every PDF-derived screenshot at scale 4 or higher (about 288 DPI). Keep `scripts/paper-crops/<slug>.json` so the crop is reproducible, and require every referenced local PNG to have a metadata entry.
+- Retain an original source image only when it supplies at least four pixels per PDF point at the size used in the paper. Never upscale or sharpen an existing low-resolution PNG in place of a fresh PDF render or a genuinely higher-resolution source.
 - Crop screenshots to the figure or table itself. Remove page headers, body text, captions that will be recreated in Markdown, and excessive white margins.
 - Retain a small safety margin so lines and labels at the boundary are not clipped.
 - Use lossless PNG for diagrams, plots, and tables. Avoid JPEG artifacts on text and thin lines.
 - Use stable two-digit numbering: `figure-01.png`, `table-01.png`.
-- Verify image dimensions and inspect the actual pixels after cropping. File existence alone is not sufficient.
+- Verify image dimensions against the scale-4 crop dimensions and inspect the actual pixels after cropping. File existence alone is not sufficient; pay special attention to low-confidence template matches and visually similar subfigures.
 - Format the caption as a separate bold label, for example `**Figure 8.**`, `**图 8.**`, or `**図 8.**`.
 - Put a stable two-digit HTML anchor immediately before every numbered object: `<span id="figure-08"></span>` for figures and `<span id="table-03"></span>` for tables.
 - Link every reference in prose, captions, tables, algorithms, and appendices to that local anchor. Use `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, or `[図 8](#figure-08)` according to the page language.

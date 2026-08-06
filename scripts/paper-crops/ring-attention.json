@@ -1,0 +1,38 @@
+[
+  {
+    "name": "figure-01",
+    "page": 2,
+    "x": 306,
+    "y": 75.5,
+    "width": 198,
+    "height": 111,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-02",
+    "page": 4,
+    "x": 108.5,
+    "y": 72,
+    "width": 392.5,
+    "height": 392,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-03",
+    "page": 9,
+    "x": 108,
+    "y": 60,
+    "width": 396,
+    "height": 133.5,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-05",
+    "page": 16,
+    "x": 116.5,
+    "y": 229.5,
+    "width": 376.5,
+    "height": 259,
+    "preserveSource": true
+  }
+]

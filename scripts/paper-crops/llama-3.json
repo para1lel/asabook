@@ -1,0 +1,389 @@
+[
+  {
+    "name": "table-02",
+    "preserveSource": true,
+    "sourceHeight": 852,
+    "sourceWidth": 1907
+  },
+  {
+    "name": "figure-01",
+    "page": 3,
+    "x": 30,
+    "y": 209.5,
+    "width": 60,
+    "height": 17.5,
+    "matchScore": 0.636,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-02",
+    "page": 8,
+    "x": 80,
+    "y": 63,
+    "width": 194,
+    "height": 145,
+    "matchScore": 0.831,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x3",
+    "page": 8,
+    "x": 338,
+    "y": 62,
+    "width": 194,
+    "height": 146,
+    "matchScore": 0.885,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-04",
+    "page": 9,
+    "x": 139.5,
+    "y": 62,
+    "width": 333,
+    "height": 151,
+    "matchScore": 0.89,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-05",
+    "page": 10,
+    "x": 54,
+    "y": 652,
+    "width": 179,
+    "height": 88,
+    "matchScore": 0.353,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-06",
+    "page": 12,
+    "x": 71,
+    "y": 62,
+    "width": 470,
+    "height": 105,
+    "matchScore": 0.954,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-07",
+    "page": 15,
+    "x": 71,
+    "y": 63,
+    "width": 470,
+    "height": 216,
+    "matchScore": 0.959,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-08",
+    "page": 21,
+    "x": 129,
+    "y": 62,
+    "width": 354,
+    "height": 155,
+    "matchScore": 0.692,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-09",
+    "page": 21,
+    "x": 129,
+    "y": 153,
+    "width": 138,
+    "height": 64,
+    "matchScore": 0.417,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-10",
+    "page": 26,
+    "x": 71,
+    "y": 63,
+    "width": 470,
+    "height": 283,
+    "matchScore": 0.659,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-11",
+    "page": 27,
+    "x": 71,
+    "y": 64,
+    "width": 470,
+    "height": 354.5,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-12a",
+    "page": 30,
+    "x": 69,
+    "y": 62,
+    "width": 229,
+    "height": 198.5,
+    "matchScore": 0.905,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-12b",
+    "page": 30,
+    "x": 314,
+    "y": 63,
+    "width": 228,
+    "height": 197,
+    "matchScore": 0.827,
+    "preserveSource": false
+  },
+  {
+    "name": "table-09",
+    "preserveSource": true,
+    "sourceHeight": 1800,
+    "sourceWidth": 2200
+  },
+  {
+    "name": "source-x13",
+    "page": 32,
+    "x": 102,
+    "y": 63,
+    "width": 232,
+    "height": 134,
+    "matchScore": 0.908,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x14",
+    "page": 32,
+    "x": 352,
+    "y": 61,
+    "width": 160,
+    "height": 137,
+    "matchScore": 0.905,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x15",
+    "page": 32,
+    "x": 82,
+    "y": 251,
+    "width": 224,
+    "height": 191,
+    "matchScore": 0.859,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x16",
+    "page": 32,
+    "x": 306,
+    "y": 250,
+    "width": 224,
+    "height": 192,
+    "matchScore": 0.9,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x17",
+    "page": 33,
+    "x": 114,
+    "y": 62,
+    "width": 192,
+    "height": 199,
+    "matchScore": 0.78,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x18",
+    "page": 33,
+    "x": 306,
+    "y": 61,
+    "width": 192,
+    "height": 199,
+    "matchScore": 0.774,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x19",
+    "page": 39,
+    "x": 57.5,
+    "y": 441.5,
+    "width": 46,
+    "height": 27.5,
+    "matchScore": 0.445,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x20",
+    "page": 39,
+    "x": 448,
+    "y": 62,
+    "width": 83,
+    "height": 83,
+    "matchScore": 0.392,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x21",
+    "page": 40,
+    "x": 436,
+    "y": 101.5,
+    "width": 40,
+    "height": 45,
+    "matchScore": 0.522,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x22",
+    "page": 40,
+    "x": 433,
+    "y": 101.5,
+    "width": 40,
+    "height": 45,
+    "matchScore": 0.523,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x23",
+    "page": 43,
+    "x": 305,
+    "y": 120,
+    "width": 237,
+    "height": 146,
+    "matchScore": 0.81,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x24",
+    "page": 43,
+    "x": 266.5,
+    "y": 43.5,
+    "width": 74,
+    "height": 34.5,
+    "matchScore": 0.446,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x25",
+    "page": 44,
+    "x": 71,
+    "y": 325,
+    "width": 470,
+    "height": 111,
+    "matchScore": 0.821,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x26",
+    "page": 45,
+    "x": 142,
+    "y": 64.5,
+    "width": 326.5,
+    "height": 220
+  },
+  {
+    "name": "source-x27",
+    "page": 47,
+    "x": 69,
+    "y": 62,
+    "width": 285,
+    "height": 123,
+    "matchScore": 0.906,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x28",
+    "page": 47,
+    "x": 360,
+    "y": 62,
+    "width": 183,
+    "height": 110,
+    "matchScore": 0.955,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x29",
+    "page": 52,
+    "x": 69,
+    "y": 164,
+    "width": 240,
+    "height": 161,
+    "matchScore": 0.652,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x30",
+    "page": 52,
+    "x": 304,
+    "y": 164,
+    "width": 240,
+    "height": 161,
+    "matchScore": 0.683,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x31",
+    "page": 53,
+    "x": 37,
+    "y": 62,
+    "width": 524,
+    "height": 214,
+    "matchScore": 0.986,
+    "preserveSource": false
+  },
+  {
+    "name": "source-x32",
+    "page": 53,
+    "x": 124,
+    "y": 316,
+    "width": 363,
+    "height": 112,
+    "matchScore": 0.973,
+    "preserveSource": false
+  },
+  {
+    "name": "source-assets-prefill_fp8",
+    "page": 54,
+    "x": 69,
+    "y": 62,
+    "width": 239,
+    "height": 161,
+    "matchScore": 0.965,
+    "preserveSource": true
+  },
+  {
+    "name": "source-assets-decode_fp8",
+    "page": 54,
+    "x": 304,
+    "y": 62,
+    "width": 239,
+    "height": 161,
+    "matchScore": 0.964,
+    "preserveSource": true
+  },
+  {
+    "name": "source-x33",
+    "page": 54,
+    "x": 458,
+    "y": 75.5,
+    "width": 60,
+    "height": 35.5,
+    "matchScore": 0.388,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-31",
+    "page": 63,
+    "x": 71,
+    "y": 64,
+    "width": 470,
+    "height": 114.5,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-32",
+    "page": 21,
+    "x": 129.5,
+    "y": 260,
+    "width": 353,
+    "height": 158.5,
+    "preserveSource": true
+  }
+]

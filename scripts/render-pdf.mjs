@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, extname, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { createCanvas, DOMMatrix, ImageData, Path2D } from '@napi-rs/canvas'
 
 globalThis.DOMMatrix ??= DOMMatrix
@@ -60,7 +61,22 @@ const options = parseArgs(process.argv.slice(2))
 const input = resolve(options.input)
 const outputDir = resolve(options.outputDir)
 const inputName = basename(input, extname(input))
-const loadingTask = getDocument({ data: new Uint8Array(readFileSync(input)), useSystemFonts: true })
+const wasmUrl = `${pathToFileURL(resolve(import.meta.dirname, '../node_modules/pdfjs-dist/wasm')).href}/`
+class LocalWasmFactory {
+  constructor({ baseUrl }) {
+    this.baseUrl = baseUrl
+  }
+
+  async fetch({ filename }) {
+    return new Uint8Array(readFileSync(resolve(import.meta.dirname, '../node_modules/pdfjs-dist/wasm', filename)))
+  }
+}
+const loadingTask = getDocument({
+  data: new Uint8Array(readFileSync(input)),
+  useSystemFonts: true,
+  wasmUrl,
+  WasmFactory: LocalWasmFactory,
+})
 const pdf = await loadingTask.promise
 mkdirSync(outputDir, { recursive: true })
 

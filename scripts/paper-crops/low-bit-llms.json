@@ -1,0 +1,121 @@
+[
+  {
+    "name": "figure-01",
+    "preserveSource": true,
+    "sourceHeight": 1447,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "table-01",
+    "page": 4,
+    "x": 48,
+    "y": 44,
+    "width": 224.5,
+    "height": 108,
+    "matchScore": 0.874,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "preserveSource": true,
+    "sourceHeight": 319,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "figure-03",
+    "preserveSource": true,
+    "sourceHeight": 827,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "table-02",
+    "page": 6,
+    "x": 49,
+    "y": 45,
+    "width": 495,
+    "height": 446,
+    "matchScore": 0.518,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-04",
+    "preserveSource": true,
+    "sourceHeight": 526,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "figure-05",
+    "preserveSource": true,
+    "sourceHeight": 1172,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "figure-06",
+    "preserveSource": true,
+    "sourceHeight": 831,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "table-03",
+    "page": 14,
+    "x": 48,
+    "y": 44,
+    "width": 498.5,
+    "height": 84,
+    "matchScore": 0.913,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-07",
+    "page": 15,
+    "x": 51,
+    "y": 55,
+    "width": 493,
+    "height": 122,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 16,
+    "x": 48,
+    "y": 44,
+    "width": 498.5,
+    "height": 123,
+    "matchScore": 0.907,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-08",
+    "preserveSource": true,
+    "sourceHeight": 1549,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "figure-09",
+    "preserveSource": true,
+    "sourceHeight": 615,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "figure-10",
+    "preserveSource": true,
+    "sourceHeight": 660,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "figure-11",
+    "preserveSource": true,
+    "sourceHeight": 698,
+    "sourceWidth": 1800
+  },
+  {
+    "name": "table-05",
+    "page": 23,
+    "x": 48,
+    "y": 44,
+    "width": 498.5,
+    "height": 128,
+    "matchScore": 0.894,
+    "preserveSource": false
+  }
+]

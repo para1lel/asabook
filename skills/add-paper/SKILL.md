@@ -77,13 +77,15 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 1. Store all page-specific raster assets in `docs/papers/<slug>/` with deterministic names such as `figure-01.png` and `table-01.png`.
 2. Reuse the same assets from all languages. Reference them as `./<slug>/...` from Chinese and `../../papers/<slug>/...` from English and Japanese.
-3. Prefer original source assets. When extraction from PDF is necessary, render at sufficient resolution and crop to the real figure or table bounds.
+3. Prefer original source assets only when they are at least as sharp as a PDF crop rendered at scale 4. When extraction from PDF is necessary, render with `npm run paper:refresh-screenshots -- --write --scale 4 <slug>`; scale 4 (about 288 DPI) is the minimum, not a suggested default.
 4. Remove excessive surrounding whitespace. Preserve labels, legends, axes, footnotes, and border strokes; add only a small consistent safety margin.
-5. Compare every cropped asset with the PDF. Pay particular attention to multi-panel figures and dense tables, where automatic trimming can remove meaningful edge content.
-6. Write localized Markdown alt text and an explicit localized bold caption below each asset.
-7. Add a stable two-digit HTML anchor immediately before every numbered figure or table object, such as `<span id="figure-08"></span>` or `<span id="table-03"></span>`.
-8. Link every figure and table reference in prose, captions, tables, algorithms, and appendices to its local anchor. Use localized labels, for example `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, and `[図 8](#figure-08)`.
-9. Link every number in a compound reference separately. Point subfigure references such as `Figure 16a` to the base figure anchor `#figure-16`. In Chinese, keep one space between `图` or `表` and its number, and one space between the linked reference and following Han text.
+5. Never enlarge, resample, sharpen, or re-encode an old low-resolution PNG as a substitute for rendering the PDF or using a higher-resolution source asset. A retained source asset must have at least four pixels per PDF point at its displayed PDF size in both dimensions.
+6. Keep the reproducible crop metadata in `scripts/paper-crops/<slug>.json`. Every local PNG referenced by the page must have one metadata entry; use `preserveSource: true` only when the source-density requirement above is met.
+7. Compare every cropped asset with the PDF at actual pixels. Pay particular attention to multi-panel figures and dense tables, where automatic matching or trimming can select the wrong panel or remove meaningful edge content.
+8. Write localized Markdown alt text and an explicit localized bold caption below each asset.
+9. Add a stable two-digit HTML anchor immediately before every numbered figure or table object, such as `<span id="figure-08"></span>` or `<span id="table-03"></span>`.
+10. Link every figure and table reference in prose, captions, tables, algorithms, and appendices to its local anchor. Use localized labels, for example `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, and `[図 8](#figure-08)`.
+11. Link every number in a compound reference separately. Point subfigure references such as `Figure 16a` to the base figure anchor `#figure-16`. In Chinese, keep one space between `图` or `表` and its number, and one space between the linked reference and following Han text.
 
 ## Register Citations and Navigation
 
@@ -112,14 +114,20 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
    node skills/add-paper/scripts/check-paper.mjs <slug>
    ```
 
-2. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
-3. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
-4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, run-in paragraph headings split into standalone bold lines, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
-5. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
-6. Run `git diff --check`.
-7. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.
-8. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, or navigation changed. Confirm that equations render, tags remain visible, annotations open correctly, images are legible and tightly framed, captions do not overflow, figure and table links jump to the intended objects, and citation abbreviations show their explanations.
-9. Stop every development or preview server started for validation.
+2. Validate screenshot resolution and crop coverage:
+
+   ```bash
+   npm run paper:check-screenshots -- <slug>
+   ```
+
+3. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
+4. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
+5. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, run-in paragraph headings split into standalone bold lines, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
+6. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
+7. Run `git diff --check`.
+8. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.
+9. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, or navigation changed. Confirm that equations render, tags remain visible, annotations open correctly, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, and citation abbreviations show their explanations.
+10. Stop every development or preview server started for validation.
 
 ## Commit the Repository State
 

@@ -1,0 +1,32 @@
+[
+  {
+    "name": "figure-01",
+    "page": 7,
+    "x": 137,
+    "y": 39.5,
+    "width": 350.5,
+    "height": 228.5,
+    "matchScore": 0.747,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 8,
+    "x": 431.5,
+    "y": 325,
+    "width": 48.5,
+    "height": 32.5,
+    "matchScore": 0.336,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-03",
+    "page": 9,
+    "x": 172,
+    "y": 262,
+    "width": 267.5,
+    "height": 179,
+    "matchScore": 0.555,
+    "preserveSource": false
+  }
+]

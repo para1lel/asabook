@@ -8,10 +8,13 @@
     "docs:build": "vuepress build docs",
     "docs:clean-dev": "vuepress dev docs --clean-cache --clean-temp",
     "paper:render": "node scripts/render-pdf.mjs",
+    "paper:refresh-screenshots": "node scripts/refresh-paper-screenshots.mjs",
+    "paper:check-screenshots": "node scripts/check-paper-screenshots.mjs",
     "paper:references": "node scripts/extract-tei-bibliography.mjs"
   },
   "devDependencies": {
     "@napi-rs/canvas": "0.1.100",
+    "@techstark/opencv-js": "5.0.0-release.1",
     "@vuepress/bundler-vite": "2.0.0-rc.30",
     "katex": "^0.17.0",
     "lxgw-wenkai-webfont": "1.7.0",
