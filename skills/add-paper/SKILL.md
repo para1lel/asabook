@@ -59,6 +59,20 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 2. Keep the first indented level at two spaces and increase nested levels in two-space steps. Preserve the source program's behavior and visible content while normalizing indentation.
 3. Keep corresponding code blocks identically indented across all three languages.
 
+## Preserve Run-In Paragraph Headings
+
+1. Render every source run-in paragraph heading, such as a TeX `\paragraph{...}` label, as bold text at the start of the same Markdown paragraph: `**Heading.** Paragraph text...`.
+2. Keep exactly one space between the closing bold marker and the paragraph text. Never insert a blank line or line break between them, because that changes the run-in heading into a standalone block.
+3. Preserve the source heading's wording and punctuation in English and translate it faithfully in Chinese and Japanese. Do not apply this rule to section headings, figure or table captions, algorithm titles, or labels that introduce a list, table, code block, or display equation.
+
+## Format Algorithm Descriptions
+
+1. Render math-heavy algorithms as compact unordered Markdown lists beginning with `-`. Put the algorithm title in bold above the list.
+2. Use two spaces for each nesting level to express loops, branches, and substeps. Do not number algorithm steps.
+3. Do not write `end for`, `end if`, `end while`, or translated equivalents; indentation expresses scope. Preserve execution order, inputs, outputs, conditions, and return values.
+4. Bold localized control words such as **For**, **If**, **Return**, and their Chinese or Japanese equivalents. Use inline code only for literal code symbols and operators.
+5. Existing fenced `pseudocode` algorithm blocks may remain unchanged. For a new algorithm, use a fenced `pseudocode` block only when it is genuinely code-oriented, math is incidental, and the surrounding collection style supports it.
+
 ## Prepare Shared Media
 
 1. Store all page-specific raster assets in `docs/papers/<slug>/` with deterministic names such as `figure-01.png` and `table-01.png`.
@@ -100,7 +114,7 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 2. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
 3. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
-4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
+4. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, run-in paragraph headings split into standalone bold lines, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
 5. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
 6. Run `git diff --check`.
 7. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.

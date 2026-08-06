@@ -253,93 +253,39 @@ We pick the logical mesh shape that minimizes $t_{l}$ and fits into the device m
 
 Our algorithm builds on top of that in TeraPipe [Xival21]. However, TeraPipe assumes all pipeline stages are the same, and the goal is to find the optimal way to batch input tokens into micro-batches of different sizes. Instead, Alpa aims to group the operators of a computational graph into different pipeline stages, while assuming the input micro-batches are of the same size. In addition, Alpa optimizes the mesh shape in the DP algorithm for each pipeline stage in inter-op parallelism.
 
-Algorithm 1 Inter-op pass summary.
+**Algorithm 1: Inter-op pass summary.**
 
-1:  Input: Model graph $G$ and cluster $C$ with shape $(N,M)$.
-
-2:  Output: The minimal pipeline execution latency $T^{*}$.
-
-3:  *// Preprocess graph.*
-
-4:  $(o_{1},\ldots,o_{K})\leftarrow\mathrm{Flatten}(G)$
-
-5:  $(l_{1},\ldots,l_{L})\leftarrow\mathrm{OperatorClustering}(o_{1},\ldots,o_{K})$
-
-6:  *// Run the intra-op pass to get costs of different stage-mesh pairs.*
-
-7:  $\mathit{\mathrm{submesh}\_\mathrm{shapes}}\leftarrow\{(1,1),(1,2),(1,4),\ldots,(1,M)\}\cup\{(2,M),(3,M),\ldots,(N,M)\}$
-
-8:  for $1\leq i\leq j\leq L$ do
-
-9:     $\mathit{\mathrm{stage}}\leftarrow(l_{i},\ldots,l_{j})$
-
-10:     for $(n,m)\in\mathit{\mathrm{submesh}\_\mathrm{shapes}}$ do
-
-11:        for $s$ from $1$ to $L$ do
-
-12:           $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow\infty$
-
-13:        end for
-
-14:        for $(n_{l},m_{l}),\mathit{\mathrm{opt}}\in\mathrm{LogicalMeshShapeAndIntraOp}$ $\mathrm{Options}(n,m)$ do
-
-15:           $\mathit{\mathrm{plan}}\leftarrow\mathrm{IntraOpPass}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n_{l},m_{l}),\mathit{\mathrm{opt}})$
-
-16:           $t_{l},\mathit{\mathrm{mem}}_{\mathit{\mathrm{stage}}},\mathit{\mathrm{mem}}_{\mathit{\mathrm{act}}}\leftarrow\mathrm{Profile}(\mathrm{plan})$
-
-17:           for $s$ satisfies Eq. [5](#S5.E5 "In 5.2 DP Formulation ‣ 5 Inter-Operator Parallelism ‣ Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning") do
-
-18:              if $t_{l}<t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)$ then
-
-19:                 $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow t_{l}$
-
-20:              end if
-
-21:           end for
-
-22:        end for
-
-23:     end for
-
-24:  end for
-
-25:  *// Run the inter-op dynamic programming*
-
-26:  $T^{*}\leftarrow\infty$
-
-27:  for $t_{\mathit{\max}}\in\mathrm{SortedAndFilter}(t\_\mathit{\mathrm{intra}},\varepsilon)$ do
-
-28:     if $B\cdot t_{\mathit{\max}}\geq T^{*}$ then
-
-29:        break
-
-30:     end if
-
-31:     $F(0,L+1,0;t_{\mathit{\max}})\leftarrow 0$
-
-32:     for $s$ from $1$ to $L$ do
-
-33:        for $l$ from $L$ down to $1$ do
-
-34:           for $d$ from $1$ to $N\cdot M$ do
-
-35:              Compute $F(s,l,d;t_{\mathit{\max}})$ according to Eq. [3](#S5.E3 "In 5.2 DP Formulation ‣ 5 Inter-Operator Parallelism ‣ Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning")
-
-36:           end for
-
-37:        end for
-
-38:     end for
-
-39:     $T^{*}(t_{\mathit{\max}})\leftarrow\min_{s}\{F(s,0,N\cdot M;t_{\mathit{\max}})\}+(B-1)\cdot t_{\mathit{\max}}$
-
-40:     if $T^{*}(t_{\mathit{\max}})<T^{*}$ then
-
-41:        $T^{*}\leftarrow T^{*}(t_{\mathit{\max}})$
-
-42:     end if
-
-43:  end for
+- **Input:** Model graph $G$ and cluster $C$ with shape $(N,M)$.
+- **Output:** The minimal pipeline execution latency $T^{*}$.
+- **Preprocess graph:**
+- $(o_{1},\ldots,o_{K})\leftarrow\mathrm{Flatten}(G)$.
+- $(l_{1},\ldots,l_{L})\leftarrow\mathrm{OperatorClustering}(o_{1},\ldots,o_{K})$.
+- **Run the intra-op pass to get costs of different stage-mesh pairs:**
+- $\mathit{\mathrm{submesh}\_\mathrm{shapes}}\leftarrow\{(1,1),(1,2),(1,4),\ldots,(1,M)\}\cup\{(2,M),(3,M),\ldots,(N,M)\}$.
+  - **For** $1\leq i\leq j\leq L$:
+    - $\mathit{\mathrm{stage}}\leftarrow(l_{i},\ldots,l_{j})$.
+    - **For** $(n,m)\in\mathit{\mathrm{submesh}\_\mathrm{shapes}}$:
+      - **For** $s$ from $1$ to $L$:
+        - $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow\infty$.
+      - **For** $(n_{l},m_{l}),\mathit{\mathrm{opt}}\in\mathrm{LogicalMeshShapeAndIntraOp}$ $\mathrm{Options}(n,m)$:
+        - $\mathit{\mathrm{plan}}\leftarrow\mathrm{IntraOpPass}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n_{l},m_{l}),\mathit{\mathrm{opt}})$.
+        - $t_{l},\mathit{\mathrm{mem}}_{\mathit{\mathrm{stage}}},\mathit{\mathrm{mem}}_{\mathit{\mathrm{act}}}\leftarrow\mathrm{Profile}(\mathrm{plan})$.
+        - **For** $s$ satisfying Eq. [5](#S5.E5 "In 5.2 DP Formulation ‣ 5 Inter-Operator Parallelism ‣ Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning"):
+          - **If** $t_{l}<t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)$:
+            - $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow t_{l}$.
+- **Run the inter-op dynamic programming:**
+  - $T^{*}\leftarrow\infty$.
+  - **For** $t_{\mathit{\max}}\in\mathrm{SortedAndFilter}(t\_\mathit{\mathrm{intra}},\varepsilon)$:
+    - **If** $B\cdot t_{\mathit{\max}}\geq T^{*}$:
+      - **Break.**
+    - $F(0,L+1,0;t_{\mathit{\max}})\leftarrow 0$.
+    - **For** $s$ from $1$ to $L$:
+      - **For** $l$ from $L$ down to $1$:
+        - **For** $d$ from $1$ to $N\cdot M$:
+          - Compute $F(s,l,d;t_{\mathit{\max}})$ according to Eq. [3](#S5.E3 "In 5.2 DP Formulation ‣ 5 Inter-Operator Parallelism ‣ Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning").
+    - $T^{*}(t_{\mathit{\max}})\leftarrow\min_{s}\{F(s,0,N\cdot M;t_{\mathit{\max}})\}+(B-1)\cdot t_{\mathit{\max}}$.
+    - **If** $T^{*}(t_{\mathit{\max}})<T^{*}$:
+      - $T^{*}\leftarrow T^{*}(t_{\mathit{\max}})$.
 
 Complexity. Our DP algorithm computes the slicing in $O(K^{3}\mathrm{NM}(N+\log(M)))$ time for a fixed $t_{\mathit{\max}}$. $t_{\mathit{\max}}$ has at most $O(K^{2}(N+\log(M)))$ choices: $t_{\mathit{\mathrm{intra}}}((o_{i},\ldots,o_{j}),\mathit{\mathrm{Mesh}}(n_{s},m_{s}))$ for $i,j=1,\ldots,K$ and all the submesh choices. The complexity of this DP algorithm is thus $O(K^{5}\mathrm{NM}(N+\log(M))^{2})$.
 

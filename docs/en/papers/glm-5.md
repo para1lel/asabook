@@ -22,9 +22,7 @@ The pursuit of Artificial General Intelligence (AGI) requires not only scaling m
 
 We present GLM-5, our next-generation flagship model designed to overcome these barriers. GLM-5 represents a paradigm shift in both performance and efficiency, achieving state-of-the-art status on major open leaderboards, including ArtificialAnalysis.ai, the LMArena Text, and the LMArena Code. More significantly, GLM-5 redefines the standard for real-world coding, demonstrating an unprecedented ability to handle complex, end-to-end software development tasks that go far beyond the scope of traditional static benchmarks like SWE-bench.
 
-**Results.**
-
-[Figure 1](#figure-01) shows the results of GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro, and GPT-5.2 (xhigh) on 8 agentic, reasoning, and coding benchmarks: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25], Vending Bench 2 [Bac25]. On average, GLM-5 achieves about 20% improvement over our last version GLM-4.7, and is comparable to Claude Opus 4.5 and GPT-5.2 (xhigh), and better than Gemini 3 Pro.
+**Results.** [Figure 1](#figure-01) shows the results of GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro, and GPT-5.2 (xhigh) on 8 agentic, reasoning, and coding benchmarks: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25], Vending Bench 2 [Bac25]. On average, GLM-5 achieves about 20% improvement over our last version GLM-4.7, and is comparable to Claude Opus 4.5 and GPT-5.2 (xhigh), and better than Gemini 3 Pro.
 
 GLM-5 scores 50 on the Intelligence Index v4.0 and is the new open weights leader (Cf. [Figure 2](#figure-02)), up from GLM-4.7's score of 42 - an 8 point jump driven by improvements across agentic performance and knowledge/hallucination. This is the first time an open weights model has achieved a score of 50 on the Artificial Analysis Intelligence Index v4.0.
 
@@ -56,9 +54,7 @@ Long-term coherence in agents becomes more and more important. Coding agents can
 
 **Figure 5.** Overall training pipeline of GLM-5.
 
-**Methods.**
-
-[Figure 5](#figure-05) shows the overall training pipeline of GLM-5. Our Base Model training began with a massive 27 trillion token corpus, prioritizing code and reasoning early on. We then employed a distinct Mid-training phase to progressively extend context length from 4K to 200K, focusing specifically on long-context agentic data to ensure stability in complex workflows. In Post-Training, we moved beyond standard SFT. We implemented a sequential Reinforcement Learning pipeline—starting with Reasoning RL, followed by Agentic RL, and finishing with General RL. Crucially, we utilized On-Policy Cross-Stage Distillation throughout this process to prevent catastrophic forgetting, ensuring the model retains its sharp reasoning edge while becoming a robust generalist. In summary, the leap in GLM-5's performance is driven by the following technical contributions:
+**Methods.** [Figure 5](#figure-05) shows the overall training pipeline of GLM-5. Our Base Model training began with a massive 27 trillion token corpus, prioritizing code and reasoning early on. We then employed a distinct Mid-training phase to progressively extend context length from 4K to 200K, focusing specifically on long-context agentic data to ensure stability in complex workflows. In Post-Training, we moved beyond standard SFT. We implemented a sequential Reinforcement Learning pipeline—starting with Reasoning RL, followed by Agentic RL, and finishing with General RL. Crucially, we utilized On-Policy Cross-Stage Distillation throughout this process to prevent catastrophic forgetting, ensuring the model retains its sharp reasoning edge while becoming a robust generalist. In summary, the leap in GLM-5's performance is driven by the following technical contributions:
 
 First, we adopt DSA (DeepSeek Sparse Attention) [Dee25a], a novel architectural innovation that significantly reduces both training and inference costs. While GLM-4.5 improved efficiency through a standard MoE architecture, DSA allows GLM-5 to dynamically allocate attention resources based on token importance, drastically lowering the computational overhead without compromising long-context understanding or reasoning depth. With DSA, we scale the model parameters up to 744B and extend the training token budget to 28.5T tokens.
 
@@ -76,9 +72,7 @@ Similar to GLM-4.5, the base model of GLM-5 goes through two stages: pre-trainin
 
 ### 2.1 Architecture
 
-**Model size scaling.**
-
-GLM-5 scales to 256 experts and reduces its layer count to 80 to minimize expert parallelism communication overhead. This results in a 744B parameter model (40B active parameters), doubling the total size of GLM-4.5, which utilized 355B total and 32B active parameters.
+**Model size scaling.** GLM-5 scales to 256 experts and reduces its layer count to 80 to minimize expert parallelism communication overhead. This results in a 744B parameter model (40B active parameters), doubling the total size of GLM-4.5, which utilized 355B total and 32B active parameters.
 
 <span id="table-01"></span>
 
@@ -86,11 +80,9 @@ GLM-5 scales to 256 experts and reduces its layer count to 80 to minimize expert
 
 **Table 1.** Evaluation results for GQA-8 and variants of MLA.
 
-**Multi-latent Attention.**
+**Multi-latent Attention.** By employing reduced key-value vectors, Multi-latent attention (MLA) [Dee24] matches the effectiveness of Grouped-Query Attention (GQA) but offers superior GPU memory savings and faster processing for long-context sequences.
 
-By employing reduced key-value vectors, Multi-latent attention (MLA) [Dee24] matches the effectiveness of Grouped-Query Attention (GQA) but offers superior GPU memory savings and faster processing for long-context sequences.
-
-However, in our experiments with Muon optimizer, we find that MLA with a 576-dimension latent KV-cache cannot match the performance of GQA with 8 query groups (denoted as GQA-8, 2048-dimension KV-cache). To overcome the performance gap, we propose an adaptation to the recipe of Muon optimizer in GLM-4.5. In the original recipe, we apply matrix orthogonalization to the up-projection matrices $W^{UQ},W^{UK},W^{UV}$ for multi-head queries, keys, and values. Instead, we split these matrices into smaller matrices for different heads and apply matrix orthogonalization to these independent matrices. The method, denoted as Muon Split, enables projection weights for different attention heads to update at different scales. As shown in [Table 1](#table-01), the method effectively improves the performance of MLA to match that of GQA-8. In practice, we also find that with Muon Split, the scale of attention logits of GLM-5 remains stable during pre-training without any clipping strategy.
+However, in our experiments with Muon optimizer, we find that MLA with a 576-dimension latent KV-cache cannot match the performance of GQA with 8 query groups (denoted as GQA-8, 2048-dimension KV-cache). To overcome the performance gap, we propose an adaptation to the recipe of Muon optimizer in GLM-4.5. In the original recipe, we apply matrix orthogonalization to the up-projection matrices $W^{\mathrm{UQ}},W^{\mathrm{UK}},W^{\mathrm{UV}}$ for multi-head queries, keys, and values. Instead, we split these matrices into smaller matrices for different heads and apply matrix orthogonalization to these independent matrices. The method, denoted as Muon Split, enables projection weights for different attention heads to update at different scales. As shown in [Table 1](#table-01), the method effectively improves the performance of MLA to match that of GQA-8. In practice, we also find that with Muon Split, the scale of attention logits of GLM-5 remains stable during pre-training without any clipping strategy.
 
 Another disadvantage of MLA is its high computational cost during decoding. In decoding, MLA performs a 576-dimensional dot product, higher than the 128-dimensional computation of GQA. While the number of attention heads in DeepSeek-V3 is selected according to the roofline of H800 [Zha25b], it is inappropriate for other hardware. Given the Multi-head Attention (MHA) style of MLA during training and prefilling, we increase the head dimension from 192 to 256 and decrease the number of attention heads by 1/3. This keeps the training computation and the number of parameters constant while decreasing the decoding computation. The variant, denoted as MLA-256 in [Table 1](#table-01), matches the performance of MLA under Muon Split.
 
@@ -100,9 +92,7 @@ Another disadvantage of MLA is its high computational cost during decoding. In d
 
 **Table 2.** Comparison of accept lengths of DeepSeek-V3.2 and GLM-5.
 
-**Multi-token Prediction with Parameter Sharing.**
-
-Multi-token prediction (MTP) [Glo24, Dee24a] increases the performance of base models and acts as draft models for speculative decoding [Lev23]. However, during training, to predict the next $n$ tokens, $n$ MTP layers are required. As a result, the memory usage of MTP parameters and the kv cache scales linearly with the number of speculative steps. Instead, DeepSeek-V3 is trained with a single MTP layer and predicts the next 2 tokens during inference. The training-inference discrepancy reduces the acceptance rate of the second token. Therefore, we propose sharing the parameters of 3 MTP layers during training. This keeps the memory cost of the draft model consistent with DeepSeek-V3 while increasing the acceptance rate. In [Table 2](#table-02), we show that the acceptance length of GLM-5 is longer than DeepSeek-V3.2, given the same number of speculative steps (4) in our private prompt set.
+**Multi-token Prediction with Parameter Sharing.** Multi-token prediction (MTP) [Glo24, Dee24a] increases the performance of base models and acts as draft models for speculative decoding [Lev23]. However, during training, to predict the next $n$ tokens, $n$ MTP layers are required. As a result, the memory usage of MTP parameters and the kv cache scales linearly with the number of speculative steps. Instead, DeepSeek-V3 is trained with a single MTP layer and predicts the next 2 tokens during inference. The training-inference discrepancy reduces the acceptance rate of the second token. Therefore, we propose sharing the parameters of 3 MTP layers during training. This keeps the memory cost of the draft model consistent with DeepSeek-V3 while increasing the acceptance rate. In [Table 2](#table-02), we show that the acceptance length of GLM-5 is longer than DeepSeek-V3.2, given the same number of speculative steps (4) in our private prompt set.
 
 #### 2.1.1 Continued Pre-Training with DeepSeek Sparse Attention (DSA)
 
@@ -112,7 +102,7 @@ Multi-token prediction (MTP) [Glo24, Dee24a] increases the performance of base m
 
 **Table 3.** Comparison of long-context benchmarks between MLA and DSA base models.
 
-We use DSA in our training. The core philosophy of DSA [Dee25a] is to replace the traditional dense $O(L^{2})$ attention—which becomes prohibitively expensive at $128\text{K}$ contexts—with a dynamic, fine-grained selection mechanism. Unlike fixed patterns (like sliding windows), DSA "looks" at the content to decide which tokens are important. What makes DSA particularly interesting from a researcher's perspective is how it was introduced via Continued Pre-Training from a dense base model. This avoided the "astronomical" cost of training from scratch. The transition follows a two-stage "dense warm-up and sparse training adaptation" strategy. DeepSeek-V3.2-Exp maintains the same benchmark performance as its dense predecessor, proving that 90% of attention entries in long contexts are indeed redundant. DSA reduces the attention computation by roughly 1.5-2x for long sequences, which is very important for the reasoning-heavy agents we are building, being able to handle 128K contexts at half the GPU cost.
+We use DSA in our training. The core philosophy of DSA [Dee25a] is to replace the traditional dense $O(L^{2})$ attention—which becomes prohibitively expensive at $128\mathrm{K}$ contexts—with a dynamic, fine-grained selection mechanism. Unlike fixed patterns (like sliding windows), DSA "looks" at the content to decide which tokens are important. What makes DSA particularly interesting from a researcher's perspective is how it was introduced via Continued Pre-Training from a dense base model. This avoided the "astronomical" cost of training from scratch. The transition follows a two-stage "dense warm-up and sparse training adaptation" strategy. DeepSeek-V3.2-Exp maintains the same benchmark performance as its dense predecessor, proving that 90% of attention entries in long contexts are indeed redundant. DSA reduces the attention computation by roughly 1.5-2x for long sequences, which is very important for the reasoning-heavy agents we are building, being able to handle 128K contexts at half the GPU cost.
 
 <span id="figure-06"></span>
 
@@ -160,33 +150,21 @@ To verify this, we conduct a small-scale DSA experiment on GLM-4.7-Flash ([https
 
 ### 2.2 Pre-training Data
 
-**Web.**
+**Web.** Building upon the GLM-4.5 data pipeline, we refined our selection criteria for massive web datasets. We introduced another DCLM [Li25a] classifier based on sentence embeddings to identify and aggregate additional high-quality data beyond standard classifiers. To address the challenge of long-tail knowledge, we utilized a World Knowledge classifier—optimized via Wikipedia entries and LLM-labeled data—to distill valuable information from otherwise medium-low-quality data.
 
-Building upon the GLM-4.5 data pipeline, we refined our selection criteria for massive web datasets. We introduced another DCLM [Li25a] classifier based on sentence embeddings to identify and aggregate additional high-quality data beyond standard classifiers. To address the challenge of long-tail knowledge, we utilized a World Knowledge classifier—optimized via Wikipedia entries and LLM-labeled data—to distill valuable information from otherwise medium-low-quality data.
+**Code.** We expand the code pre-training corpus with refreshed snapshots from major code hosting platforms and a larger collection of code-containing web pages, resulting in a 28% increase in fuzzily deduplicated unique tokens. To improve corpus integrity and reduce noise, we fix metadata alignment issues in Software Heritage code files and adopt a more accurate language classification pipeline. We follow GLM-4.5's quality-aware sampling strategy for source code and code-related web documents. In addition, we train dedicated classifiers for a broader set of low-resource programming languages (e.g., Scala, Swift, Lua, etc.), improving sampling quality for these languages.
 
-**Code.**
-
-We expand the code pre-training corpus with refreshed snapshots from major code hosting platforms and a larger collection of code-containing web pages, resulting in a 28% increase in fuzzily deduplicated unique tokens. To improve corpus integrity and reduce noise, we fix metadata alignment issues in Software Heritage code files and adopt a more accurate language classification pipeline. We follow GLM-4.5's quality-aware sampling strategy for source code and code-related web documents. In addition, we train dedicated classifiers for a broader set of low-resource programming languages (e.g., Scala, Swift, Lua, etc.), improving sampling quality for these languages.
-
-**Math & Science.**
-
-We collect high-quality math & science data from webpages, books, and papers to further increase the reasoning abilities. Specifically, the content extraction pipelines for webpages and PDF parsing mechanisms for books and papers are refined to increase data quality. We adopt large language models to score candidate documents and only retain the most educational content. For long-context documents, we develop a chunk-and-aggregate scoring algorithm to increase scoring accuracy. Filtering pipelines are conducted to strictly avoid the use of synthetic, AI-generated, or template-based data.
+**Math & Science.** We collect high-quality math & science data from webpages, books, and papers to further increase the reasoning abilities. Specifically, the content extraction pipelines for webpages and PDF parsing mechanisms for books and papers are refined to increase data quality. We adopt large language models to score candidate documents and only retain the most educational content. For long-context documents, we develop a chunk-and-aggregate scoring algorithm to increase scoring accuracy. Filtering pipelines are conducted to strictly avoid the use of synthetic, AI-generated, or template-based data.
 
 ### 2.3 Mid-Training
 
 Building upon the mid-training framework introduced in GLM-4.5, we scale up both the training volume and the maximum context length in GLM-5 to further strengthen the model's reasoning, long-context, and agentic capabilities.
 
-**Extended context and training scale.**
+**Extended context and training scale.** We progressively extend the context window across three stages: 32K (1T tokens), 128K (500B tokens), and 200K (50B tokens). Compared to the 128K maximum in GLM-4.5, the additional 200K stage substantially improves the model's ability to process ultra-long documents and complex multi-file codebases. Long documents and synthetic agent trajectories are up-sampled at the later stages accordingly.
 
-We progressively extend the context window across three stages: 32K (1T tokens), 128K (500B tokens), and 200K (50B tokens). Compared to the 128K maximum in GLM-4.5, the additional 200K stage substantially improves the model's ability to process ultra-long documents and complex multi-file codebases. Long documents and synthetic agent trajectories are up-sampled at the later stages accordingly.
+**Software engineering data.** We retain the paradigm of concatenating repo-level code files, commit diffs, GitHub issues, pull requests, and relevant source files into unified training sequences. In GLM-5, we relax the repository-level filtering criteria to broaden the pool of eligible repositories, yielding approximately 10 million issue-PR pairs, while strengthening quality filtering at the individual issue level to reduce noise. We also retrieve a larger set of relevant files for each issue-PR pair, resulting in richer development contexts and broader coverage of real-world software engineering scenarios. After filtering, the issue-PR portion of the dataset comprises approximately 160B unique tokens.
 
-**Software engineering data.**
-
-We retain the paradigm of concatenating repo-level code files, commit diffs, GitHub issues, pull requests, and relevant source files into unified training sequences. In GLM-5, we relax the repository-level filtering criteria to broaden the pool of eligible repositories, yielding approximately 10 million issue-PR pairs, while strengthening quality filtering at the individual issue level to reduce noise. We also retrieve a larger set of relevant files for each issue-PR pair, resulting in richer development contexts and broader coverage of real-world software engineering scenarios. After filtering, the issue-PR portion of the dataset comprises approximately 160B unique tokens.
-
-**Long-context data.**
-
-Our long-context training set comprises both natural and synthetic data. Natural data is curated from books, academic papers, and documents from general pre-training corpora employing multi-stage filtering (PPL, deduplication, length) and upsampling knowledge-intensive domains. In synthetic data construction, inspired by NextLong [Gao25] and EntropyLong [Jia25], we employed diverse techniques to build long-range dependencies. Highly similar texts were aggregated via interleaved packing to produce sequences, aiming to mitigate the lost-in-the-middle phenomenon and improve performance across a range of long-context tasks. At the 200K stage, we additionally incorporated a small proportion of MRCR-like data, with multiple variants designed to extend OpenAI's original paradigm, to strengthen recall in extended multi-turn dialogues. Empirically, we find that increasing data diversity progressively enhances the model's long-context performance; notably, a subsequent 200K mid-training stage, building upon the initial 128K phase, further bolstered the model's performance even within the 128K context window.
+**Long-context data.** Our long-context training set comprises both natural and synthetic data. Natural data is curated from books, academic papers, and documents from general pre-training corpora employing multi-stage filtering (PPL, deduplication, length) and upsampling knowledge-intensive domains. In synthetic data construction, inspired by NextLong [Gao25] and EntropyLong [Jia25], we employed diverse techniques to build long-range dependencies. Highly similar texts were aggregated via interleaved packing to produce sequences, aiming to mitigate the lost-in-the-middle phenomenon and improve performance across a range of long-context tasks. At the 200K stage, we additionally incorporated a small proportion of MRCR-like data, with multiple variants designed to extend OpenAI's original paradigm, to strengthen recall in extended multi-turn dialogues. Empirically, we find that increasing data diversity progressively enhances the model's long-context performance; notably, a subsequent 200K mid-training stage, building upon the initial 128K phase, further bolstered the model's performance even within the 128K context window.
 
 ### 2.4 Training Infrastructure
 
@@ -246,16 +224,14 @@ For **Coding** and **Agent** tasks, compared to GLM-4.5, GLM-5 constructs a larg
 
 ### 3.2 Reasoning RL
 
-**RL algorithm backbone.**
-
-Our RL algorithm builds upon GRPO [Sha24] and incorporates the IcePop technique [Zha25c] to mitigate the *training-inference mismatch*, i.e., the discrepancy between the inference distribution and the training distribution during RL optimization. We explicitly distinguish between the *training policy* $\pi^{\text{train}}$, used for gradient updates, and the *inference policy* $\pi^{\text{infer}}$, used for trajectory sampling. Compared to the original IcePop formulation, we remove the KL regularization term to accelerate RL improvement. The final optimization loss is:
+**RL algorithm backbone.** Our RL algorithm builds upon GRPO [Sha24] and incorporates the IcePop technique [Zha25c] to mitigate the *training-inference mismatch*, i.e., the discrepancy between the inference distribution and the training distribution during RL optimization. We explicitly distinguish between the *training policy* $\pi^{\mathrm{train}}$, used for gradient updates, and the *inference policy* $\pi^{\mathrm{infer}}$, used for trajectory sampling. Compared to the original IcePop formulation, we remove the KL regularization term to accelerate RL improvement. The final optimization loss is:
 
 $$
 \begin{aligned}
 \mathcal{L}(\theta)=
 -\mathbb{E}_{
 x \sim \mathcal{D},
-\{y_i\}_{i=1}^{G} \sim \pi^{\text{infer}}_{\theta_{\text{old}}}(\cdot \mid x)
+\{y_i\}_{i=1}^{G} \sim \pi^{\mathrm{infer}}_{\theta_{\mathrm{old}}}(\cdot \mid x)
 }
 &\Bigg[
 \frac{1}{G}
@@ -266,10 +242,10 @@ x \sim \mathcal{D},
 &\quad\cdot
 \min\!\left(
 r_{i,t}\hat{A}_{i,t},
-\operatorname{clip}\!\left(
+\mathrm{clip}\!\left(
 r_{i,t},
-1-\epsilon_{\text{low}},
-1+\epsilon_{\text{high}}
+1-\epsilon_{\mathrm{low}},
+1+\epsilon_{\mathrm{high}}
 \right)
 \hat{A}_{i,t}
 \right)
@@ -281,33 +257,29 @@ $$
 where the training-inference mismatch ratio is defined as
 
 $$
-\rho_{i,t}=\frac{\pi_{\theta_{\text{old}}}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\text{old}}}^{\text{infer}}(y_{i,t}\mid x,y_{i,<t})}.
+\rho_{i,t}=\frac{\pi_{\theta_{\mathrm{old}}}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\mathrm{old}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}.
 $$
 
 The operator $\operatorname{pop}(\cdot)$ suppresses samples whose mismatch ratio deviates excessively:
 
 $$
 \operatorname{pop}(\rho_{i,t},1/\beta,\beta)=\begin{cases}\rho_{i,t},&1/\beta\leq\rho_{i,t}\leq\beta,\\
-0,&\text{otherwise}.\end{cases}
+0,&\mathrm{otherwise}.\end{cases}
 $$
 
 The PPO-style importance ratio and the group-normalized advantage follow the original GRPO definition:
 
 $$
-r_{i,t}=\frac{\pi_{\theta}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\text{old}}}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})},\quad\hat{A}_{i,t}=\frac{R_{i}-\operatorname{mean}(R_{1},\dots,R_{G})}{\operatorname{std}(R_{1},\dots,R_{G})}.
+r_{i,t}=\frac{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\mathrm{old}}}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})},\quad\hat{A}_{i,t}=\frac{R_{i}-\mathrm{mean}(R_{1},\dots,R_{G})}{\mathrm{std}(R_{1},\dots,R_{G})}.
 $$
 
-During training, we set hyperparameters $\beta=2,\epsilon_{\text{low}}=0.2,\epsilon_{\text{high}}=0.28$. Training is performed entirely on-policy with a group size of 32 and a batch size of 32.
+During training, we set hyperparameters $\beta=2,\epsilon_{\mathrm{low}}=0.2,\epsilon_{\mathrm{high}}=0.28$. Training is performed entirely on-policy with a group size of 32 and a batch size of 32.
 
-**DSA RL insights.**
-
-We conduct a very large-scale RL training on a model based on the DSA architecture. Compared with MLA, DSA introduces an additional indexer that retrieves the top-k most relevant key-value entries and computes attention sparsely over the retrieved subset. The retrieved top-k results are critical for RL stability. This is analogous to how MoE models use routing replay [Zhe25] to preserve the activated top-k experts to ensure training-inference consistency. However, directly adapting this strategy to indexer replay, i.e., storing the indexer's top-k indices at every token position is clearly impractical, since the $k=2048$ used by the indexer is much larger than the $k$ typically used in MoE, and storing all these indices would incur enormous storage costs as well as significant communication overhead between the training engine and the inference engine.
+**DSA RL insights.** We conduct a very large-scale RL training on a model based on the DSA architecture. Compared with MLA, DSA introduces an additional indexer that retrieves the top-k most relevant key-value entries and computes attention sparsely over the retrieved subset. The retrieved top-k results are critical for RL stability. This is analogous to how MoE models use routing replay [Zhe25] to preserve the activated top-k experts to ensure training-inference consistency. However, directly adapting this strategy to indexer replay, i.e., storing the indexer's top-k indices at every token position is clearly impractical, since the $k=2048$ used by the indexer is much larger than the $k$ typically used in MoE, and storing all these indices would incur enormous storage costs as well as significant communication overhead between the training engine and the inference engine.
 
 We find that adopting a deterministic top-k operator effectively resolves the training-inference mismatch in DSA indexer token selection. Compared with the non-deterministic CUDA-based top-k implementation used in SGLang's DSA Indexer, directly using the naive `torch.topk` is slightly slower but deterministic. It produces more consistent outputs and yields substantial RL gains. In contrast, other non-deterministic top-k operators (e.g., CUDA or TileLang implementations) caused drastic performance degradation during RL after only a few steps, accompanied by a sharp drop in entropy. Therefore, throughout our RL stages, we use `torch.topk` as the default top-k operator in the DSA Indexer in our training engine. We also freeze the indexer parameters by default during RL to accelerate training and prevent unstable learning in the indexer.
 
-**Mixed domain reasoning RL.**
-
-In the Reasoning RL stage, we perform mixed RL training over four domains: mathematics, science, code, and tool-integrated reasoning (TIR). For mathematics and science, we curate data from both open-source datasets [Du25, Mos25] and co-developed collections with external annotation vendors. We further apply difficulty filtering to focus training on problems that GLM-4.7 solves correctly only rarely or fails consistently, while remaining solvable by stronger teacher models (e.g., GPT-5.2 xhigh and Gemini 3 Pro Preview). For code, we cover both competitive programming style tasks and scientific coding tasks. The former is primarily sourced from Codeforces and representative datasets such as TACO [Li23] and SYNTHETIC-2-RL [Int25a], while the latter is constructed from internal problem pools by decomposing questions into the minimal code implementations required for correct solutions. For TIR, we reuse the more challenging subset of mathematics and science RL data, and additionally co-build STEM questions with annotation vendors that are explicitly designed to be answered with external tools. During RL training, we assign domain and source-specific judge models or evaluation systems to produce binary outcome rewards. We keep the overall mixture roughly balanced across the four domains, and consistently observe stable and significant gains in each domain under the mixed RL setting.
+**Mixed domain reasoning RL.** In the Reasoning RL stage, we perform mixed RL training over four domains: mathematics, science, code, and tool-integrated reasoning (TIR). For mathematics and science, we curate data from both open-source datasets [Du25, Mos25] and co-developed collections with external annotation vendors. We further apply difficulty filtering to focus training on problems that GLM-4.7 solves correctly only rarely or fails consistently, while remaining solvable by stronger teacher models (e.g., GPT-5.2 xhigh and Gemini 3 Pro Preview). For code, we cover both competitive programming style tasks and scientific coding tasks. The former is primarily sourced from Codeforces and representative datasets such as TACO [Li23] and SYNTHETIC-2-RL [Int25a], while the latter is constructed from internal problem pools by decomposing questions into the minimal code implementations required for correct solutions. For TIR, we reuse the more challenging subset of mathematics and science RL data, and additionally co-build STEM questions with annotation vendors that are explicitly designed to be answered with external tools. During RL training, we assign domain and source-specific judge models or evaluation systems to produce binary outcome rewards. We keep the overall mixture roughly balanced across the four domains, and consistently observe stable and significant gains in each domain under the mixed RL setting.
 
 ### 3.3 Agentic RL
 
@@ -317,9 +289,7 @@ To maintain training stability under asynchronous off-policy conditions, we intr
 
 ### 3.4 General RL
 
-**Multi-dimensional optimization objectives.**
-
-We decompose the optimization objectives of General RL into three complementary dimensions: *foundational correctness*, *emotional intelligence*, and *task-specific quality*.
+**Multi-dimensional optimization objectives.** We decompose the optimization objectives of General RL into three complementary dimensions: *foundational correctness*, *emotional intelligence*, and *task-specific quality*.
 
 The *foundational correctness* dimension serves as the bedrock of response quality. It targets a broad spectrum of error types that undermine the usability of model outputs, including instruction-following failures, logical inconsistencies, factual inaccuracies, knowledge hallucinations, and language disfluencies. The goal is to minimize the error rate so that responses reach a *usable* baseline. We consider this a prerequisite for all subsequent optimization: a response containing factual errors or misinterpreting the user's intent can actively mislead the user, no matter how polished it may appear.
 
@@ -327,26 +297,22 @@ The *emotional intelligence* dimension optimizes user experience beyond core cor
 
 The *task-specific quality* dimension targets fine-grained optimization across various specific tasks. Building on the usability established by foundational correctness, it aims to elevate responses from merely correct to genuinely high-quality within each task category. This dimension covers a wide range of tasks, including writing, text processing, subjective and objective question answering, role-playing, and translation. Each task domain demands distinct reward signals, necessitating a hybrid reward system.
 
-**Hybrid reward system.**
-
-To supervise the diverse objectives above, we build a hybrid reward system that integrates three complementary types of reward signals: *rule-based reward functions*, *outcome reward models* (ORMs), and *generative reward models* (GRMs). Each has distinct strengths and weaknesses, and their combination is key to a stable, efficient, and scalable General RL training process.
+**Hybrid reward system.** To supervise the diverse objectives above, we build a hybrid reward system that integrates three complementary types of reward signals: *rule-based reward functions*, *outcome reward models* (ORMs), and *generative reward models* (GRMs). Each has distinct strengths and weaknesses, and their combination is key to a stable, efficient, and scalable General RL training process.
 
 Rule-based rewards provide precise and interpretable signals, but are limited to aspects expressible as deterministic rules. ORMs offer low-variance signals and high training efficiency, but are more susceptible to reward hacking, where the policy exploits superficial patterns rather than genuinely improving core capability. GRMs leverage language models to produce scalar or structured evaluations and are more robust to such exploitation, but tend to exhibit higher variance. By blending these three signal types, we obtain a reward system that balances precision, efficiency, and robustness, mitigating the weaknesses of any single component.
 
-**Human-in-the-loop style alignment.**
-
-A distinctive aspect of our General RL pipeline is the explicit incorporation of high-quality human-authored responses. Rather than relying solely on model-generated responses, we introduce expert human responses as stylistic and qualitative anchors. This is motivated by the observation that purely model-generated optimization tends to converge toward recognizably "model-like" patterns—often verbose, formulaic, or lacking the nuance of skilled human writing. By exposing the model to human-written exemplars, we encourage it to adopt more natural, human-aligned response patterns.
+**Human-in-the-loop style alignment.** A distinctive aspect of our General RL pipeline is the explicit incorporation of high-quality human-authored responses. Rather than relying solely on model-generated responses, we introduce expert human responses as stylistic and qualitative anchors. This is motivated by the observation that purely model-generated optimization tends to converge toward recognizably "model-like" patterns—often verbose, formulaic, or lacking the nuance of skilled human writing. By exposing the model to human-written exemplars, we encourage it to adopt more natural, human-aligned response patterns.
 
 ### 3.5 On-Policy Cross-Stage Distillation
 
 In our multi-stage RL pipeline, sequentially optimizing for distinct objectives can lead to the cumulative degradation of previously acquired capabilities. To mitigate this issue, we perform on-policy cross-stage distillation as the **final stage**, adopting an on-policy distillation algorithm [Gu25, Yan25a, Xia26, Lu25] to swiftly recover the skills acquired in earlier SFT and RL stages (Reasoning RL and General RL). Specifically, the final checkpoints from the preceding training stages serve as teacher models, where the training prompts are sampled from the corresponding teachers' RL training sets and mixed in appropriate proportions. The training loss can be obtained by replacing the advantage term in Eq. 1 with the following formula ('sg' stands for the stop gradient operation, e.g., `.detach()`):
 
 $$
-\hat{A}_{i,t}=\text{sg}\left[\log\frac{\pi_{\theta_{\text{teacher}}}^{\text{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
+\hat{A}_{i,t}=\mathrm{sg}\left[\log\frac{\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
 \tag{2}
 $$
 
-Currently, we utilize the inference engine to fetch teachers' logits. In the future, we plan to migrate the inference backend to the training engine and uniformly adopt the Multi-Query Attention (MQA) mode of MLA for inference ($\pi_{\theta_{\text{teacher}}}^{\text{infer}}\rightarrow\pi_{\theta_{\text{teacher}}}^{\text{train}}$). During training, the group size in the GRPO algorithm is configured to 1 to increase data throughput, and the batch size is set to 1024. This is feasible at this stage because it is no longer necessary to maintain a large group of samples per prompt to estimate advantages; the advantage is computed directly from the gap with the teacher models instead.
+Currently, we utilize the inference engine to fetch teachers' logits. In the future, we plan to migrate the inference backend to the training engine and uniformly adopt the Multi-Query Attention (MQA) mode of MLA for inference ($\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}\rightarrow\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{train}}$). During training, the group size in the GRPO algorithm is configured to 1 to increase data throughput, and the batch size is set to 1024. This is feasible at this stage because it is no longer necessary to maintain a large group of samples per prompt to estimate advantages; the advantage is computed directly from the gap with the teacher models instead.
 
 ### 3.6 RL Training Infrastructure: The *slime* Framework
 
@@ -382,7 +348,7 @@ We describe the transition from **vibe coding** (human prompting) to **agentic e
 
 To conduct RL for agent tasks, we design a fully asynchronous and decoupled RL infrastructure that efficiently handles long-horizon agent rollouts and supports flexible multi-task RL training across diverse agent frameworks.
 
-We adopt the group-wise policy optimization algorithm for RL training. For each problem $x$, we sample $K$ agent traces $\{y_{1},\dots,y_{K}\}$ from the previous policy $\pi_{\text{old}}$, and optimize the model $\pi_{\theta}$ with respect to the following objective:
+We adopt the group-wise policy optimization algorithm for RL training. For each problem $x$, we sample $K$ agent traces $\{y_{1},\dots,y_{K}\}$ from the previous policy $\pi_{\mathrm{old}}$, and optimize the model $\pi_{\theta}$ with respect to the following objective:
 
 $$
 L(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\!\left[\frac{1}{K}\sum_{i=1}^{K}\left(r(x,y_{i})-\bar{r}(x)\right)\right],
@@ -394,21 +360,15 @@ where $\bar{r}(x)\;=\;\frac{1}{K}\sum_{i=1}^{K}r\bigl(x,y_{i}\bigr)$ is the mean
 
 Due to the long-tail nature of the rollout process, naive synchronous RL training introduces substantial bubbles during the rollout stage because of the severely imbalanced generation of agentic tasks, which can cause large GPU idle time. To improve training throughput, we adopt a fully asynchronous training paradigm for Agentic RL to boost GPU utilization and training efficiency. Concretely, we decouple the training engine and the inference engine onto different GPU devices. The inference engine continuously generates trajectories. Once the number of generated trajectories reaches a predefined threshold, the batch is sent to the training engine to update the model. To reduce policy lag and keep the training approximately on-policy, the model weights used by the rollout engine are periodically synchronized with those of the training engine. The training engine updates the model parameters and pushes the new weights back to the inference engine every $K$ gradient updates. While asynchrony could significantly improve overall training efficiency, it also means that different trajectories may be generated by different versions of the model, introducing a severe off-policy issue. Since the weight update considers a different optimization problem due to the changing rollout policy, we also reset the optimizer after each weight update of the inference engine.
 
-**Server-based multi-task training design.**
-
-To address the heterogeneity of trajectory generation in multi-task RL, where different tasks typically rely on distinct tool sets and task-specific rollout logic, we introduce a server-based Multi-Task Rollout Orchestrator for multi-task RL training. This component is designed to ensure seamless compatibility between the slime RL training framework and diverse downstream tasks through a central orchestrator with multiple registered task services. Specifically, each task implements its own rollout and reward logic as an independent microservice, which is registered with the central orchestrator for management and scheduling. During the rollout stage, the central orchestrator controls the per-task rollout ratio and generation speed to achieve balanced data collection across tasks. Crucially, we standardize trajectories from all agentic tasks into a unified message-list representation. This enables joint training of complex agentic frameworks (e.g., Software Engineering task) while also supporting centralized post-processing and logging for heterogeneous workloads. This design cleanly isolates task-specific logic from the core training loop, enabling seamless integration with multi-task RL training. Serving as the backbone of the GLM-5 training infrastructure, this orchestrator supports over 1k concurrent rollouts and enables automated, dynamic adjustment of task sampling ratios, as well as fine-grained monitoring of task progress.
+**Server-based multi-task training design.** To address the heterogeneity of trajectory generation in multi-task RL, where different tasks typically rely on distinct tool sets and task-specific rollout logic, we introduce a server-based Multi-Task Rollout Orchestrator for multi-task RL training. This component is designed to ensure seamless compatibility between the slime RL training framework and diverse downstream tasks through a central orchestrator with multiple registered task services. Specifically, each task implements its own rollout and reward logic as an independent microservice, which is registered with the central orchestrator for management and scheduling. During the rollout stage, the central orchestrator controls the per-task rollout ratio and generation speed to achieve balanced data collection across tasks. Crucially, we standardize trajectories from all agentic tasks into a unified message-list representation. This enables joint training of complex agentic frameworks (e.g., Software Engineering task) while also supporting centralized post-processing and logging for heterogeneous workloads. This design cleanly isolates task-specific logic from the core training loop, enabling seamless integration with multi-task RL training. Serving as the backbone of the GLM-5 training infrastructure, this orchestrator supports over 1k concurrent rollouts and enables automated, dynamic adjustment of task sampling ratios, as well as fine-grained monitoring of task progress.
 
 #### 4.1.2 Optimizing Asynchronous Training Stability
 
-**Token-in-Token-out vs. Text-in-Text-out.**
+**Token-in-Token-out vs. Text-in-Text-out.** In an RL rollout setting, *token-in-token-out* (TITO) means the training pipeline consumes the *exact* tokenization and decoded-token stream produced by the inference engine, and uses it directly to build trajectories for learning. In contrast, *text-in-text-out* treats the rollout engine as a black box that returns finalized text; the trainer then reconstructs the trajectory by re-tokenizing that text (and often re-deriving boundaries and truncation) before computing losses. This seemingly small choice is consequential: re-tokenization can introduce subtle mismatches in token boundaries, whitespace/normalization handling, truncation, or special-token placement, which in turn can corrupt step alignment between actions and rewards/advantages—especially when rollouts are streamed, truncated, or interleaved across many actors. We find token-in-token-out is critical for asynchronous RL training because it preserves exact action-level correspondence between what was sampled and what is optimized while enabling actors to emit trajectory fragments (token IDs + metadata) immediately without a lossy text round-trip and without waiting for post-hoc re-tokenization on the learner side. In practice, we implement a TITO Gateway that intercepts all generation requests from rollout tasks and records each trajectory's token IDs and metadata. This design isolates the cumbersome token ID processing from downstream agent rollout logic, while avoiding re-tokenization mismatches during RL training.
 
-In an RL rollout setting, *token-in-token-out* (TITO) means the training pipeline consumes the *exact* tokenization and decoded-token stream produced by the inference engine, and uses it directly to build trajectories for learning. In contrast, *text-in-text-out* treats the rollout engine as a black box that returns finalized text; the trainer then reconstructs the trajectory by re-tokenizing that text (and often re-deriving boundaries and truncation) before computing losses. This seemingly small choice is consequential: re-tokenization can introduce subtle mismatches in token boundaries, whitespace/normalization handling, truncation, or special-token placement, which in turn can corrupt step alignment between actions and rewards/advantages—especially when rollouts are streamed, truncated, or interleaved across many actors. We find token-in-token-out is critical for asynchronous RL training because it preserves exact action-level correspondence between what was sampled and what is optimized while enabling actors to emit trajectory fragments (token IDs + metadata) immediately without a lossy text round-trip and without waiting for post-hoc re-tokenization on the learner side. In practice, we implement a TITO Gateway that intercepts all generation requests from rollout tasks and records each trajectory's token IDs and metadata. This design isolates the cumbersome token ID processing from downstream agent rollout logic, while avoiding re-tokenization mismatches during RL training.
+**Direct double-sided importance sampling for token clipping.** Unlike the synchronous RL training setting in Section 3, in the asynchronous setting, rollout engines may undergo multiple updates during a single trajectory generation, which renders the tracking of exact behavior probabilities $\pi_{\theta_{\mathrm{old}}}$ computationally prohibitive. Otherwise, we have to maintain an extensive history of model checkpoints $\{\pi_{\theta_{\mathrm{old}}^{(1)}},\dots,\pi_{\theta_{\mathrm{old}}^{(N)}}\}$, which is infeasible in practical implementation.
 
-**Direct double-sided importance sampling for token clipping.**
-
-Unlike the synchronous RL training setting in Section 3, in the asynchronous setting, rollout engines may undergo multiple updates during a single trajectory generation, which renders the tracking of exact behavior probabilities $\pi_{\theta_{\text{old}}}$ computationally prohibitive. Otherwise, we have to maintain an extensive history of model checkpoints $\{\pi_{\theta_{\text{old}}^{(1)}},\dots,\pi_{\theta_{\text{old}}^{(N)}}\}$, which is infeasible in practical implementation.
-
-To resolve this, we first employ a simplified token-level importance sampling mechanism that reuses the log-probabilities generated during rollout as a direct behavior proxy. By calculating the importance sampling ratio as $r_{t}(\theta)=\frac{\pi_{\theta}}{\pi_{\text{rollout}}}$ and discarding the traditional $\pi_{\theta_{\text{old}}}$, we eliminate the computational overhead of separate old-policy inference. Second, we employ a double-sided calibration token-level masking strategy. Instead of the asymmetric clipping used in standard PPO, we restrict the trust region to $[1-\epsilon_{\ell},1+\epsilon_{h}]$, where $\epsilon_{\ell}$ and $\epsilon_{h}$ are clipping hyperparameters. Tokens falling outside this interval are entirely masked from gradient computation to prevent instabilities caused by extreme policy divergence. This shares similarities with the IcePop mechanism [Tea25c], yet our strategy is simpler by further removing the $\pi_{\theta_{\text{old}}}$ and achieving more stable training.
+To resolve this, we first employ a simplified token-level importance sampling mechanism that reuses the log-probabilities generated during rollout as a direct behavior proxy. By calculating the importance sampling ratio as $r_{t}(\theta)=\frac{\pi_{\theta}}{\pi_{\mathrm{rollout}}}$ and discarding the traditional $\pi_{\theta_{\mathrm{old}}}$, we eliminate the computational overhead of separate old-policy inference. Second, we employ a double-sided calibration token-level masking strategy. Instead of the asymmetric clipping used in standard PPO, we restrict the trust region to $[1-\epsilon_{\ell},1+\epsilon_{h}]$, where $\epsilon_{\ell}$ and $\epsilon_{h}$ are clipping hyperparameters. Tokens falling outside this interval are entirely masked from gradient computation to prevent instabilities caused by extreme policy divergence. This shares similarities with the IcePop mechanism [Tea25c], yet our strategy is simpler by further removing the $\pi_{\theta_{\mathrm{old}}}$ and achieving more stable training.
 
 Formally, the optimization objective with token-level clipping can be written as:
 
@@ -420,29 +380,25 @@ $$
 In this formulation, the importance sampling ratio $r_{t}(\theta)$ is computed as:
 
 $$
-r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\text{rollout}}(a_{t}|s_{t})\right)
+r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\mathrm{rollout}}(a_{t}|s_{t})\right)
 \tag{4}
 $$
 
 Stability is further enforced via the calibration function $f(x;\epsilon_{\ell},\epsilon_{h})$:
 
 $$
-f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\text{if }1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
-0,&\text{otherwise}\end{cases}
+f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\mathrm{if}\ 1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
+0,&\mathrm{otherwise}\end{cases}
 \tag{5}
 $$
 
 In the experiments, we find that reusing rollout log-probabilities accepts a controlled degree of off-policy bias to circumvent the need for historical policy tracking while boosting training stability.
 
-**Dropping off-policy and noisy samples.**
-
-In asynchronous RL, overly long trajectories can become highly off-policy, which may destabilize training. To filter out these severely off-policy samples, we log the policy weight version used by the rollout engine at generation time. Specifically, for each response we record the sequence of model versions involved, $(w_{0},\ldots,w_{k})$ with $w_{0}<\cdots<w_{k}$. Let $w^{\prime}$ denote the current policy version. We discard a sample if its oldest rollout version is too stale, i.e., if $w^{\prime}-w_{0}>\tau$, where $\tau$ is a predefined threshold. This removes trajectories that lag too far behind the current policy.
+**Dropping off-policy and noisy samples.** In asynchronous RL, overly long trajectories can become highly off-policy, which may destabilize training. To filter out these severely off-policy samples, we log the policy weight version used by the rollout engine at generation time. Specifically, for each response we record the sequence of model versions involved, $(w_{0},\ldots,w_{k})$ with $w_{0}<\cdots<w_{k}$. Let $w^{\prime}$ denote the current policy version. We discard a sample if its oldest rollout version is too stale, i.e., if $w^{\prime}-w_{0}>\tau$, where $\tau$ is a predefined threshold. This removes trajectories that lag too far behind the current policy.
 
 Additionally, coding-agent sandboxes can be inherently unstable and may fail for reasons unrelated to the model (e.g., environment crashes). Such failures introduce noisy training signals because they reflect environment instability rather than the model's capability. To mitigate this, we record the failure reason for each sample and exclude samples that fail due to environment collapse. For group-based sampling methods such as GRPO, removing failed samples can leave an incomplete group. In that case, we pad the group by repeating valid samples if the number of valid samples exceeds half of the group size; otherwise, we drop the entire group. This procedure reduces spurious reward noise and improves training stability.
 
-**DP-aware routing for acceleration.**
-
-We propose a DP-aware routing mechanism to preserve KV cache locality under Data Parallelism (DP) for large-scale MoE inference. In multi-turn agentic workloads, sequential requests from the same rollout share an identical prefix. To maximize KV reuse, we enforce rollout-level affinity: all requests belonging to a given agent instance are routed to the same DP rank. Concretely, we introduce a stateful routing layer that maps each rollout ID to a fixed DP rank using consistent hashing. This mapping remains stable across turns, eliminating cross-rank cache misses. To prevent long-term imbalance, we combine hashing with lightweight dynamic load rebalancing over the hash space. This design avoids redundant prefill computation without requiring KV synchronization across DP ranks. As rollout length increases, prefill cost remains proportional to incremental tokens rather than total context length. The result is improved end-to-end latency and higher effective throughput for long-context agentic inference.
+**DP-aware routing for acceleration.** We propose a DP-aware routing mechanism to preserve KV cache locality under Data Parallelism (DP) for large-scale MoE inference. In multi-turn agentic workloads, sequential requests from the same rollout share an identical prefix. To maximize KV reuse, we enforce rollout-level affinity: all requests belonging to a given agent instance are routed to the same DP rank. Concretely, we introduce a stateful routing layer that maps each rollout ID to a fixed DP rank using consistent hashing. This mapping remains stable across turns, eliminating cross-rank cache misses. To prevent long-term imbalance, we combine hashing with lightweight dynamic load rebalancing over the hash space. This design avoids redundant prefill computation without requiring KV synchronization across DP ranks. As rollout length increases, prefill cost remains proportional to incremental tokens rather than total context length. The result is improved end-to-end latency and higher effective throughput for long-context agentic inference.
 
 ### 4.2 Environment Scaling for Agents
 
@@ -454,13 +410,9 @@ Before constructing executable environments, we collect a large corpus of real-w
 
 #### 4.2.2 Terminal Environments
 
-**Synthesis from seed data.**
+**Synthesis from seed data.** To build verifiable terminal-agent environments at scale, we design an agentic data synthesis pipeline comprising three phases: task draft generation, concrete task implementation, and iterative task optimization. Starting from a set of seed tasks collected from real-world software engineering and terminal-based computer-use scenarios, we leveraged LLM to brainstorm and generate a large pool of verifiable terminal-task drafts. These drafts are then instantiated by a construction agent into concrete tasks in the Harbor [Tea26c] format, including structured task descriptions, Dockerized execution environments, and corresponding test scripts. Subsequently, a refine agent inspects and iteratively refines the generated tasks according to manually defined rubrics, ensuring that Docker images can be built reliably, test cases are consistent with task specifications, and the environments are robust against potential exploits or shortcuts. Overall, the pipeline yields thousands of diverse and verifiable terminal-agent environments with Docker construction accuracy exceeding 90%.
 
-To build verifiable terminal-agent environments at scale, we design an agentic data synthesis pipeline comprising three phases: task draft generation, concrete task implementation, and iterative task optimization. Starting from a set of seed tasks collected from real-world software engineering and terminal-based computer-use scenarios, we leveraged LLM to brainstorm and generate a large pool of verifiable terminal-task drafts. These drafts are then instantiated by a construction agent into concrete tasks in the Harbor [Tea26c] format, including structured task descriptions, Dockerized execution environments, and corresponding test scripts. Subsequently, a refine agent inspects and iteratively refines the generated tasks according to manually defined rubrics, ensuring that Docker images can be built reliably, test cases are consistent with task specifications, and the environments are robust against potential exploits or shortcuts. Overall, the pipeline yields thousands of diverse and verifiable terminal-agent environments with Docker construction accuracy exceeding 90%.
-
-**Synthesis from web-corpus.**
-
-We develop a scalable, automated pipeline and construct LLM-verified terminal-based coding tasks based on web corpus, using a closed-loop design where the constructing agent also serves as its own first-pass evaluator. First, we collect a large-scale corpus of code-relevant web pages and apply a data quality classifier to retain only high-quality content, discarding pages that are predominantly non-technical or lack substantive code content. From the filtered subset, we further identify web pages amenable to terminal-style task formulation. We then apply stratified sampling across topic categories and difficulty levels to ensure distributional balance and diversity in the resulting task pool. Second, we prompt a coding agent with the Harbor task construction specification ([https://harborframework.com/docs/tasks/task-tutorial](https://harborframework.com/docs/tasks/task-tutorial)), including the task schema, formatting requirements, and exemplar tasks, alongside each selected source web page. The agent is instructed to (i) synthesize a complete terminal task grounded in the web page content, and (ii) execute the Harbor validation script against its own output. Upon validation failure, the agent iteratively diagnoses and revises the task until it passes all automated checks. Only tasks that successfully clear this self-verification loop are admitted into the final dataset.
+**Synthesis from web-corpus.** We develop a scalable, automated pipeline and construct LLM-verified terminal-based coding tasks based on web corpus, using a closed-loop design where the constructing agent also serves as its own first-pass evaluator. First, we collect a large-scale corpus of code-relevant web pages and apply a data quality classifier to retain only high-quality content, discarding pages that are predominantly non-technical or lack substantive code content. From the filtered subset, we further identify web pages amenable to terminal-style task formulation. We then apply stratified sampling across topic categories and difficulty levels to ensure distributional balance and diversity in the resulting task pool. Second, we prompt a coding agent with the Harbor task construction specification ([https://harborframework.com/docs/tasks/task-tutorial](https://harborframework.com/docs/tasks/task-tutorial)), including the task schema, formatting requirements, and exemplar tasks, alongside each selected source web page. The agent is instructed to (i) synthesize a complete terminal task grounded in the web page content, and (ii) execute the Harbor validation script against its own output. Upon validation failure, the agent iteratively diagnoses and revises the task until it passes all automated checks. Only tasks that successfully clear this self-verification loop are admitted into the final dataset.
 
 #### 4.2.3 Search Tasks
 
@@ -474,7 +426,7 @@ For deep-search information-seeking tasks, we build a data-synthesis pipeline th
 
 We find that the performance on BrowseComp [Wei25] is sensitive to both the judge prompt and the judge model, and open-source judges can introduce systematic bias. To ensure consistency and reproducibility, we standardize all judge-based components using the official OpenAI evaluation prompt and the proprietary model o3-mini as the judge. Our case studies indicate this configuration aligns best with human-annotated ground truth, so we adopt it for all search agent evaluations.
 
-Prior work [Dee25a] has introduced context management, where *Discard-all* resets the context by removing the entire history of tool calls. We further observe that model accuracy degrades substantially under extremely long contexts (e.g., beyond 100k tokens). Motivated by this, we employ a simple *Keep-recent-k* strategy. When the interaction history exceeds a threshold $k$, the content older than the most recent $k$ rounds will be folded to control context length. Let the trajectory be $(q,r_{1},a_{1},o_{1},r_{2},a_{2},o_{2},\cdots,r_{n},a_{n},o_{n})$, where $q$ denotes the question, $r_{i}$ denotes the reasoning at round $i$, $a_{i}$ the action (we design *search*, *open*, *find* and *python* 4 tools), and $o_{i}$ the tool observation. We fold only observations earlier than the most recent $k$ rounds: $o_{i}\leftarrow\text{Tool result is omitted to save tokens.}\quad i=1,\ldots,n-k$. In our experiments, we set $k=5$, which yields a stable improvement and improves GLM-5 from 55.3%($w/o$ keep-recent-$k$) to 62.0%($w/$ keep-recent-$k$). We also find that using different values of keep recent $k$ or alternatively triggering keep-recent once the context length reaches a predefined token threshold, leads to the same results.
+Prior work [Dee25a] has introduced context management, where *Discard-all* resets the context by removing the entire history of tool calls. We further observe that model accuracy degrades substantially under extremely long contexts (e.g., beyond 100k tokens). Motivated by this, we employ a simple *Keep-recent-k* strategy. When the interaction history exceeds a threshold $k$, the content older than the most recent $k$ rounds will be folded to control context length. Let the trajectory be $(q,r_{1},a_{1},o_{1},r_{2},a_{2},o_{2},\cdots,r_{n},a_{n},o_{n})$, where $q$ denotes the question, $r_{i}$ denotes the reasoning at round $i$, $a_{i}$ the action (we design *search*, *open*, *find* and *python* 4 tools), and $o_{i}$ the tool observation. We fold only observations earlier than the most recent $k$ rounds: $o_{i}\leftarrow\mathrm{Tool\ result\ is\ omitted\ to\ save\ tokens.}\quad i=1,\ldots,n-k$. In our experiments, we set $k=5$, which yields a stable improvement and improves GLM-5 from 55.3%($w/o$ keep-recent-$k$) to 62.0%($w/$ keep-recent-$k$). We also find that using different values of keep recent $k$ or alternatively triggering keep-recent once the context length reaches a predefined token threshold, leads to the same results.
 
 Building on this, we combine keep-recent with Discard-all to form a hybrid *Hierarchical Context Management* strategy. During inference with keep-recent, if the total context length exceeds a threshold $T$, we discard the entire tool-call history and restart with a fresh context, while continuing to apply the keep-recent strategy. We select $T=32k$ via parameter search.
 
@@ -506,33 +458,21 @@ We propose a **multi-level reward formulation**, which partitions reward signals
 
 **Training strategy.** These signals are jointly optimized during RL to improve the structural validity of generated HTML, enhance layout organization, and elevate overall visual aesthetic quality. In addition to reward design, we reshape the training distribution via dynamic sampling. Specifically, a fraction of structurally trivial samples is probabilistically dropped, allowing optimization to focus on more challenging pages and improving robustness under complex composition scenarios. We also employ a token-level policy gradient loss to stabilize optimization [Yu25]. Furthermore, we introduce a balancing strategy that distributes different rollout outcomes of the same sample across multiple training batches, reducing optimization bias and improving training stability.
 
-**Rejection sampling.**
+**Rejection sampling.** During the rejection sampling phase, the reward functions used in RL are transferred into a data filtering pipeline to construct a high-quality training subset. At the page level, filtering criteria include code validity and compilation feasibility. At the trajectory level, we further enforce tool execution correctness and global content diversity constraints, ensuring structural consistency. We adopt a Best-of-$N$ selection strategy, in which the highest-quality sample is retained from multiple independently generated candidates. This mechanism effectively reweights the distribution toward higher-quality instances, leading to improved sample efficiency and enhanced training stability.
 
-During the rejection sampling phase, the reward functions used in RL are transferred into a data filtering pipeline to construct a high-quality training subset. At the page level, filtering criteria include code validity and compilation feasibility. At the trajectory level, we further enforce tool execution correctness and global content diversity constraints, ensuring structural consistency. We adopt a Best-of-$N$ selection strategy, in which the highest-quality sample is retained from multiple independently generated candidates. This mechanism effectively reweights the distribution toward higher-quality instances, leading to improved sample efficiency and enhanced training stability.
+**Masking-based refinement.** Although rejection sampling removes the majority of low-quality outputs, some trajectories contain defects confined to only a small number of pages. Discarding such samples would reduce effective data utilization and increase generation cost. To address this, we introduce a masking-based correction mechanism that automatically identifies defective pages and applies masking, while retaining the high-quality content within the same trajectory. This selective refinement preserves valuable supervision signals, improves effective data efficiency, and reduces redundant regeneration overhead, thereby enhancing overall training efficiency.
 
-**Masking-based refinement.**
-
-Although rejection sampling removes the majority of low-quality outputs, some trajectories contain defects confined to only a small number of pages. Discarding such samples would reduce effective data utilization and increase generation cost. To address this, we introduce a masking-based correction mechanism that automatically identifies defective pages and applies masking, while retaining the high-quality content within the same trajectory. This selective refinement preserves valuable supervision signals, improves effective data efficiency, and reduces redundant regeneration overhead, thereby enhancing overall training efficiency.
-
-**Empirical improvements.**
-
-The proportion of generated pages that strictly comply with the 16:9 aspect ratio increases from 40% to 92%, accompanied by a substantial reduction in page overflow cases. Human evaluation further shows that, compared to GLM-4.5, GLM-5 achieves win rates of 60% in content quality, 57.5% in layout rationality, and 65% in visual aesthetics, resulting in an overall win rate of 67.5%. These results provide empirical evidence for the effectiveness of the proposed multi-level reward design and self-improving framework.
+**Empirical improvements.** The proportion of generated pages that strictly comply with the 16:9 aspect ratio increases from 40% to 92%, accompanied by a substantial reduction in page overflow cases. Human evaluation further shows that, compared to GLM-4.5, GLM-5 achieves win rates of 60% in content quality, 57.5% in layout rationality, and 65% in visual aesthetics, resulting in an overall win rate of 67.5%. These results provide empirical evidence for the effectiveness of the proposed multi-level reward design and self-improving framework.
 
 ## 5 Adapting GLM-5 to Chinese Chip Infrastructure
 
 Adapting GLM-5 to diverse Chinese chip infrastructures presents significant challenges due to the heterogeneity of hardware ecosystems, which often complicates high-performance deployment. Despite these hurdles, we have successfully achieved full-stack adaptation for GLM-5 through close collaboration with seven mainstream Chinese chip platforms, including Huawei Ascend, Moore Threads, Hygon, Cambricon, Kunlunxin, MetaX, and Enflame. In this section, we use the Ascend Atlas series as a case study to demonstrate our adaptation methodology, focusing on three core pillars: extreme quantization, high-performance kernel fusion, and advanced inference engine scheduling.
 
-**Mixed-Precision W4A8 quantization.**
+**Mixed-Precision W4A8 quantization.** To fit the 750B parameter GLM-5 model onto a single Atlas 800T A3 machine, we implemented a sophisticated W4A8 mixed-precision quantization strategy. Utilizing the msModelSlim ([https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html)) tool, we applied specific precisions to different model components: standard Attention and MLP blocks use W8A8 (INT8), while the MoE experts are compressed to W4A8 (INT4) to drastically reduce memory footprint without significant accuracy loss. Advanced algorithms like QuaRot [Ash24] for outlier suppression and `Flex_AWQ_SSZ` for scaling calibration were employed to maintain stability in low-bit deployment.
 
-To fit the 750B parameter GLM-5 model onto a single Atlas 800T A3 machine, we implemented a sophisticated W4A8 mixed-precision quantization strategy. Utilizing the msModelSlim ([https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html)) tool, we applied specific precisions to different model components: standard Attention and MLP blocks use W8A8 (INT8), while the MoE experts are compressed to W4A8 (INT4) to drastically reduce memory footprint without significant accuracy loss. Advanced algorithms like QuaRot [Ash24] for outlier suppression and `Flex_AWQ_SSZ` for scaling calibration were employed to maintain stability in low-bit deployment.
+**High-Performance fusion kernels.** To overcome the computational bottlenecks of sparse attention on Ascend NPUs, we developed a suite of customized fusion kernels: Lightning Indexer, Sparse Flash Attention, and MLAPO (Multi-head Latent Attention Pre-processing Optimization). Lightning Indexer integrates score calculation, ReLU, and TopK operations into a single kernel, allowing the NPU to overlap computation with memory access. For the Sparse Flash Attention kernel, we specifically optimized for GLM-5's sparse patterns. This kernel handles the selection of TopK tokens from the KV cache and sparse attention computation in parallel. Last, MLAPO fuses 13 small pre-processing operators into one "super operator", utilizing parallel processing between Vector and Cube units to boost end-to-end efficiency.
 
-**High-Performance fusion kernels.**
-
-To overcome the computational bottlenecks of sparse attention on Ascend NPUs, we developed a suite of customized fusion kernels: Lightning Indexer, Sparse Flash Attention, and MLAPO (Multi-head Latent Attention Pre-processing Optimization). Lightning Indexer integrates score calculation, ReLU, and TopK operations into a single kernel, allowing the NPU to overlap computation with memory access. For the Sparse Flash Attention kernel, we specifically optimized for GLM-5's sparse patterns. This kernel handles the selection of TopK tokens from the KV cache and sparse attention computation in parallel. Last, MLAPO fuses 13 small pre-processing operators into one "super operator", utilizing parallel processing between Vector and Cube units to boost end-to-end efficiency.
-
-**Specialized inference engine optimizations.**
-
-We adapted two leading inference engines, vLLM-Ascend and SGLang, to maximize hardware utilization:
+**Specialized inference engine optimizations.** We adapted two leading inference engines, vLLM-Ascend and SGLang, to maximize hardware utilization:
 
 - **Asynchronous Scheduling:** Within vLLM, we implemented a mechanism to overlap the "Device-to-Host" (D2H) sampling copies with the preparation of the next decode step, effectively eliminating scheduling "bubbles."
 - **Context Management:** Features like RadixCache (prefix sharing) and Prefix Cache (extending KV storage to system RAM) enable efficient reuse of KV entries, which is critical for long-context performance.
@@ -601,9 +541,7 @@ Each test case consists of a *Task* containing multiple concrete and implementab
 
 **Figure 10.** Agent-as-a-Judge evaluation pipeline. Each generated frontend project is first built to verify static correctness. Successfully built instances are then interactively tested by an autonomous Judge Agent, which determines the functional correctness of each check item.
 
-**Agent-as-a-Judge.**
-
-Frontend correctness is inherently visual and interactive, i.e., bugs often surface only when a user clicks a button or resizes a window, making static analysis and fixed test suites insufficient. We therefore introduce Agent-as-a-Judge ([Figure 10](#figure-10)): each generated project is deployed in a Docker container and built to verify static correctness. Successfully built instances are then handed to an autonomous Judge Agent (Claude Code with Claude Sonnet 4.5, equipped with Playwright MCP tool) that operates in closed-loop cycles: for each check-item, the agent reads source code, interacts with the live UI (clicks, keystrokes, screenshots), inspects terminal output, and renders a pass/fail verdict.
+**Agent-as-a-Judge.** Frontend correctness is inherently visual and interactive, i.e., bugs often surface only when a user clicks a button or resizes a window, making static analysis and fixed test suites insufficient. We therefore introduce Agent-as-a-Judge ([Figure 10](#figure-10)): each generated project is deployed in a Docker container and built to verify static correctness. Successfully built instances are then handed to an autonomous Judge Agent (Claude Code with Claude Sonnet 4.5, equipped with Playwright MCP tool) that operates in closed-loop cycles: for each check-item, the agent reads source code, interacts with the live UI (clicks, keystrokes, screenshots), inspects terminal output, and renders a pass/fail verdict.
 
 To validate reliability, we compare Agent-as-a-Judge verdicts against independent human expert judgments along two dimensions. For *point-wise consistency*, we sampled 130 check-items, had human experts score each independently, and compared against the agent's verdicts: the two agree on 94% of items, with disagreements concentrated on subjective visual-quality criteria rather than functional specifications. For *ranking consistency*, we evaluated 8 frontier models (Claude Sonnet 4.5, Claude Opus 4.5, Gemini 3 Pro, GLM-4.7, DeepSeek-V3.2, etc.) using both the automated framework and human experts. The resulting model rankings achieve a Spearman correlation of 85.7%, indicating a strong positive correlation.
 
@@ -660,53 +598,33 @@ Detailed evaluation protocols and dataset descriptions for each ability are prov
 
 #### 6.3.1 Machine Translation
 
-**ZMultiTransBench.**
+**ZMultiTransBench.** This internal dataset comprises 1,220 samples sourced from self-collected high-frequency translation scenarios, covering seven language pairs: Zh to Es ($300$), Ru ($250$), Fr ($220$), Ko ($200$), Ja ($150$), Ar ($50$), and De ($50$). All samples were curated, translated, and independently verified by graduate students with formal training in translation studies. The dataset emphasizes naturally occurring usage contexts rather than artificially constructed test cases. Evaluation is conducted using pairwise comparison against a fixed baseline response. Judgments are provided by an automated evaluator based on GPT-4.1, which assesses semantic fidelity, fluency, and overall translation quality.
 
-This internal dataset comprises 1,220 samples sourced from self-collected high-frequency translation scenarios, covering seven language pairs: Zh to Es ($300$), Ru ($250$), Fr ($220$), Ko ($200$), Ja ($150$), Ar ($50$), and De ($50$). All samples were curated, translated, and independently verified by graduate students with formal training in translation studies. The dataset emphasizes naturally occurring usage contexts rather than artificially constructed test cases. Evaluation is conducted using pairwise comparison against a fixed baseline response. Judgments are provided by an automated evaluator based on GPT-4.1, which assesses semantic fidelity, fluency, and overall translation quality.
-
-**MENT-SNS.**
-
-To further evaluate robustness in linguistically challenging contexts, we adopt source sentences from MENT [Tia26], comprising $753$ English-Chinese sentence pairs across four domains: Social Network Services (SNS), Cross-Culture, Poetry, and Literature. These domains are selected to stress-test translation under complex linguistic phenomena, including slang, homophonic wordplay, idiomatic expressions, historical references, and metaphorical language. Similar to ZMultiTransBench, all samples were curated and verified by professionally trained graduate students. Evaluation follows the same pairwise comparison protocol against a baseline response, with GPT-4.1 serving as the automated judge model.
+**MENT-SNS.** To further evaluate robustness in linguistically challenging contexts, we adopt source sentences from MENT [Tia26], comprising $753$ English-Chinese sentence pairs across four domains: Social Network Services (SNS), Cross-Culture, Poetry, and Literature. These domains are selected to stress-test translation under complex linguistic phenomena, including slang, homophonic wordplay, idiomatic expressions, historical references, and metaphorical language. Similar to ZMultiTransBench, all samples were curated and verified by professionally trained graduate students. Evaluation follows the same pairwise comparison protocol against a baseline response, with GPT-4.1 serving as the automated judge model.
 
 #### 6.3.2 Multi-lingual Dialogue
 
-**LMArena.**
+**LMArena.** We report Elo ratings from the LMArena (https://arena.ai/leaderboard/text), which are derived from large-scale, community-submitted pairwise comparisons. These ratings reflect relative model preference in open-ended dialogue settings and provide an external signal of conversational performance.
 
-We report Elo ratings from the LMArena (https://arena.ai/leaderboard/text), which are derived from large-scale, community-submitted pairwise comparisons. These ratings reflect relative model preference in open-ended dialogue settings and provide an external signal of conversational performance.
-
-**ZMultiDialBench.**
-
-In addition to the public leaderboard, we also conduct human evaluation on ZMultiDialBench, an internal multilingual dialogue benchmark. The dataset consists of 141 curated instances spanning diverse dialogue categories. Samples were collected from high-quality conversational data contributed by native-speaking annotators across multiple countries, as well as from challenging failure cases reported by online users. Human annotators assigned pointwise scores on a 1-10 scale to anonymized model responses according to category-specific, standardized evaluation criteria.
+**ZMultiDialBench.** In addition to the public leaderboard, we also conduct human evaluation on ZMultiDialBench, an internal multilingual dialogue benchmark. The dataset consists of 141 curated instances spanning diverse dialogue categories. Samples were collected from high-quality conversational data contributed by native-speaking annotators across multiple countries, as well as from challenging failure cases reported by online users. Human annotators assigned pointwise scores on a 1-10 scale to anonymized model responses according to category-specific, standardized evaluation criteria.
 
 #### 6.3.3 Instruction Following
 
-**IF-Badcase.**
+**IF-Badcase.** IF-Badcase is an internal benchmark constructed from instruction-following **failure cases** reported by real users in production settings. The dataset is designed to evaluate strict adherence to realistic, multi-constraint instructions, emphasizing procedural accuracy, logical consistency, and rigid formatting requirements. Evaluation is conducted using a detailed checklist-based protocol that verifies compliance with explicit constraints, including ordered steps, rule-based conditions, and structural specifications. All samples were annotated, reviewed, and iteratively filtered by human experts, resulting in a curated set of 450 test instances.
 
-IF-Badcase is an internal benchmark constructed from instruction-following **failure cases** reported by real users in production settings. The dataset is designed to evaluate strict adherence to realistic, multi-constraint instructions, emphasizing procedural accuracy, logical consistency, and rigid formatting requirements. Evaluation is conducted using a detailed checklist-based protocol that verifies compliance with explicit constraints, including ordered steps, rule-based conditions, and structural specifications. All samples were annotated, reviewed, and iteratively filtered by human experts, resulting in a curated set of 450 test instances.
+**IF-Bench [Pya25].** IF-Bench evaluates LLMs on their ability to adhere to complex, objective constraints, such as specific formatting rules, length limits, and content restrictions. It provides a quantitative measure of precise instruction-following capabilities, focusing on verifiable compliance rather than open-ended generation quality.
 
-**IF-Bench [Pya25].**
-
-IF-Bench evaluates LLMs on their ability to adhere to complex, objective constraints, such as specific formatting rules, length limits, and content restrictions. It provides a quantitative measure of precise instruction-following capabilities, focusing on verifiable compliance rather than open-ended generation quality.
-
-**MultiChallenge [Sir25].**
-
-MultiChallenge examines LLMs via realistic, multi-turn conversational scenarios. It targets complex interactions requiring accurate instruction-following, context allocation, and in-context reasoning.
+**MultiChallenge [Sir25].** MultiChallenge examines LLMs via realistic, multi-turn conversational scenarios. It targets complex interactions requiring accurate instruction-following, context allocation, and in-context reasoning.
 
 #### 6.3.4 World Knowledge
 
-**SimpleQA [Wei24].**
+**SimpleQA [Wei24].** SimpleQA measures short-form factuality using challenging questions with single, indisputable answers. It evaluates a model's calibration by classifying responses as correct, incorrect, or not attempted, prioritizing accuracy over generation length.
 
-SimpleQA measures short-form factuality using challenging questions with single, indisputable answers. It evaluates a model's calibration by classifying responses as correct, incorrect, or not attempted, prioritizing accuracy over generation length.
-
-**Chinese SimpleQA [He24].**
-
-Adapting the SimpleQA methodology to the Chinese context, this benchmark evaluates factuality across six major domains and 99 subtopics. It utilizes high-quality, static, short-answer questions designed for reliable, automated grading to assess the knowledge accuracy of LLMs.
+**Chinese SimpleQA [He24].** Adapting the SimpleQA methodology to the Chinese context, this benchmark evaluates factuality across six major domains and 99 subtopics. It utilizes high-quality, static, short-answer questions designed for reliable, automated grading to assess the knowledge accuracy of LLMs.
 
 #### 6.3.5 Tool Calling
 
-**ToolCall-Badcase.**
-
-ToolCall-Badcase is an internal benchmark derived from **failure cases** in tool invocation scenarios reported by users in production environments. Each instance is associated with a verifiable ground-truth tool call, enabling objective evaluation of both tool selection and argument correctness. Evaluation assesses whether the model (1) invokes the correct tool and (2) provides correctly structured and semantically accurate arguments. All samples underwent multiple rounds of review, rewriting, and validation to remove ambiguity and ensure evaluability. The resulting dataset consists of 200 curated test cases that reflect realistic tool-calling abilities.
+**ToolCall-Badcase.** ToolCall-Badcase is an internal benchmark derived from **failure cases** in tool invocation scenarios reported by users in production environments. Each instance is associated with a verifiable ground-truth tool call, enabling objective evaluation of both tool selection and argument correctness. Evaluation assesses whether the model (1) invokes the correct tool and (2) provides correctly structured and semantically accurate arguments. All samples underwent multiple rounds of review, rewriting, and validation to remove ambiguity and ensure evaluability. The resulting dataset consists of 200 curated test cases that reflect realistic tool-calling abilities.
 
 ## 7 Conclusion
 
@@ -728,13 +646,9 @@ This anonymous release allowed us to transcend geopolitical biases. The communit
 
 Contributors' names are listed in alphabetical order by first name.
 
-**Core Contributors**
+**Core Contributors** Chendi Ge, Chenghua Huang, Chengxing Xie, Chenzheng Zhu, Congfeng Yin, Cunxiang Wang, Gengzheng Pan, Hao Zeng, Haoke Zhang, Haoran Wang, Huilong Chen, Jiajie Zhang, Jian Jiao, Jiaqi Guo, Jingsen Wang, Jingzhao Du, Jinzhu Wu, Kedong Wang, Lei Li, Lin Fan, Lucen Zhong, Mingdao Liu, Mingming Zhao, Pengfan Du, Qian Dong, Rui Lu, Shuang Li (李爽), Shulin Cao, Song Liu, Ting Jiang, Xiaodong Chen, Xiaohan Zhang, Xuancheng Huang, Xuezhen Dong, Yabo Xu, Yao Wei, Yifan An, Yilin Niu, Yitong Zhu, Yuanhao Wen, Yukuo Cen, Yushi Bai, Zhongpei Qiao, Zihan Wang, Zikang Wang, Zilin Zhu, Ziqiang Liu, Zixuan Li
 
-Chendi Ge, Chenghua Huang, Chengxing Xie, Chenzheng Zhu, Congfeng Yin, Cunxiang Wang, Gengzheng Pan, Hao Zeng, Haoke Zhang, Haoran Wang, Huilong Chen, Jiajie Zhang, Jian Jiao, Jiaqi Guo, Jingsen Wang, Jingzhao Du, Jinzhu Wu, Kedong Wang, Lei Li, Lin Fan, Lucen Zhong, Mingdao Liu, Mingming Zhao, Pengfan Du, Qian Dong, Rui Lu, Shuang Li (李爽), Shulin Cao, Song Liu, Ting Jiang, Xiaodong Chen, Xiaohan Zhang, Xuancheng Huang, Xuezhen Dong, Yabo Xu, Yao Wei, Yifan An, Yilin Niu, Yitong Zhu, Yuanhao Wen, Yukuo Cen, Yushi Bai, Zhongpei Qiao, Zihan Wang, Zikang Wang, Zilin Zhu, Ziqiang Liu, Zixuan Li
-
-**Contributors**
-
-Bojie Wang, Bosi Wen, Can Huang, Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, Chenhui Zhang, Dan Zhang, Daoyan Lin, Dayong Yang, Di Wang, Ding Ai, Erle Zhu, Fangzhou Yi, Feiyu Chen, Guohong Wen, Hailong Sun, Haisha Zhao, Haiyi Hu, Hanchen Zhang, Hanrui Liu, Hanyu Zhang, Hao Peng, Hao Tai, Haobo Zhang, He Liu, Hongwei Wang, Hongxi Yan, Hongyu Ge, Huan Liu, Huanpeng Chu, Jia'ni Zhao, Jiachen Wang, Jiajing Zhao, Jiamin Ren, Jiapeng Wang, Jiaxin Zhang, Jiayi Gui, Jiayue Zhao, Jijie Li, Jing An, Jing Li, Jingwei Yuan, Jinhua Du, Jinxin Liu, Junkai Zhi, Junwen Duan, Kaiyue Zhou, Kangjian Wei, Ke Wang, Keyun Luo, Laiqiang Zhang, Leigang Sha, Liang Xu, Lindong Wu, Lintao Ding, Lu Chen, Minghao Li, Nianyi Lin, Pan Ta, Qiang Zou, Rongjun Song, Ruiqi Yang, Shangqing Tu, Shangtong Yang, Shaoxiang Wu, Shengyan Zhang, Shijie Li, Shuang Li (李泷), Shuyi Fan, Wei Qin, Wei Tian, Weining Zhang, Wenbo Yu, Wenjie Liang, Xiang Kuang, Xiangmeng Cheng, Xiangyang Li, Xiaoquan Yan, Xiaowei Hu, Xiaoying Ling, Xing Fan, Xingye Xia, Xinyuan Zhang, Xinze Zhang, Xirui Pan, Xu Zou, Xunkai Zhang, Yadi Liu, Yandong Wu, Yanfu Li, Yidong Wang, Yifan Zhu, Yijun Tan, Yilin Zhou, Yiming Pan, Ying Zhang, Yinpei Su, Yipeng Geng, Yong Yan, Yonglin Tan, Yuean Bi, Yuhan Shen, Yuhao Yang, Yujiang Li, Yunan Liu, Yunqing Wang, Yuntao Li, Yurong Wu, Yutao Zhang, Yuxi Duan, Yuxuan Zhang, Zezhen Liu, Zhengtao Jiang, Zhenhe Yan, Zheyu Zhang, Zhixiang Wei, Zhuo Chen, Zhuoer Feng, Zijun Yao, Ziwei Chai, Ziyuan Wang, Zuzhou Zhang
+**Contributors** Bojie Wang, Bosi Wen, Can Huang, Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, Chenhui Zhang, Dan Zhang, Daoyan Lin, Dayong Yang, Di Wang, Ding Ai, Erle Zhu, Fangzhou Yi, Feiyu Chen, Guohong Wen, Hailong Sun, Haisha Zhao, Haiyi Hu, Hanchen Zhang, Hanrui Liu, Hanyu Zhang, Hao Peng, Hao Tai, Haobo Zhang, He Liu, Hongwei Wang, Hongxi Yan, Hongyu Ge, Huan Liu, Huanpeng Chu, Jia'ni Zhao, Jiachen Wang, Jiajing Zhao, Jiamin Ren, Jiapeng Wang, Jiaxin Zhang, Jiayi Gui, Jiayue Zhao, Jijie Li, Jing An, Jing Li, Jingwei Yuan, Jinhua Du, Jinxin Liu, Junkai Zhi, Junwen Duan, Kaiyue Zhou, Kangjian Wei, Ke Wang, Keyun Luo, Laiqiang Zhang, Leigang Sha, Liang Xu, Lindong Wu, Lintao Ding, Lu Chen, Minghao Li, Nianyi Lin, Pan Ta, Qiang Zou, Rongjun Song, Ruiqi Yang, Shangqing Tu, Shangtong Yang, Shaoxiang Wu, Shengyan Zhang, Shijie Li, Shuang Li (李泷), Shuyi Fan, Wei Qin, Wei Tian, Weining Zhang, Wenbo Yu, Wenjie Liang, Xiang Kuang, Xiangmeng Cheng, Xiangyang Li, Xiaoquan Yan, Xiaowei Hu, Xiaoying Ling, Xing Fan, Xingye Xia, Xinyuan Zhang, Xinze Zhang, Xirui Pan, Xu Zou, Xunkai Zhang, Yadi Liu, Yandong Wu, Yanfu Li, Yidong Wang, Yifan Zhu, Yijun Tan, Yilin Zhou, Yiming Pan, Ying Zhang, Yinpei Su, Yipeng Geng, Yong Yan, Yonglin Tan, Yuean Bi, Yuhan Shen, Yuhao Yang, Yujiang Li, Yunan Liu, Yunqing Wang, Yuntao Li, Yurong Wu, Yutao Zhang, Yuxi Duan, Yuxuan Zhang, Zezhen Liu, Zhengtao Jiang, Zhenhe Yan, Zheyu Zhang, Zhixiang Wei, Zhuo Chen, Zhuoer Feng, Zijun Yao, Ziwei Chai, Ziyuan Wang, Zuzhou Zhang
 
 **Tech Leads** Aohan Zeng, Xin Lv, Zhenyu Hou, Zhengxiao Du, Qinkai Zheng, Bin Chen, Da Yin
 
@@ -744,21 +658,13 @@ Bojie Wang, Bosi Wen, Can Huang, Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, C
 
 We are grateful for all the support from our co-launch partners and community developers (Alphabetical order):
 
-**Open-source Communities:**
+**Open-source Communities:** Hugging Face, MLX, ModelScope, SGLang, Unsloth, vLLM, xLLM
 
-Hugging Face, MLX, ModelScope, SGLang, Unsloth, vLLM, xLLM
+**Inference Providers:** Amazon Bedrock, Atlas Cloud, Baidu AI Cloud, Baseten, Cerebras, DeepInfra, Fireworks, FriendliAI, GMI Cloud, Google Cloud Vertex AI, Infinigence AI, Modal, Novita AI, Parasail, Phala, PPIO, SiliconFlow, StreamLake, Together AI, Venice, Weights & Biases
 
-**Inference Providers:**
+**Applications:** CatPaw, Cline, CodeBuddy, CodeRider, Coze, Crush, Factory AI, Kilo Code, MonkeyCode, OpenClaw, OpenCode, Qoder, Roo Code, TRAE, Verdent AI, WPS, YouWare
 
-Amazon Bedrock, Atlas Cloud, Baidu AI Cloud, Baseten, Cerebras, DeepInfra, Fireworks, FriendliAI, GMI Cloud, Google Cloud Vertex AI, Infinigence AI, Modal, Novita AI, Parasail, Phala, PPIO, SiliconFlow, StreamLake, Together AI, Venice, Weights & Biases
-
-**Applications:**
-
-CatPaw, Cline, CodeBuddy, CodeRider, Coze, Crush, Factory AI, Kilo Code, MonkeyCode, OpenClaw, OpenCode, Qoder, Roo Code, TRAE, Verdent AI, WPS, YouWare
-
-**AI Gateways:**
-
-AI Ping, EZmodel, iFlow, OpenRouter, Vercel, Yupp, ZenMux
+**AI Gateways:** AI Ping, EZmodel, iFlow, OpenRouter, Vercel, Yupp, ZenMux
 
 ## Appendix A Hyper-Parameters
 
@@ -786,17 +692,17 @@ We evaluate the base model of GLM-5 with English, Chinese, code, and math benchm
 
 ### B.2 Evaluation of ARC Benchmarks
 
-Humanity's Last Exam (HLE) & other reasoning tasks: We evaluate with a maximum generation length of $131,072$ tokens ($temperature=1.0,top\_p=0.95,max\_new\_tokens=131072$). By default, we report the text-only subset; results marked with * are from the full set. We use GPT-5.2 (medium) as the judge model. For HLE-with-tools, we use a maximum context length of $202,752$ tokens.
+Humanity's Last Exam (HLE) & other reasoning tasks: We evaluate with a maximum generation length of $131,072$ tokens ($\mathrm{temperature}=1.0,\mathrm{top\_p}=0.95,\mathrm{max\_new\_tokens}=131072$). By default, we report the text-only subset; results marked with * are from the full set. We use GPT-5.2 (medium) as the judge model. For HLE-with-tools, we use a maximum context length of $202,752$ tokens.
 
-SWE-bench & SWE-bench Multilingual: We run the SWE-bench suite with OpenHands using a tailored instruction prompt. Settings: $temperature=0.7,top\_p=0.95,max\_new\_tokens=16384$, with a 200K context window.
+SWE-bench & SWE-bench Multilingual: We run the SWE-bench suite with OpenHands using a tailored instruction prompt. Settings: $\mathrm{temperature}=0.7,\mathrm{top\_p}=0.95,\mathrm{max\_new\_tokens}=16384$, with a 200K context window.
 
 BrowseComp: Without context management, we retain details from the most recent 5 turns. With context management, we use the same discard-all strategy as DeepSeek-V3.2 and Kimi K2.5.
 
-Terminal-Bench 2.0 (Terminus 2): We evaluate with the Terminus framework using $timeout=2h,temperature=0.7,top\_p=1.0,max\_new\_tokens=8192$, with a 128K context window. Resource limits are capped at 16 CPUs and 32 GB RAM.
+Terminal-Bench 2.0 (Terminus 2): We evaluate with the Terminus framework using $\mathrm{timeout}=2\mathrm{h},\mathrm{temperature}=0.7,\mathrm{top\_p}=1.0,\mathrm{max\_new\_tokens}=8192$, with a 128K context window. Resource limits are capped at 16 CPUs and 32 GB RAM.
 
-Terminal-Bench 2.0 (Claude Code): We evaluate in Claude Code 2.1.14 (think mode) with $temperature=1.0,top\_p=0.95,max\_new\_tokens=65536$. We remove wall-clock time limits, while preserving per-task CPU and memory constraints. We fix environment issues introduced by Claude Code and also report results on a verified Terminal-Bench 2.0 dataset that resolves ambiguous instructions (see: [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified)). Scores are averaged over 5 runs.
+Terminal-Bench 2.0 (Claude Code): We evaluate in Claude Code 2.1.14 (think mode) with $\mathrm{temperature}=1.0,\mathrm{top\_p}=0.95,\mathrm{max\_new\_tokens}=65536$. We remove wall-clock time limits, while preserving per-task CPU and memory constraints. We fix environment issues introduced by Claude Code and also report results on a verified Terminal-Bench 2.0 dataset that resolves ambiguous instructions (see: [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified)). Scores are averaged over 5 runs.
 
-CyberGym: We evaluate in Claude Code 2.1.18 (think mode, no web tools) with ($temperature=1.0,top\_p=1.0,max\_new\_tokens=32000$) and a 250-minute timeout per task. Results are single-run Pass@1 over 1,507 tasks.
+CyberGym: We evaluate in Claude Code 2.1.18 (think mode, no web tools) with ($\mathrm{temperature}=1.0,\mathrm{top\_p}=1.0,\mathrm{max\_new\_tokens}=32000$) and a 250-minute timeout per task. Results are single-run Pass@1 over 1,507 tasks.
 
 MCP-Atlas: All models are evaluated in think mode on the 500-task public subset with a 10-minute timeout per task. We use Gemini 3 Pro as the judge model.
 
@@ -887,9 +793,7 @@ SYSTEM_PROMPT = """"
 
 #### B.4.1 Frontend Evaluation
 
-**Data.**
-
-Our dataset encompasses seven distinct frontend scenarios designed to evaluate a model's engineering proficiency across diverse functional domains: Business Management Systems, Web Games, SVG/Canvas Rendering, Creative Tools & Editors, Showcase Pages, Forms & Tables and Data Visualization.
+**Data.** Our dataset encompasses seven distinct frontend scenarios designed to evaluate a model's engineering proficiency across diverse functional domains: Business Management Systems, Web Games, SVG/Canvas Rendering, Creative Tools & Editors, Showcase Pages, Forms & Tables and Data Visualization.
 
 <span id="table-12"></span>
 
@@ -897,9 +801,7 @@ Our dataset encompasses seven distinct frontend scenarios designed to evaluate a
 
 **Table 12.** Distribution of frontend application scenarios.
 
-**Data Distribution by Coding Languages**
-
-The benchmark provides full coverage of three mainstream paradigms: Vanilla Web Stack (HTML/CSS/JS), React Component-based Framework, and the Vue 3 + Vite Progressive Solution.
+**Data Distribution by Coding Languages** The benchmark provides full coverage of three mainstream paradigms: Vanilla Web Stack (HTML/CSS/JS), React Component-based Framework, and the Vue 3 + Vite Progressive Solution.
 
 <span id="table-13"></span>
 
@@ -907,9 +809,7 @@ The benchmark provides full coverage of three mainstream paradigms: Vanilla Web 
 
 **Table 13.** Statistics of technology stacks and evaluation units.
 
-**Data sample**
-
-Each test case is composed of three components: the **Task**, the **Checklist**, and a **Dedicated Environment**. Below is a representative example of a test case:
+**Data sample** Each test case is composed of three components: the **Task**, the **Checklist**, and a **Dedicated Environment**. Below is a representative example of a test case:
 
 ```text
   Task: Develop an online drawing tool that includes a brush, an eraser, a white canvas, and a save button.
@@ -924,9 +824,7 @@ Each test case is composed of three components: the **Task**, the **Checklist**,
   Upon clicking the "Save" button, the generated image is successfully saved to the local machine.
 ```
 
-**Data Construction and Validation**
-
-We implement a rigorous four-stage pipeline to ensure data quality:
+**Data Construction and Validation** We implement a rigorous four-stage pipeline to ensure data quality:
 
 - Stage 1: Task Synthesis. Tasks are designed by senior frontend experts to ensure they reflect real-world engineering challenges while maintaining a balanced distribution across diverse scenarios and technologies.
 - Stage 2: Checklist Generation and Refinement. We initially employ Claude Sonnet 4.5 to synthesize candidate checklists based on task specifications $T$. These are then meticulously audited and integrated by experts. Through multiple rounds of refinement, we ensure that each check-item is semantically unambiguous, objective, and provides exhaustive coverage of user requirements.

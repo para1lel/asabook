@@ -94,37 +94,19 @@ Our analysis shows that the model needs to have a sequence length of $s=6c$, whi
 
 Algorithm and Implementation. Algorithm [1](#alg1 "Algorithm 1 ‣ 3 Ring Attention with Blockwise Parallel Transformers ‣ Ring Attention with Blockwise Transformers for Near-Infinite Context") provides the pseudocode of the algorithm. Ring Attention is compatible with existing code for memory efficient transformers: Ring Attention just needs to call whatever available memory efficient computation locally on each host, and overlap the communication of key-value blocks between hosts with blockwise computation. We use collective operation jax.lax.ppermute to send and receive key value blocks between nearby hosts. A Jax implementation is provided in Appendix [A](#A1 "Appendix A Code ‣ Ring Attention with Blockwise Transformers for Near-Infinite Context").
 
-Algorithm 1 Reducing Transformers Memory Cost with Ring Attention.
+**Algorithm 1: Reducing Transformers Memory Cost with Ring Attention.**
 
-  Required: Input sequence $x$. Number of hosts $N_{h}$.
-
-  Initialize
-
-  Split input sequence into $N_{h}$ blocks that each host has one input block.
-
-  Compute query, key, and value for its input block on each host.
-
-  for Each transformer layer do
-
-     for $\mathrm{count}=1$ to $N_{h}-1$ do
-
-        for For each host concurrently. do
-
-           Compute memory efficient attention incrementally using local query, key, value blocks.
-
-           Send key and value blocks to next host and receive key and value blocks from previous host.
-
-        end for
-
-     end for
-
-     for For each host concurrently. do
-
-        Compute memory efficient feedforward using local attention output.
-
-     end for
-
-  end for
+- **Required:** Input sequence $x$ and number of hosts $N_{h}$.
+- Initialize.
+- Split the input sequence into $N_{h}$ blocks so that each host has one input block.
+- Compute the query, key, and value for the input block on each host.
+- **For** each Transformer layer:
+  - **For** $\mathrm{count}=1$ to $N_{h}-1$:
+    - **For** each host concurrently:
+      - Compute memory-efficient attention incrementally using local query, key, and value blocks.
+      - Send key and value blocks to the next host and receive key and value blocks from the previous host.
+  - **For** each host concurrently:
+    - Compute memory-efficient feedforward using the local attention output.
 
 ## 4 Setting
 

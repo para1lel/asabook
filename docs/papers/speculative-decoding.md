@@ -50,47 +50,25 @@ permalink: /papers/speculative-decoding/
 
 给定从在条件 $\mathrm{prefix}$ 上运行 $M_{q}$ 获得的分布 $q(x)$, 我们可以采样一个标记 $x_{1}\sim q(x)$. 然后, 通过在 $\mathrm{prefix}$ 上运行 $M_{p}$, 同时投机性地计算下一个标记分布 $x_{2}$ (通过在 $\mathrm{prefix}+[x_{1}]$ 上运行 $M_{p}$) 来计算分布 $p(x)$. 一旦两个计算完成, 我们按上述方式进行: 如果 $x_{1}$ 被拒绝, 我们丢弃 $x_{2}$ 的计算, 并从调整后的分布重新采样 $x_{1}$; 如果 $x_{1}$ 被接受, 我们保留两个标记. [算法 1](#alg1) 将这一思想推广为一次采样 1 到 $\gamma+1$ 个标记.
 
-算法 1 预测性解码步骤
+**算法 1: 预测性解码步骤.**
 
-输入: $M_{p},M_{q},\mathrm{prefix}$.
-
-$\triangleright$ 从 $M_{q}$ 自回归地采样 $\gamma$ 个猜测 $x_{1,\ldots,\gamma}$.
-
-对于 $i=1$ 到 $\gamma$ 执行
-
-$q_{i}(x)\leftarrow M_{q}(\mathrm{prefix}+[x_{1},\ldots,x_{i-1}])$
-
-$x_{i}\sim q_{i}(x)$
-
-结束循环
-
-$\triangleright$ 并行运行 $M_{p}$.
-
-$p_{1}(x),\ldots,p_{\gamma+1}(x)\leftarrow$
-
-$M_{p}(\mathrm{prefix}),\ldots,M_{p}(\mathrm{prefix}+[x_{1},\ldots,x_{\gamma}])$
-
-$\triangleright$ 确定接受的猜测数量 $n$.
-
-$r_{1}\sim U(0,1),\dots,r_{\gamma}\sim U(0,1)$
-
-$n\leftarrow\min(\{i-1\mid 1\leq i\leq\gamma,r_{i}>\frac{p_{i}(x)}{q_{i}(x)}\}\cup\{\gamma\})$
-
-$\triangleright$ 如有需要, 可从 $M_{p}$ 调整分布.
-
-$p^{\prime}(x)\leftarrow p_{n+1}(x)$
-
-如果 $n<\gamma$ 则
-
-$p^{\prime}(x)\leftarrow \mathrm{norm}(\max(0,p_{n+1}(x)-q_{n+1}(x)))$
-
-结束如果
-
-$\triangleright$ 从 $M_{p}$ 返回一个令牌, 从 $M_{q}$ 返回 $n$ 个令牌.
-
-$t\sim p^{\prime}(x)$
-
-返回 $\mathrm{prefix}+[x_{1},\ldots,x_{n},t]$
+- **输入:** $M_{p},M_{q},\mathrm{prefix}$.
+- **从** $M_{q}$ 自回归地采样 $\gamma$ 个猜测 $x_{1,\ldots,\gamma}$:
+  - **对于** $i=1$ 到 $\gamma$:
+    - $q_{i}(x)\leftarrow M_{q}(\mathrm{prefix}+[x_{1},\ldots,x_{i-1}])$.
+    - $x_{i}\sim q_{i}(x)$.
+- **并行运行** $M_{p}$:
+  - $p_{1}(x),\ldots,p_{\gamma+1}(x)\leftarrow M_{p}(\mathrm{prefix}),\ldots,M_{p}(\mathrm{prefix}+[x_{1},\ldots,x_{\gamma}])$.
+- **确定**接受的猜测数量 $n$:
+  - $r_{1}\sim U(0,1),\dots,r_{\gamma}\sim U(0,1)$.
+  - $n\leftarrow\min(\{i-1\mid 1\leq i\leq\gamma,r_{i}>\frac{p_{i}(x)}{q_{i}(x)}\}\cup\{\gamma\})$.
+- **如有需要, 调整**来自 $M_{p}$ 的分布:
+  - $p^{\prime}(x)\leftarrow p_{n+1}(x)$.
+  - **如果** $n<\gamma$:
+    - $p^{\prime}(x)\leftarrow\mathrm{norm}(\max(0,p_{n+1}(x)-q_{n+1}(x)))$.
+- **返回**来自 $M_{p}$ 的一个令牌和来自 $M_{q}$ 的 $n$ 个令牌:
+  - $t\sim p^{\prime}(x)$.
+  - **返回:** $\mathrm{prefix}+[x_{1},\ldots,x_{n},t]$.
 
 ## 3 分析
 

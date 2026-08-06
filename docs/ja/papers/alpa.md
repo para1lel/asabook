@@ -253,93 +253,36 @@ $$
 
 私たちのアルゴリズムは、TeraPipe [Xival21] の上に構築されています。しかし、TeraPipe はすべてのパイプラインステージが同じであることを前提としており、目標は入力トークンを異なるサイズのマイクロバッチにバッチ処理する最適な方法を見つけることです。それに対して、Alpa は入力マイクロバッチが同じサイズであることを前提に、計算グラフの演算子を異なるパイプラインステージにグループ化することを目指しています。さらに、Alpa はステージ間並列性における各パイプラインステージの DP アルゴリズムでメッシュ形状を最適化します。
 
-アルゴリズム 1 インターオペレーションパスの概要。
+**アルゴリズム 1：インターオペレーションパスの概要。**
 
-1：  入力： モデルグラフ $G$ および形状を持つクラスター $C$ $(N,M)$。
-
-2：  出力： 最小のパイプライン実行レイテンシ $T^{*}$。
-
-3：  *// グラフの前処理.*
-
-4： $(o_{1},\ldots,o_{K})\leftarrow\mathrm{Flatten}(G)$
-
-5：  $(l_{1},\ldots,l_{L})\leftarrow\mathrm{OperatorClustering}(o_{1},\ldots,o_{K})$
-
-6：  *// 異なるステージ-メッシュペアのコストを取得するためにインナーオペレーションパスを実行.*
-
-7： $\mathit{\mathrm{submesh}\_\mathrm{shapes}}\leftarrow\{(1,1),(1,2),(1,4),\ldots,(1,M)\}\cup\{(2,M),(3,M),\ldots,(N,M)\}$
-
-8：  for $1\leq i\leq j\leq L$ do
-
-9：     $\mathit{\mathrm{stage}}\leftarrow(l_{i},\ldots,l_{j})$
-
-10：     $(n,m)\in\mathit{\mathrm{submesh}\_\mathrm{shapes}}$ のために実行
-
-11：        for $s$ from $1$ to $L$ do
-
-12：           $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow\infty$
-
-13：        終了する
-
-14：        $(n_{l},m_{l}),\mathit{\mathrm{opt}}\in\mathrm{LogicalMeshShapeAndIntraOp}$ $\mathrm{Options}(n,m)$ のためのループ
-
-15：           $\mathit{\mathrm{plan}}\leftarrow\mathrm{IntraOpPass}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n_{l},m_{l}),\mathit{\mathrm{opt}})$
-
-16：           $t_{l},\mathit{\mathrm{mem}}_{\mathit{\mathrm{stage}}},\mathit{\mathrm{mem}}_{\mathit{\mathrm{act}}}\leftarrow\mathrm{Profile}(\mathrm{plan})$
-
-17：           $s$ が式 [5](#S5.E5) を満たす場合のループ
-
-18：              もし $t_{l}<t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)$ なら
-
-19：                 $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow t_{l}$
-
-20：              終了する
-
-21：           終了する
-
-22：        終了する
-
-23：     for 文の終了
-
-24：  終了する
-
-25：  *// インターオペレーターの動的計画法を実行 //*
-
-26：  $T^{*}\leftarrow\infty$
-
-27：  $t_{\mathit{\max}}\in\mathrm{SortedAndFilter}(t\_\mathit{\mathrm{intra}},\varepsilon)$ のためのループ
-
-28：     もし $B\cdot t_{\mathit{\max}}\geq T^{*}$ なら
-
-29：        終了する
-
-30：     もし終わり
-
-31：     $F(0,L+1,0;t_{\mathit{\max}})\leftarrow 0$
-
-32：     $s$ を $1$ から $L$ まで繰り返す
-
-33：        $l$ を $L$ から $1$ まで逆方向に繰り返す
-
-34：           $d$ を $1$ から $N\cdot M$ まで繰り返す
-
-35：              Eq. [3](#S5.E3) に従って $F(s,l,d;t_{\mathit{\max}})$ を計算する
-
-36：           終了
-
-37：        終了
-
-38：     終了
-
-39：     $T^{*}(t_{\mathit{\max}})\leftarrow\min_{s}\{F(s,0,N\cdot M;t_{\mathit{\max}})\}+(B-1)\cdot t_{\mathit{\max}}$
-
-40：     もし $T^{*}(t_{\mathit{\max}})<T^{*}$ なら
-
-41：        $T^{*}\leftarrow T^{*}(t_{\mathit{\max}})$
-
-42：     もし終わり
-
-43：  終了
+- **入力：** モデルグラフ $G$ および形状 $(N,M)$ のクラスター $C$。
+- **出力：** 最小のパイプライン実行レイテンシ $T^{*}$。
+- **グラフを前処理：**
+  - $(o_{1},\ldots,o_{K})\leftarrow\mathrm{Flatten}(G)$。
+  - $(l_{1},\ldots,l_{L})\leftarrow\mathrm{OperatorClustering}(o_{1},\ldots,o_{K})$。
+- **異なるステージとメッシュの組のコストを取得するため、インナーオペレーションパスを実行：**
+  - $\mathit{\mathrm{submesh}\_\mathrm{shapes}}\leftarrow\{(1,1),(1,2),(1,4),\ldots,(1,M)\}\cup\{(2,M),(3,M),\ldots,(N,M)\}$。
+  - **$1\leq i\leq j\leq L$ について実行：**
+    - $\mathit{\mathrm{stage}}\leftarrow(l_{i},\ldots,l_{j})$。
+    - **$(n,m)\in\mathit{\mathrm{submesh}\_\mathrm{shapes}}$ について実行：**
+      - **$s$ を $1$ から $L$ まで実行：**
+        - $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow\infty$。
+      - **$(n_{l},m_{l}),\mathit{\mathrm{opt}}\in\mathrm{LogicalMeshShapeAndIntraOp}$ $\mathrm{Options}(n,m)$ について実行：**
+        - $\mathit{\mathrm{plan}}\leftarrow\mathrm{IntraOpPass}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n_{l},m_{l}),\mathit{\mathrm{opt}})$。
+        - $t_{l},\mathit{\mathrm{mem}}_{\mathit{\mathrm{stage}}},\mathit{\mathrm{mem}}_{\mathit{\mathrm{act}}}\leftarrow\mathrm{Profile}(\mathrm{plan})$。
+        - **式 [5](#S5.E5) を満たす $s$ について実行：**
+          - **もし** $t_{l}<t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)$ **なら：**
+            - $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow t_{l}$。
+- **インターオペレーター動的計画法を実行：**
+  - $T^{*}\leftarrow\infty$。
+  - **$t_{\mathit{\max}}\in\mathrm{SortedAndFilter}(t\_\mathit{\mathrm{intra}},\varepsilon)$ について実行：**
+    - **もし** $B\cdot t_{\mathit{\max}}\geq T^{*}$ **なら中断。**
+    - $F(0,L+1,0;t_{\mathit{\max}})\leftarrow 0$。
+    - **$s$ を $1$ から $L$、$l$ を $L$ から $1$、$d$ を $1$ から $N\cdot M$ まで順に実行：**
+      - 式 [3](#S5.E3) に従って $F(s,l,d;t_{\mathit{\max}})$ を計算する。
+    - $T^{*}(t_{\mathit{\max}})\leftarrow\min_{s}\{F(s,0,N\cdot M;t_{\mathit{\max}})\}+(B-1)\cdot t_{\mathit{\max}}$。
+    - **もし** $T^{*}(t_{\mathit{\max}})<T^{*}$ **なら：**
+      - $T^{*}\leftarrow T^{*}(t_{\mathit{\max}})$。
 
 複雑さ。この DP アルゴリズムは固定された $t_{\mathit{\max}}$ に対して $O(K^{3}\mathrm{NM}(N+\log(M)))$ 時間でスライスを計算する。$t_{\mathit{\max}}$ は最大で $O(K^{2}(N+\log(M)))$ の選択肢を持つ： $t_{\mathit{\mathrm{intra}}}((o_{i},\ldots,o_{j}),\mathit{\mathrm{Mesh}}(n_{s},m_{s}))$ は $i,j=1,\ldots,K$ 用で、すべてのサブメッシュの選択肢を含む。この DP アルゴリズムの複雑さはしたがって $O(K^{5}\mathrm{NM}(N+\log(M))^{2})$ である。
 

@@ -22,6 +22,8 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - Preserve numbered section and subsection structure unless a heading exists only for print layout rather than content. Remove an empty generic `Appendix`, `附录`, or `付録` heading when the next heading is the actual Appendix A section.
 - Preserve citations and equation, figure, table, and algorithm numbering.
 - Reproduce the complete substantive paper in source order. Do not abridge, summarize, expand, or omit body material, but omit the standalone reference list.
+- Render a source run-in paragraph heading such as `\paragraph{Heading.}` at the start of the same Markdown paragraph: `**Heading.** Paragraph text...`. Keep exactly one space after the closing bold marker; never separate the heading from its paragraph with a blank line or line break.
+- Preserve the wording and punctuation of run-in headings in English and translate them faithfully in Chinese and Japanese. Keep actual section headings, figure and table captions, algorithm titles, and labels introducing block content as separate blocks.
 - Use one shared set of image files. Localize alt text and captions, not the pixels in an original scholarly figure.
 - Keep author links identical across languages and in the paper's original order.
 
@@ -71,7 +73,10 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - Put control words in bold localized prose and keep variables or expressions in KaTeX.
 - Use inline code only for actual literals, masks, slices, and programming operators.
 - Preserve the original execution order, inputs, outputs, conditions, and return value.
-- Use a fenced code or pseudocode block only when the source is genuinely code-oriented, math is incidental, and the existing collection style supports it.
+- Use compact unordered Markdown lists beginning with `-`; do not number algorithm steps.
+- Indent nested loops, branches, and substeps by two spaces per level. Indentation expresses scope, so omit `end for`, `end if`, `end while`, and translated equivalents.
+- Bold localized control words such as **For**, **If**, **Return**, and their Chinese or Japanese equivalents.
+- Existing fenced `pseudocode` algorithm blocks may remain unchanged. For new algorithms, use a fenced code or pseudocode block only when the source is genuinely code-oriented, math is incidental, and the existing collection style supports it.
 
 Example:
 
@@ -138,6 +143,7 @@ Example:
 - Compare the three heading-number sequences.
 - Compare the English page against the TeX source and PDF sentence by sentence for exact wording and complete coverage.
 - Compare each Chinese and Japanese sentence against the same source for additions, omissions, and semantic drift.
+- Confirm every run-in paragraph heading remains bold at the start of its paragraph and that no blank line splits it from the following prose.
 - Compare equation tags, citation-token sets, image basenames, and algorithm step counts.
 - Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
 - Confirm no standalone reference-list or empty generic appendix heading remains.

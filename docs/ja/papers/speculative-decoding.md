@@ -50,47 +50,25 @@ $x\sim p(x)$をサンプリングする代わりに、$x\sim q(x)$をサンプ�
 
 $\mathrm{prefix}$ を条件として $M_{q}$ を実行して得られた分布 $q(x)$ が与えられた場合、トークン $x_{1}\sim q(x)$ をサンプリングできます。その後、$\mathrm{prefix}$ で $M_{p}$ を実行しつつ、並行して次のトークン $x_{2}$ の分布を $\mathrm{prefix}+[x_{1}]$ で $M_{p}$ を実行して推定的に計算し、分布 $p(x)$ を計算します。両方の計算が完了したら、前述の手順に従います。$x_{1}$ が拒否される場合、$x_{2}$ の計算を破棄し、調整された分布から $x_{1}$ を再サンプリングします。$x_{1}$ が受け入れられる場合、両方のトークンを保持します。[アルゴリズム 1](#alg1) は、このアイデアを一般化し、一度に 1 から $\gamma+1$ 個のトークンをサンプリングできます。
 
-アルゴリズム 1 SpeculativeDecodingStep
+**アルゴリズム 1：SpeculativeDecodingStep。**
 
-入力： $M_{p},M_{q},\mathrm{prefix}$.
-
-$\triangleright$ $M_{q}$ から $\gamma$ 推測 $x_{1,\ldots,\gamma}$ を自己回帰的にサンプリングします。
-
-$i=1$ から $\gamma$ まで実行します
-
-$q_{i}(x)\leftarrow M_{q}(\mathrm{prefix}+[x_{1},\ldots,x_{i-1}])$
-
-$x_{i}\sim q_{i}(x)$
-
-終了
-
-$\triangleright$ を並行して実行します。
-
-$p_{1}(x),\ldots,p_{\gamma+1}(x)\leftarrow$
-
-$M_{p}(\mathrm{prefix}),\ldots,M_{p}(\mathrm{prefix}+[x_{1},\ldots,x_{\gamma}])$
-
-$\triangleright$ 受け入れられた推測の数を決定する $n$。
-
-$r_{1}\sim U(0,1),\dots,r_{\gamma}\sim U(0,1)$
-
-$n\leftarrow\min(\{i-1\mid 1\leq i\leq\gamma,r_{i}>\frac{p_{i}(x)}{q_{i}(x)}\}\cup\{\gamma\})$
-
-$\triangleright$ 必要に応じて $M_{p}$ から分布を調整する。
-
-$p^{\prime}(x)\leftarrow p_{n+1}(x)$
-
-もし $n<\gamma$ なら
-
-$p^{\prime}(x)\leftarrow \mathrm{norm}(\max(0,p_{n+1}(x)-q_{n+1}(x)))$
-
-終了
-
-$\triangleright$ $M_{p}$ から1つのトークンを返し、$M_{q}$から$n$個のトークンを返す。
-
-$t\sim p^{\prime}(x)$
-
-$\mathrm{prefix}+[x_{1},\ldots,x_{n},t]$ を返す
+- **入力：** $M_{p},M_{q},\mathrm{prefix}$。
+- **$M_{q}$ から $\gamma$ 個の推測** $x_{1,\ldots,\gamma}$ を自己回帰的にサンプリングする：
+  - **$i=1$ から $\gamma$ まで：**
+    - $q_{i}(x)\leftarrow M_{q}(\mathrm{prefix}+[x_{1},\ldots,x_{i-1}])$。
+    - $x_{i}\sim q_{i}(x)$。
+- **$M_{p}$ を並列実行する：**
+  - $p_{1}(x),\ldots,p_{\gamma+1}(x)\leftarrow M_{p}(\mathrm{prefix}),\ldots,M_{p}(\mathrm{prefix}+[x_{1},\ldots,x_{\gamma}])$。
+- **受け入れられた推測の数** $n$ を決定する：
+  - $r_{1}\sim U(0,1),\dots,r_{\gamma}\sim U(0,1)$。
+  - $n\leftarrow\min(\{i-1\mid 1\leq i\leq\gamma,r_{i}>\frac{p_{i}(x)}{q_{i}(x)}\}\cup\{\gamma\})$。
+- **必要に応じて** $M_{p}$ の分布を調整する：
+  - $p^{\prime}(x)\leftarrow p_{n+1}(x)$。
+  - **$n<\gamma$ の場合：**
+    - $p^{\prime}(x)\leftarrow\mathrm{norm}(\max(0,p_{n+1}(x)-q_{n+1}(x)))$。
+- **$M_{p}$ から 1 つ、$M_{q}$ から $n$ 個のトークンを返す：**
+  - $t\sim p^{\prime}(x)$。
+  - **返す：** $\mathrm{prefix}+[x_{1},\ldots,x_{n},t]$。
 
 ## 3 分析
 

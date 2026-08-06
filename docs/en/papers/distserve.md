@@ -178,43 +178,24 @@ As explained in §[3.3](#S3.SS3 "3.3 Practical Problems ‣ 3 Tradeoff Analysis 
 
 ### 4.1 Placement for High Node-Affinity Cluster
 
-Algorithm 1 High Node-Affinity Placement Algorithm
+**Algorithm 1: High Node-Affinity Placement Algorithm.**
 
-LLM $G$, #node limit per-instance $N$, #GPU per-node $M$, GPU memory capacity $C$, workload $W$, traffic rate $R$.
-
-the placement $\mathit{\mathrm{best}\_\mathrm{plm}}.$
-
-$\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\emptyset$
-
-$\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\emptyset$
-
-for $\mathit{\mathrm{intra}\_\mathrm{op}}\in\{1,2,...,M\}$ do
-
-     for $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,\frac{N\times M}{\mathit{\mathrm{intra}\_\mathrm{op}}}\}$ do
-
-         if $\frac{G.\mathrm{size}}{\mathit{\mathrm{inter}\_\mathrm{op}}\times\mathit{\mathrm{intra}\_\mathrm{op}}}<C$ then
-
-              $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{op}})$
-
-              $\mathit{\mathrm{prefill}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_prefill}(\hat{G},W)$
-
-              $\mathit{\mathrm{decode}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_decode}(\hat{G},W)$
-
-              if $\frac{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{prefill}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{prefill}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ then
-
-                  $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$
-
-              if $\frac{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{decode}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{decode}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ then
-
-                  $\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$
-
-$n\leftarrow\lceil\frac{R}{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$m\leftarrow\lceil\frac{R}{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathrm{config}},\mathit{\mathrm{decode}\_\mathrm{config}},n,m)$
-
-return $\mathit{\mathrm{best}\_\mathrm{plm}}$
+- **Input:** LLM $G$, #node limit per-instance $N$, #GPU per-node $M$, GPU memory capacity $C$, workload $W$, and traffic rate $R$.
+- **Output:** The placement $\mathit{\mathrm{best}\_\mathrm{plm}}$.
+- Initialize $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\emptyset$ and $\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\emptyset$.
+- **For** $\mathit{\mathrm{intra}\_\mathrm{op}}\in\{1,2,...,M\}$:
+  - **For** $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,\frac{N\times M}{\mathit{\mathrm{intra}\_\mathrm{op}}}\}$:
+    - **If** $\frac{G.\mathrm{size}}{\mathit{\mathrm{inter}\_\mathrm{op}}\times\mathit{\mathrm{intra}\_\mathrm{op}}}<C$:
+      - $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{op}})$.
+      - $\mathit{\mathrm{prefill}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_prefill}(\hat{G},W)$.
+      - $\mathit{\mathrm{decode}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_decode}(\hat{G},W)$.
+      - **If** $\frac{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{prefill}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{prefill}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$:
+        - $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$.
+      - **If** $\frac{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{decode}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{decode}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$:
+        - $\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$.
+- $n\leftarrow\lceil\frac{R}{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}\rceil$ and $m\leftarrow\lceil\frac{R}{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}\rceil$.
+- $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathrm{config}},\mathit{\mathrm{decode}\_\mathrm{config}},n,m)$.
+- **Return:** $\mathit{\mathrm{best}\_\mathrm{plm}}$.
 
 On high node-affinity clusters equipped with Infiniband, KV caches transmission overhead across nodes is negligible, DistServe can efficiently deploy prefill and decoding instances across any two nodes without constraints. We propose a two-level placement algorithm for such scenarios: we first optimize the parallelism configurations for prefill and decoding instances separately to attain phase-level optimal per-gpu goodput; then, we use replication to match the overall traffic rate.
 
@@ -228,33 +209,21 @@ Simulator building. Algorithm [1](#alg1 "Algorithm 1 ‣ 4.1 Placement for High 
 
 By far, we have developed Algorithm [1](#alg1 "Algorithm 1 ‣ 4.1 Placement for High Node-Affinity Cluster ‣ 4 Method ‣ DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving") assuming we can place the prefill and decoding between any two nodes of the cluster, and the KV cache transmission utilizes high bandwidth. In many real clusters, GPUs inside a node access to high-bandwidth NVLINK while GPUs distributed across nodes have limited bandwidth. We next develop an algorithm to address this constraint.
 
-Algorithm 2 Low Node-Affinity Placement Algorithm
+**Algorithm 2: Low Node-Affinity Placement Algorithm.**
 
-LLM $G$, #node limit per-instance $N$, #GPU per-node $M$, GPU memory capacity $C$, workload $W$, traffic rate $R$.
-
-the placement $\mathit{\mathrm{best}\_\mathrm{plm}}.$
-
-$\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow\emptyset$
-
-for $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,N\}$ do
-
-     $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}})$
-
-     $\mathcal{P}\leftarrow\mathrm{get\_intra\_node\_configs}(\hat{G},M,C)$
-
-     for $P\in\mathcal{P}$ do
-
-         $\mathit{P.\mathrm{goodput}}\leftarrow\mathrm{simulate}(\hat{G},P,W)$
-
-         if $\frac{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{P.\mathrm{goodput}}}{P.\mathrm{num}\_\mathrm{gpus}}$ then
-
-              $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow P$
-
-$n\leftarrow\lceil\frac{R}{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}},n)$
-
-return $\mathit{\mathrm{best}\_\mathrm{plm}}$
+- **Input:** LLM $G$, #node limit per-instance $N$, #GPU per-node $M$, GPU memory capacity $C$, workload $W$, and traffic rate $R$.
+- **Output:** The placement $\mathit{\mathrm{best}\_\mathrm{plm}}$.
+- Initialize $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow\emptyset$.
+- **For** $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,N\}$:
+  - $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}})$.
+  - $\mathcal{P}\leftarrow\mathrm{get\_intra\_node\_configs}(\hat{G},M,C)$.
+  - **For** $P\in\mathcal{P}$:
+    - $\mathit{P.\mathrm{goodput}}\leftarrow\mathrm{simulate}(\hat{G},P,W)$.
+    - **If** $\frac{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{P.\mathrm{goodput}}}{P.\mathrm{num}\_\mathrm{gpus}}$:
+      - $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow P$.
+- $n\leftarrow\lceil\frac{R}{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}\rceil$.
+- $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}},n)$.
+- **Return:** $\mathit{\mathrm{best}\_\mathrm{plm}}$.
 
 ### 4.2 Placement for Low Node-Affinity Cluster
 

@@ -178,43 +178,24 @@ $$
 
 ### 4.1 高ノードアフィニティクラスター向け配置
 
-アルゴリズム1 高ノードアフィニティ配置アルゴリズム
+**アルゴリズム 1：高ノードアフィニティ配置アルゴリズム。**
 
-LLM $G$、#node インスタンスごとの制限 $N$、#GPU ノードごとの $M$、GPUメモリ容量 $C$、ワークロード $W$、トラフィックレート $R$。
-
-配置 $\mathit{\mathrm{best}\_\mathrm{plm}}.$
-
-$\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\emptyset$
-
-$\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\emptyset$
-
-のために $\mathit{\mathrm{intra}\_\mathrm{op}}\in\{1,2,...,M\}$ する
-
-のために $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,\frac{N\times M}{\mathit{\mathrm{intra}\_\mathrm{op}}}\}$ する
-
-もし $\frac{G.\mathrm{size}}{\mathit{\mathrm{inter}\_\mathrm{op}}\times\mathit{\mathrm{intra}\_\mathrm{op}}}<C$ ならば
-
-$\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{op}})$
-
-$\mathit{\mathrm{prefill}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_prefill}(\hat{G},W)$
-
-$\mathit{\mathrm{decode}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_decode}(\hat{G},W)$
-
-もし $\frac{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{prefill}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{prefill}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ ならば
-
-$\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$
-
-もし $\frac{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{decode}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{decode}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ なら
-
-$\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$
-
-$n\leftarrow\lceil\frac{R}{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$m\leftarrow\lceil\frac{R}{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathrm{config}},\mathit{\mathrm{decode}\_\mathrm{config}},n,m)$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}$ を返す
+- **入力：** LLM $G$、インスタンスごとのノード上限 $N$、ノードごとの GPU 数 $M$、GPU メモリ容量 $C$、ワークロード $W$、トラフィックレート $R$。
+- **出力：** 配置 $\mathit{\mathrm{best}\_\mathrm{plm}}$。
+- $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\emptyset$、$\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\emptyset$ を初期化する。
+- **$\mathit{\mathrm{intra}\_\mathrm{op}}\in\{1,2,...,M\}$ ごとに：**
+  - **$\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,\frac{N\times M}{\mathit{\mathrm{intra}\_\mathrm{op}}}\}$ ごとに：**
+    - **$\frac{G.\mathrm{size}}{\mathit{\mathrm{inter}\_\mathrm{op}}\times\mathit{\mathrm{intra}\_\mathrm{op}}}<C$ ならば：**
+      - $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{op}})$。
+      - $\mathit{\mathrm{prefill}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_prefill}(\hat{G},W)$。
+      - $\mathit{\mathrm{decode}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_decode}(\hat{G},W)$。
+      - **$\frac{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{prefill}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{prefill}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ ならば：**
+        - $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$。
+      - **$\frac{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{decode}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{decode}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ ならば：**
+        - $\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$。
+- $n\leftarrow\lceil\frac{R}{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}\rceil$、$m\leftarrow\lceil\frac{R}{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}\rceil$。
+- $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathrm{config}},\mathit{\mathrm{decode}\_\mathrm{config}},n,m)$。
+- **返す：** $\mathit{\mathrm{best}\_\mathrm{plm}}$。
 
 InfiniBand を搭載した高ノード親和性クラスタでは、KVキャッシュによるノード間の通信オーバーヘッドは無視できるため、DistServe は制約なしに任意の2つのノードに対してプレフィルおよびデコーディングインスタンスを効率的に展開できる。我々はこのようなシナリオに対して2レベルの配置アルゴリズムを提案する： まず、プレフィルおよびデコーディングインスタンスの並列構成を個別に最適化し、フェーズレベルでのGPUごとの最適スループットを達成する； 次に、全体のトラフィック率に合わせるためにレプリケーションを使用する。
 
@@ -228,33 +209,21 @@ InfiniBand を搭載した高ノード親和性クラスタでは、KVキャッ�
 
 これまでのところ、私たちはアルゴリズム[1](#alg1)を、クラスタ内の任意の2つのノード間にプリフィルとデコーディングを配置でき、KVキャッシュの伝送が高帯域幅を利用すると仮定して開発しました。しかし、多くの実際のクラスタでは、ノード内のGPUは高帯域幅NVLINKにアクセスできる一方で、ノード間に分散されたGPUは帯域幅が制限されています。次に、この制約に対応するアルゴリズムを開発します。
 
-アルゴリズム 2 低ノード親和性配置アルゴリズム
+**アルゴリズム 2：低ノード親和性配置アルゴリズム。**
 
-LLM $G$、#node インスタンスあたりの制限 $N$、#GPU ノードあたり $M$、GPUメモリ容量 $C$、ワークロード $W$、トラフィックレート $R$。
-
-配置 $\mathit{\mathrm{best}\_\mathrm{plm}}.$
-
-$\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow\emptyset$
-
-$\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,N\}$ の場合
-
-$\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}})$
-
-$\mathcal{P}\leftarrow\mathrm{get\_intra\_node\_configs}(\hat{G},M,C)$
-
-$P\in\mathcal{P}$ の場合
-
-$\mathit{P.\mathrm{goodput}}\leftarrow\mathrm{simulate}(\hat{G},P,W)$
-
-もし $\frac{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{P.\mathrm{goodput}}}{P.\mathrm{num}\_\mathrm{gpus}}$ なら
-
-$\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow P$
-
-$n\leftarrow\lceil\frac{R}{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}},n)$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}$ を返す
+- **入力：** LLM $G$、インスタンスごとのノード上限 $N$、ノードごとの GPU 数 $M$、GPU メモリ容量 $C$、ワークロード $W$、トラフィックレート $R$。
+- **出力：** 配置 $\mathit{\mathrm{best}\_\mathrm{plm}}$。
+- $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow\emptyset$ を初期化する。
+- **$\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,N\}$ ごとに：**
+  - $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}})$。
+  - $\mathcal{P}\leftarrow\mathrm{get\_intra\_node\_configs}(\hat{G},M,C)$。
+  - **$P\in\mathcal{P}$ ごとに：**
+    - $\mathit{P.\mathrm{goodput}}\leftarrow\mathrm{simulate}(\hat{G},P,W)$。
+    - **$\frac{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{P.\mathrm{goodput}}}{P.\mathrm{num}\_\mathrm{gpus}}$ ならば：**
+      - $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow P$。
+- $n\leftarrow\lceil\frac{R}{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}\rceil$。
+- $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}},n)$。
+- **返す：** $\mathit{\mathrm{best}\_\mathrm{plm}}$。
 
 ### 4.2 低ノード親和性クラスタの配置
 

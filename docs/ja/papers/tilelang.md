@@ -261,13 +261,9 @@ AMD CDNA アーキテクチャも asynchronous copy instruction と DMA support 
 
 **図 14。** H100 と MI300X 上の MLA 性能およびコード行数の比較。
 
-**Multi-Head Latent Attention の性能。**
+**Multi-Head Latent Attention の性能。** [図 14](#figure-14)は、H100 と MI300X の GPU 上における MLA の性能と、対応するカーネル実装のコード行数（LOC）を示す。H100 では TileLang が Torch に対して $1075.9\times$ の高速化を達成し、Triton と FlashInfer の両方を大幅に上回り、手動最適化された FlashMLA implementation の性能の最大 98% に達する。さらに TileLang は約 70 行の Python コードしか必要とせず、他のベースラインより大幅に優れた使いやすさを示す。MI300X では TileLang が Torch に対して $129.2\times$ の高速化を達成し、性能とコードの簡潔さの両面で Triton を上回る。手書きライブラリ AITER と比較して、TileLang はその性能の 95% を達成する。AITER のカーネル実装はオープンソースではないため、LOC を図に含めていない。
 
-[図 14](#figure-14)は、H100 と MI300X の GPU 上における MLA の性能と、対応するカーネル実装のコード行数（LOC）を示す。H100 では TileLang が Torch に対して $1075.9\times$ の高速化を達成し、Triton と FlashInfer の両方を大幅に上回り、手動最適化された FlashMLA implementation の性能の最大 98% に達する。さらに TileLang は約 70 行の Python コードしか必要とせず、他のベースラインより大幅に優れた使いやすさを示す。MI300X では TileLang が Torch に対して $129.2\times$ の高速化を達成し、性能とコードの簡潔さの両面で Triton を上回る。手書きライブラリ AITER と比較して、TileLang はその性能の 95% を達成する。AITER のカーネル実装はオープンソースではないため、LOC を図に含めていない。
-
-**Matmul の性能。**
-
-[図 13](#figure-13)は NVIDIA と AMD の GPU 上における GEMM workload の性能を示し、TileLang を Triton およびベンダー最適化ライブラリと比較している。RTX 4090、A100、H100、MI300X 上で、TileLang はベンダーライブラリに対してそれぞれ $1.10\times$、$0.97\times$、$1.00\times$、$1.04\times$ の高速化を達成する。Triton との比較では、同じ GPU 上でそれぞれ $1.08\times$、$1.03\times$、$1.13\times$、$1.25\times$ の高速化を実現する。行列乗算では、TileLang は単純な構文でベンダー最適化ライブラリに匹敵する性能を達成する。さらに Layout Swizzling を用いることで、すべてのテストデバイスで bank conflict-free execution を保証する。
+**Matmul の性能。** [図 13](#figure-13)は NVIDIA と AMD の GPU 上における GEMM workload の性能を示し、TileLang を Triton およびベンダー最適化ライブラリと比較している。RTX 4090、A100、H100、MI300X 上で、TileLang はベンダーライブラリに対してそれぞれ $1.10\times$、$0.97\times$、$1.00\times$、$1.04\times$ の高速化を達成する。Triton との比較では、同じ GPU 上でそれぞれ $1.08\times$、$1.03\times$、$1.13\times$、$1.25\times$ の高速化を実現する。行列乗算では、TileLang は単純な構文でベンダー最適化ライブラリに匹敵する性能を達成する。さらに Layout Swizzling を用いることで、すべてのテストデバイスで bank conflict-free execution を保証する。
 
 **Dequantize Matmul の性能。**
 

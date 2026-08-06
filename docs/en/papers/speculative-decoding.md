@@ -50,47 +50,25 @@ To sample $x\sim p(x)$, we instead sample $x\sim q(x)$, keeping it if $q(x)\leq 
 
 Given the distribution $q(x)$ obtained from running $M_{q}$ on a conditioning $\mathrm{prefix}$, we can sample a token $x_{1}\sim q(x)$. We then calculate the distribution $p(x)$ by running $M_{p}$ on $\mathrm{prefix}$ while in parallel speculatively calculating the distribution of the next token $x_{2}$ by running $M_{p}$ on $\mathrm{prefix}+[x_{1}]$. Once both computations complete, we proceed as per above: If $x_{1}$ is rejected, we discard the computation of $x_{2}$ and re-sample $x_{1}$ from an adjusted distribution, and if $x_{1}$ is accepted, we keep both tokens. [Algorithm 1](#alg1 "In 2.3 Speculative Sampling ‣ 2 Speculative Decoding ‣ Fast Inference from Transformers via Speculative Decoding") generalizes this idea to sample between 1 and $\gamma+1$ tokens at once.
 
-Algorithm 1 SpeculativeDecodingStep
+**Algorithm 1: SpeculativeDecodingStep.**
 
-  Inputs: $M_{p},M_{q},\mathrm{prefix}$.
-
-   $\triangleright$ Sample $\gamma$ guesses $x_{1,\ldots,\gamma}$ from $M_{q}$ autoregressively.
-
-  for $i=1$ to $\gamma$ do
-
-     $q_{i}(x)\leftarrow M_{q}(\mathrm{prefix}+[x_{1},\ldots,x_{i-1}])$
-
-     $x_{i}\sim q_{i}(x)$
-
-  end for
-
-   $\triangleright$ Run $M_{p}$ in parallel.
-
-  $p_{1}(x),\ldots,p_{\gamma+1}(x)\leftarrow$
-
-    $M_{p}(\mathrm{prefix}),\ldots,M_{p}(\mathrm{prefix}+[x_{1},\ldots,x_{\gamma}])$
-
-   $\triangleright$ Determine the number of accepted guesses $n$.
-
-  $r_{1}\sim U(0,1),\dots,r_{\gamma}\sim U(0,1)$
-
-  $n\leftarrow\min(\{i-1\mid 1\leq i\leq\gamma,r_{i}>\frac{p_{i}(x)}{q_{i}(x)}\}\cup\{\gamma\})$
-
-   $\triangleright$ Adjust the distribution from $M_{p}$ if needed.
-
-  $p^{\prime}(x)\leftarrow p_{n+1}(x)$
-
-  if $n<\gamma$ then
-
-     $p^{\prime}(x)\leftarrow \mathrm{norm}(\max(0,p_{n+1}(x)-q_{n+1}(x)))$
-
-  end if
-
-   $\triangleright$ Return one token from $M_{p}$, and $n$ tokens from $M_{q}$.
-
-  $t\sim p^{\prime}(x)$
-
-  return $\mathrm{prefix}+[x_{1},\ldots,x_{n},t]$
+- **Input:** $M_{p},M_{q},\mathrm{prefix}$.
+- **Sample** $\gamma$ guesses $x_{1,\ldots,\gamma}$ from $M_{q}$ autoregressively:
+  - **For** $i=1$ to $\gamma$:
+    - $q_{i}(x)\leftarrow M_{q}(\mathrm{prefix}+[x_{1},\ldots,x_{i-1}])$.
+    - $x_{i}\sim q_{i}(x)$.
+- **Run** $M_{p}$ in parallel:
+  - $p_{1}(x),\ldots,p_{\gamma+1}(x)\leftarrow M_{p}(\mathrm{prefix}),\ldots,M_{p}(\mathrm{prefix}+[x_{1},\ldots,x_{\gamma}])$.
+- **Determine** the number of accepted guesses $n$:
+  - $r_{1}\sim U(0,1),\dots,r_{\gamma}\sim U(0,1)$.
+  - $n\leftarrow\min(\{i-1\mid 1\leq i\leq\gamma,r_{i}>\frac{p_{i}(x)}{q_{i}(x)}\}\cup\{\gamma\})$.
+- **Adjust** the distribution from $M_{p}$ if needed:
+  - $p^{\prime}(x)\leftarrow p_{n+1}(x)$.
+  - **If** $n<\gamma$:
+    - $p^{\prime}(x)\leftarrow\mathrm{norm}(\max(0,p_{n+1}(x)-q_{n+1}(x)))$.
+- **Return** one token from $M_{p}$ and $n$ tokens from $M_{q}$:
+  - $t\sim p^{\prime}(x)$.
+  - **Return:** $\mathrm{prefix}+[x_{1},\ldots,x_{n},t]$.
 
 ## 3 Analysis
 

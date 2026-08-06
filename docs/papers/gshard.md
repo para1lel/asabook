@@ -126,83 +126,31 @@ $$
 
 随机路由 直观地, 因为 $y_{s}$ 是所选专家返回结果的加权平均, 如果第二个专家的权重非常小, 我们可以简单地忽略第二个专家以节约整体专家容量. 因此, 除了遵守专家容量约束外, $\mathrm{GATE}(\cdot)$ 以与其权重 $g_{2}$ 成比例的概率分配到第二最佳专家.
 
-1
+**算法 1: 带辅助损失的组级别前 2 门控.**
 
-数据: $x_{S}$, 一组大小为 $S$ 的令牌
-
-数据: $C$, 分配给该组的专家容量
-
-2
-
-结果: $\mathcal{G}_{S,E}$, 组合权重的组
-
-结果: $\ell_{\mathrm{aux}}$, 组辅助损失
-
-3
-
-4$c_{E}\leftarrow 0$ $\triangleright$ 每个专家的门控决策
-
-每个专家每个 token 的 5$g_{S,E}\leftarrow \mathrm{softmax}(\mathrm{wg}\cdot x_{S})$ $\triangleright$ 门控, $\mathrm{wg}$ 是可训练权重
-
-6$m_{E}\leftarrow\frac{1}{S}\sum^{s}_{s=1}g_{s,E}$ $\triangleright$ 每个专家的平均门控
-
-7
-
-8 对 *$s\leftarrow 1$ 到 $S$* 执行
-
-9 $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 门控和专家索引
-
-10 $g1\leftarrow g1/(g1+g2)$ $\triangleright$ 规范化 $g1$
-
-11 $c\leftarrow c_{e1}$ $\triangleright$ 在 $e1$ 专家缓冲区中的位置
-
-12 如果 *$c_{e1}<C$* 则
-
-13
-
-14 $\mathcal{G}_{s,e1}\leftarrow g1$ $\triangleright$ $e1$ $x_{s}$ 的专家组合权重
-
-15 结束如果
-
-16
-
-17 $c_{e1}\leftarrow c+1$ $\triangleright$ 增加 $e1$ 专家决策计数
-
-18 结束循环
-
-19
-
-20
-
-21$\ell_{\mathrm{aux}}=\frac{1}{E}\sum^{E}_{e=1}\frac{c_{e}}{S}\cdot m_{e}$
-
-22 对于 *$s\leftarrow 1$ 到 $S$* 执行
-
-23 $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ 前两名门和专家索引
-
-24 $g2\leftarrow g2/(g1+g2)$ $\triangleright$ 归一化 $g2$
-
-25 $\mathrm{rnd}\leftarrow \mathrm{uniform}(0,1)$ $\triangleright$ 以概率 $\propto 2\cdot g2$ 分派到次优专家
-
-26 $c\leftarrow c_{e2}$ $\triangleright$ 在 $e2$ 专家缓冲区中的位置
-
-27 如果 *$c<C\land 2\cdot g2>\mathrm{rnd}$* 那么
-
-28
-
-29 $\mathcal{G}_{s,e2}\leftarrow g2$ $\triangleright$ $e2$ $x_{s}$ 的专家组合权重
-
-30 结束 if
-
-31
-
-32 $c_{e2}\leftarrow c+1$
-
-33 结束 for
-
-34
-
-算法 1 带辅助损失的组级别前 2 门控
+- **数据:** $x_{S}$, 一组大小为 $S$ 的令牌.
+- **数据:** $C$, 分配给该组的专家容量.
+- **结果:** $\mathcal{G}_{S,E}$, 组合权重的组.
+- **结果:** $\ell_{\mathrm{aux}}$, 组辅助损失.
+- $c_{E}\leftarrow 0$ $\triangleright$ 每个专家的门控决策.
+- $g_{S,E}\leftarrow \mathrm{softmax}(\mathrm{wg}\cdot x_{S})$ $\triangleright$ 每个 token 每个专家的门控, $\mathrm{wg}$ 是可训练权重.
+- $m_{E}\leftarrow\frac{1}{S}\sum^{s}_{s=1}g_{s,E}$ $\triangleright$ 每个专家的平均门控.
+- **对于** $s\leftarrow 1$ 到 $S$:
+  - $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 门控和专家索引.
+  - $g1\leftarrow g1/(g1+g2)$ $\triangleright$ 规范化 $g1$.
+  - $c\leftarrow c_{e1}$ $\triangleright$ 在 $e1$ 专家缓冲区中的位置.
+  - **如果** $c_{e1}<C$:
+    - $\mathcal{G}_{s,e1}\leftarrow g1$ $\triangleright$ $e1$ $x_{s}$ 的专家组合权重.
+  - $c_{e1}\leftarrow c+1$ $\triangleright$ 增加 $e1$ 专家决策计数.
+- $\ell_{\mathrm{aux}}=\frac{1}{E}\sum^{E}_{e=1}\frac{c_{e}}{S}\cdot m_{e}$.
+- **对于** $s\leftarrow 1$ 到 $S$:
+  - $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ 前两名门和专家索引.
+  - $g2\leftarrow g2/(g1+g2)$ $\triangleright$ 归一化 $g2$.
+  - $\mathrm{rnd}\leftarrow \mathrm{uniform}(0,1)$ $\triangleright$ 以概率 $\propto 2\cdot g2$ 分派到次优专家.
+  - $c\leftarrow c_{e2}$ $\triangleright$ 在 $e2$ 专家缓冲区中的位置.
+  - **如果** $c<C\land 2\cdot g2>\mathrm{rnd}$:
+    - $\mathcal{G}_{s,e2}\leftarrow g2$ $\triangleright$ $e2$ $x_{s}$ 的专家组合权重.
+  - $c_{e2}\leftarrow c+1$.
 
 ## 3 使用 GShard 的高并行实现
 
@@ -220,31 +168,17 @@ $$
 
 算法 [2](#alg2) 中的 Top2Gating 计算算法 [1](#alg1) 描述的所有组本地 $\mathcal{G}_{S,E}$ 的并集. combine_weights 是一个形状为 [G, S, E, C] 的 4 维张量. 当输入 token $s$ 被发送到专家 $e$ 的输入缓冲器的缓冲位置 $c$ 时, 值 combine_weights[g, s, e, c] 非零. 对于特定的 g 和 s, 切片 combine_weight[g, s, : , : ] 最多包含两个非零值. 二值 dispatch_mask 通过简单地将所有非零值设置为 1 从 combine_weights 生成.
 
-1
+**算法 2: 位置级 MoE 层的前向传播. 带下划线的字母 (例如 G 和 E) 表示张量将沿该维度进行划分.**
 
-2
+[⬇](data: text/plain; base64, Z2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bSgiJlxHRyZTTSxNRS0 JlxHRyZTRSIsIGlucHV0cywgd2cpKQpjb21iaW5lX3dlaWdodHMsIGRpc3BhdGNoX21hc2sgPSBUb3AyR2F0aW5nKGdhdGVzKQpkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZTTS0 JlxFRSZHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCmggPSBlaW5zdW0oIiZcRUUmR0NNLCZcRUUmTUgtPiZcRUUmR0NIIiwgZGlzcGF0Y2hlZF9leHBlcnRfaW5wdXRzLCB3aSkKaCA9IHJlbHUoaCkKZXhwZXJ0X291dHB1dHMgPSBlaW5zdW0oIiZcRUUmR0NILCZcRUUmSE0tPiZcR0cmRUNNIiwgaCwgd28pCm91dHB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZFQ00tPiZcR0cmU00iLCBjb21iaW5lX3dlaWdodHMsIGV4cGVydF9vdXRwdXRzKQ==)
 
-[⬇](data: text/plain; base64, Z2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bSgiJlxHRyZTTSxNRS0 JlxHRyZTRSIsIGlucHV0cywgd2cpKQpjb21iaW5lX3dlaWdodHMsIGRpc3BhdGNoX21hc2sgPSBUb3AyR2F0aW5nKGdhdGVzKQpkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBl aW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZTTS0 JlxFRSZHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCmggPSBlaW5zdW0oIiZcRUUmR0NNLCZcRUUmTUgtPiZcRUUmR0NIIiwgZGlzcGF0Y2hlZF9leHBlcnRfaW5wdXRzLCB3aSkKaCA9IHJlbHUoaCkKZXhwZXJ0X291dHB1dHMgPSBlaW5zdW0oIiZcRUUmR0NILCZcRUUmSE0tPiZcR0cmRUNNIiwgaCwgd28pCm91dHB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZFQ00tPiZcR0cmU00iLCBjb21iaW5lX3dlaWdodHMsIGV4cGVydF9vdXRwdXRzKQ==)
-
-1 栅门 = softmax(einsum("GSM, ME->GSE", inputs, wg))
-
-2combine_weights, dispatch_mask = Top2Gating(gates)
-
-3 派遣\_expert\_inputs \= einsum (
-
-4 “GSEC, GSM->EGCM”, dispatch_mask, reshaped_inputs)
-
-5h = einsum("EGCM, EMH->EGCH", dispatched_expert_inputs, wi)
-
-6 h = relu(h)
-
-7expert_outputs = einsum("EGCH, EHM->GECM", h, wo)
-
-8 outputs = einsum(
-
-9 “GSEC, GECM->GSM”, combine_weights, expert_outputs)
-
-算法 2 位置级 MoE 层的前向传播. 带下划线的字母 (例如 G 和 E) 表示张量将沿该维度进行划分.
+- 栅门 $\leftarrow \mathrm{softmax}(\mathrm{einsum}("\mathrm{GSM},\mathrm{ME}\to\mathrm{GSE}",\mathrm{inputs},\mathrm{wg}))$.
+- $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$.
+- $\mathrm{dispatched\_expert\_inputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GSM}\to\mathrm{EGCM}",\mathrm{dispatch\_mask},\mathrm{reshaped\_inputs})$.
+- $h\leftarrow\mathrm{einsum}("\mathrm{EGCM},\mathrm{EMH}\to\mathrm{EGCH}",\mathrm{dispatched\_expert\_inputs},\mathrm{wi})$.
+- $h\leftarrow\mathrm{relu}(h)$.
+- $\mathrm{expert\_outputs}\leftarrow\mathrm{einsum}("\mathrm{EGCH},\mathrm{EHM}\to\mathrm{GECM}",h,\mathrm{wo})$.
+- $\mathrm{outputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GECM}\to\mathrm{GSM}",\mathrm{combine\_weights},\mathrm{expert\_outputs})$.
 
 我们需要适当选择组的数量 $G$ 和专家的数量 $E$, 以便该算法能够扩展到拥有 $D$ 个设备的集群. 值得分析在给定包含 $N$ 个 token 的训练批次时, 其整体计算复杂度 (总的浮点运算次数).
 
@@ -296,29 +230,17 @@ GShard 的通用性体现在简单的 API 适用于所有维度. 被分片的维
 
 [⬇](data: text/plain; base64, ICAjIFBhc3NpbmcgaW5wdXRzIGFsb25nIHRoZSBncm91cCAoRykgZGVtbwokXEhpbGlnaHQlKyBpbXB1dHMgPSBzcGxpdChpbXB1dHMgLCAwLCBEKQogICMgUmVwbGFjZSB0aGUgZ2F0aW5nIHdlaWdodAolXEhpbGlnaHQlKyB3ZyA9IHJlcGxhY2Uod2cpCiAgZ2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bShcIkdTTSxNTS0+R1NFXCIsIGlucHV0cywgd2cpCiAgY29tYmluZWRfd2VpZ2h0cywgZGlzcGF0Y2hfbWFzayA9IFRvcDIoR2F0aW5nTG9naXRzKQogIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cyA9IGVpbnN1bSgKICAgIFwiR1NFRCxHU00tPkVHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCiAgIyBQYXJ0aXRpb24gZGlzcGF0Y2hlZCBpbnB1dHMgYWxvbmcgZXhwZXJ0IChFKSBkZW0uCiVcSGlsaWdodCUrIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cyA9IHNwbGl0KGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgMCwgRCkKICBoID0gZWluc3VtKFwiRUdDTSxFTUgtRUdDSFwiLCBkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMsIHdpKQogIC4uLg==)
 
-1 # 沿组 (G) 维度拆分输入.
-
-2 inputs = split(inputs, 0, D)
-
-3 # 复制门控权重
-
-4 wg \= 复制(wg)
-
-5 门 \= softmax(einsum("GSM, ME->GSE", 输入, wg))
-
-6 combine_weights, dispatch_mask = Top2Gating(gating_logits)
-
-7 派遣\_expert\_inputs \= einsum (
-
-8 "GSEC, GSM->EGCM", dispatch_mask, 重塑后的输入)
-
-9 # 沿专家维度 (E) 分割派发的输入.
-
-10 dispatched_expert_inputs = split(dispatched_expert_inputs, 0, D)
-
-11 h = einsum("EGCM, EMH->EGCH", dispatched_expert_inputs, wi)
-
-12. . .
+- **沿组 (G) 维度拆分输入.**
+- \`inputs = split(inputs, 0, D)\`.
+- **复制门控权重.**
+- \`wg = replicate(wg)\`.
+- \`gates = softmax(einsum("GSM, ME->GSE", inputs, wg))\`.
+- \`combine\_weights, dispatch\_mask = Top2Gating(gating\_logits)\`.
+- \`dispatched\_expert\_inputs = einsum("GSEC, GSM->EGCM", dispatch\_mask, reshaped\_inputs)\`.
+- **沿专家维度 (E) 分割派发的输入.**
+- \`dispatched\_expert\_inputs = split(dispatched\_expert\_inputs, 0, D)\`.
+- \`h = einsum("EGCM, EMH->EGCH", dispatched\_expert\_inputs, wi)\`.
+- \`...\`
 
 ##### 每个张量的分片分配
 
@@ -340,47 +262,23 @@ GShard 的通用性体现在简单的 API 适用于所有维度. 被分片的维
 partitioned_data = gather( partitioned_input, partitioned_gs_indices) # 切换回自动分区. # data 具有形状 [E, G, C, M]
 %highlight%data = manual_to_auto_spmd_partition(partitioned_data). . .
 
-1# 输入具有形状 \[G, S, M\]. split () 不会改变逻辑形状.
-
-2 输入 \= 分割 (输入, 0, 数字\_devices)
-
-3# s\_indices 有形状 \[E, G, C, 1\]. 值: 输入中的索引 S.
-
-4s_indices = split(s_indices, 1, num_devices)
-
-5
-
-6# 开始手动分区.
-
-7# partitioned_input 的形状为 [G/num_devices, S, M]
-
-8 分区输入 = auto_to_manual_spmd_partition(输入)
-
-9# partitioned_s_indices 的形状为 [E, G/num_devices, C, 1]
-
-10 partitioned_s_indices = auto_to_manual_spmd_partition(s_indices)
-
-11# 在 partitioned_input 中使用 G 索引进行拼接: 对 G 维度进行 Iota.
-
-12partitioned_gs_indices = concat(
-
-13 iota([E, G/num_devices, C, 1], 1), partitioned_s_indices, 3)
-
-14# partitioned_data 的形状为 [E, G/num_devices, C, M]
-
-15 分区数据 = gather(
-
-16 分区输入, 分区 gs 索引)
-
-17
-
-18# 切换回自动分区.
-
-19# data 的形状为 [E, G, C, M]
-
-20 数据 = manual_to_auto_spmd_partition(分区数据)
-
-21. . .
+- **输入具有形状** \[G, S, M\], \`split()\` 不会改变逻辑形状.
+- \`input = split(input, 0, num\_devices)\`.
+- **$s_{\mathrm{indices}}$ 具有形状** \[E, G, C, 1\], 值为输入中指向 $S$ 的索引.
+- \`s\_indices = split(s\_indices, 1, num\_devices)\`.
+- **开始手动分区.**
+- **分区输入的形状为** \[G/num\_devices, S, M\].
+  - \`partitioned\_input = auto\_to\_manual\_spmd\_partition(input)\`.
+- **分区 $s_{\mathrm{indices}}$ 的形状为** \[E, G/num\_devices, C, 1\].
+  - \`partitioned\_s\_indices = auto\_to\_manual\_spmd\_partition(s\_indices)\`.
+- **在分区输入中使用 G 索引进行拼接: 对 G 维度进行 Iota.**
+  - \`partitioned\_gs\_indices = concat(iota([E, G/num\_devices, C, 1], 1), partitioned\_s\_indices, 3)\`.
+- **分区数据的形状为** \[E, G/num\_devices, C, M\].
+  - \`partitioned\_data = gather(partitioned\_input, partitioned\_gs\_indices)\`.
+- **切换回自动分区.**
+- **数据的形状为** \[E, G, C, M\].
+  - \`data = manual\_to\_auto\_spmd\_partition(partitioned\_data)\`.
+- \`...\`
 
 ### 3.3 GShard 的 XLA SPMD 分区器
 

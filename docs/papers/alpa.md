@@ -253,93 +253,39 @@ $$
 
 我们的算法是在 TeraPipe [Xival21] 的基础上构建的. 然而, TeraPipe 假设所有流水线阶段都是相同的, 其目标是找到将输入令牌分批成不同大小微批次的最佳方法. 相反, Alpa 的目标是将计算图的操作符分组到不同的流水线阶段, 同时假设输入微批次的大小相同. 另外, Alpa 在跨操作并行性中为每个流水线阶段优化 DP 算法中的网格形状.
 
-算法 1 交互式传递摘要.
+**算法 1: 交互式传递摘要.**
 
-1: 输入: 模型图 $G$ 和簇 $C$, 形状为 $(N,M)$.
-
-2: 输出: 最小流水线执行延迟 $T^{*}$.
-
-3: *// 预处理图. *
-
-4: $(o_{1},\ldots,o_{K})\leftarrow\mathrm{Flatten}(G)$
-
-5: $(l_{1},\ldots,l_{L})\leftarrow\mathrm{OperatorClustering}(o_{1},\ldots,o_{K})$
-
-6: *// 运行内部操作传递以获取不同阶段网格对的成本. *
-
-7: $\mathit{\mathrm{submesh}\_\mathrm{shapes}}\leftarrow\{(1,1),(1,2),(1,4),\ldots,(1,M)\}\cup\{(2,M),(3,M),\ldots,(N,M)\}$
-
-8: 对 $1\leq i\leq j\leq L$ 执行
-
-9: $\mathit{\mathrm{stage}}\leftarrow(l_{i},\ldots,l_{j})$
-
-10: 对 $(n,m)\in\mathit{\mathrm{submesh}\_\mathrm{shapes}}$ 执行
-
-11: 从 $1$ 到 $L$ 对 $s$ 执行
-
-12: $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow\infty$
-
-13: 结束 for
-
-14: 对 $(n_{l},m_{l}),\mathit{\mathrm{opt}}\in\mathrm{LogicalMeshShapeAndIntraOp}$ $\mathrm{Options}(n,m)$ 执行
-
-15: $\mathit{\mathrm{plan}}\leftarrow\mathrm{IntraOpPass}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n_{l},m_{l}),\mathit{\mathrm{opt}})$
-
-16: $t_{l},\mathit{\mathrm{mem}}_{\mathit{\mathrm{stage}}},\mathit{\mathrm{mem}}_{\mathit{\mathrm{act}}}\leftarrow\mathrm{Profile}(\mathrm{plan})$
-
-17: 对满足 Eq. [5](#S5.E5) 的 $s$ 执行 for 循环
-
-18: 如果 $t_{l}<t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)$ 那么
-
-19: $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow t_{l}$
-
-20: 结束 if
-
-21: 结束 for
-
-22: 结束 for
-
-23: 结束 for
-
-24: 结束 for
-
-25: *// 运行操作符间动态规划*
-
-26: $T^{*}\leftarrow\infty$
-
-27: 对 $t_{\mathit{\max}}\in\mathrm{SortedAndFilter}(t\_\mathit{\mathrm{intra}},\varepsilon)$ 执行
-
-28: 如果 $B\cdot t_{\mathit{\max}}\geq T^{*}$ 那么
-
-29: 中断
-
-30: 结束 if
-
-31: $F(0,L+1,0;t_{\mathit{\max}})\leftarrow 0$
-
-32: 对 $s$ 从 $1$ 到 $L$ 执行循环
-
-33: 对 $l$ 从 $L$ 递减到 $1$ 执行循环
-
-34: 对 $d$ 从 $1$ 到 $N\cdot M$ 执行循环
-
-35: 根据公式 [3](#S5.E3) 计算 $F(s,l,d;t_{\mathit{\max}})$
-
-36: 结束循环
-
-37: 结束循环
-
-38: 结束循环
-
-39: $T^{*}(t_{\mathit{\max}})\leftarrow\min_{s}\{F(s,0,N\cdot M;t_{\mathit{\max}})\}+(B-1)\cdot t_{\mathit{\max}}$
-
-40: 如果 $T^{*}(t_{\mathit{\max}})<T^{*}$ 那么
-
-41: $T^{*}\leftarrow T^{*}(t_{\mathit{\max}})$
-
-42: 结束如果
-
-43: 结束循环
+- **输入:** 模型图 $G$ 和簇 $C$, 形状为 $(N,M)$.
+- **输出:** 最小流水线执行延迟 $T^{*}$.
+- **预处理图:**
+- $(o_{1},\ldots,o_{K})\leftarrow\mathrm{Flatten}(G)$.
+- $(l_{1},\ldots,l_{L})\leftarrow\mathrm{OperatorClustering}(o_{1},\ldots,o_{K})$.
+- **运行内部操作传递以获取不同阶段网格对的成本:**
+- $\mathit{\mathrm{submesh}\_\mathrm{shapes}}\leftarrow\{(1,1),(1,2),(1,4),\ldots,(1,M)\}\cup\{(2,M),(3,M),\ldots,(N,M)\}$.
+  - **对于** $1\leq i\leq j\leq L$:
+    - $\mathit{\mathrm{stage}}\leftarrow(l_{i},\ldots,l_{j})$.
+    - **对于** $(n,m)\in\mathit{\mathrm{submesh}\_\mathrm{shapes}}$:
+      - **对于** $s$ 从 $1$ 到 $L$:
+        - $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow\infty$.
+      - **对于** $(n_{l},m_{l}),\mathit{\mathrm{opt}}\in\mathrm{LogicalMeshShapeAndIntraOp}$ $\mathrm{Options}(n,m)$:
+        - $\mathit{\mathrm{plan}}\leftarrow\mathrm{IntraOpPass}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n_{l},m_{l}),\mathit{\mathrm{opt}})$.
+        - $t_{l},\mathit{\mathrm{mem}}_{\mathit{\mathrm{stage}}},\mathit{\mathrm{mem}}_{\mathit{\mathrm{act}}}\leftarrow\mathrm{Profile}(\mathrm{plan})$.
+        - **对于**满足 Eq. [5](#S5.E5) 的 $s$:
+          - **如果** $t_{l}<t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)$:
+            - $t\_\mathit{\mathrm{intra}}(\mathit{\mathrm{stage}},\mathit{\mathrm{Mesh}}(n,m),s)\leftarrow t_{l}$.
+- **运行操作符间动态规划:**
+  - $T^{*}\leftarrow\infty$.
+  - **对于** $t_{\mathit{\max}}\in\mathrm{SortedAndFilter}(t\_\mathit{\mathrm{intra}},\varepsilon)$:
+    - **如果** $B\cdot t_{\mathit{\max}}\geq T^{*}$:
+      - **中断.**
+    - $F(0,L+1,0;t_{\mathit{\max}})\leftarrow 0$.
+    - **对于** $s$ 从 $1$ 到 $L$:
+      - **对于** $l$ 从 $L$ 递减到 $1$:
+        - **对于** $d$ 从 $1$ 到 $N\cdot M$:
+          - 根据公式 [3](#S5.E3) 计算 $F(s,l,d;t_{\mathit{\max}})$.
+    - $T^{*}(t_{\mathit{\max}})\leftarrow\min_{s}\{F(s,0,N\cdot M;t_{\mathit{\max}})\}+(B-1)\cdot t_{\mathit{\max}}$.
+    - **如果** $T^{*}(t_{\mathit{\max}})<T^{*}$:
+      - $T^{*}\leftarrow T^{*}(t_{\mathit{\max}})$.
 
 复杂性. 我们的 DP 算法在固定 $t_{\mathit{\max}}$ 的情况下以 $O(K^{3}\mathrm{NM}(N+\log(M)))$ 时间计算切片. $t_{\mathit{\max}}$ 最多有 $O(K^{2}(N+\log(M)))$ 个选择: $t_{\mathit{\mathrm{intra}}}((o_{i},\ldots,o_{j}),\mathit{\mathrm{Mesh}}(n_{s},m_{s}))$ 用于 $i,j=1,\ldots,K$ 以及所有的子网格选择. 因此该 DP 算法的复杂性是 $O(K^{5}\mathrm{NM}(N+\log(M))^{2})$.
 

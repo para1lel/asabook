@@ -126,83 +126,31 @@ We designed the following mechanisms in the gating function $\mathrm{GATE}(\cdot
 
     Random routing Intuitively, because $y_{s}$ is a weighted average of what selected experts return, if the weight for the 2nd expert is very small, we can simply ignore the 2nd expert to conserve the overall expert capacity. Hence, in addition to respecting the expert capacity constraint, $\mathrm{GATE}(\cdot)$ dispatches to the 2nd-best expert with the probability proportional to its weight $g_{2}$.
 
-1
+**Algorithm 1: Group-level top-2 gating with auxiliary loss**
 
-Data: $x_{S}$, a group of tokens of size $S$
-
-Data: $C$, Expert capacity allocated to this group
-
-2
-
-Result: $\mathcal{G}_{S,E}$, group combine weights
-
-Result: $\ell_{\mathrm{aux}}$, group auxiliary loss
-
-3
-
-4$c_{E}\leftarrow 0$ $\triangleright$ gating decisions per expert
-
-5$g_{S,E}\leftarrow \mathrm{softmax}(\mathrm{wg}\cdot x_{S})$ $\triangleright$ gates per token per expert, $\mathrm{wg}$ are trainable weights
-
-6$m_{E}\leftarrow\frac{1}{S}\sum^{s}_{s=1}g_{s,E}$ $\triangleright$ mean gates per expert
-
-7
-
-8for *$s\leftarrow 1$ to $S$* do
-
-9       $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 gates and expert indices
-
-10      $g1\leftarrow g1/(g1+g2)$ $\triangleright$ normalized $g1$
-
-11      $c\leftarrow c_{e1}$ $\triangleright$ position in $e1$ expert buffer
-
-12      if *$c_{e1}<C$* then
-
-13
-
-14            $\mathcal{G}_{s,e1}\leftarrow g1$ $\triangleright$ $e1$ expert combine weight for $x_{s}$
-
-15       end if
-
-16
-
-17      $c_{e1}\leftarrow c+1$ $\triangleright$ incrementing $e1$ expert decisions count
-
-18 end for
-
-19
-
-20
-
-21$\ell_{\mathrm{aux}}=\frac{1}{E}\sum^{E}_{e=1}\frac{c_{e}}{S}\cdot m_{e}$
-
-22for *$s\leftarrow 1$ to $S$* do
-
-23       $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 gates and expert indices
-
-24      $g2\leftarrow g2/(g1+g2)$ $\triangleright$ normalized $g2$
-
-25      $\mathrm{rnd}\leftarrow \mathrm{uniform}(0,1)$ $\triangleright$ dispatch to second-best expert with probability $\propto 2\cdot g2$
-
-26      $c\leftarrow c_{e2}$ $\triangleright$ position in $e2$ expert buffer
-
-27      if *$c<C\land 2\cdot g2>\mathrm{rnd}$* then
-
-28
-
-29            $\mathcal{G}_{s,e2}\leftarrow g2$ $\triangleright$ $e2$ expert combine weight for $x_{s}$
-
-30       end if
-
-31
-
-32      $c_{e2}\leftarrow c+1$
-
-33 end for
-
-34
-
-Algorithm 1 Group-level top-2 gating with auxiliary loss
+- **Data:** $x_{S}$, a group of tokens of size $S$.
+- **Data:** $C$, expert capacity allocated to this group.
+- **Result:** $\mathcal{G}_{S,E}$, group combine weights.
+- **Result:** $\ell_{\mathrm{aux}}$, group auxiliary loss.
+- $c_{E}\leftarrow 0$ \(\triangleright\) gating decisions per expert.
+- $g_{S,E}\leftarrow \mathrm{softmax}(\mathrm{wg}\cdot x_{S})$ \(\triangleright\) gates per token per expert; $\mathrm{wg}$ are trainable weights.
+- $m_{E}\leftarrow\frac{1}{S}\sum^{s}_{s=1}g_{s,E}$ \(\triangleright\) mean gates per expert.
+- **For** $s\leftarrow 1$ to $S$:
+  - $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ \(\triangleright\) top-2 gates and expert indices.
+  - $g1\leftarrow g1/(g1+g2)$ \(\triangleright\) normalized $g1$.
+  - $c\leftarrow c_{e1}$ \(\triangleright\) position in $e1$ expert buffer.
+  - **If** $c_{e1}<C$:
+    - $\mathcal{G}_{s,e1}\leftarrow g1$ \(\triangleright\) $e1$ expert combine weight for $x_{s}$.
+  - $c_{e1}\leftarrow c+1$ \(\triangleright\) incrementing $e1$ expert decisions count.
+- $\ell_{\mathrm{aux}}=\frac{1}{E}\sum^{E}_{e=1}\frac{c_{e}}{S}\cdot m_{e}$.
+- **For** $s\leftarrow 1$ to $S$:
+  - $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ \(\triangleright\) top-2 gates and expert indices.
+  - $g2\leftarrow g2/(g1+g2)$ \(\triangleright\) normalized $g2$.
+  - $\mathrm{rnd}\leftarrow \mathrm{uniform}(0,1)$ \(\triangleright\) dispatch to second-best expert with probability $\propto 2\cdot g2$.
+  - $c\leftarrow c_{e2}$ \(\triangleright\) position in $e2$ expert buffer.
+  - **If** $c<C\land 2\cdot g2>\mathrm{rnd}$:
+    - $\mathcal{G}_{s,e2}\leftarrow g2$ \(\triangleright\) $e2$ expert combine weight for $x_{s}$.
+  - $c_{e2}\leftarrow c+1$.
 
 ## 3 Highly Parallel Implementation using GShard
 
@@ -220,31 +168,17 @@ Our model implementation (Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-
 
 Top2Gating in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") computes the union of all group-local $\mathcal{G}_{S,E}$ described in Algorithm [1](#alg1 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). combine\_weights is a 4-D tensor with shape \[G, S, E, C\]. The value combine\_weights\[g, s, e, c\] is non-zero when the input token $s$ in group $g$ is sent to the input buffer of expert $e$ at buffer position $c$. For a specific g and s, a slice combine\_weight\[g, s, :, :\] contains at most two non-zero vaules. Binary dispatch\_mask is produced from combine\_weights by simply setting all non-zero values to 1.
 
-1
-
-2
+**Algorithm 2: Forward pass of the Positions-wise MoE layer. The underscored letter (e.g., G and E) indicates the dimension along which a tensor will be partitioned.**
 
 [⬇](data:text/plain;base64,Z2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bSgiJlxHRyZTTSxNRS0+JlxHRyZTRSIsIGlucHV0cywgd2cpKQpjb21iaW5lX3dlaWdodHMsIGRpc3BhdGNoX21hc2sgPSBUb3AyR2F0aW5nKGdhdGVzKQpkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZTTS0+JlxFRSZHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCmggPSBlaW5zdW0oIiZcRUUmR0NNLCZcRUUmTUgtPiZcRUUmR0NIIiwgZGlzcGF0Y2hlZF9leHBlcnRfaW5wdXRzLCB3aSkKaCA9IHJlbHUoaCkKZXhwZXJ0X291dHB1dHMgPSBlaW5zdW0oIiZcRUUmR0NILCZcRUUmSE0tPiZcR0cmRUNNIiwgaCwgd28pCm91dHB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZFQ00tPiZcR0cmU00iLCBjb21iaW5lX3dlaWdodHMsIGV4cGVydF9vdXRwdXRzKQ==)
 
-1gates \= softmax(einsum("GSM,ME->GSE", inputs, wg))
-
-2combine\_weights, dispatch\_mask \= Top2Gating(gates)
-
-3dispatched\_expert\_inputs \= einsum(
-
-4 "GSEC,GSM->EGCM", dispatch\_mask, reshaped\_inputs)
-
-5h \= einsum("EGCM,EMH->EGCH", dispatched\_expert\_inputs, wi)
-
-6h \= relu(h)
-
-7expert\_outputs \= einsum("EGCH,EHM->GECM", h, wo)
-
-8outputs \= einsum(
-
-9 "GSEC,GECM->GSM", combine\_weights, expert\_outputs)
-
-Algorithm 2 Forward pass of the Positions-wise MoE layer. The underscored letter (e.g., G and E) indicates the dimension along which a tensor will be partitioned.
+- $\mathrm{gates}\leftarrow\mathrm{softmax}(\mathrm{einsum}("\mathrm{GSM},\mathrm{ME}\to\mathrm{GSE}",\mathrm{inputs},\mathrm{wg}))$.
+- $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$.
+- $\mathrm{dispatched\_expert\_inputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GSM}\to\mathrm{EGCM}",\mathrm{dispatch\_mask},\mathrm{reshaped\_inputs})$.
+- $h\leftarrow\mathrm{einsum}("\mathrm{EGCM},\mathrm{EMH}\to\mathrm{EGCH}",\mathrm{dispatched\_expert\_inputs},\mathrm{wi})$.
+- $h\leftarrow\mathrm{relu}(h)$.
+- $\mathrm{expert\_outputs}\leftarrow\mathrm{einsum}("\mathrm{EGCH},\mathrm{EHM}\to\mathrm{GECM}",h,\mathrm{wo})$.
+- $\mathrm{outputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GECM}\to\mathrm{GSM}",\mathrm{combine\_weights},\mathrm{expert\_outputs})$.
 
 We need to choose the number of groups $G$ and the number of experts $E$ properly so that the algorithm can scale to a cluster with $D$ devices. It is worthwhile to analyze its overall computation complexity (the total number of floating point operations) for a training step given a training batch of $N$ tokens.
 
@@ -296,29 +230,17 @@ With the above sharding APIs, we can express the sharding strategy shown in Algo
 
 [⬇](data:text/plain;base64,ICAjIFBhcnRpdGlvbiBpbnB1dHMgYWxvbmcgZ3JvdXAgKEcpIGRpbS4KJVxIaWxpZ2h0JSsgaW5wdXRzID0gc3BsaXQoaW5wdXRzLCAwLCBEKQogICMgUmVwbGljYXRlIHRoZSBnYXRpbmcgd2VpZ2h0cwolXEhpbGlnaHQlKyB3ZyA9IHJlcGxpY2F0ZSh3ZykKICBnYXRlcyA9IHNvZnRtYXgoZWluc3VtKCJHU00sTUUtPkdTRSIsIGlucHV0cywgd2cpKQogIGNvbWJpbmVfd2VpZ2h0cywgZGlzcGF0Y2hfbWFzayA9IFRvcDJHYXRpbmcoZ2F0aW5nX2xvZ2l0cykKICBkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiR1NFQyxHU00tPkVHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCiAgIyBQYXJ0aXRpb24gZGlzcGF0Y2hlZCBpbnB1dHMgYWxvbmcgZXhwZXJ0IChFKSBkaW0uCiVcSGlsaWdodCUrIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cyA9IHNwbGl0KGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgMCwgRCkKICBoID0gZWluc3VtKCJFR0NNLEVNSC0+RUdDSCIsIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgd2kpCiAgLi4u)
 
-1 # Partition inputs along group (G) dim.
-
-2 + inputs \= split(inputs, 0, D)
-
-3 # Replicate the gating weights
-
-4 + wg \= replicate(wg)
-
-5 gates \= softmax(einsum("GSM,ME->GSE", inputs, wg))
-
-6 combine\_weights, dispatch\_mask \= Top2Gating(gating\_logits)
-
-7 dispatched\_expert\_inputs \= einsum(
-
-8 "GSEC,GSM->EGCM", dispatch\_mask, reshaped\_inputs)
-
-9 # Partition dispatched inputs along expert (E) dim.
-
-10 + dispatched\_expert\_inputs \= split(dispatched\_expert\_inputs, 0, D)
-
-11 h \= einsum("EGCM,EMH->EGCH", dispatched\_expert\_inputs, wi)
-
-12 ...
+- **Partition inputs along group (G) dim.**
+- \`inputs \= split(inputs, 0, D)\`.
+- **Replicate the gating weights.**
+- \`wg \= replicate(wg)\`.
+- \`gates \= softmax(einsum("GSM,ME->GSE", inputs, wg))\`.
+- \`combine\_weights, dispatch\_mask \= Top2Gating(gating\_logits)\`.
+- \`dispatched\_expert\_inputs \= einsum("GSEC,GSM->EGCM", dispatch\_mask, reshaped\_inputs)\`.
+- **Partition dispatched inputs along expert (E) dim.**
+- \`dispatched\_expert\_inputs \= split(dispatched\_expert\_inputs, 0, D)\`.
+- \`h \= einsum("EGCM,EMH->EGCH", dispatched\_expert\_inputs, wi)\`.
+- \`...\`
 
 ##### Per-tensor sharding assignment
 
@@ -332,47 +254,23 @@ Automatic partitioning with sharding annotations is often enough for common case
 
 [⬇](data:text/plain;base64,IyBpbnB1dCBoYXMgc2hhcGUgW0csIFMsIE1dLiBzcGxpdCgpIGRvZXMgbm90IGNoYW5nZSBsb2dpY2FsIHNoYXBlLgppbnB1dCA9IHNwbGl0KGlucHV0LCAwLCBudW1fZGV2aWNlcykKIyBzX2luZGljZXMgaGFzIHNoYXBlIFtFLCBHLCBDLCAxXS4gVmFsdWVzOiBpbmRpY2VzIHRvIFMgaW4gaW5wdXQuCnNfaW5kaWNlcyA9IHNwbGl0KHNfaW5kaWNlcywgMSwgbnVtX2RldmljZXMpCgojIEJlZ2luIG1hbnVhbCBwYXJ0aXRpb25pbmcuCiMgcGFydGl0aW9uZWRfaW5wdXQgaGFzIHNoYXBlIFtHL251bV9kZXZpY2VzLCBTLCBNXQolXEhpbGlnaHQlcGFydGl0aW9uZWRfaW5wdXQgPSBhdXRvX3RvX21hbnVhbF9zcG1kX3BhcnRpdGlvbihpbnB1dCkKIyBwYXJ0aXRpb25lZF9zX2luZGljZXMgaGFzIHNoYXBlIFtFLCBHL251bV9kZXZpY2VzLCBDLCAxXQolXEhpbGlnaHQlcGFydGl0aW9uZWRfc19pbmRpY2VzID0gYXV0b190b19tYW51YWxfc3BtZF9wYXJ0aXRpb24oc19pbmRpY2VzKQojIENvbmNhdCB3aXRoIEcgaW5kaWNlcyBpbiBwYXJ0aXRpb25lZF9pbnB1dDogSW90YSBvbiBHIGRpbWVuc2lvbi4KcGFydGl0aW9uZWRfZ3NfaW5kaWNlcyA9IGNvbmNhdCgKICAgIGlvdGEoW0UsIEcvbnVtX2RldmljZXMsIEMsIDFdLCAxKSwgcGFydGl0aW9uZWRfc19pbmRpY2VzLCAzKQojIHBhcnRpdGlvbmVkX2RhdGEgaGFzIHNoYXBlIFtFLCBHL251bV9kZXZpY2VzLCBDLCBNXQpwYXJ0aXRpb25lZF9kYXRhID0gZ2F0aGVyKAogICAgcGFydGl0aW9uZWRfaW5wdXQsIHBhcnRpdGlvbmVkX2dzX2luZGljZXMpCgojIFN3aXRjaCBiYWNrIHRvIGF1dG8gcGFydGl0aW9uaW5nLgojIGRhdGEgaGFzIHNoYXBlIFtFLCBHLCBDLCBNXQolXEhpbGlnaHQlZGF0YSA9IG1hbnVhbF90b19hdXRvX3NwbWRfcGFydGl0aW9uKHBhcnRpdGlvbmVkX2RhdGEpCi4uLg==)
 
-1# input has shape \[G, S, M\]. split() does not change logical shape.
-
-2input \= split(input, 0, num\_devices)
-
-3# s\_indices has shape \[E, G, C, 1\]. Values: indices to S in input.
-
-4s\_indices \= split(s\_indices, 1, num\_devices)
-
-5
-
-6# Begin manual partitioning.
-
-7# partitioned\_input has shape \[G/num\_devices, S, M\]
-
-8 partitioned\_input \= auto\_to\_manual\_spmd\_partition(input)
-
-9# partitioned\_s\_indices has shape \[E, G/num\_devices, C, 1\]
-
-10 partitioned\_s\_indices \= auto\_to\_manual\_spmd\_partition(s\_indices)
-
-11# Concat with G indices in partitioned\_input: Iota on G dimension.
-
-12partitioned\_gs\_indices \= concat(
-
-13 iota(\[E, G/num\_devices, C, 1\], 1), partitioned\_s\_indices, 3)
-
-14# partitioned\_data has shape \[E, G/num\_devices, C, M\]
-
-15partitioned\_data \= gather(
-
-16 partitioned\_input, partitioned\_gs\_indices)
-
-17
-
-18# Switch back to auto partitioning.
-
-19# data has shape \[E, G, C, M\]
-
-20 data \= manual\_to\_auto\_spmd\_partition(partitioned\_data)
-
-21...
+- **The input has shape** \[G, S, M\]; \`split()\` does not change the logical shape.
+- \`input \= split(input, 0, num\_devices)\`.
+- **$s_{\mathrm{indices}}$ has shape** \[E, G, C, 1\]; values are indices to $S$ in the input.
+- \`s\_indices \= split(s\_indices, 1, num\_devices)\`.
+- **Begin manual partitioning.**
+- **The partitioned input has shape** \[G/num\_devices, S, M\].
+  - \`partitioned\_input \= auto\_to\_manual\_spmd\_partition(input)\`.
+- **The partitioned $s_{\mathrm{indices}}$ has shape** \[E, G/num\_devices, C, 1\].
+  - \`partitioned\_s\_indices \= auto\_to\_manual\_spmd\_partition(s\_indices)\`.
+- **Concat with $G$ indices in partitioned input: iota on the $G$ dimension.**
+  - \`partitioned\_gs\_indices \= concat(iota([E, G/num\_devices, C, 1], 1), partitioned\_s\_indices, 3)\`.
+- **The partitioned data has shape** \[E, G/num\_devices, C, M\].
+  - \`partitioned\_data \= gather(partitioned\_input, partitioned\_gs\_indices)\`.
+- **Switch back to auto partitioning.**
+- **The data has shape** \[E, G, C, M\].
+  - \`data \= manual\_to\_auto\_spmd\_partition(partitioned\_data)\`.
+- \`...\`
 
 ### 3.3 The XLA SPMD Partitioner for GShard
 

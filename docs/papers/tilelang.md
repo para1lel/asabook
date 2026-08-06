@@ -261,13 +261,9 @@ AMD CDNA 架构也提供异步复制指令和 DMA 支持, TileLang 通过 HIP �
 
 **图 14.** H100 与 MI300X 上 MLA 性能和代码行数的比较.
 
-**Multi-Head Latent Attention 性能.**
+**Multi-Head Latent Attention 性能.** [图 14](#figure-14) 展示了 H100 和 MI300X GPU 上 MLA 的性能以及相应内核实现的代码行数 (LOC). 在 H100 上, TileLang 相比 Torch 实现 $1075.9\times$ 的加速, 显著优于 Triton 和 FlashInfer, 并达到手工优化 FlashMLA 实现性能的 98%. 此外, TileLang 只需要大约 70 行 Python 代码, 与其他基线相比展现出显著更好的易用性. 在 MI300X 上, TileLang 相比 Torch 实现 $129.2\times$ 的加速, 并在性能和代码紧凑性方面均超过 Triton. 与手工编写的 AITER 库相比, TileLang 达到其 95% 的性能. 由于 AITER 的内核实现没有开源, 图中未包含其 LOC.
 
-[图 14](#figure-14) 展示了 H100 和 MI300X GPU 上 MLA 的性能以及相应内核实现的代码行数 (LOC). 在 H100 上, TileLang 相比 Torch 实现 $1075.9\times$ 的加速, 显著优于 Triton 和 FlashInfer, 并达到手工优化 FlashMLA 实现性能的 98%. 此外, TileLang 只需要大约 70 行 Python 代码, 与其他基线相比展现出显著更好的易用性. 在 MI300X 上, TileLang 相比 Torch 实现 $129.2\times$ 的加速, 并在性能和代码紧凑性方面均超过 Triton. 与手工编写的 AITER 库相比, TileLang 达到其 95% 的性能. 由于 AITER 的内核实现没有开源, 图中未包含其 LOC.
-
-**Matmul 性能.**
-
-[图 13](#figure-13) 展示了 NVIDIA 和 AMD GPU 上 GEMM 工作负载的性能, 比较了 TileLang, Triton 和供应商优化库. 在 RTX 4090, A100, H100 和 MI300X 上, TileLang 相比供应商库分别实现 $1.10\times$, $0.97\times$, $1.00\times$ 和 $1.04\times$ 的加速. 与 Triton 相比, TileLang 在相同 GPU 上分别实现 $1.08\times$, $1.03\times$, $1.13\times$ 和 $1.25\times$ 的加速. 对于矩阵乘法, TileLang 使用简单语法即可达到供应商优化库的性能. 此外, 通过采用 Layout Swizzling, TileLang 确保在所有测试设备上无 bank conflict 地执行.
+**Matmul 性能.** [图 13](#figure-13) 展示了 NVIDIA 和 AMD GPU 上 GEMM 工作负载的性能, 比较了 TileLang, Triton 和供应商优化库. 在 RTX 4090, A100, H100 和 MI300X 上, TileLang 相比供应商库分别实现 $1.10\times$, $0.97\times$, $1.00\times$ 和 $1.04\times$ 的加速. 与 Triton 相比, TileLang 在相同 GPU 上分别实现 $1.08\times$, $1.03\times$, $1.13\times$ 和 $1.25\times$ 的加速. 对于矩阵乘法, TileLang 使用简单语法即可达到供应商优化库的性能. 此外, 通过采用 Layout Swizzling, TileLang 确保在所有测试设备上无 bank conflict 地执行.
 
 **反量化 Matmul 性能.**
 

@@ -182,6 +182,33 @@ function validateFencedCodeIndentation(markdown, label) {
   }
 }
 
+function validateRunInParagraphHeadings(markdown, label) {
+  const lines = markdown.split(/\r?\n/)
+  let fenceMarker = null
+
+  for (let index = 0; index + 2 < lines.length; index += 1) {
+    const line = lines[index]
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    const heading = line.match(/^\*\*(.+)\*\*$/)?.[1]
+    if (!heading || lines[index + 1] !== '') continue
+    if (/^(?:Figures?|Tables?|Algorithms?|图|表|算法|図|アルゴリズム)\s*\d/iu.test(heading)) continue
+
+    const following = lines[index + 2]
+    const startsBlock = /^(?:#{1,6}\s|!\[|<|\||>|`{3,}|~{3,}|:::|---|\[\+|\$\$|[-+*]\s|\d+\.\s)/.test(following)
+    if (following && !startsBlock) {
+      fail(`${label}: run-in paragraph heading at line ${index + 1} must share a line with its paragraph`)
+    }
+  }
+}
+
 function figureTableReferencePattern() {
   return /\b(?:Figures?|Tables?)\s+\d+(?:\([a-z]\)|[a-z])?|\b(?:Figs?|Tabs?)\.\s*\d+(?:\([a-z]\)|[a-z])?|(?:图|図|表)\s*\d+(?:\([a-z]\)|[a-z])?/giu
 }
@@ -410,6 +437,7 @@ for (const page of pages) {
     warn(`${label}: review pseudocode fence; math-heavy algorithms must use nested unordered lists`)
   }
   validateFencedCodeIndentation(markdown, label)
+  validateRunInParagraphHeadings(markdown, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {
     fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)

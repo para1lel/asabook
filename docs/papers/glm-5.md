@@ -22,9 +22,7 @@ permalink: /papers/glm-5/
 
 我们提出新一代旗舰模型 GLM-5, 旨在突破这些障碍. GLM-5 在性能与效率上均实现了范式转变, 在 ArtificialAnalysis.ai, LMArena Text 和 LMArena Code 等主要开放排行榜上达到当前最佳水平. 更重要的是, GLM-5 重新定义了真实世界编码的标准, 展现出处理复杂端到端软件开发任务的卓越能力, 远远超出 SWE-bench 等传统静态基准的范围.
 
-**结果.**
-
-[图 1](#figure-01) 展示了 GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro 和 GPT-5.2 (xhigh) 在 8 项智能体, 推理与编码基准上的结果: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25] 和 Vending Bench 2 [Bac25]. 平均而言, GLM-5 相较上一版本 GLM-4.7 提升约 20%, 与 Claude Opus 4.5 和 GPT-5.2 (xhigh) 相当, 并优于 Gemini 3 Pro.
+**结果.** [图 1](#figure-01) 展示了 GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro 和 GPT-5.2 (xhigh) 在 8 项智能体, 推理与编码基准上的结果: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25] 和 Vending Bench 2 [Bac25]. 平均而言, GLM-5 相较上一版本 GLM-4.7 提升约 20%, 与 Claude Opus 4.5 和 GPT-5.2 (xhigh) 相当, 并优于 Gemini 3 Pro.
 
 GLM-5 在 Intelligence Index v4.0 中获得 50 分, 成为新的开放权重模型第一名 (见[图 2](#figure-02)). 相比 GLM-4.7 的 42 分提高了 8 分, 主要得益于智能体性能以及知识与幻觉控制方面的改进. 这是开放权重模型首次在 Artificial Analysis Intelligence Index v4.0 中达到 50 分.
 
@@ -56,9 +54,7 @@ LMArena 由加州大学伯克利分校发起, 是一个依靠人类判断评估�
 
 **图 5.** GLM-5 的整体训练流程.
 
-**方法.**
-
-[图 5](#figure-05) 展示了 GLM-5 的整体训练流程. 基础模型的训练始于规模达 27 万亿 token 的语料库, 前期优先侧重代码与推理. 随后, 我们采用独立的中期训练阶段, 将上下文长度从 4K 逐步扩展至 200K, 并特别聚焦长上下文智能体数据, 以保证复杂工作流中的稳定性. 在后训练阶段, 我们不再局限于标准 SFT, 而是实施顺序式强化学习流程: 从推理强化学习开始, 接着进行智能体强化学习, 最后完成通用强化学习. 关键在于, 整个过程始终采用在策略跨阶段蒸馏来防止灾难性遗忘, 确保模型在成为稳健通才的同时保留敏锐的推理能力. 总而言之, GLM-5 的性能跃升源于以下技术贡献:
+**方法.** [图 5](#figure-05) 展示了 GLM-5 的整体训练流程. 基础模型的训练始于规模达 27 万亿 token 的语料库, 前期优先侧重代码与推理. 随后, 我们采用独立的中期训练阶段, 将上下文长度从 4K 逐步扩展至 200K, 并特别聚焦长上下文智能体数据, 以保证复杂工作流中的稳定性. 在后训练阶段, 我们不再局限于标准 SFT, 而是实施顺序式强化学习流程: 从推理强化学习开始, 接着进行智能体强化学习, 最后完成通用强化学习. 关键在于, 整个过程始终采用在策略跨阶段蒸馏来防止灾难性遗忘, 确保模型在成为稳健通才的同时保留敏锐的推理能力. 总而言之, GLM-5 的性能跃升源于以下技术贡献:
 
 第一, 我们采用 DSA (DeepSeek Sparse Attention) [Dee25a], 这一架构创新显著降低了训练与推理成本. GLM-4.5 通过标准 MoE 架构提高了效率, 而 DSA 则使 GLM-5 能够依据 token 重要性动态分配注意力资源, 在不损害长上下文理解或推理深度的前提下大幅降低计算开销. 借助 DSA, 我们将模型规模扩展至 744B 参数, 并将训练预算提升到 28.5T token.
 
@@ -76,9 +72,7 @@ LMArena 由加州大学伯克利分校发起, 是一个依靠人类判断评估�
 
 ### 2.1 架构
 
-**模型规模扩展.**
-
-GLM-5 扩展至 256 个专家, 并将层数减少至 80, 以尽量降低专家并行通信开销. 最终模型共有 744B 参数, 激活参数为 40B; 相比总参数 355B, 激活参数 32B 的 GLM-4.5, 总规模扩大了一倍.
+**模型规模扩展.** GLM-5 扩展至 256 个专家, 并将层数减少至 80, 以尽量降低专家并行通信开销. 最终模型共有 744B 参数, 激活参数为 40B; 相比总参数 355B, 激活参数 32B 的 GLM-4.5, 总规模扩大了一倍.
 
 <span id="table-01"></span>
 
@@ -86,11 +80,9 @@ GLM-5 扩展至 256 个专家, 并将层数减少至 80, 以尽量降低专家�
 
 **表 1.** GQA-8 与 MLA 各变体的评测结果.
 
-**多潜变量注意力.**
+**多潜变量注意力.** 多潜变量注意力 (MLA) [Dee24] 使用压缩后的键值向量, 在达到分组查询注意力 (GQA) 同等效果的同时, 为长上下文序列带来更好的 GPU 显存节省与更快的处理速度.
 
-多潜变量注意力 (MLA) [Dee24] 使用压缩后的键值向量, 在达到分组查询注意力 (GQA) 同等效果的同时, 为长上下文序列带来更好的 GPU 显存节省与更快的处理速度.
-
-然而, 在使用 Muon 优化器的实验中, 我们发现采用 576 维潜在 KV cache 的 MLA 无法达到具有 8 个查询组的 GQA (记作 GQA-8, 使用 2048 维 KV cache) 的性能. 为弥合这一差距, 我们调整了 GLM-4.5 中的 Muon 优化器方案. 原方案对多头查询, 键和值的上投影矩阵 $W^{UQ},W^{UK},W^{UV}$ 执行矩阵正交化. 我们改为按不同注意力头将这些矩阵拆分成更小的矩阵, 再分别进行矩阵正交化. 这一方法称为 Muon Split, 使不同注意力头的投影权重可以按不同尺度更新. 如[表 1](#table-01) 所示, 该方法有效提升了 MLA 性能, 使其与 GQA-8 相当. 实践中我们还发现, 采用 Muon Split 后, GLM-5 的注意力 logit 尺度在预训练期间无需任何裁剪策略便可保持稳定.
+然而, 在使用 Muon 优化器的实验中, 我们发现采用 576 维潜在 KV cache 的 MLA 无法达到具有 8 个查询组的 GQA (记作 GQA-8, 使用 2048 维 KV cache) 的性能. 为弥合这一差距, 我们调整了 GLM-4.5 中的 Muon 优化器方案. 原方案对多头查询, 键和值的上投影矩阵 $W^{\mathrm{UQ}},W^{\mathrm{UK}},W^{\mathrm{UV}}$ 执行矩阵正交化. 我们改为按不同注意力头将这些矩阵拆分成更小的矩阵, 再分别进行矩阵正交化. 这一方法称为 Muon Split, 使不同注意力头的投影权重可以按不同尺度更新. 如[表 1](#table-01) 所示, 该方法有效提升了 MLA 性能, 使其与 GQA-8 相当. 实践中我们还发现, 采用 Muon Split 后, GLM-5 的注意力 logit 尺度在预训练期间无需任何裁剪策略便可保持稳定.
 
 MLA 的另一项缺点是解码时计算成本较高. 解码过程中, MLA 执行 576 维点积, 高于 GQA 的 128 维计算. DeepSeek-V3 的注意力头数量根据 H800 的 roofline 选择 [Zha25b], 但这一配置不适合其他硬件. 考虑到 MLA 在训练与预填充阶段采用多头注意力 (MHA) 形式, 我们将头维度从 192 提高到 256, 同时将注意力头数量减少三分之一. 这样既保持训练计算量与参数量不变, 又减少了解码计算量. [表 1](#table-01) 中将该变体记作 MLA-256, 在 Muon Split 下其性能与 MLA 相当.
 
@@ -100,9 +92,7 @@ MLA 的另一项缺点是解码时计算成本较高. 解码过程中, MLA 执�
 
 **表 2.** DeepSeek-V3.2 与 GLM-5 接受长度的比较.
 
-**采用参数共享的多 token 预测.**
-
-多 token 预测 (MTP) [Glo24, Dee24a] 可以提高基础模型性能, 并作为推测解码的草稿模型 [Lev23]. 然而在训练期间, 为预测接下来的 $n$ 个 token, 需要 $n$ 个 MTP 层. 因此, MTP 参数与 KV cache 的内存用量会随推测步数线性增长. DeepSeek-V3 转而仅用一个 MTP 层训练, 并在推理时预测后续 2 个 token. 这种训练与推理间的差异降低了第二个 token 的接受率. 因此, 我们提出在训练期间共享 3 个 MTP 层的参数. 该方法使草稿模型的内存成本与 DeepSeek-V3 一致, 同时提高接受率. [表 2](#table-02) 显示, 在私有提示词集合中使用相同推测步数 (4) 时, GLM-5 的接受长度超过 DeepSeek-V3.2.
+**采用参数共享的多 token 预测.** 多 token 预测 (MTP) [Glo24, Dee24a] 可以提高基础模型性能, 并作为推测解码的草稿模型 [Lev23]. 然而在训练期间, 为预测接下来的 $n$ 个 token, 需要 $n$ 个 MTP 层. 因此, MTP 参数与 KV cache 的内存用量会随推测步数线性增长. DeepSeek-V3 转而仅用一个 MTP 层训练, 并在推理时预测后续 2 个 token. 这种训练与推理间的差异降低了第二个 token 的接受率. 因此, 我们提出在训练期间共享 3 个 MTP 层的参数. 该方法使草稿模型的内存成本与 DeepSeek-V3 一致, 同时提高接受率. [表 2](#table-02) 显示, 在私有提示词集合中使用相同推测步数 (4) 时, GLM-5 的接受长度超过 DeepSeek-V3.2.
 
 #### 2.1.1 使用 DeepSeek Sparse Attention (DSA) 继续预训练
 
@@ -112,7 +102,7 @@ MLA 的另一项缺点是解码时计算成本较高. 解码过程中, MLA 执�
 
 **表 3.** MLA 与 DSA 基础模型在长上下文基准上的比较.
 
-我们的训练采用 DSA. DSA [Dee25a] 的核心理念, 是用动态细粒度选择机制替代传统的稠密 $O(L^{2})$ 注意力, 后者在 $128\text{K}$ 上下文中成本高得难以承受. DSA 不使用滑动窗口等固定模式, 而是根据内容判断哪些 token 重要. 从研究视角看, DSA 尤为有趣之处在于, 它通过从稠密基础模型继续预训练的方式引入, 避免了从零训练的天文成本. 整个转换采用"稠密预热与稀疏训练适配"两阶段策略. DeepSeek-V3.2-Exp 保持了与稠密前代模型相同的基准性能, 证明长上下文中 90% 的注意力项确实冗余. 对于长序列, DSA 可将注意力计算量降低约 1.5-2 倍. 这对我们构建的重推理智能体非常重要, 因为它们能够以一半 GPU 成本处理 128K 上下文.
+我们的训练采用 DSA. DSA [Dee25a] 的核心理念, 是用动态细粒度选择机制替代传统的稠密 $O(L^{2})$ 注意力, 后者在 $128\mathrm{K}$ 上下文中成本高得难以承受. DSA 不使用滑动窗口等固定模式, 而是根据内容判断哪些 token 重要. 从研究视角看, DSA 尤为有趣之处在于, 它通过从稠密基础模型继续预训练的方式引入, 避免了从零训练的天文成本. 整个转换采用"稠密预热与稀疏训练适配"两阶段策略. DeepSeek-V3.2-Exp 保持了与稠密前代模型相同的基准性能, 证明长上下文中 90% 的注意力项确实冗余. 对于长序列, DSA 可将注意力计算量降低约 1.5-2 倍. 这对我们构建的重推理智能体非常重要, 因为它们能够以一半 GPU 成本处理 128K 上下文.
 
 <span id="figure-06"></span>
 
@@ -160,33 +150,21 @@ DSA 训练从中期训练结束时的基础模型开始. 预热阶段共 1000 �
 
 ### 2.2 预训练数据
 
-**Web 数据.**
+**Web 数据.** 在 GLM-4.5 数据流程的基础上, 我们改进了海量 Web 数据集的筛选标准. 我们引入另一个基于句子嵌入的 DCLM [Li25a] 分类器, 用于识别并汇聚标准分类器之外的更多高质量数据. 为应对长尾知识问题, 我们使用经 Wikipedia 条目与 LLM 标注数据优化的 World Knowledge 分类器, 从原本属于中低质量的数据中提炼有价值的信息.
 
-在 GLM-4.5 数据流程的基础上, 我们改进了海量 Web 数据集的筛选标准. 我们引入另一个基于句子嵌入的 DCLM [Li25a] 分类器, 用于识别并汇聚标准分类器之外的更多高质量数据. 为应对长尾知识问题, 我们使用经 Wikipedia 条目与 LLM 标注数据优化的 World Knowledge 分类器, 从原本属于中低质量的数据中提炼有价值的信息.
+**代码.** 我们使用主要代码托管平台的最新快照以及更多含代码网页扩充代码预训练语料库, 使模糊去重后的唯一 token 数增加 28%. 为提高语料完整性并减少噪声, 我们修复了 Software Heritage 代码文件中的元数据对齐问题, 并采用更准确的编程语言分类流程. 对源代码与代码相关网页文档, 我们沿用 GLM-4.5 的质量感知采样策略. 此外, 我们为 Scala, Swift 和 Lua 等更多低资源编程语言训练专用分类器, 改善这些语言的采样质量.
 
-**代码.**
-
-我们使用主要代码托管平台的最新快照以及更多含代码网页扩充代码预训练语料库, 使模糊去重后的唯一 token 数增加 28%. 为提高语料完整性并减少噪声, 我们修复了 Software Heritage 代码文件中的元数据对齐问题, 并采用更准确的编程语言分类流程. 对源代码与代码相关网页文档, 我们沿用 GLM-4.5 的质量感知采样策略. 此外, 我们为 Scala, Swift 和 Lua 等更多低资源编程语言训练专用分类器, 改善这些语言的采样质量.
-
-**数学与科学.**
-
-我们从网页, 书籍和论文中收集高质量数学与科学数据, 进一步提升推理能力. 具体而言, 我们改进网页内容提取流程以及书籍和论文的 PDF 解析机制, 以提高数据质量. 我们使用大语言模型为候选文档评分, 只保留最具教育价值的内容. 对于长上下文文档, 我们开发了分块聚合评分算法来提高评分准确率. 过滤流程严格排除合成, AI 生成或基于模板的数据.
+**数学与科学.** 我们从网页, 书籍和论文中收集高质量数学与科学数据, 进一步提升推理能力. 具体而言, 我们改进网页内容提取流程以及书籍和论文的 PDF 解析机制, 以提高数据质量. 我们使用大语言模型为候选文档评分, 只保留最具教育价值的内容. 对于长上下文文档, 我们开发了分块聚合评分算法来提高评分准确率. 过滤流程严格排除合成, AI 生成或基于模板的数据.
 
 ### 2.3 中期训练
 
 在 GLM-4.5 引入的中期训练框架基础上, GLM-5 同时扩大训练规模与最大上下文长度, 进一步增强模型的推理, 长上下文和智能体能力.
 
-**扩展上下文与训练规模.**
+**扩展上下文与训练规模.** 我们分三个阶段逐步扩展上下文窗口: 32K (1T token), 128K (500B token) 和 200K (50B token). 相较 GLM-4.5 的最大 128K 上下文, 新增的 200K 阶段显著提升了模型处理超长文档与复杂多文件代码库的能力. 相应地, 后期阶段会提高长文档与合成智能体轨迹的采样比例.
 
-我们分三个阶段逐步扩展上下文窗口: 32K (1T token), 128K (500B token) 和 200K (50B token). 相较 GLM-4.5 的最大 128K 上下文, 新增的 200K 阶段显著提升了模型处理超长文档与复杂多文件代码库的能力. 相应地, 后期阶段会提高长文档与合成智能体轨迹的采样比例.
+**软件工程数据.** 我们保留将仓库级代码文件, commit diff, GitHub issue, pull request 和相关源文件拼接成统一训练序列的范式. 在 GLM-5 中, 我们放宽仓库级过滤标准以扩大合格仓库范围, 最终得到约 1,000 万组 issue-PR 配对; 同时加强单个 issue 层面的质量过滤以减少噪声. 我们还为每组 issue-PR 配对检索更多相关文件, 从而获得更丰富的开发上下文, 并扩大真实软件工程场景的覆盖范围. 过滤后, 数据集的 issue-PR 部分约含 160B 唯一 token.
 
-**软件工程数据.**
-
-我们保留将仓库级代码文件, commit diff, GitHub issue, pull request 和相关源文件拼接成统一训练序列的范式. 在 GLM-5 中, 我们放宽仓库级过滤标准以扩大合格仓库范围, 最终得到约 1,000 万组 issue-PR 配对; 同时加强单个 issue 层面的质量过滤以减少噪声. 我们还为每组 issue-PR 配对检索更多相关文件, 从而获得更丰富的开发上下文, 并扩大真实软件工程场景的覆盖范围. 过滤后, 数据集的 issue-PR 部分约含 160B 唯一 token.
-
-**长上下文数据.**
-
-我们的长上下文训练集同时包含自然数据与合成数据. 自然数据取自书籍, 学术论文和通用预训练语料中的文档, 经过 PPL, 去重和长度等多阶段过滤, 并提高知识密集型领域的采样比例. 在合成数据构建方面, 受 NextLong [Gao25] 和 EntropyLong [Jia25] 启发, 我们采用多种技术构建长程依赖. 通过交错打包将高度相似的文本聚合为序列, 旨在缓解中间信息丢失现象, 并改善多种长上下文任务的表现. 在 200K 阶段, 我们还加入少量类似 MRCR 的数据, 并设计多个扩展 OpenAI 原始范式的变体, 以加强模型在超长多轮对话中的回忆能力. 实验发现, 逐步增加数据多样性可持续提升模型的长上下文性能; 尤其是在初始 128K 阶段之后加入 200K 中期训练, 即使在 128K 上下文窗口内也能进一步增强模型表现.
+**长上下文数据.** 我们的长上下文训练集同时包含自然数据与合成数据. 自然数据取自书籍, 学术论文和通用预训练语料中的文档, 经过 PPL, 去重和长度等多阶段过滤, 并提高知识密集型领域的采样比例. 在合成数据构建方面, 受 NextLong [Gao25] 和 EntropyLong [Jia25] 启发, 我们采用多种技术构建长程依赖. 通过交错打包将高度相似的文本聚合为序列, 旨在缓解中间信息丢失现象, 并改善多种长上下文任务的表现. 在 200K 阶段, 我们还加入少量类似 MRCR 的数据, 并设计多个扩展 OpenAI 原始范式的变体, 以加强模型在超长多轮对话中的回忆能力. 实验发现, 逐步增加数据多样性可持续提升模型的长上下文性能; 尤其是在初始 128K 阶段之后加入 200K 中期训练, 即使在 128K 上下文窗口内也能进一步增强模型表现.
 
 ### 2.4 训练基础设施
 
@@ -246,16 +224,14 @@ GLM-5 的后训练阶段旨在将基础模型转化为推理, 编码和智能体
 
 ### 3.2 推理强化学习
 
-**强化学习算法骨干.**
-
-我们的强化学习算法以 GRPO [Sha24] 为基础, 并引入 IcePop 技术 [Zha25c] 来缓解*训练-推理不一致*, 即强化学习优化期间推理分布与训练分布之间的差异. 我们明确区分用于梯度更新的*训练策略* $\pi^{\text{train}}$ 与用于轨迹采样的*推理策略* $\pi^{\text{infer}}$. 相比原始 IcePop 形式, 我们移除 KL 正则项以加快强化学习能力提升. 最终优化损失为:
+**强化学习算法骨干.** 我们的强化学习算法以 GRPO [Sha24] 为基础, 并引入 IcePop 技术 [Zha25c] 来缓解*训练-推理不一致*, 即强化学习优化期间推理分布与训练分布之间的差异. 我们明确区分用于梯度更新的*训练策略* $\pi^{\mathrm{train}}$ 与用于轨迹采样的*推理策略* $\pi^{\mathrm{infer}}$. 相比原始 IcePop 形式, 我们移除 KL 正则项以加快强化学习能力提升. 最终优化损失为:
 
 $$
 \begin{aligned}
 \mathcal{L}(\theta)=
 -\mathbb{E}_{
 x \sim \mathcal{D},
-\{y_i\}_{i=1}^{G} \sim \pi^{\text{infer}}_{\theta_{\text{old}}}(\cdot \mid x)
+\{y_i\}_{i=1}^{G} \sim \pi^{\mathrm{infer}}_{\theta_{\mathrm{old}}}(\cdot \mid x)
 }
 &\Bigg[
 \frac{1}{G}
@@ -266,10 +242,10 @@ x \sim \mathcal{D},
 &\quad\cdot
 \min\!\left(
 r_{i,t}\hat{A}_{i,t},
-\operatorname{clip}\!\left(
+\mathrm{clip}\!\left(
 r_{i,t},
-1-\epsilon_{\text{low}},
-1+\epsilon_{\text{high}}
+1-\epsilon_{\mathrm{low}},
+1+\epsilon_{\mathrm{high}}
 \right)
 \hat{A}_{i,t}
 \right)
@@ -281,33 +257,29 @@ $$
 其中, 训练-推理不一致比率定义为
 
 $$
-\rho_{i,t}=\frac{\pi_{\theta_{\text{old}}}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\text{old}}}^{\text{infer}}(y_{i,t}\mid x,y_{i,<t})}.
+\rho_{i,t}=\frac{\pi_{\theta_{\mathrm{old}}}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\mathrm{old}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}.
 $$
 
 算子 $\operatorname{pop}(\cdot)$ 会抑制不一致比率偏差过大的样本:
 
 $$
 \operatorname{pop}(\rho_{i,t},1/\beta,\beta)=\begin{cases}\rho_{i,t},&1/\beta\leq\rho_{i,t}\leq\beta,\\
-0,&\text{otherwise}.\end{cases}
+0,&\mathrm{otherwise}.\end{cases}
 $$
 
 PPO 风格的重要性比率与组归一化优势沿用原始 GRPO 定义:
 
 $$
-r_{i,t}=\frac{\pi_{\theta}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\text{old}}}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})},\quad\hat{A}_{i,t}=\frac{R_{i}-\operatorname{mean}(R_{1},\dots,R_{G})}{\operatorname{std}(R_{1},\dots,R_{G})}.
+r_{i,t}=\frac{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta_{\mathrm{old}}}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})},\quad\hat{A}_{i,t}=\frac{R_{i}-\mathrm{mean}(R_{1},\dots,R_{G})}{\mathrm{std}(R_{1},\dots,R_{G})}.
 $$
 
-训练期间, 我们设置超参数 $\beta=2,\epsilon_{\text{low}}=0.2,\epsilon_{\text{high}}=0.28$. 训练完全在策略进行, group size 与 batch size 均为 32.
+训练期间, 我们设置超参数 $\beta=2,\epsilon_{\mathrm{low}}=0.2,\epsilon_{\mathrm{high}}=0.28$. 训练完全在策略进行, group size 与 batch size 均为 32.
 
-**DSA 强化学习经验.**
-
-我们在基于 DSA 架构的模型上开展了超大规模强化学习训练. 相比 MLA, DSA 引入额外的 indexer, 检索相关度最高的 top-k 键值项, 并在所得子集上进行稀疏注意力计算. 检索得到的 top-k 结果对强化学习稳定性至关重要. 这类似于 MoE 模型使用路由回放 [Zhe25] 保留激活的 top-k 专家, 以确保训练与推理一致. 然而, 将这一策略直接改造为 indexer 回放, 即保存每个 token 位置的 indexer top-k 索引, 显然并不可行. indexer 所用的 $k=2048$ 远大于 MoE 中的常见 $k$ 值; 保存全部索引不仅会产生庞大的存储成本, 也会给训练引擎与推理引擎之间带来显著通信开销.
+**DSA 强化学习经验.** 我们在基于 DSA 架构的模型上开展了超大规模强化学习训练. 相比 MLA, DSA 引入额外的 indexer, 检索相关度最高的 top-k 键值项, 并在所得子集上进行稀疏注意力计算. 检索得到的 top-k 结果对强化学习稳定性至关重要. 这类似于 MoE 模型使用路由回放 [Zhe25] 保留激活的 top-k 专家, 以确保训练与推理一致. 然而, 将这一策略直接改造为 indexer 回放, 即保存每个 token 位置的 indexer top-k 索引, 显然并不可行. indexer 所用的 $k=2048$ 远大于 MoE 中的常见 $k$ 值; 保存全部索引不仅会产生庞大的存储成本, 也会给训练引擎与推理引擎之间带来显著通信开销.
 
 我们发现, 采用确定性 top-k 算子可以有效解决 DSA indexer token 选择中的训练-推理不一致. 与 SGLang DSA Indexer 中基于 CUDA 的非确定性 top-k 实现相比, 直接使用朴素 `torch.topk` 虽然稍慢, 但具有确定性, 能够产生更一致的输出并带来显著的强化学习收益. 相反, 其他非确定性 top-k 算子 (如 CUDA 或 TileLang 实现) 会使强化学习仅经过几步便发生剧烈性能退化, 同时伴随熵急剧下降. 因此, 在所有强化学习阶段, 我们均在训练引擎的 DSA Indexer 中默认使用 `torch.topk`. 强化学习期间也默认冻结 indexer 参数, 以加快训练并防止 indexer 学习过程不稳定.
 
-**混合领域推理强化学习.**
-
-在推理强化学习阶段, 我们对数学, 科学, 代码和工具集成推理 (TIR) 四个领域进行混合强化学习训练. 数学与科学数据来自开源数据集 [Du25, Mos25], 以及与外部标注供应商共同开发的数据集. 我们进一步应用难度过滤, 将训练集中在 GLM-4.7 很少能够正确解决或始终无法解决, 但更强教师模型 (如 GPT-5.2 xhigh 与 Gemini 3 Pro Preview) 仍能求解的问题上. 代码领域同时覆盖竞赛编程类任务与科学编码任务. 前者主要来自 Codeforces 及 TACO [Li23], SYNTHETIC-2-RL [Int25a] 等代表性数据集; 后者通过将内部问题池中的题目拆解为正确求解所需的最小代码实现来构建. 对于 TIR, 我们复用数学与科学强化学习数据中更具挑战性的子集, 并与标注供应商共同构建明确要求使用外部工具作答的 STEM 问题. 强化学习训练期间, 我们为不同领域与数据来源指定相应的 judge 模型或评测系统, 以生成二元结果奖励. 四个领域的总体配比大致均衡, 在混合强化学习设置下, 每个领域都持续获得稳定而显著的提升.
+**混合领域推理强化学习.** 在推理强化学习阶段, 我们对数学, 科学, 代码和工具集成推理 (TIR) 四个领域进行混合强化学习训练. 数学与科学数据来自开源数据集 [Du25, Mos25], 以及与外部标注供应商共同开发的数据集. 我们进一步应用难度过滤, 将训练集中在 GLM-4.7 很少能够正确解决或始终无法解决, 但更强教师模型 (如 GPT-5.2 xhigh 与 Gemini 3 Pro Preview) 仍能求解的问题上. 代码领域同时覆盖竞赛编程类任务与科学编码任务. 前者主要来自 Codeforces 及 TACO [Li23], SYNTHETIC-2-RL [Int25a] 等代表性数据集; 后者通过将内部问题池中的题目拆解为正确求解所需的最小代码实现来构建. 对于 TIR, 我们复用数学与科学强化学习数据中更具挑战性的子集, 并与标注供应商共同构建明确要求使用外部工具作答的 STEM 问题. 强化学习训练期间, 我们为不同领域与数据来源指定相应的 judge 模型或评测系统, 以生成二元结果奖励. 四个领域的总体配比大致均衡, 在混合强化学习设置下, 每个领域都持续获得稳定而显著的提升.
 
 ### 3.3 智能体强化学习
 
@@ -317,9 +289,7 @@ $$
 
 ### 3.4 通用强化学习
 
-**多维优化目标.**
-
-我们将通用强化学习的优化目标分解为三个互补维度: *基础正确性*, *情商*和*任务特定质量*.
+**多维优化目标.** 我们将通用强化学习的优化目标分解为三个互补维度: *基础正确性*, *情商*和*任务特定质量*.
 
 *基础正确性*是回复质量的根基. 它针对会损害模型输出可用性的广泛错误类型, 包括不遵循指令, 逻辑不一致, 事实错误, 知识幻觉和语言不流畅. 目标是尽量降低错误率, 使回复达到*可用*基线. 我们将其视为后续所有优化的前提: 无论表述看起来多么精致, 包含事实错误或误解用户意图的回复都可能主动误导用户.
 
@@ -327,26 +297,22 @@ $$
 
 *任务特定质量*维度面向各类具体任务开展细粒度优化. 它以基础正确性所建立的可用性为起点, 力求使回复从仅仅正确提升为在相应任务类别中真正高质量. 该维度覆盖写作, 文本处理, 主客观问答, 角色扮演和翻译等多种任务. 每个任务领域所需的奖励信号各不相同, 因而需要混合奖励系统.
 
-**混合奖励系统.**
-
-为监督上述多样化目标, 我们构建了混合奖励系统, 集成三种相互补充的奖励信号: *基于规则的奖励函数*, *结果奖励模型* (ORM) 和*生成式奖励模型* (GRM). 三者各有优缺点, 将其结合是实现稳定, 高效且可扩展的通用强化学习训练过程的关键.
+**混合奖励系统.** 为监督上述多样化目标, 我们构建了混合奖励系统, 集成三种相互补充的奖励信号: *基于规则的奖励函数*, *结果奖励模型* (ORM) 和*生成式奖励模型* (GRM). 三者各有优缺点, 将其结合是实现稳定, 高效且可扩展的通用强化学习训练过程的关键.
 
 基于规则的奖励能够提供精确且可解释的信号, 但仅适用于可以用确定性规则表达的方面. ORM 信号方差低, 训练效率高, 却更容易受到奖励欺骗影响, 即策略利用表面模式而非真正提升核心能力. GRM 借助语言模型生成标量或结构化评估, 对这类利用行为更加稳健, 但往往具有更高方差. 混合三类信号后, 奖励系统可在精确性, 效率与稳健性之间取得平衡, 缓解任一单项机制的弱点.
 
-**人类参与的风格对齐.**
-
-通用强化学习流程的一项鲜明特点, 是明确纳入高质量的人类撰写回复. 我们没有完全依赖模型生成回复, 而是引入专家人工回复作为风格与质量锚点. 这一做法源于我们的观察: 纯粹基于模型生成内容的优化往往会收敛到明显的"模型式"模式, 例如过于冗长, 公式化或缺乏娴熟人类写作所具有的细腻表达. 通过让模型接触人类撰写的范例, 我们鼓励其采用更自然, 更贴近人类的回复模式.
+**人类参与的风格对齐.** 通用强化学习流程的一项鲜明特点, 是明确纳入高质量的人类撰写回复. 我们没有完全依赖模型生成回复, 而是引入专家人工回复作为风格与质量锚点. 这一做法源于我们的观察: 纯粹基于模型生成内容的优化往往会收敛到明显的"模型式"模式, 例如过于冗长, 公式化或缺乏娴熟人类写作所具有的细腻表达. 通过让模型接触人类撰写的范例, 我们鼓励其采用更自然, 更贴近人类的回复模式.
 
 ### 3.5 在策略跨阶段蒸馏
 
 在多阶段强化学习流程中, 依次针对不同目标进行优化可能导致先前习得的能力逐渐退化. 为缓解这一问题, 我们将**在策略跨阶段蒸馏**作为最终阶段, 采用在策略蒸馏算法 [Gu25, Yan25a, Xia26, Lu25], 快速恢复较早 SFT 与强化学习阶段 (推理强化学习和通用强化学习) 中获得的技能. 具体而言, 前面各训练阶段的最终 checkpoint 充当教师模型; 训练提示词从相应教师的强化学习训练集中采样, 并按适当比例混合. 将式 1 中的优势项替换为下式即可得到训练损失, 其中 `sg` 表示停止梯度操作, 如 `.detach()`:
 
 $$
-\hat{A}_{i,t}=\text{sg}\left[\log\frac{\pi_{\theta_{\text{teacher}}}^{\text{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\text{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
+\hat{A}_{i,t}=\mathrm{sg}\left[\log\frac{\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
 \tag{2}
 $$
 
-目前, 我们使用推理引擎获取教师模型的 logit. 未来计划将推理后端迁移至训练引擎, 并统一采用 MLA 的多查询注意力 (MQA) 模式进行推理 ($\pi_{\theta_{\text{teacher}}}^{\text{infer}}\rightarrow\pi_{\theta_{\text{teacher}}}^{\text{train}}$). 训练期间, GRPO 算法的 group size 设为 1 以提高数据吞吐量, batch size 设为 1024. 这一设置之所以可行, 是因为该阶段不再需要为每个提示词维持大组样本来估计优势; 优势可直接根据与教师模型的差距计算.
+目前, 我们使用推理引擎获取教师模型的 logit. 未来计划将推理后端迁移至训练引擎, 并统一采用 MLA 的多查询注意力 (MQA) 模式进行推理 ($\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}\rightarrow\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{train}}$). 训练期间, GRPO 算法的 group size 设为 1 以提高数据吞吐量, batch size 设为 1024. 这一设置之所以可行, 是因为该阶段不再需要为每个提示词维持大组样本来估计优势; 优势可直接根据与教师模型的差距计算.
 
 ### 3.6 强化学习训练基础设施: *slime* 框架
 
@@ -382,7 +348,7 @@ GLM-5 的后训练涵盖多种目标. 为了在不为具体任务维护分支的
 
 为在智能体任务上开展强化学习, 我们设计了完全异步且解耦的强化学习基础设施, 高效处理长程智能体 rollout, 并支持跨多种智能体框架的灵活多任务强化学习训练.
 
-强化学习训练采用分组策略优化算法. 对每个问题 $x$, 我们从前一策略 $\pi_{\text{old}}$ 中采样 $K$ 条智能体轨迹 $\{y_{1},\dots,y_{K}\}$, 并按以下目标优化模型 $\pi_{\theta}$:
+强化学习训练采用分组策略优化算法. 对每个问题 $x$, 我们从前一策略 $\pi_{\mathrm{old}}$ 中采样 $K$ 条智能体轨迹 $\{y_{1},\dots,y_{K}\}$, 并按以下目标优化模型 $\pi_{\theta}$:
 
 $$
 L(\theta)=\mathbb{E}_{x\sim\mathcal{D}}\!\left[\frac{1}{K}\sum_{i=1}^{K}\left(r(x,y_{i})-\bar{r}(x)\right)\right],
@@ -394,21 +360,15 @@ $$
 
 由于 rollout 过程存在长尾特性, 朴素同步强化学习训练会因智能体任务的生成负载严重不均, 在 rollout 阶段产生大量气泡, 导致 GPU 长时间空闲. 为提高训练吞吐量, 我们在智能体强化学习中采用完全异步的训练范式, 以提升 GPU 利用率与训练效率. 具体而言, 训练引擎与推理引擎被解耦到不同 GPU 设备上. 推理引擎持续生成轨迹; 一旦轨迹数量达到预设阈值, 该 batch 便发送到训练引擎更新模型. 为减少策略滞后并使训练大致保持在策略, rollout 引擎使用的模型权重会定期与训练引擎同步. 训练引擎每进行 $K$ 次梯度更新, 就更新模型参数并将新权重推送回推理引擎. 异步虽然能显著提高整体训练效率, 却也意味着不同轨迹可能由不同模型版本生成, 从而引入严重的离策略问题. 由于 rollout 策略不断变化, 每次权重更新所对应的优化问题也有所不同, 因此我们还会在推理引擎每次更新权重后重置优化器.
 
-**基于服务器的多任务训练设计.**
-
-为处理多任务强化学习中轨迹生成的异构性, 即不同任务通常依赖不同工具集与任务特定的 rollout 逻辑, 我们为多任务强化学习训练引入基于服务器的 Multi-Task Rollout Orchestrator. 该组件通过一个注册有多项任务服务的中央编排器, 确保 slime 强化学习训练框架能够与多种下游任务无缝兼容. 具体而言, 每个任务将自己的 rollout 与奖励逻辑实现为独立微服务, 并在中央编排器中注册, 由其管理和调度. rollout 阶段, 中央编排器控制各任务的 rollout 比例与生成速度, 使不同任务间的数据收集保持平衡. 更关键的是, 我们将所有智能体任务的轨迹标准化为统一的消息列表表示. 这样既能联合训练复杂智能体框架, 如软件工程任务, 也能对异构工作负载进行集中式后处理与日志记录. 该设计将任务特定逻辑与核心训练循环清晰隔离, 从而可无缝集成多任务强化学习训练. 作为 GLM-5 训练基础设施的骨干, 该编排器支持超过 1k 个并发 rollout, 可自动动态调整任务采样比例, 并对任务进度进行细粒度监控.
+**基于服务器的多任务训练设计.** 为处理多任务强化学习中轨迹生成的异构性, 即不同任务通常依赖不同工具集与任务特定的 rollout 逻辑, 我们为多任务强化学习训练引入基于服务器的 Multi-Task Rollout Orchestrator. 该组件通过一个注册有多项任务服务的中央编排器, 确保 slime 强化学习训练框架能够与多种下游任务无缝兼容. 具体而言, 每个任务将自己的 rollout 与奖励逻辑实现为独立微服务, 并在中央编排器中注册, 由其管理和调度. rollout 阶段, 中央编排器控制各任务的 rollout 比例与生成速度, 使不同任务间的数据收集保持平衡. 更关键的是, 我们将所有智能体任务的轨迹标准化为统一的消息列表表示. 这样既能联合训练复杂智能体框架, 如软件工程任务, 也能对异构工作负载进行集中式后处理与日志记录. 该设计将任务特定逻辑与核心训练循环清晰隔离, 从而可无缝集成多任务强化学习训练. 作为 GLM-5 训练基础设施的骨干, 该编排器支持超过 1k 个并发 rollout, 可自动动态调整任务采样比例, 并对任务进度进行细粒度监控.
 
 #### 4.1.2 优化异步训练稳定性
 
-**Token-in-Token-out 与 Text-in-Text-out.**
+**Token-in-Token-out 与 Text-in-Text-out.** 在强化学习 rollout 场景中, *token-in-token-out* (TITO) 意味着训练流程直接接收推理引擎产生的*原始*分词结果与解码 token 流, 并据此构建学习轨迹. 相比之下, *text-in-text-out* 将 rollout 引擎视为返回最终文本的黑盒; 训练器在计算损失前, 需要对文本重新分词来重建轨迹, 往往还要重新推导边界与截断位置. 这个看似微小的选择影响重大: 重新分词可能在 token 边界, 空白与规范化处理, 截断或特殊 token 位置上引入细微差异, 继而破坏动作与奖励或优势之间的步骤对齐; rollout 经过流式传输, 截断或在多个执行者间交错时尤其如此. 我们发现, token-in-token-out 对异步强化学习训练至关重要, 因为它能精确保留采样内容与优化内容之间的动作级对应关系, 同时允许执行者立即发送轨迹片段 (token ID 与元数据), 无需进行有损的文本往返, 也无需等待学习端事后重新分词. 实践中, 我们实现了 TITO Gateway, 拦截 rollout 任务发出的所有生成请求, 并记录每条轨迹的 token ID 与元数据. 该设计将繁琐的 token ID 处理同下游智能体 rollout 逻辑隔离, 同时避免强化学习训练中的重新分词不一致.
 
-在强化学习 rollout 场景中, *token-in-token-out* (TITO) 意味着训练流程直接接收推理引擎产生的*原始*分词结果与解码 token 流, 并据此构建学习轨迹. 相比之下, *text-in-text-out* 将 rollout 引擎视为返回最终文本的黑盒; 训练器在计算损失前, 需要对文本重新分词来重建轨迹, 往往还要重新推导边界与截断位置. 这个看似微小的选择影响重大: 重新分词可能在 token 边界, 空白与规范化处理, 截断或特殊 token 位置上引入细微差异, 继而破坏动作与奖励或优势之间的步骤对齐; rollout 经过流式传输, 截断或在多个执行者间交错时尤其如此. 我们发现, token-in-token-out 对异步强化学习训练至关重要, 因为它能精确保留采样内容与优化内容之间的动作级对应关系, 同时允许执行者立即发送轨迹片段 (token ID 与元数据), 无需进行有损的文本往返, 也无需等待学习端事后重新分词. 实践中, 我们实现了 TITO Gateway, 拦截 rollout 任务发出的所有生成请求, 并记录每条轨迹的 token ID 与元数据. 该设计将繁琐的 token ID 处理同下游智能体 rollout 逻辑隔离, 同时避免强化学习训练中的重新分词不一致.
+**用于 token 裁剪的直接双侧重要性采样.** 不同于第 3 节的同步强化学习设置, 在异步环境中, rollout 引擎可能在单条轨迹生成期间经历多次更新, 因此跟踪精确行为概率 $\pi_{\theta_{\mathrm{old}}}$ 的计算成本高得难以承受. 否则, 我们必须维护大量历史模型 checkpoint $\{\pi_{\theta_{\mathrm{old}}^{(1)}},\dots,\pi_{\theta_{\mathrm{old}}^{(N)}}\}$, 这在实际实现中并不可行.
 
-**用于 token 裁剪的直接双侧重要性采样.**
-
-不同于第 3 节的同步强化学习设置, 在异步环境中, rollout 引擎可能在单条轨迹生成期间经历多次更新, 因此跟踪精确行为概率 $\pi_{\theta_{\text{old}}}$ 的计算成本高得难以承受. 否则, 我们必须维护大量历史模型 checkpoint $\{\pi_{\theta_{\text{old}}^{(1)}},\dots,\pi_{\theta_{\text{old}}^{(N)}}\}$, 这在实际实现中并不可行.
-
-为解决这一问题, 我们首先采用简化的 token 级重要性采样机制, 直接复用 rollout 期间产生的 log-probability 作为行为代理. 通过将重要性采样比率计算为 $r_{t}(\theta)=\frac{\pi_{\theta}}{\pi_{\text{rollout}}}$ 并舍弃传统的 $\pi_{\theta_{\text{old}}}$, 我们消除了另行执行旧策略推理的计算开销. 其次, 我们采用双侧校准的 token 级掩码策略. 与标准 PPO 的非对称裁剪不同, 我们将信赖域限制在 $[1-\epsilon_{\ell},1+\epsilon_{h}]$ 内, 其中 $\epsilon_{\ell}$ 和 $\epsilon_{h}$ 为裁剪超参数. 区间外的 token 会从梯度计算中完全掩去, 防止策略极端偏离造成训练不稳定. 该方法与 IcePop 机制 [Tea25c] 类似, 但进一步移除了 $\pi_{\theta_{\text{old}}}$, 因而更简单, 训练也更稳定.
+为解决这一问题, 我们首先采用简化的 token 级重要性采样机制, 直接复用 rollout 期间产生的 log-probability 作为行为代理. 通过将重要性采样比率计算为 $r_{t}(\theta)=\frac{\pi_{\theta}}{\pi_{\mathrm{rollout}}}$ 并舍弃传统的 $\pi_{\theta_{\mathrm{old}}}$, 我们消除了另行执行旧策略推理的计算开销. 其次, 我们采用双侧校准的 token 级掩码策略. 与标准 PPO 的非对称裁剪不同, 我们将信赖域限制在 $[1-\epsilon_{\ell},1+\epsilon_{h}]$ 内, 其中 $\epsilon_{\ell}$ 和 $\epsilon_{h}$ 为裁剪超参数. 区间外的 token 会从梯度计算中完全掩去, 防止策略极端偏离造成训练不稳定. 该方法与 IcePop 机制 [Tea25c] 类似, 但进一步移除了 $\pi_{\theta_{\mathrm{old}}}$, 因而更简单, 训练也更稳定.
 
 形式上, 采用 token 级裁剪的优化目标可写为:
 
@@ -420,29 +380,25 @@ $$
 其中, 重要性采样比率 $r_{t}(\theta)$ 的计算方式为:
 
 $$
-r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\text{rollout}}(a_{t}|s_{t})\right)
+r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\mathrm{rollout}}(a_{t}|s_{t})\right)
 \tag{4}
 $$
 
 校准函数 $f(x;\epsilon_{\ell},\epsilon_{h})$ 进一步保证稳定性:
 
 $$
-f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\text{if }1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
-0,&\text{otherwise}\end{cases}
+f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\mathrm{if}\ 1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
+0,&\mathrm{otherwise}\end{cases}
 \tag{5}
 $$
 
 实验发现, 复用 rollout log-probability 会接受一定程度且可控的离策略偏差, 以此免去历史策略跟踪, 同时提升训练稳定性.
 
-**丢弃离策略与噪声样本.**
-
-在异步强化学习中, 过长的轨迹可能严重偏离当前策略, 从而使训练不稳定. 为滤除这类严重离策略样本, 我们记录 rollout 引擎生成数据时所用的策略权重版本. 具体而言, 对每条回复记录其涉及的模型版本序列 $(w_{0},\ldots,w_{k})$, 其中 $w_{0}<\cdots<w_{k}$. 设 $w^{\prime}$ 为当前策略版本. 若最旧的 rollout 版本过时太久, 即 $w^{\prime}-w_{0}>\tau$, 其中 $\tau$ 为预定义阈值, 则丢弃该样本. 这样便可移除远远落后于当前策略的轨迹.
+**丢弃离策略与噪声样本.** 在异步强化学习中, 过长的轨迹可能严重偏离当前策略, 从而使训练不稳定. 为滤除这类严重离策略样本, 我们记录 rollout 引擎生成数据时所用的策略权重版本. 具体而言, 对每条回复记录其涉及的模型版本序列 $(w_{0},\ldots,w_{k})$, 其中 $w_{0}<\cdots<w_{k}$. 设 $w^{\prime}$ 为当前策略版本. 若最旧的 rollout 版本过时太久, 即 $w^{\prime}-w_{0}>\tau$, 其中 $\tau$ 为预定义阈值, 则丢弃该样本. 这样便可移除远远落后于当前策略的轨迹.
 
 此外, 编码智能体沙箱本身可能不稳定, 并因与模型无关的原因失败, 例如环境崩溃. 这类失败反映的是环境不稳定, 而非模型能力, 因此会引入噪声训练信号. 为缓解这一问题, 我们记录每个样本的失败原因, 并排除因环境崩溃而失败的样本. 对 GRPO 等基于分组的采样方法而言, 移除失败样本可能导致分组不完整. 此时, 若有效样本数超过 group size 的一半, 就重复有效样本以补齐该组; 否则丢弃整组. 这一过程可减少虚假奖励噪声, 提高训练稳定性.
 
-**用于加速的 DP 感知路由.**
-
-我们提出 DP 感知路由机制, 在数据并行 (DP) 的大规模 MoE 推理中保持 KV cache 局部性. 在多轮智能体工作负载中, 同一 rollout 的连续请求共享相同前缀. 为最大限度复用 KV, 我们强制建立 rollout 级亲和性: 属于同一智能体实例的所有请求均路由到同一 DP rank. 具体而言, 我们引入有状态路由层, 使用一致性哈希将每个 rollout ID 映射到固定 DP rank. 该映射跨轮次保持稳定, 从而消除跨 rank 的 cache miss. 为避免长期不平衡, 我们将哈希与哈希空间上的轻量动态负载再平衡相结合. 这一设计无需在 DP rank 之间同步 KV, 便可避免重复的预填充计算. 随着 rollout 长度增加, 预填充成本始终与增量 token 数量成正比, 而非与总上下文长度成正比. 最终, 长上下文智能体推理的端到端延迟得到改善, 有效吞吐量也随之提高.
+**用于加速的 DP 感知路由.** 我们提出 DP 感知路由机制, 在数据并行 (DP) 的大规模 MoE 推理中保持 KV cache 局部性. 在多轮智能体工作负载中, 同一 rollout 的连续请求共享相同前缀. 为最大限度复用 KV, 我们强制建立 rollout 级亲和性: 属于同一智能体实例的所有请求均路由到同一 DP rank. 具体而言, 我们引入有状态路由层, 使用一致性哈希将每个 rollout ID 映射到固定 DP rank. 该映射跨轮次保持稳定, 从而消除跨 rank 的 cache miss. 为避免长期不平衡, 我们将哈希与哈希空间上的轻量动态负载再平衡相结合. 这一设计无需在 DP rank 之间同步 KV, 便可避免重复的预填充计算. 随着 rollout 长度增加, 预填充成本始终与增量 token 数量成正比, 而非与总上下文长度成正比. 最终, 长上下文智能体推理的端到端延迟得到改善, 有效吞吐量也随之提高.
 
 ### 4.2 扩展智能体环境
 
@@ -454,13 +410,9 @@ $$
 
 #### 4.2.2 终端环境
 
-**基于种子数据合成.**
+**基于种子数据合成.** 为大规模构建可验证的终端智能体环境, 我们设计了一条包含三个阶段的智能体数据合成流程: 生成任务草案, 实现具体任务和迭代优化任务. 我们从真实软件工程与基于终端的计算机使用场景中收集一组种子任务, 再利用 LLM 集思广益, 生成大量可验证终端任务草案. 随后由构建智能体将这些草案实例化为 Harbor [Tea26c] 格式的具体任务, 包括结构化任务描述, Docker 化执行环境和相应测试脚本. 接着, 改进智能体依据人工定义的评分准则检查并迭代完善生成的任务, 确保 Docker 镜像可以可靠构建, 测试用例与任务规约一致, 且环境能抵御潜在漏洞或捷径. 总体而言, 该流程产生了数千个多样且可验证的终端智能体环境, Docker 构建准确率超过 90%.
 
-为大规模构建可验证的终端智能体环境, 我们设计了一条包含三个阶段的智能体数据合成流程: 生成任务草案, 实现具体任务和迭代优化任务. 我们从真实软件工程与基于终端的计算机使用场景中收集一组种子任务, 再利用 LLM 集思广益, 生成大量可验证终端任务草案. 随后由构建智能体将这些草案实例化为 Harbor [Tea26c] 格式的具体任务, 包括结构化任务描述, Docker 化执行环境和相应测试脚本. 接着, 改进智能体依据人工定义的评分准则检查并迭代完善生成的任务, 确保 Docker 镜像可以可靠构建, 测试用例与任务规约一致, 且环境能抵御潜在漏洞或捷径. 总体而言, 该流程产生了数千个多样且可验证的终端智能体环境, Docker 构建准确率超过 90%.
-
-**基于 Web 语料合成.**
-
-我们开发了一条可扩展的自动化流程, 基于 Web 语料构建经 LLM 验证的终端编码任务. 该流程采用闭环设计, 由构建智能体兼任自身的第一轮评测者. 首先, 我们收集大规模代码相关网页语料, 并应用数据质量分类器, 只保留高质量内容, 丢弃以非技术内容为主或缺乏实质性代码的页面. 从过滤后的子集中, 再找出适合改写成终端式任务的网页. 随后按主题类别与难度分层采样, 确保所得任务池分布均衡且具有多样性. 第二步, 我们将 Harbor 任务构建规约 ([https://harborframework.com/docs/tasks/task-tutorial](https://harborframework.com/docs/tasks/task-tutorial)) 与每个选定的源网页一同提供给编码智能体. 规约包括任务 schema, 格式要求和任务示例. 智能体需要 (i) 根据网页内容合成完整终端任务, 并 (ii) 对自己的输出运行 Harbor 验证脚本. 如验证失败, 智能体会反复诊断并修改任务, 直至通过全部自动检查. 只有成功通过这一自验证闭环的任务才会进入最终数据集.
+**基于 Web 语料合成.** 我们开发了一条可扩展的自动化流程, 基于 Web 语料构建经 LLM 验证的终端编码任务. 该流程采用闭环设计, 由构建智能体兼任自身的第一轮评测者. 首先, 我们收集大规模代码相关网页语料, 并应用数据质量分类器, 只保留高质量内容, 丢弃以非技术内容为主或缺乏实质性代码的页面. 从过滤后的子集中, 再找出适合改写成终端式任务的网页. 随后按主题类别与难度分层采样, 确保所得任务池分布均衡且具有多样性. 第二步, 我们将 Harbor 任务构建规约 ([https://harborframework.com/docs/tasks/task-tutorial](https://harborframework.com/docs/tasks/task-tutorial)) 与每个选定的源网页一同提供给编码智能体. 规约包括任务 schema, 格式要求和任务示例. 智能体需要 (i) 根据网页内容合成完整终端任务, 并 (ii) 对自己的输出运行 Harbor 验证脚本. 如验证失败, 智能体会反复诊断并修改任务, 直至通过全部自动检查. 只有成功通过这一自验证闭环的任务才会进入最终数据集.
 
 #### 4.2.3 搜索任务
 
@@ -474,7 +426,7 @@ $$
 
 我们发现, BrowseComp [Wei25] 上的表现同时对 judge 提示词与 judge 模型敏感, 开源 judge 还可能引入系统性偏差. 为确保一致性与可复现性, 我们统一使用 OpenAI 官方评测提示词, 并以闭源模型 o3-mini 作为 judge, 对所有依赖 judge 的组件进行标准化. 案例研究表明, 这一配置与人工标注真值最为一致, 因此所有搜索智能体评测均采用该配置.
 
-先前工作 [Dee25a] 提出了上下文管理, 其中 *Discard-all* 会移除全部工具调用历史来重置上下文. 我们进一步观察到, 上下文极长时, 例如超过 100k token, 模型准确率会大幅下降. 因此, 我们采用简单的 *Keep-recent-k* 策略. 当交互历史超过阈值 $k$ 时, 折叠最近 $k$ 轮以前的内容以控制上下文长度. 设轨迹为 $(q,r_{1},a_{1},o_{1},r_{2},a_{2},o_{2},\cdots,r_{n},a_{n},o_{n})$, 其中 $q$ 表示问题, $r_{i}$ 表示第 $i$ 轮推理, $a_{i}$ 表示动作 (我们设计了 *search*, *open*, *find* 和 *python* 4 种工具), $o_{i}$ 表示工具观察结果. 我们只折叠最近 $k$ 轮以前的观察结果: $o_{i}\leftarrow\text{Tool result is omitted to save tokens.}\quad i=1,\ldots,n-k$. 实验中设 $k=5$, 可带来稳定提升, 使 GLM-5 的成绩从未使用 keep-recent-$k$ 时的 55.3% 提升到使用后的 62.0%. 我们还发现, 采用不同的 keep recent $k$ 值, 或在上下文长度达到预设 token 阈值时触发 keep-recent, 均会得到相同结果.
+先前工作 [Dee25a] 提出了上下文管理, 其中 *Discard-all* 会移除全部工具调用历史来重置上下文. 我们进一步观察到, 上下文极长时, 例如超过 100k token, 模型准确率会大幅下降. 因此, 我们采用简单的 *Keep-recent-k* 策略. 当交互历史超过阈值 $k$ 时, 折叠最近 $k$ 轮以前的内容以控制上下文长度. 设轨迹为 $(q,r_{1},a_{1},o_{1},r_{2},a_{2},o_{2},\cdots,r_{n},a_{n},o_{n})$, 其中 $q$ 表示问题, $r_{i}$ 表示第 $i$ 轮推理, $a_{i}$ 表示动作 (我们设计了 *search*, *open*, *find* 和 *python* 4 种工具), $o_{i}$ 表示工具观察结果. 我们只折叠最近 $k$ 轮以前的观察结果: $o_{i}\leftarrow\mathrm{Tool\ result\ is\ omitted\ to\ save\ tokens.}\quad i=1,\ldots,n-k$. 实验中设 $k=5$, 可带来稳定提升, 使 GLM-5 的成绩从未使用 keep-recent-$k$ 时的 55.3% 提升到使用后的 62.0%. 我们还发现, 采用不同的 keep recent $k$ 值, 或在上下文长度达到预设 token 阈值时触发 keep-recent, 均会得到相同结果.
 
 在此基础上, 我们将 keep-recent 与 Discard-all 结合, 形成混合的*分层上下文管理*策略. 在使用 keep-recent 进行推理期间, 若总上下文长度超过阈值 $T$, 就丢弃完整的工具调用历史并以全新上下文重新开始, 同时继续应用 keep-recent 策略. 我们通过参数搜索选定 $T=32k$.
 
@@ -506,33 +458,21 @@ $$
 
 **训练策略.** 强化学习期间联合优化这些信号, 以提高所生成 HTML 的结构有效性, 改善布局组织, 并提升整体视觉审美质量. 除奖励设计外, 我们还通过动态采样重塑训练分布. 具体而言, 按一定概率丢弃部分结构过于简单的样本, 使优化集中到更具挑战性的页面, 提高模型在复杂构图场景中的稳健性. 我们还采用 token 级策略梯度损失来稳定优化 [Yu25]. 此外, 我们引入平衡策略, 将同一样本的不同 rollout 结果分散到多个训练 batch 中, 减少优化偏差并提高训练稳定性.
 
-**拒绝采样.**
+**拒绝采样.** 在拒绝采样阶段, 强化学习所用的奖励函数会转入数据过滤流程, 用于构建高质量训练子集. 页面级过滤标准包括代码有效性与编译可行性. 在轨迹层面, 我们进一步要求工具正确执行, 并设置全局内容多样性约束, 以确保结构一致. 我们采用 Best-of-$N$ 选择策略, 从多个独立生成的候选项中保留质量最高的样本. 该机制有效将分布重加权至更高质量的实例, 从而提高样本效率与训练稳定性.
 
-在拒绝采样阶段, 强化学习所用的奖励函数会转入数据过滤流程, 用于构建高质量训练子集. 页面级过滤标准包括代码有效性与编译可行性. 在轨迹层面, 我们进一步要求工具正确执行, 并设置全局内容多样性约束, 以确保结构一致. 我们采用 Best-of-$N$ 选择策略, 从多个独立生成的候选项中保留质量最高的样本. 该机制有效将分布重加权至更高质量的实例, 从而提高样本效率与训练稳定性.
+**基于掩码的精炼.** 尽管拒绝采样移除了大部分低质量输出, 一些轨迹的缺陷只局限于少数页面. 丢弃这类样本会降低有效数据利用率, 并增加生成成本. 为此, 我们引入基于掩码的纠正机制, 自动识别并掩盖有缺陷的页面, 同时保留同一轨迹中的高质量内容. 这种选择性精炼既保留了有价值的监督信号, 提高有效数据效率, 又减少了不必要的重新生成开销, 从而改善整体训练效率.
 
-**基于掩码的精炼.**
-
-尽管拒绝采样移除了大部分低质量输出, 一些轨迹的缺陷只局限于少数页面. 丢弃这类样本会降低有效数据利用率, 并增加生成成本. 为此, 我们引入基于掩码的纠正机制, 自动识别并掩盖有缺陷的页面, 同时保留同一轨迹中的高质量内容. 这种选择性精炼既保留了有价值的监督信号, 提高有效数据效率, 又减少了不必要的重新生成开销, 从而改善整体训练效率.
-
-**实验改进.**
-
-严格符合 16:9 宽高比的生成页面比例从 40% 提升到 92%, 页面溢出情况也显著减少. 人工评测进一步显示, 相较 GLM-4.5, GLM-5 在内容质量, 布局合理性和视觉美感上的胜率分别达到 60%, 57.5% 和 65%, 综合胜率为 67.5%. 这些结果从实证上验证了多层级奖励设计与自我改进框架的有效性.
+**实验改进.** 严格符合 16:9 宽高比的生成页面比例从 40% 提升到 92%, 页面溢出情况也显著减少. 人工评测进一步显示, 相较 GLM-4.5, GLM-5 在内容质量, 布局合理性和视觉美感上的胜率分别达到 60%, 57.5% 和 65%, 综合胜率为 67.5%. 这些结果从实证上验证了多层级奖励设计与自我改进框架的有效性.
 
 ## 5 将 GLM-5 适配到中国芯片基础设施
 
 由于硬件生态高度异构, 将 GLM-5 适配到多种中国芯片基础设施面临重大挑战, 高性能部署往往因此变得更加复杂. 尽管如此, 通过与华为昇腾, 摩尔线程, 海光, 寒武纪, 昆仑芯, 沐曦和燧原等七个主流中国芯片平台密切合作, 我们已成功完成 GLM-5 的全栈适配. 本节以昇腾 Atlas 系列为案例说明适配方法, 重点围绕三项核心支柱: 极致量化, 高性能 kernel 融合与先进推理引擎调度.
 
-**混合精度 W4A8 量化.**
+**混合精度 W4A8 量化.** 为在单台 Atlas 800T A3 机器上容纳 750B 参数的 GLM-5 模型, 我们实现了一套精细的 W4A8 混合精度量化策略. 借助 msModelSlim ([https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html)) 工具, 我们为不同模型组件采用不同精度: 标准 Attention 和 MLP 块使用 W8A8 (INT8), MoE 专家则压缩到 W4A8 (INT4), 在不显著损失准确率的前提下大幅减少内存占用. 我们还使用 QuaRot [Ash24] 等离群值抑制高级算法与 `Flex_AWQ_SSZ` 缩放校准, 以保持低比特部署的稳定性.
 
-为在单台 Atlas 800T A3 机器上容纳 750B 参数的 GLM-5 模型, 我们实现了一套精细的 W4A8 混合精度量化策略. 借助 msModelSlim ([https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/80RC3alpha003/devaids/auxiliarydevtool/modelslim_0001.html)) 工具, 我们为不同模型组件采用不同精度: 标准 Attention 和 MLP 块使用 W8A8 (INT8), MoE 专家则压缩到 W4A8 (INT4), 在不显著损失准确率的前提下大幅减少内存占用. 我们还使用 QuaRot [Ash24] 等离群值抑制高级算法与 `Flex_AWQ_SSZ` 缩放校准, 以保持低比特部署的稳定性.
+**高性能融合 kernel.** 为突破昇腾 NPU 上稀疏注意力的计算瓶颈, 我们开发了一套定制融合 kernel: Lightning Indexer, Sparse Flash Attention 和 MLAPO (Multi-head Latent Attention Pre-processing Optimization). Lightning Indexer 将分数计算, ReLU 和 TopK 操作融合到单个 kernel 中, 使 NPU 可以重叠计算与内存访问. 对于 Sparse Flash Attention kernel, 我们专门针对 GLM-5 的稀疏模式进行了优化. 该 kernel 可并行处理从 KV cache 中选择 TopK token 与稀疏注意力计算. 最后, MLAPO 将 13 个小型预处理算子融合为一个"超级算子", 利用 Vector 与 Cube 单元间的并行处理提高端到端效率.
 
-**高性能融合 kernel.**
-
-为突破昇腾 NPU 上稀疏注意力的计算瓶颈, 我们开发了一套定制融合 kernel: Lightning Indexer, Sparse Flash Attention 和 MLAPO (Multi-head Latent Attention Pre-processing Optimization). Lightning Indexer 将分数计算, ReLU 和 TopK 操作融合到单个 kernel 中, 使 NPU 可以重叠计算与内存访问. 对于 Sparse Flash Attention kernel, 我们专门针对 GLM-5 的稀疏模式进行了优化. 该 kernel 可并行处理从 KV cache 中选择 TopK token 与稀疏注意力计算. 最后, MLAPO 将 13 个小型预处理算子融合为一个"超级算子", 利用 Vector 与 Cube 单元间的并行处理提高端到端效率.
-
-**专用推理引擎优化.**
-
-我们适配了 vLLM-Ascend 和 SGLang 两个主流推理引擎, 以最大化硬件利用率:
+**专用推理引擎优化.** 我们适配了 vLLM-Ascend 和 SGLang 两个主流推理引擎, 以最大化硬件利用率:
 
 - **异步调度:** 在 vLLM 中实现一种机制, 让采样结果的 Device-to-Host (D2H) 复制与下一解码步的准备工作重叠, 从而消除调度"气泡".
 - **上下文管理:** RadixCache (前缀共享) 与 Prefix Cache (将 KV 存储扩展至系统内存) 等功能可以高效复用 KV 项, 对长上下文性能至关重要.
@@ -601,9 +541,7 @@ $$
 
 **图 10.** Agent-as-a-Judge 评测流程. 每个生成的前端项目首先进行构建以验证静态正确性. 成功构建的实例随后由自主 Judge Agent 进行交互式测试, 判断每个检查项的功能正确性.
 
-**Agent-as-a-Judge.**
-
-前端正确性天然具有视觉性与交互性, 即错误通常只有在用户点击按钮或调整窗口大小时才会出现, 因此静态分析与固定测试套件并不足够. 我们由此引入 Agent-as-a-Judge ([图 10](#figure-10)): 每个生成的项目都会部署到 Docker 容器中并执行构建, 以验证静态正确性. 随后, 成功构建的实例会交给自主 Judge Agent, 即配备 Playwright MCP 工具, 使用 Claude Sonnet 4.5 的 Claude Code. 它以闭环方式运行: 对每个检查项, 智能体读取源代码, 与实时 UI 交互 (点击, 按键与截图), 检查终端输出, 并给出通过或失败的结论.
+**Agent-as-a-Judge.** 前端正确性天然具有视觉性与交互性, 即错误通常只有在用户点击按钮或调整窗口大小时才会出现, 因此静态分析与固定测试套件并不足够. 我们由此引入 Agent-as-a-Judge ([图 10](#figure-10)): 每个生成的项目都会部署到 Docker 容器中并执行构建, 以验证静态正确性. 随后, 成功构建的实例会交给自主 Judge Agent, 即配备 Playwright MCP 工具, 使用 Claude Sonnet 4.5 的 Claude Code. 它以闭环方式运行: 对每个检查项, 智能体读取源代码, 与实时 UI 交互 (点击, 按键与截图), 检查终端输出, 并给出通过或失败的结论.
 
 为验证可靠性, 我们从两个维度比较 Agent-as-a-Judge 的判断与独立人类专家判断. 在*逐项一致性*方面, 我们抽样 130 个检查项, 由人类专家分别评分, 再与智能体判断比较: 二者在 94% 的项目上达成一致, 分歧主要集中于主观视觉质量标准, 而非功能规约. 在*排名一致性*方面, 我们分别使用自动化框架与人类专家评估 8 个前沿模型, 包括 Claude Sonnet 4.5, Claude Opus 4.5, Gemini 3 Pro, GLM-4.7 和 DeepSeek-V3.2 等. 最终模型排名的 Spearman 相关系数达到 85.7%, 表明存在较强正相关.
 
@@ -660,53 +598,33 @@ $$
 
 #### 6.3.1 机器翻译
 
-**ZMultiTransBench.**
+**ZMultiTransBench.** 这一内部数据集包含 1,220 个样本, 取自自行收集的高频翻译场景, 涵盖七个语言对: 中文到西班牙语 ($300$), 俄语 ($250$), 法语 ($220$), 韩语 ($200$), 日语 ($150$), 阿拉伯语 ($50$) 和德语 ($50$). 所有样本均由受过正规翻译学训练的研究生筛选, 翻译并独立核验. 该数据集强调自然发生的使用场景, 而非人工构造的测试用例. 评测采用与固定基线回复两两比较的方式, 由基于 GPT-4.1 的自动评测器判断语义忠实度, 流畅性与整体翻译质量.
 
-这一内部数据集包含 1,220 个样本, 取自自行收集的高频翻译场景, 涵盖七个语言对: 中文到西班牙语 ($300$), 俄语 ($250$), 法语 ($220$), 韩语 ($200$), 日语 ($150$), 阿拉伯语 ($50$) 和德语 ($50$). 所有样本均由受过正规翻译学训练的研究生筛选, 翻译并独立核验. 该数据集强调自然发生的使用场景, 而非人工构造的测试用例. 评测采用与固定基线回复两两比较的方式, 由基于 GPT-4.1 的自动评测器判断语义忠实度, 流畅性与整体翻译质量.
-
-**MENT-SNS.**
-
-为进一步评估语言难题场景中的稳健性, 我们采用 MENT [Tia26] 的源句, 包含社交网络服务 (SNS), 跨文化, 诗歌和文学四个领域的 $753$ 组英中句对. 选择这些领域是为了使用复杂语言现象对翻译进行压力测试, 包括俚语, 谐音双关, 惯用表达, 历史典故与隐喻语言. 与 ZMultiTransBench 类似, 所有样本均由受过专业训练的研究生筛选并核验. 评测采用相同的基线回复两两比较协议, 以 GPT-4.1 作为自动 judge 模型.
+**MENT-SNS.** 为进一步评估语言难题场景中的稳健性, 我们采用 MENT [Tia26] 的源句, 包含社交网络服务 (SNS), 跨文化, 诗歌和文学四个领域的 $753$ 组英中句对. 选择这些领域是为了使用复杂语言现象对翻译进行压力测试, 包括俚语, 谐音双关, 惯用表达, 历史典故与隐喻语言. 与 ZMultiTransBench 类似, 所有样本均由受过专业训练的研究生筛选并核验. 评测采用相同的基线回复两两比较协议, 以 GPT-4.1 作为自动 judge 模型.
 
 #### 6.3.2 多语言对话
 
-**LMArena.**
+**LMArena.** 我们报告 LMArena ([https://arena.ai/leaderboard/text](https://arena.ai/leaderboard/text)) 的 Elo 评分, 该评分来自社区提交的大规模两两比较. 它反映模型在开放式对话环境中的相对偏好, 为对话性能提供外部信号.
 
-我们报告 LMArena ([https://arena.ai/leaderboard/text](https://arena.ai/leaderboard/text)) 的 Elo 评分, 该评分来自社区提交的大规模两两比较. 它反映模型在开放式对话环境中的相对偏好, 为对话性能提供外部信号.
-
-**ZMultiDialBench.**
-
-除公开排行榜外, 我们还在内部多语言对话基准 ZMultiDialBench 上进行人工评测. 该数据集包含 141 个经过筛选的实例, 涵盖多种对话类别. 样本来自多个国家的母语标注者所贡献的高质量对话数据, 以及在线用户报告的困难失败案例. 人工标注者依据各类别专用的标准化评测准则, 对匿名化模型回复按 1-10 分逐项评分.
+**ZMultiDialBench.** 除公开排行榜外, 我们还在内部多语言对话基准 ZMultiDialBench 上进行人工评测. 该数据集包含 141 个经过筛选的实例, 涵盖多种对话类别. 样本来自多个国家的母语标注者所贡献的高质量对话数据, 以及在线用户报告的困难失败案例. 人工标注者依据各类别专用的标准化评测准则, 对匿名化模型回复按 1-10 分逐项评分.
 
 #### 6.3.3 指令遵循
 
-**IF-Badcase.**
+**IF-Badcase.** IF-Badcase 是一个内部基准, 由真实用户在生产环境中报告的指令遵循**失败案例**构建. 该数据集旨在评估模型能否严格遵守真实的多约束指令, 重点考察流程准确性, 逻辑一致性与严格格式要求. 评测采用详细的检查清单协议, 验证模型是否符合明确约束, 包括有序步骤, 基于规则的条件与结构规约. 所有样本均由人类专家标注, 审查并反复过滤, 最终得到 450 个精选测试实例.
 
-IF-Badcase 是一个内部基准, 由真实用户在生产环境中报告的指令遵循**失败案例**构建. 该数据集旨在评估模型能否严格遵守真实的多约束指令, 重点考察流程准确性, 逻辑一致性与严格格式要求. 评测采用详细的检查清单协议, 验证模型是否符合明确约束, 包括有序步骤, 基于规则的条件与结构规约. 所有样本均由人类专家标注, 审查并反复过滤, 最终得到 450 个精选测试实例.
+**IF-Bench [Pya25].** IF-Bench 评估 LLM 遵守复杂客观约束的能力, 如特定格式规则, 长度限制与内容约束. 它着重验证是否合规, 而非开放式生成质量, 从而量化精确的指令遵循能力.
 
-**IF-Bench [Pya25].**
-
-IF-Bench 评估 LLM 遵守复杂客观约束的能力, 如特定格式规则, 长度限制与内容约束. 它着重验证是否合规, 而非开放式生成质量, 从而量化精确的指令遵循能力.
-
-**MultiChallenge [Sir25].**
-
-MultiChallenge 通过真实的多轮对话场景考察 LLM, 重点关注需要准确遵循指令, 分配上下文并进行上下文内推理的复杂交互.
+**MultiChallenge [Sir25].** MultiChallenge 通过真实的多轮对话场景考察 LLM, 重点关注需要准确遵循指令, 分配上下文并进行上下文内推理的复杂交互.
 
 #### 6.3.4 世界知识
 
-**SimpleQA [Wei24].**
+**SimpleQA [Wei24].** SimpleQA 使用只有单一明确答案的困难问题衡量短文本事实性. 它将回复分为正确, 错误或未作答, 以此评估模型校准程度, 并优先关注准确率而非生成长度.
 
-SimpleQA 使用只有单一明确答案的困难问题衡量短文本事实性. 它将回复分为正确, 错误或未作答, 以此评估模型校准程度, 并优先关注准确率而非生成长度.
-
-**Chinese SimpleQA [He24].**
-
-该基准将 SimpleQA 方法适配到中文语境, 评估六大领域与 99 个子主题中的事实性. 它使用高质量, 静态的简答题进行可靠的自动评分, 以评估 LLM 的知识准确率.
+**Chinese SimpleQA [He24].** 该基准将 SimpleQA 方法适配到中文语境, 评估六大领域与 99 个子主题中的事实性. 它使用高质量, 静态的简答题进行可靠的自动评分, 以评估 LLM 的知识准确率.
 
 #### 6.3.5 工具调用
 
-**ToolCall-Badcase.**
-
-ToolCall-Badcase 是一个内部基准, 来源于用户在生产环境中报告的工具调用**失败案例**. 每个实例都配有可验证的正确工具调用, 因而可以客观评估工具选择与参数正确性. 评测考察模型是否 (1) 调用正确工具, 以及 (2) 提供结构正确且语义准确的参数. 所有样本都经过多轮审查, 重写与验证, 以消除歧义并保证可评测性. 最终数据集包含 200 个经过筛选的测试用例, 反映真实工具调用能力.
+**ToolCall-Badcase.** ToolCall-Badcase 是一个内部基准, 来源于用户在生产环境中报告的工具调用**失败案例**. 每个实例都配有可验证的正确工具调用, 因而可以客观评估工具选择与参数正确性. 评测考察模型是否 (1) 调用正确工具, 以及 (2) 提供结构正确且语义准确的参数. 所有样本都经过多轮审查, 重写与验证, 以消除歧义并保证可评测性. 最终数据集包含 200 个经过筛选的测试用例, 反映真实工具调用能力.
 
 ## 7 结论
 
@@ -728,13 +646,9 @@ ToolCall-Badcase 是一个内部基准, 来源于用户在生产环境中报告�
 
 贡献者姓名按名字的字母顺序排列.
 
-**核心贡献者**
+**核心贡献者** Chendi Ge, Chenghua Huang, Chengxing Xie, Chenzheng Zhu, Congfeng Yin, Cunxiang Wang, Gengzheng Pan, Hao Zeng, Haoke Zhang, Haoran Wang, Huilong Chen, Jiajie Zhang, Jian Jiao, Jiaqi Guo, Jingsen Wang, Jingzhao Du, Jinzhu Wu, Kedong Wang, Lei Li, Lin Fan, Lucen Zhong, Mingdao Liu, Mingming Zhao, Pengfan Du, Qian Dong, Rui Lu, Shuang Li (李爽), Shulin Cao, Song Liu, Ting Jiang, Xiaodong Chen, Xiaohan Zhang, Xuancheng Huang, Xuezhen Dong, Yabo Xu, Yao Wei, Yifan An, Yilin Niu, Yitong Zhu, Yuanhao Wen, Yukuo Cen, Yushi Bai, Zhongpei Qiao, Zihan Wang, Zikang Wang, Zilin Zhu, Ziqiang Liu, Zixuan Li
 
-Chendi Ge, Chenghua Huang, Chengxing Xie, Chenzheng Zhu, Congfeng Yin, Cunxiang Wang, Gengzheng Pan, Hao Zeng, Haoke Zhang, Haoran Wang, Huilong Chen, Jiajie Zhang, Jian Jiao, Jiaqi Guo, Jingsen Wang, Jingzhao Du, Jinzhu Wu, Kedong Wang, Lei Li, Lin Fan, Lucen Zhong, Mingdao Liu, Mingming Zhao, Pengfan Du, Qian Dong, Rui Lu, Shuang Li (李爽), Shulin Cao, Song Liu, Ting Jiang, Xiaodong Chen, Xiaohan Zhang, Xuancheng Huang, Xuezhen Dong, Yabo Xu, Yao Wei, Yifan An, Yilin Niu, Yitong Zhu, Yuanhao Wen, Yukuo Cen, Yushi Bai, Zhongpei Qiao, Zihan Wang, Zikang Wang, Zilin Zhu, Ziqiang Liu, Zixuan Li
-
-**贡献者**
-
-Bojie Wang, Bosi Wen, Can Huang, Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, Chenhui Zhang, Dan Zhang, Daoyan Lin, Dayong Yang, Di Wang, Ding Ai, Erle Zhu, Fangzhou Yi, Feiyu Chen, Guohong Wen, Hailong Sun, Haisha Zhao, Haiyi Hu, Hanchen Zhang, Hanrui Liu, Hanyu Zhang, Hao Peng, Hao Tai, Haobo Zhang, He Liu, Hongwei Wang, Hongxi Yan, Hongyu Ge, Huan Liu, Huanpeng Chu, Jia'ni Zhao, Jiachen Wang, Jiajing Zhao, Jiamin Ren, Jiapeng Wang, Jiaxin Zhang, Jiayi Gui, Jiayue Zhao, Jijie Li, Jing An, Jing Li, Jingwei Yuan, Jinhua Du, Jinxin Liu, Junkai Zhi, Junwen Duan, Kaiyue Zhou, Kangjian Wei, Ke Wang, Keyun Luo, Laiqiang Zhang, Leigang Sha, Liang Xu, Lindong Wu, Lintao Ding, Lu Chen, Minghao Li, Nianyi Lin, Pan Ta, Qiang Zou, Rongjun Song, Ruiqi Yang, Shangqing Tu, Shangtong Yang, Shaoxiang Wu, Shengyan Zhang, Shijie Li, Shuang Li (李泷), Shuyi Fan, Wei Qin, Wei Tian, Weining Zhang, Wenbo Yu, Wenjie Liang, Xiang Kuang, Xiangmeng Cheng, Xiangyang Li, Xiaoquan Yan, Xiaowei Hu, Xiaoying Ling, Xing Fan, Xingye Xia, Xinyuan Zhang, Xinze Zhang, Xirui Pan, Xu Zou, Xunkai Zhang, Yadi Liu, Yandong Wu, Yanfu Li, Yidong Wang, Yifan Zhu, Yijun Tan, Yilin Zhou, Yiming Pan, Ying Zhang, Yinpei Su, Yipeng Geng, Yong Yan, Yonglin Tan, Yuean Bi, Yuhan Shen, Yuhao Yang, Yujiang Li, Yunan Liu, Yunqing Wang, Yuntao Li, Yurong Wu, Yutao Zhang, Yuxi Duan, Yuxuan Zhang, Zezhen Liu, Zhengtao Jiang, Zhenhe Yan, Zheyu Zhang, Zhixiang Wei, Zhuo Chen, Zhuoer Feng, Zijun Yao, Ziwei Chai, Ziyuan Wang, Zuzhou Zhang
+**贡献者** Bojie Wang, Bosi Wen, Can Huang, Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, Chenhui Zhang, Dan Zhang, Daoyan Lin, Dayong Yang, Di Wang, Ding Ai, Erle Zhu, Fangzhou Yi, Feiyu Chen, Guohong Wen, Hailong Sun, Haisha Zhao, Haiyi Hu, Hanchen Zhang, Hanrui Liu, Hanyu Zhang, Hao Peng, Hao Tai, Haobo Zhang, He Liu, Hongwei Wang, Hongxi Yan, Hongyu Ge, Huan Liu, Huanpeng Chu, Jia'ni Zhao, Jiachen Wang, Jiajing Zhao, Jiamin Ren, Jiapeng Wang, Jiaxin Zhang, Jiayi Gui, Jiayue Zhao, Jijie Li, Jing An, Jing Li, Jingwei Yuan, Jinhua Du, Jinxin Liu, Junkai Zhi, Junwen Duan, Kaiyue Zhou, Kangjian Wei, Ke Wang, Keyun Luo, Laiqiang Zhang, Leigang Sha, Liang Xu, Lindong Wu, Lintao Ding, Lu Chen, Minghao Li, Nianyi Lin, Pan Ta, Qiang Zou, Rongjun Song, Ruiqi Yang, Shangqing Tu, Shangtong Yang, Shaoxiang Wu, Shengyan Zhang, Shijie Li, Shuang Li (李泷), Shuyi Fan, Wei Qin, Wei Tian, Weining Zhang, Wenbo Yu, Wenjie Liang, Xiang Kuang, Xiangmeng Cheng, Xiangyang Li, Xiaoquan Yan, Xiaowei Hu, Xiaoying Ling, Xing Fan, Xingye Xia, Xinyuan Zhang, Xinze Zhang, Xirui Pan, Xu Zou, Xunkai Zhang, Yadi Liu, Yandong Wu, Yanfu Li, Yidong Wang, Yifan Zhu, Yijun Tan, Yilin Zhou, Yiming Pan, Ying Zhang, Yinpei Su, Yipeng Geng, Yong Yan, Yonglin Tan, Yuean Bi, Yuhan Shen, Yuhao Yang, Yujiang Li, Yunan Liu, Yunqing Wang, Yuntao Li, Yurong Wu, Yutao Zhang, Yuxi Duan, Yuxuan Zhang, Zezhen Liu, Zhengtao Jiang, Zhenhe Yan, Zheyu Zhang, Zhixiang Wei, Zhuo Chen, Zhuoer Feng, Zijun Yao, Ziwei Chai, Ziyuan Wang, Zuzhou Zhang
 
 **技术负责人** Aohan Zeng, Xin Lv, Zhenyu Hou, Zhengxiao Du, Qinkai Zheng, Bin Chen, Da Yin
 
@@ -744,21 +658,13 @@ Bojie Wang, Bosi Wen, Can Huang, Changpeng Cai, Chao Yu, Chen Li, Chengwei Hu, C
 
 感谢所有联合发布合作伙伴与社区开发者的支持 (按字母顺序排列):
 
-**开源社区:**
+**开源社区:** Hugging Face, MLX, ModelScope, SGLang, Unsloth, vLLM, xLLM
 
-Hugging Face, MLX, ModelScope, SGLang, Unsloth, vLLM, xLLM
+**推理服务提供商:** Amazon Bedrock, Atlas Cloud, Baidu AI Cloud, Baseten, Cerebras, DeepInfra, Fireworks, FriendliAI, GMI Cloud, Google Cloud Vertex AI, Infinigence AI, Modal, Novita AI, Parasail, Phala, PPIO, SiliconFlow, StreamLake, Together AI, Venice, Weights & Biases
 
-**推理服务提供商:**
+**应用:** CatPaw, Cline, CodeBuddy, CodeRider, Coze, Crush, Factory AI, Kilo Code, MonkeyCode, OpenClaw, OpenCode, Qoder, Roo Code, TRAE, Verdent AI, WPS, YouWare
 
-Amazon Bedrock, Atlas Cloud, Baidu AI Cloud, Baseten, Cerebras, DeepInfra, Fireworks, FriendliAI, GMI Cloud, Google Cloud Vertex AI, Infinigence AI, Modal, Novita AI, Parasail, Phala, PPIO, SiliconFlow, StreamLake, Together AI, Venice, Weights & Biases
-
-**应用:**
-
-CatPaw, Cline, CodeBuddy, CodeRider, Coze, Crush, Factory AI, Kilo Code, MonkeyCode, OpenClaw, OpenCode, Qoder, Roo Code, TRAE, Verdent AI, WPS, YouWare
-
-**AI 网关:**
-
-AI Ping, EZmodel, iFlow, OpenRouter, Vercel, Yupp, ZenMux
+**AI 网关:** AI Ping, EZmodel, iFlow, OpenRouter, Vercel, Yupp, ZenMux
 
 ## 附录 A 超参数
 
@@ -786,17 +692,17 @@ GLM-5 模型架构相关的超参数见[表 10](#table-10).
 
 ### B.2 ARC 基准评测
 
-Humanity's Last Exam (HLE) 与其他推理任务: 最大生成长度为 $131,072$ token ($temperature=1.0,top\_p=0.95,max\_new\_tokens=131072$). 默认报告纯文本子集, 标有 * 的结果来自完整数据集. 使用 GPT-5.2 (medium) 作为 judge 模型. HLE-with-tools 的最大上下文长度为 $202,752$ token.
+Humanity's Last Exam (HLE) 与其他推理任务: 最大生成长度为 $131,072$ token ($\mathrm{temperature}=1.0,\mathrm{top\_p}=0.95,\mathrm{max\_new\_tokens}=131072$). 默认报告纯文本子集, 标有 * 的结果来自完整数据集. 使用 GPT-5.2 (medium) 作为 judge 模型. HLE-with-tools 的最大上下文长度为 $202,752$ token.
 
-SWE-bench 与 SWE-bench Multilingual: 使用 OpenHands 运行 SWE-bench 套件, 并采用定制指令提示词. 设置为 $temperature=0.7,top\_p=0.95,max\_new\_tokens=16384$, 上下文窗口为 200K.
+SWE-bench 与 SWE-bench Multilingual: 使用 OpenHands 运行 SWE-bench 套件, 并采用定制指令提示词. 设置为 $\mathrm{temperature}=0.7,\mathrm{top\_p}=0.95,\mathrm{max\_new\_tokens}=16384$, 上下文窗口为 200K.
 
 BrowseComp: 不使用上下文管理时, 保留最近 5 轮的详细信息. 使用上下文管理时, 采用与 DeepSeek-V3.2 和 Kimi K2.5 相同的 discard-all 策略.
 
-Terminal-Bench 2.0 (Terminus 2): 使用 Terminus 框架评测, 设置为 $timeout=2h,temperature=0.7,top\_p=1.0,max\_new\_tokens=8192$, 上下文窗口为 128K. 资源上限为 16 个 CPU 与 32 GB 内存.
+Terminal-Bench 2.0 (Terminus 2): 使用 Terminus 框架评测, 设置为 $\mathrm{timeout}=2\mathrm{h},\mathrm{temperature}=0.7,\mathrm{top\_p}=1.0,\mathrm{max\_new\_tokens}=8192$, 上下文窗口为 128K. 资源上限为 16 个 CPU 与 32 GB 内存.
 
-Terminal-Bench 2.0 (Claude Code): 在 Claude Code 2.1.14 (思考模式) 中评测, 设置为 $temperature=1.0,top\_p=0.95,max\_new\_tokens=65536$. 移除实际时间限制, 同时保留每项任务的 CPU 与内存约束. 我们修复 Claude Code 引入的环境问题, 并报告经过验证的 Terminal-Bench 2.0 数据集上的结果, 该数据集解决了含糊指令问题 (见 [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified)). 分数取 5 次运行的平均值.
+Terminal-Bench 2.0 (Claude Code): 在 Claude Code 2.1.14 (思考模式) 中评测, 设置为 $\mathrm{temperature}=1.0,\mathrm{top\_p}=0.95,\mathrm{max\_new\_tokens}=65536$. 移除实际时间限制, 同时保留每项任务的 CPU 与内存约束. 我们修复 Claude Code 引入的环境问题, 并报告经过验证的 Terminal-Bench 2.0 数据集上的结果, 该数据集解决了含糊指令问题 (见 [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified)). 分数取 5 次运行的平均值.
 
-CyberGym: 在 Claude Code 2.1.18 中评测 (思考模式, 无 Web 工具), 设置为 $temperature=1.0,top\_p=1.0,max\_new\_tokens=32000$, 每项任务超时 250 分钟. 结果是在 1,507 项任务上单次运行的 Pass@1.
+CyberGym: 在 Claude Code 2.1.18 中评测 (思考模式, 无 Web 工具), 设置为 $\mathrm{temperature}=1.0,\mathrm{top\_p}=1.0,\mathrm{max\_new\_tokens}=32000$, 每项任务超时 250 分钟. 结果是在 1,507 项任务上单次运行的 Pass@1.
 
 MCP-Atlas: 所有模型均在思考模式下对 500 项公开任务子集进行评测, 每项任务超时 10 分钟. 使用 Gemini 3 Pro 作为 judge 模型.
 
@@ -887,9 +793,7 @@ SYSTEM_PROMPT = """"
 
 #### B.4.1 前端评测
 
-**数据.**
-
-数据集包含七种不同的前端场景, 用于评估模型在多样功能领域中的工程能力: 企业管理系统, Web 游戏, SVG/Canvas 渲染, 创意工具与编辑器, 展示页面, 表单与表格, 以及数据可视化.
+**数据.** 数据集包含七种不同的前端场景, 用于评估模型在多样功能领域中的工程能力: 企业管理系统, Web 游戏, SVG/Canvas 渲染, 创意工具与编辑器, 展示页面, 表单与表格, 以及数据可视化.
 
 <span id="table-12"></span>
 
@@ -897,9 +801,7 @@ SYSTEM_PROMPT = """"
 
 **表 12.** 前端应用场景分布.
 
-**按编码语言划分的数据分布**
-
-该基准完整覆盖三种主流范式: 原生 Web 技术栈 (HTML/CSS/JS), React 组件化框架, 以及 Vue 3 + Vite 渐进式方案.
+**按编码语言划分的数据分布** 该基准完整覆盖三种主流范式: 原生 Web 技术栈 (HTML/CSS/JS), React 组件化框架, 以及 Vue 3 + Vite 渐进式方案.
 
 <span id="table-13"></span>
 
@@ -907,9 +809,7 @@ SYSTEM_PROMPT = """"
 
 **表 13.** 技术栈与评测单元统计.
 
-**数据样例**
-
-每个测试用例由三个部分组成: **任务**, **检查清单**和**专用环境**. 以下是一个具有代表性的测试用例:
+**数据样例** 每个测试用例由三个部分组成: **任务**, **检查清单**和**专用环境**. 以下是一个具有代表性的测试用例:
 
 ```text
   Task: Develop an online drawing tool that includes a brush, an eraser, a white canvas, and a save button.
@@ -924,9 +824,7 @@ SYSTEM_PROMPT = """"
   Upon clicking the "Save" button, the generated image is successfully saved to the local machine.
 ```
 
-**数据构建与验证**
-
-我们实施严格的四阶段流程以保证数据质量:
+**数据构建与验证** 我们实施严格的四阶段流程以保证数据质量:
 
 - 阶段 1: 任务合成. 任务由资深前端专家设计, 既反映真实工程挑战, 又在不同场景与技术之间保持均衡分布.
 - 阶段 2: 检查清单生成与改进. 首先使用 Claude Sonnet 4.5 根据任务规约 $T$ 合成候选检查清单, 再由专家细致审核并整合. 经过多轮改进, 确保每个检查项语义明确, 客观, 并完整覆盖用户要求.

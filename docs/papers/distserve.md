@@ -178,43 +178,24 @@ $$
 
 ### 4.1 高节点亲和集群的部署
 
-算法 1 高节点亲和部署算法
+**算法 1: 高节点亲和部署算法.**
 
-LLM $G$, #node 每实例限制 $N$, #GPU 每节点 $M$, GPU 内存容量 $C$, 工作负载 $W$, 流量速率 $R$.
-
-放置 $\mathit{\mathrm{best}\_\mathrm{plm}}.$
-
-$\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\emptyset$
-
-$\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\emptyset$
-
-对于 $\mathit{\mathrm{intra}\_\mathrm{op}}\in\{1,2,...,M\}$ 执行
-
-对于 $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,\frac{N\times M}{\mathit{\mathrm{intra}\_\mathrm{op}}}\}$ 执行
-
-如果 $\frac{G.\mathrm{size}}{\mathit{\mathrm{inter}\_\mathrm{op}}\times\mathit{\mathrm{intra}\_\mathrm{op}}}<C$ 那么
-
- $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{op}})$
-
-$\mathit{\mathrm{prefill}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_prefill}(\hat{G},W)$
-
- $\mathit{\mathrm{decode}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_decode}(\hat{G},W)$
-
-如果 $\frac{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{prefill}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{prefill}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ 那么
-
-$\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$
-
-如果 $\frac{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{decode}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{decode}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$ 那么
-
-$\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$
-
-$n\leftarrow\lceil\frac{R}{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$m\leftarrow\lceil\frac{R}{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathrm{config}},\mathit{\mathrm{decode}\_\mathrm{config}},n,m)$
-
-返回 $\mathit{\mathrm{best}\_\mathrm{plm}}$
+- **输入:** LLM $G$, 每实例节点上限 $N$, 每节点 GPU 数 $M$, GPU 内存容量 $C$, 工作负载 $W$, 流量速率 $R$.
+- **输出:** 部署 $\mathit{\mathrm{best}\_\mathrm{plm}}$.
+- 初始化 $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\emptyset$ 和 $\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\emptyset$.
+- **对于** $\mathit{\mathrm{intra}\_\mathrm{op}}\in\{1,2,...,M\}$:
+  - **对于** $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,\frac{N\times M}{\mathit{\mathrm{intra}\_\mathrm{op}}}\}$:
+    - **如果** $\frac{G.\mathrm{size}}{\mathit{\mathrm{inter}\_\mathrm{op}}\times\mathit{\mathrm{intra}\_\mathrm{op}}}<C$:
+      - $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{op}})$.
+      - $\mathit{\mathrm{prefill}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_prefill}(\hat{G},W)$.
+      - $\mathit{\mathrm{decode}\_\mathrm{goodput}}\leftarrow\mathrm{simu\_decode}(\hat{G},W)$.
+      - **如果** $\frac{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{prefill}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{prefill}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$:
+        - $\mathit{\mathrm{prefill}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$.
+      - **如果** $\frac{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{decode}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{\mathrm{decode}\_\mathrm{goodput}}}{\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}$:
+        - $\mathit{\mathrm{decode}\_\mathrm{config}}\leftarrow\mathit{\mathrm{config}}$.
+- $n\leftarrow\lceil\frac{R}{\mathit{\mathrm{prefill}\_\mathrm{config}.\mathrm{goodput}}}\rceil$ 且 $m\leftarrow\lceil\frac{R}{\mathit{\mathrm{decode}\_\mathrm{config}.\mathrm{goodput}}}\rceil$.
+- $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathrm{config}},\mathit{\mathrm{decode}\_\mathrm{config}},n,m)$.
+- **返回:** $\mathit{\mathrm{best}\_\mathrm{plm}}$.
 
 在配备了 Infiniband 的高节点亲和性集群上, KV 缓存跨节点的传输开销可以忽略不计, DistServe 可以在任意两个节点之间高效地部署预填充和解码实例而不受限制. 我们为此类场景提出了一个两级放置算法: 我们首先分别优化预填充和解码实例的并行配置, 以达到每个 GPU 的阶段级最佳吞吐量; 然后, 我们使用复制来匹配整体流量速率.
 
@@ -228,33 +209,21 @@ $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{prefill}\_\mathr
 
 到目前为止, 我们已经开发了算法 [1](#alg1), 假设我们可以在集群的任意两个节点之间放置预填充和解码, 并且 KV 缓存传输利用高带宽. 在许多真实集群中, 节点内部的 GPU 可以通过高带宽 NVLINK 访问, 而分布在不同节点的 GPU 的带宽有限. 接下来我们开发一个算法来应对这一限制.
 
-算法 2 低节点亲和力部署算法
+**算法 2: 低节点亲和力部署算法.**
 
-LLM $G$, #node 每实例限制 $N$, #GPU 每节点 $M$, GPU 内存容量 $C$, 工作负载 $W$, 流量速率 $R$.
-
-的部署 $\mathit{\mathrm{best}\_\mathrm{plm}}.$
-
-$\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow\emptyset$
-
-用于 $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,N\}$ 做
-
-$\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}})$
-
-$\mathcal{P}\leftarrow\mathrm{get\_intra\_node\_configs}(\hat{G},M,C)$
-
-对于 $P\in\mathcal{P}$ 做
-
-$\mathit{P.\mathrm{goodput}}\leftarrow\mathrm{simulate}(\hat{G},P,W)$
-
-如果 $\frac{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{P.\mathrm{goodput}}}{P.\mathrm{num}\_\mathrm{gpus}}$ 那么
-
- $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow P$
-
-$n\leftarrow\lceil\frac{R}{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}\rceil$
-
-$\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}},n)$
-
-返回 $\mathit{\mathrm{best}\_\mathrm{plm}}$
+- **输入:** LLM $G$, 每实例节点上限 $N$, 每节点 GPU 数 $M$, GPU 内存容量 $C$, 工作负载 $W$, 流量速率 $R$.
+- **输出:** 部署 $\mathit{\mathrm{best}\_\mathrm{plm}}$.
+- 初始化 $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow\emptyset$.
+- **对于** $\mathit{\mathrm{inter}\_\mathrm{op}}\in\{1,2,...,N\}$:
+  - $\hat{G}\leftarrow\mathrm{parallel}(G,\mathit{\mathrm{inter}\_\mathrm{op}})$.
+  - $\mathcal{P}\leftarrow\mathrm{get\_intra\_node\_configs}(\hat{G},M,C)$.
+  - **对于** $P\in\mathcal{P}$:
+    - $\mathit{P.\mathrm{goodput}}\leftarrow\mathrm{simulate}(\hat{G},P,W)$.
+    - **如果** $\frac{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{num}\_\mathrm{gpus}}<\frac{\mathit{P.\mathrm{goodput}}}{P.\mathrm{num}\_\mathrm{gpus}}$:
+      - $\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}}\leftarrow P$.
+- $n\leftarrow\lceil\frac{R}{\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}.\mathrm{goodput}}}\rceil$.
+- $\mathit{\mathrm{best}\_\mathrm{plm}}\leftarrow(\mathit{\mathrm{inter}\_\mathrm{op}},\mathit{\mathrm{intra}\_\mathrm{node}\_\mathrm{config}},n)$.
+- **返回:** $\mathit{\mathrm{best}\_\mathrm{plm}}$.
 
 ### 4.2 低节点亲和力集群的部署
 

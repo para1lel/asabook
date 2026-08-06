@@ -126,83 +126,31 @@ $$
 
 ランダムルーティング 直感的には、$y_{s}$ が選択されたエキスパートの返却値の加重平均であるため、2 番目のエキスパートの重みが非常に小さい場合、全体のエキスパート容量を節約するために 2 番目のエキスパートを単純に無視できます。したがって、エキスパート容量の制約を尊重することに加えて、$\mathrm{GATE}(\cdot)$ は 2 番目に優れたエキスパートへの配分をその重み $g_{2}$ に比例する確率で行います。
 
-1
+**アルゴリズム 1：グループレベルの top-2 ゲーティングと補助損失。**
 
-データ： $x_{S}$、サイズ$S$のトークングループ
-
-データ： $C$、このグループに割り当てられた専門家容量
-
-2
-
-結果： $\mathcal{G}_{S,E}$、グループ結合重み
-
-結果： $\ell_{\mathrm{aux}}$、グループ補助損失
-
-3
-
-4$c_{E}\leftarrow 0$ $\triangleright$ 専門家ごとのゲーティング決定
-
-5$g_{S,E}\leftarrow \mathrm{softmax}(\mathrm{wg}\cdot x_{S})$ $\triangleright$ トークンごとのエキスパートごとのゲート、$\mathrm{wg}$ は学習可能な重みです
-
-6$m_{E}\leftarrow\frac{1}{S}\sum^{s}_{s=1}g_{s,E}$ $\triangleright$ 専門家ごとの平均ゲート
-
-7
-
-8*$s\leftarrow 1$ から $S$まで* のループ
-
-9       $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 ゲートおよびエキスパートインデックス
-
-10      $g1\leftarrow g1/(g1+g2)$ $\triangleright$ 正規化された $g1$
-
-11      $c\leftarrow c_{e1}$ $\triangleright$ $e1$ 専門家バッファ内の位置
-
-12      もし *$c_{e1}<C$* なら
-
-13
-
-14            $\mathcal{G}_{s,e1}\leftarrow g1$ $\triangleright$ $e1$ $x_{s}$ の専門家結合重み
-
-15       終了
-
-16
-
-17      $c_{e1}\leftarrow c+1$ $\triangleright$ $e1$ 専門家決定カウントを増やす
-
-18 ループ終了
-
-19
-
-20
-
-21$\ell_{\mathrm{aux}}=\frac{1}{E}\sum^{E}_{e=1}\frac{c_{e}}{S}\cdot m_{e}$
-
-22 *$s\leftarrow 1$ から $S$ まで* for do
-
-23       $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ トップ2ゲートとエキスパートインデックス
-
-24      $g2\leftarrow g2/(g1+g2)$ $\triangleright$ 正規化された $g2$
-
-25      $\mathrm{rnd}\leftarrow \mathrm{uniform}(0,1)$ $\triangleright$ 確率 $\propto 2\cdot g2$ でセカンドベストエキスパートにディスパッチ
-
-26      $c\leftarrow c_{e2}$ $\triangleright$ $e2$ エキスパートバッファ内の位置
-
-27      もし *$c<C\land 2\cdot g2>\mathrm{rnd}$* なら
-
-28
-
-29            $\mathcal{G}_{s,e2}\leftarrow g2$ $\triangleright$ $e2$ $x_{s}$ のエキスパート結合重み
-
-30       end if
-
-31
-
-32      $c_{e2}\leftarrow c+1$
-
-33 end for
-
-34
-
-アルゴリズム 1 グループレベルの上位2ゲーティングと補助損失
+- **データ：** $x_{S}$、サイズ $S$ のトークンのグループ。
+- **データ：** $C$、このグループに割り当てられたエキスパート容量。
+- **結果：** $\mathcal{G}_{S,E}$、グループ結合重み。
+- **結果：** $\ell_{\mathrm{aux}}$、グループ補助損失。
+- $c_{E}\leftarrow 0$ $\triangleright$ エキスパートごとのゲーティング決定。
+- $g_{S,E}\leftarrow \mathrm{softmax}(\mathrm{wg}\cdot x_{S})$ $\triangleright$ トークンごとのエキスパートごとのゲート。$\mathrm{wg}$ は学習可能な重み。
+- $m_{E}\leftarrow\frac{1}{S}\sum^{s}_{s=1}g_{s,E}$ $\triangleright$ エキスパートごとの平均ゲート。
+- **$s\leftarrow 1$ から $S$ まで繰り返す：**
+  - $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 ゲートおよびエキスパートインデックス。
+  - $g1\leftarrow g1/(g1+g2)$ $\triangleright$ 正規化された $g1$。
+  - $c\leftarrow c_{e1}$ $\triangleright$ $e1$ エキスパートバッファ内の位置。
+  - **もし** $c_{e1}<C$ **なら：**
+    - $\mathcal{G}_{s,e1}\leftarrow g1$ $\triangleright$ $e1$ $x_{s}$ のエキスパート結合重み。
+  - $c_{e1}\leftarrow c+1$ $\triangleright$ $e1$ エキスパート決定カウントを増やす。
+- $\ell_{\mathrm{aux}}=\frac{1}{E}\sum^{E}_{e=1}\frac{c_{e}}{S}\cdot m_{e}$。
+- **$s\leftarrow 1$ から $S$ まで繰り返す：**
+  - $g1,e1,g2,e2=\mathrm{top}\_2(g_{s,E})$ $\triangleright$ top-2 ゲートおよびエキスパートインデックス。
+  - $g2\leftarrow g2/(g1+g2)$ $\triangleright$ 正規化された $g2$。
+  - $\mathrm{rnd}\leftarrow \mathrm{uniform}(0,1)$ $\triangleright$ 確率 $\propto 2\cdot g2$ でセカンドベストエキスパートにディスパッチ。
+  - $c\leftarrow c_{e2}$ $\triangleright$ $e2$ エキスパートバッファ内の位置。
+  - **もし** $c<C\land 2\cdot g2>\mathrm{rnd}$ **なら：**
+    - $\mathcal{G}_{s,e2}\leftarrow g2$ $\triangleright$ $e2$ $x_{s}$ のエキスパート結合重み。
+  - $c_{e2}\leftarrow c+1$。
 
 ## 3 GShard を使用した高並列実装
 
@@ -220,31 +168,17 @@ $$
 
 Top2Gating in Algorithm [2]（#alg2 「3.1 ポジションごとのエキスチュア・オブ・エキスパート層を線形代数で表現 ‣ 3 GShardを用いた高度並列実装 ‣ GShard： Scaling Giant Models with Conditional Computation and Automatic Sharding」）は、Algorithm [1]（#alg1 「2.2 ポジション別混合エキスチュア層 ‣ 2 モデル ‣ GShard： Scaling Giant Models with Conditional Computation and Automatic Sharding」）で記述されたすべてのグループ局所$\mathcal{G}_{S,E}$の和合を計算します。 コンバイン\_weightsは形状\[G, S, E, C\]の4次元テンソルです。グループ$g$の入力トークン$s$がエキスパート$e$の入力バッファに送られたとき、値のcombine\_weights\[g, s, e, c\]はゼロでない$c$値となります。特定の g と s に対して、スライス結合 \_weight\[g, s, ：, ：\] は最大で2つの非ゼロのヴァールを含みます。バイナリディスパッチ\_maskは、combine\_weightsからすべてのゼロでない値を1に設定することで生成されます。
 
-1
+**アルゴリズム 2：位置ごとの MoE 層の順方向通過。下線付きの文字（例：G と E）はテンソルが分割される次元を示します。**
 
-2
+[⬇]（data：text/plain；base64,Z2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bSgiJlxHRyZTTSxNRS0 JlxHRyZTRSIsIGlucHV0cywgd2cpKQpjb21iaW5lX3dlaWdodHMsIGRpc3BhdGNoX21hc2sgPSBUb3AyR2F0aW5nKGdhdGVzKQpkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZTTS0 JlxFRSZHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCmggPSBlaW5zdW0oIiZcRUUmR0NNLCZcRUUmTUgtPiZcRUUmR0NIIiwgZGlzcGF0Y2hlZF9leHBlcnRfaW5wdXRzLCB3aSkKaCA9IHJlbHUoaCkKZXhwZXJ0X291dHB1dHMgPSBlaW5zdW0oIiZcRUUmR0NILCZcRUUmSE0tPiZcR0cmRUNNIiwgaCwgd28pCm91dHB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZFQ00tPiZcR0cmU00iLCBjb21iaW5lX3dlaWdodHMsIGV4cGVydF9vdXRwdXRzKQ==）
 
-[⬇]（data：text/plain；base64,Z2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bSgiJlxHRyZTTSxNRS0 JlxHRyZTRSIsIGlucHV0cywgd2cpKQpjb21iaW5lX3dlaWdodHMsIGRpc3BhdGNoX21hc2sgPSBUb3AyR2F0aW5nKGdhdGVzKQpkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZTTS0 JlxFRSZHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCmggPSBlaW5zdW0oIiZcRUUmR0NNLCZcRUUmTUgtPiZcRUUmR0NIIiwgZGlzcGF0Y2hlZF9leHBlcnRfaW5wdXRzLCB3aikKaCA9IHJlbHUoaCkKZXhwZXJ0X291dHB1dHMgPSBlaW5zdW0oIiZcRUUmR0NILCZcRUUmSE0tPiZcR0cmRUNNIiwgaCwgd28pCm91dHB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZFQ00tPiZcR0cmU00iLCBjb21iaW5lX3dlaWdodHMsIGV4cGVydF9vdXRwdXRzKQ==）
-
-1ゲート \= softmax（einsum（"GSM,ME->GSE"、入力、wg））
-
-2combine\_weights、ディスパッチ\_mask \= Top2Gating（ゲート）
-
-3dispatched\_expert\_inputs \= einsum（
-
-4 「GSEC、GSM->EGCM」、ディスパッチ\_mask、再編成\_inputs）
-
-5h \= einsum（"EGCM,EMH->EGCH"、派遣\_expert\_inputs、wi）
-
-6h \= relu（h）
-
-7expert_outputs = einsum（"EGCH,EHM->GECM", h, wo）
-
-8 出力 \= einsum（
-
-9 「GSEC、GECM->GSM」、コンバイン、エキスカ_weights、エキスパート\_outputs）
-
-アルゴリズム2 位置ごとのMoE層の順方向通過。下引線付きの文字（例：GとE）はテンソルが分割される次元を示します。
+- $\mathrm{gates}\leftarrow\mathrm{softmax}(\mathrm{einsum}("\mathrm{GSM},\mathrm{ME}\to\mathrm{GSE}",\mathrm{inputs},\mathrm{wg}))$。
+- $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$。
+- $\mathrm{dispatched\_expert\_inputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GSM}\to\mathrm{EGCM}",\mathrm{dispatch\_mask},\mathrm{reshaped\_inputs})$。
+- $h\leftarrow\mathrm{einsum}("\mathrm{EGCM},\mathrm{EMH}\to\mathrm{EGCH}",\mathrm{dispatched\_expert\_inputs},\mathrm{wi})$。
+- $h\leftarrow\mathrm{relu}(h)$。
+- $\mathrm{expert\_outputs}\leftarrow\mathrm{einsum}("\mathrm{EGCH},\mathrm{EHM}\to\mathrm{GECM}",h,\mathrm{wo})$。
+- $\mathrm{outputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GECM}\to\mathrm{GSM}",\mathrm{combine\_weights},\mathrm{expert\_outputs})$。
 
 アルゴリズムが $D$ 台のデバイスを持つクラスターにスケールできるように、グループの数 $G$ と専門家の数 $E$ を適切に選択する必要があります。$N$ トークンのトレーニングバッチが与えられたトレーニングステップにおける全体の計算量（浮動小数点演算の総数）を分析する価値があります。
 
@@ -296,29 +230,17 @@ GShardは、単純なAPIがすべての次元に同じ方法で適用される�
 
 [⬇]（data：text/plain；base64,ICAjIFBhcnRpdGlvbiBpbnB1dHMgYWxvbmcgZ3JvdXAgKEcpIGRpbS4KJVxIaWxpZ2h0JSsgaW5wdXRzID0gc3BsaXQoaW5wdXRzLCAwLCBEKQogICMgUmVwbGljYXRlIHRoZSBnYXRpbmcgd2VpZ2h0cwolXEhpbGlnaHQlKyB3ZyA9IHJlcGxpY2F0ZSh3ZykKICBnYXRlcyA9IHNvZnRtYXgoZWluc3VtKCJHU00sTUUtPkdTRSIsIGlucHV0cywgd2cpKQogIGNvbWJpbmVfd2VpZ2h0cywgZGlzcGF0Y2hfbWFzayA9IFRvcDJHYXRpbmcoZ2F0aW5nX2xvZ2l0cykKICBkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiR1NFQyxHU00tPkVHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCiAgIyBQYXJ0aXRpb24gZGlzcGF0Y2hlZCBpbnB1dHMgYWxvbmcgZXhwZXJ0IChFKSBkaW0uCiVcSGlsaWdodCUrIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cyA9IHNwbGl0KGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgMCwgRCkKICBoID0gZWluc3VtKCJFR0NNLEVNSC- RUdDSCIsIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgd2kpCiAgLi4u）
 
-1 # 入力をグループ（G）dimに分配する。
-
-2つの入力 \= 分割（入力、0、D）
-
-3 # ゲートウェイトを再現する
-
-4   wg \= wgを複製する（replicate）
-
-5つのゲート = softmax（einsum（"GSM,ME->GSE", inputs, wg））
-
-6 combine_weights, dispatch_mask = Top2Gating（gating_logits）
-
-7 派遣\_expert\_inputs \= einsum（
-
-8 「GSEC,GSM->EGCM」、dispatch_mask、reshaped_inputs）
-
-9 # エキスパート（E）次元に沿って分配された入力を分割する
-
-10   dispatched_expert_inputs = split（dispatched_expert_inputs, 0, D）
-
-11 h = einsum（"EGCM,EMH->EGCH", dispatched_expert_inputs, wi）
-
-12 ...
+- **入力をグループ（G）次元に沿って分割する。**
+- \`inputs = split(inputs, 0, D)\`.
+- **ゲートウェイトを複製する。**
+- \`wg = replicate(wg)\`.
+- \`gates = softmax(einsum("GSM,ME->GSE", inputs, wg))\`.
+- \`combine\_weights, dispatch\_mask = Top2Gating(gating\_logits)\`.
+- \`dispatched\_expert\_inputs = einsum("GSEC,GSM->EGCM", dispatch\_mask, reshaped\_inputs)\`.
+- **エキスパート（E）次元に沿って分配された入力を分割する。**
+- \`dispatched\_expert\_inputs = split(dispatched\_expert\_inputs, 0, D)\`.
+- \`h = einsum("EGCM,EMH->EGCH", dispatched\_expert\_inputs, wi)\`.
+- \`...\`
 
 ##### テンソルごとのシャーディング割り当て
 
@@ -334,47 +256,23 @@ GShardは、単純なAPIがすべての次元に同じ方法で適用される�
 入力 = split（入力, 0, デバイス数）
 # s_indices は形状が [E, G, C, 1] です。値： 入力の S に対するインデックス。）
 
-1# 入力の形状は [G, S, M] です。split（） は論理的な形状を変更しません。
-
-2input = split（input, 0, num_devices）
-
-3# s_indices の形状は [E, G, C, 1] です。値： 入力内の S へのインデックス。
-
-4s_indices = split（s_indices, 1, num_devices）
-
-5
-
-6# 手動パーティショニングを開始します。
-
-7# partitioned_input の形状は [G/num_devices, S, M] です
-
-8 partitioned_input = auto_to_manual_spmd_partition（input）
-
-9# partitioned_s_indices の形状は [E, G/num_devices, C, 1] です
-
-10 partitioned_s_indices = auto_to_manual_spmd_partition（s_indices）
-
-11# partitioned_input に G インデックスを結合： G 次元での Iota。
-
-12partitioned_gs_indices = concat（
-
-13 iota（[E, G/num_devices, C, 1], 1）、partitioned_s_indices、3）
-
-14# partitioned_data の形状は [E, G/num_devices, C, M] です
-
-15partitioned_data = gather（
-
-16 分割された_input、分割された_gs_indices）
-
-17
-
-18# 再び自動パーティショニングに切り替えます。
-
-19# data の形状は [E, G, C, M] です
-
-20 データ = manual_to_auto_spmd_partition（partitioned_data）
-
-21...
+- **入力の形状は** \[G, S, M\]。 \`split()\` は論理的な形状を変更しない。
+- \`input = split(input, 0, num\_devices)\`.
+- **$s_{\mathrm{indices}}$ の形状は** \[E, G, C, 1\]。値は入力内の $S$ へのインデックス。
+- \`s\_indices = split(s\_indices, 1, num\_devices)\`.
+- **手動パーティショニングを開始する。**
+- **partitioned\_input の形状は** \[G/num\_devices, S, M\]。
+  - \`partitioned\_input = auto\_to\_manual\_spmd\_partition(input)\`.
+- **partitioned\_s\_indices の形状は** \[E, G/num\_devices, C, 1\]。
+  - \`partitioned\_s\_indices = auto\_to\_manual\_spmd\_partition(s\_indices)\`.
+- **partitioned\_input に G インデックスを結合する（G 次元での Iota）。**
+  - \`partitioned\_gs\_indices = concat(iota([E, G/num\_devices, C, 1], 1), partitioned\_s\_indices, 3)\`.
+- **partitioned\_data の形状は** \[E, G/num\_devices, C, M\]。
+  - \`partitioned\_data = gather(partitioned\_input, partitioned\_gs\_indices)\`.
+- **自動パーティショニングに戻す。**
+- **data の形状は** \[E, G, C, M\]。
+  - \`data = manual\_to\_auto\_spmd\_partition(partitioned\_data)\`.
+- \`...\`
 
 ### 3.3 GShard の XLA SPMD パーティショナー
 
