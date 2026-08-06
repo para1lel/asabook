@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/megatron-lm/
 ---
 
-> Deepak Narayanan, Mohammad Shoeybi, Jared Casper, Patrick LeGresley, Mostofa Patwary, Vijay Anand Korthikanti, Dmitri Vainbrand, Prethvi Kashinkunti, Julie Bernauer, Bryan Catanzaro, Amar Phanishayee, and Matei Zaharia. First submitted to arXiv on April 9, 2021; current version v5. [Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM](https://arxiv.org/abs/2104.04473). [Original PDF](/paper/megatron-lm.pdf). [TeX source](https://export.arxiv.org/e-print/2104.04473). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Deepak Narayanan](https://dblp.org/pid/177/8846), [Mohammad Shoeybi](https://dblp.org/pid/53/9742), [Jared Casper](https://dblp.org/pid/23/6529), [Patrick LeGresley](https://dblp.org/pid/73/7575), [Mostofa Patwary](https://dblp.org/pid/249/2672), [Vijay Anand Korthikanti](https://dblp.org/pid/78/7786), [Dmitri Vainbrand](https://dblp.org/pid/52/8403), [Prethvi Kashinkunti](https://dblp.org/pid/257/7266), [Julie Bernauer](https://dblp.org/pid/95/5685), [Bryan Catanzaro](https://dblp.org/pid/14/4826), [Amar Phanishayee](https://dblp.org/pid/14/877), and [Matei Zaharia](https://dblp.org/pid/36/2133). First submitted to arXiv on April 9, 2021; current version v5. [Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM](https://arxiv.org/abs/2104.04473). [Original PDF](/paper/megatron-lm.pdf). [TeX source](https://export.arxiv.org/e-print/2104.04473). The original PDF remains authoritative for the exact print layout and bibliography.
 
 (2021)
 

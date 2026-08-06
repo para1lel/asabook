@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /papers/smoothquant/
 ---
 
-> Guangxuan Xiao, Ji Lin, Mickael Seznec, Hao Wu, Julien Demouth, and Song Han. 首次提交至 arXiv: November 18, 2022; 当前版本为 v7. [SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438). [原始 PDF](/paper/smoothquant.pdf). [TeX 源码](https://export.arxiv.org/e-print/2211.10438). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Guangxuan Xiao](https://dblp.org/pid/283/5633), [Ji Lin](https://dblp.org/pid/02/8200-2), [Mickael Seznec](https://dblp.org/pid/232/9601), [Hao Wu](https://dblp.org/pid/72/4250), [Julien Demouth](https://dblp.org/pid/81/5892), and [Song Han](https://dblp.org/pid/80/806-3). 首次提交至 arXiv: November 18, 2022; 当前版本为 v7. [SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438). [原始 PDF](/paper/smoothquant.pdf). [TeX 源码](https://export.arxiv.org/e-print/2211.10438). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

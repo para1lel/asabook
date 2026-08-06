@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:34:32
 permalink: /ja/papers/ring-attention/
 ---
 
-> Hao Liu, Matei Zaharia, and Pieter Abbeel. arXiv 初回投稿日: October 3, 2023; 現行版は v4. [Ring Attention with Blockwise Transformers for Near-Infinite Context](https://arxiv.org/abs/2310.01889). [原 PDF](/paper/ring-attention.pdf). [TeX ソース](https://export.arxiv.org/e-print/2310.01889). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Hao Liu](https://dblp.org/pid/09/3214-55), [Matei Zaharia](https://dblp.org/pid/36/2133), and [Pieter Abbeel](https://dblp.org/pid/a/PieterAbbeel). arXiv 初回投稿日: October 3, 2023; 現行版は v4. [Ring Attention with Blockwise Transformers for Near-Infinite Context](https://arxiv.org/abs/2310.01889). [原 PDF](/paper/ring-attention.pdf). [TeX ソース](https://export.arxiv.org/e-print/2310.01889). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

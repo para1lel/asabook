@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/sarathi/
 ---
 
-> Amey Agrawal, Ashish Panwar, Jayashree Mohan, Nipun Kwatra, Bhargav S. Gulavani, and Ramachandran Ramjee. First submitted to arXiv on August 31, 2023; current version v1. [SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369). [Original PDF](/paper/sarathi.pdf). [TeX source](https://export.arxiv.org/e-print/2308.16369). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Amey Agrawal](https://dblp.org/pid/236/4993), [Ashish Panwar](https://dblp.org/pid/175/5750), [Jayashree Mohan](https://dblp.org/pid/168/3415), [Nipun Kwatra](https://dblp.org/pid/53/6666), [Bhargav S. Gulavani](https://dblp.org/pid/46/396), and [Ramachandran Ramjee](https://dblp.org/pid/97/117). First submitted to arXiv on August 31, 2023; current version v1. [SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369). [Original PDF](/paper/sarathi.pdf). [TeX source](https://export.arxiv.org/e-print/2308.16369). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

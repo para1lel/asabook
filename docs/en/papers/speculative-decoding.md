@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/speculative-decoding/
 ---
 
-> Yaniv Leviathan, Matan Kalman, and Yossi Matias. First submitted to arXiv on November 30, 2022; current version v2. [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192). [Original PDF](/paper/speculative-decoding.pdf). [TeX source](https://export.arxiv.org/e-print/2211.17192). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Yaniv Leviathan](https://dblp.org/pid/331/5369), [Matan Kalman](https://dblp.org/pid/57/2086), and [Yossi Matias](https://dblp.org/pid/m/YossiMatias). First submitted to arXiv on November 30, 2022; current version v2. [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192). [Original PDF](/paper/speculative-decoding.pdf). [TeX source](https://export.arxiv.org/e-print/2211.17192). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

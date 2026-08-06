@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/gated-delta-networks/
 ---
 
-> Songlin Yang, Jan Kautz, and Ali Hatamizadeh. First submitted to arXiv on December 9, 2024; current version v3. [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464). [Original PDF](/paper/gated-delta-networks.pdf). [TeX source](https://export.arxiv.org/e-print/2412.06464). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Songlin Yang](https://dblp.org/pid/03/7764), [Jan Kautz](https://dblp.org/pid/48/6214), and [Ali Hatamizadeh](https://dblp.org/pid/226/7000). First submitted to arXiv on December 9, 2024; current version v3. [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464). [Original PDF](/paper/gated-delta-networks.pdf). [TeX source](https://export.arxiv.org/e-print/2412.06464). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

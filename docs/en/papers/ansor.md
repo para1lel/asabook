@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/ansor/
 ---
 
-> Lianmin Zheng, Chengfan Jia, Minmin Sun, Zhao Wu, Cody Hao Yu, Ameer Haj-Ali, Yida Wang, Jun Yang, Danyang Zhuo, Koushik Sen, Joseph E. Gonzalez, and Ion Stoica. First submitted to arXiv on June 11, 2020; current version v5. [Ansor: Generating High-Performance Tensor Programs for Deep Learning](https://arxiv.org/abs/2006.06762). [Original PDF](/paper/ansor.pdf). [TeX source](https://export.arxiv.org/e-print/2006.06762). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Lianmin Zheng](https://dblp.org/pid/211/7027), [Chengfan Jia](https://dblp.org/pid/225/0687), [Minmin Sun](https://dblp.org/pid/196/9996), [Zhao Wu](https://dblp.org/pid/26/6973), [Cody Hao Yu](https://dblp.org/pid/144/6124), [Ameer Haj-Ali](https://dblp.org/pid/209/3087), [Yida Wang](https://dblp.org/pid/17/1701-3), [Jun Yang](https://dblp.org/pid/181/2799), [Danyang Zhuo](https://dblp.org/pid/151/7537), [Koushik Sen](https://dblp.org/pid/04/418), [Joseph E. Gonzalez](https://dblp.org/pid/61/8262), and [Ion Stoica](https://dblp.org/pid/s/IonStoica). First submitted to arXiv on June 11, 2020; current version v5. [Ansor: Generating High-Performance Tensor Programs for Deep Learning](https://arxiv.org/abs/2006.06762). [Original PDF](/paper/ansor.pdf). [TeX source](https://export.arxiv.org/e-print/2006.06762). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

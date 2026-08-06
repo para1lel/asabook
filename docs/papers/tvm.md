@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /papers/tvm/
 ---
 
-> Tianqi Chen, Thierry Moreau, Ziheng Jiang, Lianmin Zheng, Eddie Yan, Meghan Cowan, Haichen Shen, Leyuan Wang, Yuwei Hu, Luis Ceze, Carlos Guestrin, and Arvind Krishnamurthy. 首次提交至 arXiv: February 12, 2018; 当前版本为 v3. [TVM: An Automated End-to-End Optimizing Compiler for Deep Learning](https://arxiv.org/abs/1802.04799). [原始 PDF](/paper/tvm.pdf). [TeX 源码](https://export.arxiv.org/e-print/1802.04799). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Tianqi Chen](https://dblp.org/pid/94/8023-1), [Thierry Moreau](https://dblp.org/pid/87/3135), [Ziheng Jiang](https://dblp.org/pid/14/8980), [Lianmin Zheng](https://dblp.org/pid/211/7027), [Eddie Yan](https://dblp.org/pid/161/3140), [Meghan Cowan](https://dblp.org/pid/202/1675), [Haichen Shen](https://dblp.org/pid/34/8397), [Leyuan Wang](https://dblp.org/pid/165/7400), [Yuwei Hu](https://dblp.org/pid/120/1114), [Luis Ceze](https://dblp.org/pid/95/5263), [Carlos Guestrin](https://dblp.org/pid/38/769), and [Arvind Krishnamurthy](https://dblp.org/pid/k/AKrishnamurthy). 首次提交至 arXiv: February 12, 2018; 当前版本为 v3. [TVM: An Automated End-to-End Optimizing Compiler for Deep Learning](https://arxiv.org/abs/1802.04799). [原始 PDF](/paper/tvm.pdf). [TeX 源码](https://export.arxiv.org/e-print/1802.04799). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ### 摘要
 

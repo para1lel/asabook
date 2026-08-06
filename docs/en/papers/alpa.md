@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/alpa/
 ---
 
-> Lianmin Zheng, Zhuohan Li, Hao Zhang, Yonghao Zhuang, Zhifeng Chen, Yanping Huang, Yida Wang, Yuanzhong Xu, Danyang Zhuo, Eric P. Xing, Joseph E. Gonzalez, and Ion Stoica. First submitted to arXiv on January 28, 2022; current version v3. [Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning](https://arxiv.org/abs/2201.12023). [Original PDF](/paper/alpa.pdf). [TeX source](https://export.arxiv.org/e-print/2201.12023). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Lianmin Zheng](https://dblp.org/pid/211/7027), [Zhuohan Li](https://dblp.org/pid/96/9986-1), [Hao Zhang](https://dblp.org/pid/55/2270-25), [Yonghao Zhuang](https://dblp.org/pid/312/6932-1), [Zhifeng Chen](https://dblp.org/pid/61/5154), [Yanping Huang](https://dblp.org/pid/00/10104), [Yida Wang](https://dblp.org/pid/17/1701-3), [Yuanzhong Xu](https://dblp.org/pid/60/9826), [Danyang Zhuo](https://dblp.org/pid/151/7537), [Eric P. Xing](https://dblp.org/pid/36/3855), [Joseph E. Gonzalez](https://dblp.org/pid/61/8262), and [Ion Stoica](https://dblp.org/pid/s/IonStoica). First submitted to arXiv on January 28, 2022; current version v3. [Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning](https://arxiv.org/abs/2201.12023). [Original PDF](/paper/alpa.pdf). [TeX source](https://export.arxiv.org/e-print/2201.12023). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

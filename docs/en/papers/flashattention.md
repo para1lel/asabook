@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/flashattention/
 ---
 
-> Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. First submitted to arXiv on May 27, 2022; current version v2. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135). [Original PDF](/paper/flashattention.pdf). [TeX source](https://export.arxiv.org/e-print/2205.14135). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Tri Dao](https://dblp.org/pid/206/7018), [Daniel Y. Fu](https://dblp.org/pid/218/5728), [Stefano Ermon](https://dblp.org/pid/47/8135), [Atri Rudra](https://dblp.org/pid/04/4980), and [Christopher Ré](https://dblp.org/pid/r/ChristopherRe). First submitted to arXiv on May 27, 2022; current version v2. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135). [Original PDF](/paper/flashattention.pdf). [TeX source](https://export.arxiv.org/e-print/2205.14135). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /ja/papers/tvm/
 ---
 
-> Tianqi Chen, Thierry Moreau, Ziheng Jiang, Lianmin Zheng, Eddie Yan, Meghan Cowan, Haichen Shen, Leyuan Wang, Yuwei Hu, Luis Ceze, Carlos Guestrin, and Arvind Krishnamurthy. arXiv 初回投稿日: February 12, 2018; 現行版は v3. [TVM: An Automated End-to-End Optimizing Compiler for Deep Learning](https://arxiv.org/abs/1802.04799). [原 PDF](/paper/tvm.pdf). [TeX ソース](https://export.arxiv.org/e-print/1802.04799). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Tianqi Chen](https://dblp.org/pid/94/8023-1), [Thierry Moreau](https://dblp.org/pid/87/3135), [Ziheng Jiang](https://dblp.org/pid/14/8980), [Lianmin Zheng](https://dblp.org/pid/211/7027), [Eddie Yan](https://dblp.org/pid/161/3140), [Meghan Cowan](https://dblp.org/pid/202/1675), [Haichen Shen](https://dblp.org/pid/34/8397), [Leyuan Wang](https://dblp.org/pid/165/7400), [Yuwei Hu](https://dblp.org/pid/120/1114), [Luis Ceze](https://dblp.org/pid/95/5263), [Carlos Guestrin](https://dblp.org/pid/38/769), and [Arvind Krishnamurthy](https://dblp.org/pid/k/AKrishnamurthy). arXiv 初回投稿日: February 12, 2018; 現行版は v3. [TVM: An Automated End-to-End Optimizing Compiler for Deep Learning](https://arxiv.org/abs/1802.04799). [原 PDF](/paper/tvm.pdf). [TeX ソース](https://export.arxiv.org/e-print/1802.04799). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ### 概要
 

@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:15:31
 permalink: /papers/quantization-methods-survey/
 ---
 
-> Amir Gholami, Sehoon Kim, Zhen Dong, Zhewei Yao, Michael W. Mahoney, and Kurt Keutzer. 首次提交至 arXiv: March 25, 2021; 当前版本为 v3. [A Survey of Quantization Methods for Efficient Neural Network Inference](https://arxiv.org/abs/2103.13630). [原始 PDF](/paper/quantization-methods-survey.pdf). [TeX 源码](https://export.arxiv.org/e-print/2103.13630). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Amir Gholami](https://dblp.org/pid/150/6303), [Sehoon Kim](https://dblp.org/pid/93/2394-1), [Zhen Dong](https://dblp.org/pid/60/1749-3), [Zhewei Yao](https://dblp.org/pid/195/2887), [Michael W. Mahoney](https://dblp.org/pid/10/6978), and [Kurt Keutzer](https://dblp.org/pid/k/KurtKeutzer). 首次提交至 arXiv: March 25, 2021; 当前版本为 v3. [A Survey of Quantization Methods for Efficient Neural Network Inference](https://arxiv.org/abs/2103.13630). [原始 PDF](/paper/quantization-methods-survey.pdf). [TeX 源码](https://export.arxiv.org/e-print/2103.13630). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 \useunder
 

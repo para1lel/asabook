@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/awq/
 ---
 
-> Ji Lin, [Jiaming Tang](https://dblp.org/pid/277/8890), [Haotian Tang](https://dblp.org/pid/245/0058), [Shang Yang](https://dblp.org/pid/79/9960), Wei-Ming Chen, Wei-Chen Wang, Guangxuan Xiao, [Xingyu Dang](https://dblp.org/pid/348/8880), Chuang Gan, and Song Han. First submitted to arXiv on June 1, 2023; current version v6. [AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978). [Original PDF](/paper/awq.pdf). [TeX source](https://export.arxiv.org/e-print/2306.00978). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Ji Lin](https://dblp.org/pid/02/8200-2), [Jiaming Tang](https://dblp.org/pid/277/8890), [Haotian Tang](https://dblp.org/pid/245/0058), [Shang Yang](https://dblp.org/pid/79/9960), [Wei-Ming Chen](https://dblp.org/pid/63/5986), [Wei-Chen Wang](https://dblp.org/pid/96/8577-2), [Guangxuan Xiao](https://dblp.org/pid/283/5633), [Xingyu Dang](https://dblp.org/pid/348/8880), [Chuang Gan](https://dblp.org/pid/139/6993), and [Song Han](https://dblp.org/pid/80/806-3). First submitted to arXiv on June 1, 2023; current version v6. [AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978). [Original PDF](/paper/awq.pdf). [TeX source](https://export.arxiv.org/e-print/2306.00978). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

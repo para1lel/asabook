@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /ja/papers/vllm/
 ---
 
-> Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, and Ion Stoica. arXiv 初回投稿日: September 12, 2023; 現行版は v1. [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180). [原 PDF](/paper/vllm.pdf). [TeX ソース](https://export.arxiv.org/e-print/2309.06180). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Woosuk Kwon](https://dblp.org/pid/177/2702), [Zhuohan Li](https://dblp.org/pid/96/9986-1), [Siyuan Zhuang](https://dblp.org/pid/259/1800), [Ying Sheng](https://dblp.org/pid/262/6232), [Lianmin Zheng](https://dblp.org/pid/211/7027), [Cody Hao Yu](https://dblp.org/pid/144/6124), [Joseph E. Gonzalez](https://dblp.org/pid/61/8262), [Hao Zhang](https://dblp.org/pid/55/2270-25), and [Ion Stoica](https://dblp.org/pid/s/IonStoica). arXiv 初回投稿日: September 12, 2023; 現行版は v1. [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180). [原 PDF](/paper/vllm.pdf). [TeX ソース](https://export.arxiv.org/e-print/2309.06180). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 （2023）
 

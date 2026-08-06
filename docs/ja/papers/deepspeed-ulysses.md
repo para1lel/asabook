@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /ja/papers/deepspeed-ulysses/
 ---
 
-> Sam Ade Jacobs, Masahiro Tanaka, Chengming Zhang, Minjia Zhang, Shuaiwen Leon Song, Samyam Rajbhandari, and Yuxiong He. arXiv 初回投稿日: September 25, 2023; 現行版は v2. [DeepSpeed Ulysses: System Optimizations for Enabling Training of Extreme Long Sequence Transformer Models](https://arxiv.org/abs/2309.14509). [原 PDF](/paper/deepspeed-ulysses.pdf). [TeX ソース](https://export.arxiv.org/e-print/2309.14509). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Sam Ade Jacobs](https://dblp.org/pid/79/10956), [Masahiro Tanaka](https://dblp.org/pid/02/3804), [Chengming Zhang](https://dblp.org/pid/78/5836-6), [Minjia Zhang](https://dblp.org/pid/58/9033), [Shuaiwen Leon Song](https://dblp.org/pid/23/7512), [Samyam Rajbhandari](https://dblp.org/pid/115/9021), and [Yuxiong He](https://dblp.org/pid/50/174). arXiv 初回投稿日: September 25, 2023; 現行版は v2. [DeepSpeed Ulysses: System Optimizations for Enabling Training of Extreme Long Sequence Transformer Models](https://arxiv.org/abs/2309.14509). [原 PDF](/paper/deepspeed-ulysses.pdf). [TeX ソース](https://export.arxiv.org/e-print/2309.14509). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

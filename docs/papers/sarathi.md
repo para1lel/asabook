@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /papers/sarathi/
 ---
 
-> Amey Agrawal, Ashish Panwar, Jayashree Mohan, Nipun Kwatra, Bhargav S. Gulavani, and Ramachandran Ramjee. 首次提交至 arXiv: August 31, 2023; 当前版本为 v1. [SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369). [原始 PDF](/paper/sarathi.pdf). [TeX 源码](https://export.arxiv.org/e-print/2308.16369). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Amey Agrawal](https://dblp.org/pid/236/4993), [Ashish Panwar](https://dblp.org/pid/175/5750), [Jayashree Mohan](https://dblp.org/pid/168/3415), [Nipun Kwatra](https://dblp.org/pid/53/6666), [Bhargav S. Gulavani](https://dblp.org/pid/46/396), and [Ramachandran Ramjee](https://dblp.org/pid/97/117). 首次提交至 arXiv: August 31, 2023; 当前版本为 v1. [SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369). [原始 PDF](/paper/sarathi.pdf). [TeX 源码](https://export.arxiv.org/e-print/2308.16369). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

@@ -5,7 +5,7 @@ permalink: /papers/flashattention/
 pageClass: paper-reading
 ---
 
-> Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. 首次提交至 arXiv: May 27, 2022; 当前版本为 v2. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135). [原始 PDF](/paper/flashattention.pdf). [TeX 源码](https://export.arxiv.org/e-print/2205.14135). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Tri Dao](https://dblp.org/pid/206/7018), [Daniel Y. Fu](https://dblp.org/pid/218/5728), [Stefano Ermon](https://dblp.org/pid/47/8135), [Atri Rudra](https://dblp.org/pid/04/4980), and [Christopher Ré](https://dblp.org/pid/r/ChristopherRe). 首次提交至 arXiv: May 27, 2022; 当前版本为 v2. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135). [原始 PDF](/paper/flashattention.pdf). [TeX 源码](https://export.arxiv.org/e-print/2205.14135). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

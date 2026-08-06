@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:15:31
 permalink: /papers/llm-int8/
 ---
 
-> Tim Dettmers, Mike Lewis, Younes Belkada, and Luke Zettlemoyer. 首次提交至 arXiv: August 15, 2022; 当前版本为 v2. [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](https://arxiv.org/abs/2208.07339). [原始 PDF](/paper/llm-int8.pdf). [TeX 源码](https://export.arxiv.org/e-print/2208.07339). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Tim Dettmers](https://dblp.org/pid/172/1045), [Mike Lewis](https://dblp.org/pid/19/6214), [Younes Belkada](https://dblp.org/pid/280/8696), and [Luke Zettlemoyer](https://dblp.org/pid/21/6793). 首次提交至 arXiv: August 15, 2022; 当前版本为 v2. [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](https://arxiv.org/abs/2208.07339). [原始 PDF](/paper/llm-int8.pdf). [TeX 源码](https://export.arxiv.org/e-print/2208.07339). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

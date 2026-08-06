@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /ja/papers/zero/
 ---
 
-> Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, and Yuxiong He. arXiv 初回投稿日: October 4, 2019; 現行版は v3. [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054). [原 PDF](/paper/zero.pdf). [TeX ソース](https://export.arxiv.org/e-print/1910.02054). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Samyam Rajbhandari](https://dblp.org/pid/115/9021), [Jeff Rasley](https://dblp.org/pid/90/8732), [Olatunji Ruwase](https://dblp.org/pid/72/2838), and [Yuxiong He](https://dblp.org/pid/50/174). arXiv 初回投稿日: October 4, 2019; 現行版は v3. [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054). [原 PDF](/paper/zero.pdf). [TeX ソース](https://export.arxiv.org/e-print/1910.02054). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

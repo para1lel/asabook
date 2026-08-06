@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/gpipe/
 ---
 
-> Yanping Huang, Youlong Cheng, Ankur Bapna, Orhan Firat, Mia Xu Chen, Dehao Chen, HyoukJoong Lee, Jiquan Ngiam, Quoc V. Le, Yonghui Wu, and Zhifeng Chen. First submitted to arXiv on November 16, 2018; current version v5. [GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism](https://arxiv.org/abs/1811.06965). [Original PDF](/paper/gpipe.pdf). [TeX source](https://export.arxiv.org/e-print/1811.06965). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Yanping Huang](https://dblp.org/pid/00/10104), [Youlong Cheng](https://dblp.org/pid/230/3622), [Ankur Bapna](https://dblp.org/pid/200/8008), [Orhan Firat](https://dblp.org/pid/120/2225), [Mia Xu Chen](https://dblp.org/pid/83/6331-27), [Dehao Chen](https://dblp.org/pid/50/6185), [HyoukJoong Lee](https://dblp.org/pid/21/276), [Jiquan Ngiam](https://dblp.org/pid/72/8781), [Quoc V. Le](https://dblp.org/pid/29/6166), [Yonghui Wu](https://dblp.org/pid/26/2189), and [Zhifeng Chen](https://dblp.org/pid/61/5154). First submitted to arXiv on November 16, 2018; current version v5. [GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism](https://arxiv.org/abs/1811.06965). [Original PDF](/paper/gpipe.pdf). [TeX source](https://export.arxiv.org/e-print/1811.06965). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

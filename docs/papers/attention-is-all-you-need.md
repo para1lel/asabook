@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /papers/attention-is-all-you-need/
 ---
 
-> Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. 首次提交至 arXiv: June 12, 2017; 当前版本为 v7. [Attention Is All You Need](https://arxiv.org/abs/1706.03762). [原始 PDF](/paper/attention-is-all-you-need.pdf). [TeX 源码](https://export.arxiv.org/e-print/1706.03762). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Ashish Vaswani](https://dblp.org/pid/26/9012), [Noam Shazeer](https://dblp.org/pid/80/4668), [Niki Parmar](https://dblp.org/pid/202/2051), [Jakob Uszkoreit](https://dblp.org/pid/87/4805), [Llion Jones](https://dblp.org/pid/184/3736), [Aidan N. Gomez](https://dblp.org/pid/202/2262), [Lukasz Kaiser](https://dblp.org/pid/39/1762), and [Illia Polosukhin](https://dblp.org/pid/184/3747). 首次提交至 arXiv: June 12, 2017; 当前版本为 v7. [Attention Is All You Need](https://arxiv.org/abs/1706.03762). [原始 PDF](/paper/attention-is-all-you-need.pdf). [TeX 源码](https://export.arxiv.org/e-print/1706.03762). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 在提供适当归属的前提下, 谷歌特此授予许可, 仅将本文中的表格和图形用于新闻或学术作品的再现.
 

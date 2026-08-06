@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/distserve/
 ---
 
-> Yinmin Zhong, Shengyu Liu, Junda Chen, Jianbo Hu, Yibo Zhu, Xuanzhe Liu, Xin Jin, and Hao Zhang. First submitted to arXiv on January 18, 2024; current version v3. [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670). [Original PDF](/paper/distserve.pdf). [TeX source](https://export.arxiv.org/e-print/2401.09670). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Yinmin Zhong](https://dblp.org/pid/339/0691), [Shengyu Liu](https://dblp.org/pid/67/10301), [Junda Chen](https://dblp.org/pid/26/6778), [Jianbo Hu](https://dblp.org/pid/97/1511), [Yibo Zhu](https://dblp.org/pid/65/8854-1), [Xuanzhe Liu](https://dblp.org/pid/08/2161), [Xin Jin](https://dblp.org/pid/68/3340-8), and [Hao Zhang](https://dblp.org/pid/55/2270-25). First submitted to arXiv on January 18, 2024; current version v3. [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670). [Original PDF](/paper/distserve.pdf). [TeX source](https://export.arxiv.org/e-print/2401.09670). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

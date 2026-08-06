@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/sparsely-gated-moe/
 ---
 
-> Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. First submitted to arXiv on January 23, 2017; current version v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [Original PDF](/paper/sparsely-gated-moe.pdf). [TeX source](https://export.arxiv.org/e-print/1701.06538). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Noam Shazeer](https://dblp.org/pid/80/4668), [Azalia Mirhoseini](https://dblp.org/pid/18/8314), [Krzysztof Maziarz](https://dblp.org/pid/194/2971), [Andy Davis](https://dblp.org/pid/60/920), [Quoc Le](https://dblp.org/pid/29/6166), [Geoffrey Hinton](https://dblp.org/pid/10/3248), and [Jeff Dean](https://dblp.org/pid/d/JeffreyDean). First submitted to arXiv on January 23, 2017; current version v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [Original PDF](/paper/sparsely-gated-moe.pdf). [TeX source](https://export.arxiv.org/e-print/1701.06538). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

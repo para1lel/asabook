@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /ja/papers/attention-is-all-you-need/
 ---
 
-> Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. arXiv 初回投稿日: June 12, 2017; 現行版は v7. [Attention Is All You Need](https://arxiv.org/abs/1706.03762). [原 PDF](/paper/attention-is-all-you-need.pdf). [TeX ソース](https://export.arxiv.org/e-print/1706.03762). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Ashish Vaswani](https://dblp.org/pid/26/9012), [Noam Shazeer](https://dblp.org/pid/80/4668), [Niki Parmar](https://dblp.org/pid/202/2051), [Jakob Uszkoreit](https://dblp.org/pid/87/4805), [Llion Jones](https://dblp.org/pid/184/3736), [Aidan N. Gomez](https://dblp.org/pid/202/2262), [Lukasz Kaiser](https://dblp.org/pid/39/1762), and [Illia Polosukhin](https://dblp.org/pid/184/3747). arXiv 初回投稿日: June 12, 2017; 現行版は v7. [Attention Is All You Need](https://arxiv.org/abs/1706.03762). [原 PDF](/paper/attention-is-all-you-need.pdf). [TeX ソース](https://export.arxiv.org/e-print/1706.03762). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 適切な帰属がなされる場合に限り、Googleは、本論文の表や図をジャーナリズムまたは学術的な作品で使用するために複製することをここに許可する。
 
