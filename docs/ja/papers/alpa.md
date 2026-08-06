@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:15:31
 permalink: /ja/papers/alpa/
 ---
 
-> [Lianmin Zheng](https://dblp.org/pid/211/7027), [Zhuohan Li](https://dblp.org/pid/96/9986-1), [Hao Zhang](https://dblp.org/pid/55/2270-25), [Yonghao Zhuang](https://dblp.org/pid/312/6932-1), [Zhifeng Chen](https://dblp.org/pid/61/5154), [Yanping Huang](https://dblp.org/pid/00/10104), [Yida Wang](https://dblp.org/pid/17/1701-3), [Yuanzhong Xu](https://dblp.org/pid/60/9826), [Danyang Zhuo](https://dblp.org/pid/151/7537), [Eric P. Xing](https://dblp.org/pid/36/3855), [Joseph E. Gonzalez](https://dblp.org/pid/61/8262), and [Ion Stoica](https://dblp.org/pid/s/IonStoica). arXiv 初回投稿日: January 28, 2022; 現行版は v3. [Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning](https://arxiv.org/abs/2201.12023). [原 PDF](/paper/alpa.pdf). [TeX ソース](https://export.arxiv.org/e-print/2201.12023). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Lianmin Zheng](https://lmzheng.net/), [Zhuohan Li](https://zhuohan.li/), [Hao Zhang](https://haozhang.ai/), [Yonghao Zhuang](https://zyhowell.github.io/), [Zhifeng Chen](https://www.zhifengchen.me/), [Yanping Huang](https://x.com/bignamehyp), [Yida Wang](https://wangyida.github.io/), [Yuanzhong Xu](https://x.com/ukoxyz), [Danyang Zhuo](https://danyangzhuo.com/), [Eric P. Xing](https://www.cs.cmu.edu/~epxing/), [Joseph E. Gonzalez](https://people.eecs.berkeley.edu/~jegonzal/), and [Ion Stoica](http://www.cs.berkeley.edu/~istoica/). arXiv 初回投稿日: January 28, 2022; 現行版は v3. [Alpa: Automating Inter- and Intra-Operator Parallelism for Distributed Deep Learning](https://arxiv.org/abs/2201.12023). [原 PDF](/paper/alpa.pdf). [TeX ソース](https://export.arxiv.org/e-print/2201.12023). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:15:31
 permalink: /ja/papers/quantization-methods-survey/
 ---
 
-> [Amir Gholami](https://dblp.org/pid/150/6303), [Sehoon Kim](https://dblp.org/pid/93/2394-1), [Zhen Dong](https://dblp.org/pid/60/1749-3), [Zhewei Yao](https://dblp.org/pid/195/2887), [Michael W. Mahoney](https://dblp.org/pid/10/6978), and [Kurt Keutzer](https://dblp.org/pid/k/KurtKeutzer). arXiv 初回投稿日: March 25, 2021; 現行版は v3. [A Survey of Quantization Methods for Efficient Neural Network Inference](https://arxiv.org/abs/2103.13630). [原 PDF](/paper/quantization-methods-survey.pdf). [TeX ソース](https://export.arxiv.org/e-print/2103.13630). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Amir Gholami](https://people.eecs.berkeley.edu/~amirgh/), [Sehoon Kim](https://sehoonkim.org/), [Zhen Dong](https://dong-zhen.com/), [Zhewei Yao](https://yaozhewei.github.io/), [Michael W. Mahoney](http://www.stat.berkeley.edu/~mmahoney/), and [Kurt Keutzer](http://www.eecs.berkeley.edu/~keutzer/). arXiv 初回投稿日: March 25, 2021; 現行版は v3. [A Survey of Quantization Methods for Efficient Neural Network Inference](https://arxiv.org/abs/2103.13630). [原 PDF](/paper/quantization-methods-survey.pdf). [TeX ソース](https://export.arxiv.org/e-print/2103.13630). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 \useunder
 

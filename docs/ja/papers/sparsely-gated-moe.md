@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /ja/papers/sparsely-gated-moe/
 ---
 
-> [Noam Shazeer](https://dblp.org/pid/80/4668), [Azalia Mirhoseini](https://dblp.org/pid/18/8314), [Krzysztof Maziarz](https://dblp.org/pid/194/2971), [Andy Davis](https://dblp.org/pid/60/920), [Quoc Le](https://dblp.org/pid/29/6166), [Geoffrey Hinton](https://dblp.org/pid/10/3248), and [Jeff Dean](https://dblp.org/pid/d/JeffreyDean). arXiv 初回投稿日: January 23, 2017; 現行版は v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [原 PDF](/paper/sparsely-gated-moe.pdf). [TeX ソース](https://export.arxiv.org/e-print/1701.06538). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Noam Shazeer](https://www.noamshazeer.com/), [Azalia Mirhoseini](https://www.azaliamirhoseini.com/), [Krzysztof Maziarz](https://x.com/MaziarzKris), [Andy Davis](https://research.google/people/104876/), [Quoc Le](http://cs.stanford.edu/~quocle/), [Geoffrey Hinton](http://www.cs.toronto.edu/~hinton/), and [Jeff Dean](https://research.google/people/jeff/). arXiv 初回投稿日: January 23, 2017; 現行版は v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [原 PDF](/paper/sparsely-gated-moe.pdf). [TeX ソース](https://export.arxiv.org/e-print/1701.06538). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

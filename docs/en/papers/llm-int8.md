@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/llm-int8/
 ---
 
-> [Tim Dettmers](https://dblp.org/pid/172/1045), [Mike Lewis](https://dblp.org/pid/19/6214), [Younes Belkada](https://dblp.org/pid/280/8696), and [Luke Zettlemoyer](https://dblp.org/pid/21/6793). First submitted to arXiv on August 15, 2022; current version v2. [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](https://arxiv.org/abs/2208.07339). [Original PDF](/paper/llm-int8.pdf). [TeX source](https://export.arxiv.org/e-print/2208.07339). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Tim Dettmers](https://timdettmers.com/), [Mike Lewis](https://x.com/ml_perception), [Younes Belkada](https://younesbelkada.github.io/), and [Luke Zettlemoyer](https://www.cs.washington.edu/people/faculty/lsz). First submitted to arXiv on August 15, 2022; current version v2. [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](https://arxiv.org/abs/2208.07339). [Original PDF](/paper/llm-int8.pdf). [TeX source](https://export.arxiv.org/e-print/2208.07339). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/attention-is-all-you-need/
 ---
 
-> [Ashish Vaswani](https://dblp.org/pid/26/9012), [Noam Shazeer](https://dblp.org/pid/80/4668), [Niki Parmar](https://dblp.org/pid/202/2051), [Jakob Uszkoreit](https://dblp.org/pid/87/4805), [Llion Jones](https://dblp.org/pid/184/3736), [Aidan N. Gomez](https://dblp.org/pid/202/2262), [Lukasz Kaiser](https://dblp.org/pid/39/1762), and [Illia Polosukhin](https://dblp.org/pid/184/3747). First submitted to arXiv on June 12, 2017; current version v7. [Attention Is All You Need](https://arxiv.org/abs/1706.03762). [Original PDF](/paper/attention-is-all-you-need.pdf). [TeX source](https://export.arxiv.org/e-print/1706.03762). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Ashish Vaswani](https://x.com/ashvaswani), [Noam Shazeer](https://www.noamshazeer.com/), [Niki Parmar](https://x.com/nikiparmar09), [Jakob Uszkoreit](http://jakob.uszkoreit.net/), [Llion Jones](https://x.com/LlionJ), [Aidan N. Gomez](https://aidangomez.ca/), [Lukasz Kaiser](http://liafa.jussieu.fr/~kaiser/), and [Illia Polosukhin](https://ilblackdragon.com/). First submitted to arXiv on June 12, 2017; current version v7. [Attention Is All You Need](https://arxiv.org/abs/1706.03762). [Original PDF](/paper/attention-is-all-you-need.pdf). [TeX source](https://export.arxiv.org/e-print/1706.03762). The original PDF remains authoritative for the exact print layout and bibliography.
 
 Provided proper attribution is provided, Google hereby grants permission to reproduce the tables and figures in this paper solely for use in journalistic or scholarly works.
 

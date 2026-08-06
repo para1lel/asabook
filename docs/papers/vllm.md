@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /papers/vllm/
 ---
 
-> [Woosuk Kwon](https://dblp.org/pid/177/2702) [+1], [Zhuohan Li](https://dblp.org/pid/96/9986-1) [+1], [Siyuan Zhuang](https://dblp.org/pid/259/1800), [Ying Sheng](https://dblp.org/pid/262/6232), [Lianmin Zheng](https://dblp.org/pid/211/7027), [Cody Hao Yu](https://dblp.org/pid/144/6124), [Joseph E. Gonzalez](https://dblp.org/pid/61/8262), [Hao Zhang](https://dblp.org/pid/55/2270-25), and [Ion Stoica](https://dblp.org/pid/s/IonStoica). 首次提交至 arXiv: 2023 年 9 月 12 日; 当前版本为 v1. [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180). [原始 PDF](/paper/vllm.pdf). [TeX 源码](https://export.arxiv.org/e-print/2309.06180).
+> [Woosuk Kwon](https://woosuk.me/) [+1], [Zhuohan Li](https://zhuohan.li/) [+1], [Siyuan Zhuang](https://dblp.org/pid/259/1800), [Ying Sheng](https://x.com/ying11231), [Lianmin Zheng](https://lmzheng.net/), [Cody Hao Yu](https://comaniac.github.io/), [Joseph E. Gonzalez](https://people.eecs.berkeley.edu/~jegonzal/), [Hao Zhang](https://haozhang.ai/), and [Ion Stoica](http://www.cs.berkeley.edu/~istoica/). 首次提交至 arXiv: 2023 年 9 月 12 日; 当前版本为 v1. [Efficient Memory Management for Large Language Model Serving with PagedAttention](https://arxiv.org/abs/2309.06180). [原始 PDF](/paper/vllm.pdf). [TeX 源码](https://export.arxiv.org/e-print/2309.06180).
 >
 > 论文发表于 ACM SIGOPS 第 29 届操作系统原理研讨会 (SOSP '23), 2023 年 10 月 23-26 日, 德国科布伦茨. [DOI: 10.1145/3600006.3613165](https://doi.org/10.1145/3600006.3613165). 精确的印刷版式和参考文献以原始 PDF 为准.
 

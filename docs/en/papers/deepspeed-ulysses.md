@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/deepspeed-ulysses/
 ---
 
-> [Sam Ade Jacobs](https://dblp.org/pid/79/10956), [Masahiro Tanaka](https://dblp.org/pid/02/3804), [Chengming Zhang](https://dblp.org/pid/78/5836-6), [Minjia Zhang](https://dblp.org/pid/58/9033), [Shuaiwen Leon Song](https://dblp.org/pid/23/7512), [Samyam Rajbhandari](https://dblp.org/pid/115/9021), and [Yuxiong He](https://dblp.org/pid/50/174). First submitted to arXiv on September 25, 2023; current version v2. [DeepSpeed Ulysses: System Optimizations for Enabling Training of Extreme Long Sequence Transformer Models](https://arxiv.org/abs/2309.14509). [Original PDF](/paper/deepspeed-ulysses.pdf). [TeX source](https://export.arxiv.org/e-print/2309.14509). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Sam Ade Jacobs](https://www.microsoft.com/en-us/research/people/samjacobs/), [Masahiro Tanaka](https://tohtana.github.io/), [Chengming Zhang](https://chengmingzh8.github.io/), [Minjia Zhang](https://minjiazhang.github.io/), [Shuaiwen Leon Song](https://sites.google.com/site/shuaiwenleonsongresearch/), [Samyam Rajbhandari](https://dblp.org/pid/115/9021), and [Yuxiong He](https://x.com/yuxionghe). First submitted to arXiv on September 25, 2023; current version v2. [DeepSpeed Ulysses: System Optimizations for Enabling Training of Extreme Long Sequence Transformer Models](https://arxiv.org/abs/2309.14509). [Original PDF](/paper/deepspeed-ulysses.pdf). [TeX source](https://export.arxiv.org/e-print/2309.14509). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

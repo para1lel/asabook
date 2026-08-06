@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /papers/ansor/
 ---
 
-> [Lianmin Zheng](https://dblp.org/pid/211/7027), [Chengfan Jia](https://dblp.org/pid/225/0687), [Minmin Sun](https://dblp.org/pid/196/9996), [Zhao Wu](https://dblp.org/pid/26/6973), [Cody Hao Yu](https://dblp.org/pid/144/6124), [Ameer Haj-Ali](https://dblp.org/pid/209/3087), [Yida Wang](https://dblp.org/pid/17/1701-3), [Jun Yang](https://dblp.org/pid/181/2799), [Danyang Zhuo](https://dblp.org/pid/151/7537), [Koushik Sen](https://dblp.org/pid/04/418), [Joseph E. Gonzalez](https://dblp.org/pid/61/8262), and [Ion Stoica](https://dblp.org/pid/s/IonStoica). 首次提交至 arXiv: June 11, 2020; 当前版本为 v5. [Ansor: Generating High-Performance Tensor Programs for Deep Learning](https://arxiv.org/abs/2006.06762). [原始 PDF](/paper/ansor.pdf). [TeX 源码](https://export.arxiv.org/e-print/2006.06762). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Lianmin Zheng](https://lmzheng.net/), [Chengfan Jia](https://dblp.org/pid/225/0687), [Minmin Sun](https://dblp.org/pid/196/9996), [Zhao Wu](https://dblp.org/pid/26/6973), [Cody Hao Yu](https://comaniac.github.io/), [Ameer Haj-Ali](https://ameerhajali.com/), [Yida Wang](https://wangyida.github.io/), [Jun Yang](https://dblp.org/pid/181/2799), [Danyang Zhuo](https://danyangzhuo.com/), [Koushik Sen](http://srl.cs.berkeley.edu/~ksen/), [Joseph E. Gonzalez](https://people.eecs.berkeley.edu/~jegonzal/), and [Ion Stoica](http://www.cs.berkeley.edu/~istoica/). 首次提交至 arXiv: June 11, 2020; 当前版本为 v5. [Ansor: Generating High-Performance Tensor Programs for Deep Learning](https://arxiv.org/abs/2006.06762). [原始 PDF](/paper/ansor.pdf). [TeX 源码](https://export.arxiv.org/e-print/2006.06762). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

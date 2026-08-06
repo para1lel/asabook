@@ -4,7 +4,7 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/zero/
 ---
 
-> [Samyam Rajbhandari](https://dblp.org/pid/115/9021), [Jeff Rasley](https://dblp.org/pid/90/8732), [Olatunji Ruwase](https://dblp.org/pid/72/2838), and [Yuxiong He](https://dblp.org/pid/50/174). First submitted to arXiv on October 4, 2019; current version v3. [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054). [Original PDF](/paper/zero.pdf). [TeX source](https://export.arxiv.org/e-print/1910.02054). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Samyam Rajbhandari](https://dblp.org/pid/115/9021), [Jeff Rasley](https://x.com/jeffra45), [Olatunji Ruwase](https://www.cs.cmu.edu/~oor/), and [Yuxiong He](https://x.com/yuxionghe). First submitted to arXiv on October 4, 2019; current version v3. [ZeRO: Memory Optimizations Toward Training Trillion Parameter Models](https://arxiv.org/abs/1910.02054). [Original PDF](/paper/zero.pdf). [TeX source](https://export.arxiv.org/e-print/1910.02054). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 

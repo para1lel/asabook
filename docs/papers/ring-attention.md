@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:34:32
 permalink: /papers/ring-attention/
 ---
 
-> [Hao Liu](https://dblp.org/pid/09/3214-55), [Matei Zaharia](https://dblp.org/pid/36/2133), and [Pieter Abbeel](https://dblp.org/pid/a/PieterAbbeel). 首次提交至 arXiv: October 3, 2023; 当前版本为 v4. [Ring Attention with Blockwise Transformers for Near-Infinite Context](https://arxiv.org/abs/2310.01889). [原始 PDF](/paper/ring-attention.pdf). [TeX 源码](https://export.arxiv.org/e-print/2310.01889). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Hao Liu](https://www.haoliu.site/), [Matei Zaharia](https://people.csail.mit.edu/matei/), and [Pieter Abbeel](https://people.eecs.berkeley.edu/~pabbeel/). 首次提交至 arXiv: October 3, 2023; 当前版本为 v4. [Ring Attention with Blockwise Transformers for Near-Infinite Context](https://arxiv.org/abs/2310.01889). [原始 PDF](/paper/ring-attention.pdf). [TeX 源码](https://export.arxiv.org/e-print/2310.01889). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

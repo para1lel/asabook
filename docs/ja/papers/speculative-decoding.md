@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /ja/papers/speculative-decoding/
 ---
 
-> [Yaniv Leviathan](https://dblp.org/pid/331/5369), [Matan Kalman](https://dblp.org/pid/57/2086), and [Yossi Matias](https://dblp.org/pid/m/YossiMatias). arXiv 初回投稿日: November 30, 2022; 現行版は v2. [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192). [原 PDF](/paper/speculative-decoding.pdf). [TeX ソース](https://export.arxiv.org/e-print/2211.17192). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Yaniv Leviathan](https://yanivle.github.io/), [Matan Kalman](https://research.google/people/108191/), and [Yossi Matias](http://www.math.tau.ac.il/~matias/). arXiv 初回投稿日: November 30, 2022; 現行版は v2. [Fast Inference from Transformers via Speculative Decoding](https://arxiv.org/abs/2211.17192). [原 PDF](/paper/speculative-decoding.pdf). [TeX ソース](https://export.arxiv.org/e-print/2211.17192). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

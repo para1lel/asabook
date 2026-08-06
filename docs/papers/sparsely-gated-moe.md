@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /papers/sparsely-gated-moe/
 ---
 
-> [Noam Shazeer](https://dblp.org/pid/80/4668), [Azalia Mirhoseini](https://dblp.org/pid/18/8314), [Krzysztof Maziarz](https://dblp.org/pid/194/2971), [Andy Davis](https://dblp.org/pid/60/920), [Quoc Le](https://dblp.org/pid/29/6166), [Geoffrey Hinton](https://dblp.org/pid/10/3248), and [Jeff Dean](https://dblp.org/pid/d/JeffreyDean). 首次提交至 arXiv: January 23, 2017; 当前版本为 v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [原始 PDF](/paper/sparsely-gated-moe.pdf). [TeX 源码](https://export.arxiv.org/e-print/1701.06538). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Noam Shazeer](https://www.noamshazeer.com/), [Azalia Mirhoseini](https://www.azaliamirhoseini.com/), [Krzysztof Maziarz](https://x.com/MaziarzKris), [Andy Davis](https://research.google/people/104876/), [Quoc Le](http://cs.stanford.edu/~quocle/), [Geoffrey Hinton](http://www.cs.toronto.edu/~hinton/), and [Jeff Dean](https://research.google/people/jeff/). 首次提交至 arXiv: January 23, 2017; 当前版本为 v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [原始 PDF](/paper/sparsely-gated-moe.pdf). [TeX 源码](https://export.arxiv.org/e-print/1701.06538). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

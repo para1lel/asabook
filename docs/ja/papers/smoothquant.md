@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /ja/papers/smoothquant/
 ---
 
-> [Guangxuan Xiao](https://dblp.org/pid/283/5633), [Ji Lin](https://dblp.org/pid/02/8200-2), [Mickael Seznec](https://dblp.org/pid/232/9601), [Hao Wu](https://dblp.org/pid/72/4250), [Julien Demouth](https://dblp.org/pid/81/5892), and [Song Han](https://dblp.org/pid/80/806-3). arXiv 初回投稿日: November 18, 2022; 現行版は v7. [SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438). [原 PDF](/paper/smoothquant.pdf). [TeX ソース](https://export.arxiv.org/e-print/2211.10438). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Guangxuan Xiao](https://guangxuanx.com/), [Ji Lin](https://www.linji.me/), [Mickael Seznec](https://dblp.org/pid/232/9601), [Hao Wu](https://developer.nvidia.com/blog/author/hao-wu/), [Julien Demouth](https://developer.nvidia.com/blog/author/jdemouth/), and [Song Han](https://songhan.mit.edu/). arXiv 初回投稿日: November 18, 2022; 現行版は v7. [SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models](https://arxiv.org/abs/2211.10438). [原 PDF](/paper/smoothquant.pdf). [TeX ソース](https://export.arxiv.org/e-print/2211.10438). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /ja/papers/awq/
 ---
 
-> [Ji Lin](https://dblp.org/pid/02/8200-2), [Jiaming Tang](https://dblp.org/pid/277/8890), [Haotian Tang](https://dblp.org/pid/245/0058), [Shang Yang](https://dblp.org/pid/79/9960), [Wei-Ming Chen](https://dblp.org/pid/63/5986), [Wei-Chen Wang](https://dblp.org/pid/96/8577-2), [Guangxuan Xiao](https://dblp.org/pid/283/5633), [Xingyu Dang](https://dblp.org/pid/348/8880), [Chuang Gan](https://dblp.org/pid/139/6993), and [Song Han](https://dblp.org/pid/80/806-3). arXiv 初回投稿日: June 1, 2023; 現行版は v6. [AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978). [原 PDF](/paper/awq.pdf). [TeX ソース](https://export.arxiv.org/e-print/2306.00978). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Ji Lin](https://www.linji.me/), [Jiaming Tang](https://jiamingtang.me/), [Haotian Tang](https://www.mit.edu/~kentang/), [Shang Yang](https://ys-2020.github.io/), [Wei-Ming Chen](https://developer.nvidia.com/blog/author/weimingc/), [Wei-Chen Wang](https://weichenwang.me/), [Guangxuan Xiao](https://guangxuanx.com/), [Xingyu Dang](https://dangxingyu.github.io/), [Chuang Gan](https://people.csail.mit.edu/ganchuang/), and [Song Han](https://songhan.mit.edu/). arXiv 初回投稿日: June 1, 2023; 現行版は v6. [AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration](https://arxiv.org/abs/2306.00978). [原 PDF](/paper/awq.pdf). [TeX ソース](https://export.arxiv.org/e-print/2306.00978). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

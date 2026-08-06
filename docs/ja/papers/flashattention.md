@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:15:31
 permalink: /ja/papers/flashattention/
 ---
 
-> [Tri Dao](https://dblp.org/pid/206/7018), [Daniel Y. Fu](https://dblp.org/pid/218/5728), [Stefano Ermon](https://dblp.org/pid/47/8135), [Atri Rudra](https://dblp.org/pid/04/4980), and [Christopher Ré](https://dblp.org/pid/r/ChristopherRe). arXiv 初回投稿日: May 27, 2022; 現行版は v2. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135). [原 PDF](/paper/flashattention.pdf). [TeX ソース](https://export.arxiv.org/e-print/2205.14135). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Tri Dao](https://tridao.me/), [Daniel Y. Fu](https://danfu.org/), [Stefano Ermon](https://cs.stanford.edu/~ermon/), [Atri Rudra](http://www.cse.buffalo.edu/~atri/), and [Christopher Ré](http://cs.stanford.edu/people/chrismre/). arXiv 初回投稿日: May 27, 2022; 現行版は v2. [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135). [原 PDF](/paper/flashattention.pdf). [TeX ソース](https://export.arxiv.org/e-print/2205.14135). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

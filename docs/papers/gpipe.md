@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:07:10
 permalink: /papers/gpipe/
 ---
 
-> [Yanping Huang](https://dblp.org/pid/00/10104), [Youlong Cheng](https://dblp.org/pid/230/3622), [Ankur Bapna](https://dblp.org/pid/200/8008), [Orhan Firat](https://dblp.org/pid/120/2225), [Mia Xu Chen](https://dblp.org/pid/83/6331-27), [Dehao Chen](https://dblp.org/pid/50/6185), [HyoukJoong Lee](https://dblp.org/pid/21/276), [Jiquan Ngiam](https://dblp.org/pid/72/8781), [Quoc V. Le](https://dblp.org/pid/29/6166), [Yonghui Wu](https://dblp.org/pid/26/2189), and [Zhifeng Chen](https://dblp.org/pid/61/5154). 首次提交至 arXiv: November 16, 2018; 当前版本为 v5. [GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism](https://arxiv.org/abs/1811.06965). [原始 PDF](/paper/gpipe.pdf). [TeX 源码](https://export.arxiv.org/e-print/1811.06965). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Yanping Huang](https://x.com/bignamehyp), [Youlong Cheng](https://dblp.org/pid/230/3622), [Ankur Bapna](https://x.com/ankurbpn), [Orhan Firat](https://orhanfirat.com/), [Mia Xu Chen](https://scholar.google.com/citations?user=wE9BArMAAAAJ), [Dehao Chen](https://dblp.org/pid/50/6185), [HyoukJoong Lee](https://dblp.org/pid/21/276), [Jiquan Ngiam](https://cs.stanford.edu/~jngiam/), [Quoc V. Le](http://cs.stanford.edu/~quocle/), [Yonghui Wu](https://dblp.org/pid/26/2189), and [Zhifeng Chen](https://www.zhifengchen.me/). 首次提交至 arXiv: November 16, 2018; 当前版本为 v5. [GPipe: Efficient Training of Giant Neural Networks using Pipeline Parallelism](https://arxiv.org/abs/1811.06965). [原始 PDF](/paper/gpipe.pdf). [TeX 源码](https://export.arxiv.org/e-print/1811.06965). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

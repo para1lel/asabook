@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:34:32
 permalink: /ja/papers/distserve/
 ---
 
-> [Yinmin Zhong](https://dblp.org/pid/339/0691), [Shengyu Liu](https://dblp.org/pid/67/10301), [Junda Chen](https://dblp.org/pid/26/6778), [Jianbo Hu](https://dblp.org/pid/97/1511), [Yibo Zhu](https://dblp.org/pid/65/8854-1), [Xuanzhe Liu](https://dblp.org/pid/08/2161), [Xin Jin](https://dblp.org/pid/68/3340-8), and [Hao Zhang](https://dblp.org/pid/55/2270-25). arXiv 初回投稿日: January 18, 2024; 現行版は v3. [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670). [原 PDF](/paper/distserve.pdf). [TeX ソース](https://export.arxiv.org/e-print/2401.09670). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Yinmin Zhong](https://www.yinminzhong.com/), [Shengyu Liu](https://interestinglsy.github.io/), [Junda Chen](https://x.com/Junda_Chen_), [Jianbo Hu](https://dblp.org/pid/97/1511), [Yibo Zhu](http://yibozhu.com), [Xuanzhe Liu](http://www.liuxuanzhe.com), [Xin Jin](https://xinjin.github.io/), and [Hao Zhang](https://haozhang.ai/). arXiv 初回投稿日: January 18, 2024; 現行版は v3. [DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving](https://arxiv.org/abs/2401.09670). [原 PDF](/paper/distserve.pdf). [TeX ソース](https://export.arxiv.org/e-print/2401.09670). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

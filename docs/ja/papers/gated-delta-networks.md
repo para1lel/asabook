@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:34:32
 permalink: /ja/papers/gated-delta-networks/
 ---
 
-> [Songlin Yang](https://dblp.org/pid/03/7764), [Jan Kautz](https://dblp.org/pid/48/6214), and [Ali Hatamizadeh](https://dblp.org/pid/226/7000). arXiv 初回投稿日: December 9, 2024; 現行版は v3. [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464). [原 PDF](/paper/gated-delta-networks.pdf). [TeX ソース](https://export.arxiv.org/e-print/2412.06464). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Songlin Yang](https://sustcsonglin.github.io/), [Jan Kautz](https://www.jankautz.com/), and [Ali Hatamizadeh](https://ahatamiz.github.io/). arXiv 初回投稿日: December 9, 2024; 現行版は v3. [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464). [原 PDF](/paper/gated-delta-networks.pdf). [TeX ソース](https://export.arxiv.org/e-print/2412.06464). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 

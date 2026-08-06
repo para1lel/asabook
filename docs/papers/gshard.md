@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:15:31
 permalink: /papers/gshard/
 ---
 
-> [Dmitry Lepikhin](https://dblp.org/pid/141/4524), [HyoukJoong Lee](https://dblp.org/pid/21/276), [Yuanzhong Xu](https://dblp.org/pid/60/9826), [Dehao Chen](https://dblp.org/pid/50/6185), [Orhan Firat](https://dblp.org/pid/120/2225), [Yanping Huang](https://dblp.org/pid/00/10104), [Maxim Krikun](https://dblp.org/pid/05/1775), [Noam Shazeer](https://dblp.org/pid/80/4668), and [Zhifeng Chen](https://dblp.org/pid/61/5154). 首次提交至 arXiv: June 30, 2020; 当前版本为 v1. [GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding](https://arxiv.org/abs/2006.16668). [原始 PDF](/paper/gshard.pdf). [TeX 源码](https://export.arxiv.org/e-print/2006.16668). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Dmitry Lepikhin](https://x.com/lepikhin), [HyoukJoong Lee](https://dblp.org/pid/21/276), [Yuanzhong Xu](https://x.com/ukoxyz), [Dehao Chen](https://dblp.org/pid/50/6185), [Orhan Firat](https://orhanfirat.com/), [Yanping Huang](https://x.com/bignamehyp), [Maxim Krikun](https://dblp.org/pid/05/1775), [Noam Shazeer](https://www.noamshazeer.com/), and [Zhifeng Chen](https://www.zhifengchen.me/). 首次提交至 arXiv: June 30, 2020; 当前版本为 v1. [GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding](https://arxiv.org/abs/2006.16668). [原始 PDF](/paper/gshard.pdf). [TeX 源码](https://export.arxiv.org/e-print/2006.16668). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 

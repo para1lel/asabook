@@ -4,7 +4,7 @@ createTime: 2026/08/05 00:26:41
 permalink: /ja/papers/sarathi/
 ---
 
-> [Amey Agrawal](https://dblp.org/pid/236/4993), [Ashish Panwar](https://dblp.org/pid/175/5750), [Jayashree Mohan](https://dblp.org/pid/168/3415), [Nipun Kwatra](https://dblp.org/pid/53/6666), [Bhargav S. Gulavani](https://dblp.org/pid/46/396), and [Ramachandran Ramjee](https://dblp.org/pid/97/117). arXiv 初回投稿日: August 31, 2023; 現行版は v1. [SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369). [原 PDF](/paper/sarathi.pdf). [TeX ソース](https://export.arxiv.org/e-print/2308.16369). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Amey Agrawal](https://ameya.info/), [Ashish Panwar](https://apanwariisc.github.io/), [Jayashree Mohan](https://www.microsoft.com/en-us/research/people/jamohan/), [Nipun Kwatra](https://www.microsoft.com/en-us/research/people/nkwatra/), [Bhargav S. Gulavani](https://x.com/bhargavgulavani), and [Ramachandran Ramjee](https://x.com/ramaramjee). arXiv 初回投稿日: August 31, 2023; 現行版は v1. [SARATHI: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills](https://arxiv.org/abs/2308.16369). [原 PDF](/paper/sarathi.pdf). [TeX ソース](https://export.arxiv.org/e-print/2308.16369). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
 
 ## 要約
 
