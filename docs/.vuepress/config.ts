@@ -3323,15 +3323,52 @@ const paperAbbreviations = {
   // CSE 291 readings: generated citations end
 }
 
-const normalizedPaperAbbreviations = Object.fromEntries(
-  Object.entries(paperAbbreviations).map(([key, value]) => [
-    key,
-    value.replace(
-      /^(?:[^.\n]+? et al\.?|[^.\n]+? and [^.\n]+?|[^.\n]+? & [^.\n]+?)\s*,?\s*(?:\[(?:19|20)\d{2}[a-z]?\]|\((?:19|20)\d{2}[a-z]?\))\s+/i,
-      '',
-    ),
-  ]),
-)
+function normalizePaperAbbreviation(value: string) {
+  let normalized = value
+    .replace(/^\s*(?:\[\d+\]|\(\d+\))\s*/, '')
+    .replace(/\s+/g, ' ')
+
+  const authorLabel = normalized.match(
+    /^\s*(.+?)\s*(?:\[(?:19|20)\d{2}[a-z]?\]|\((?:19|20)\d{2}[a-z]?\))\s+(.+)$/i,
+  )
+  if (authorLabel) {
+    const label = authorLabel[1].trim()
+    const probe = authorLabel[2].slice(0, 240)
+    const probeTokens = new Set(probe.toLowerCase().split(/[^\p{L}\p{N}]+/u))
+    const repeatedAuthor = label
+      .replace(/\bet al\.?$/i, '')
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter((token) => token.length > 2)
+      .some((token) => probeTokens.has(token.toLowerCase()))
+    if (/\bet al\.?$/i.test(label) || repeatedAuthor) normalized = authorLabel[2]
+  }
+
+  return normalized.replace(
+    /\b(?:URL\s+)?(https?:\/\/[^)\s]+?)[.,]?\s+\[Link\]\((https?:\/\/[^)]+)\)/gi,
+    (match, rawUrl: string, linkedUrl: string) =>
+      rawUrl.replace(/[.,]+$/, '').toLowerCase() === linkedUrl.toLowerCase()
+        ? `[Link](${linkedUrl})`
+        : match,
+  )
+}
+
+function paperAbbreviationIdentity(value: string) {
+  const link = value.match(/https?:\/\/[^)\s]+/i)?.[0]
+  return link
+    ? `url:${link.replace(/[.,]+$/, '').toLowerCase()}`
+    : `text:${value.toLowerCase().replace(/[^a-z0-9]+/g, '')}`
+}
+
+const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
+  key,
+  normalizePaperAbbreviation(value),
+] as const)
+const canonicalEntryByIdentity = new Map<string, readonly [string, string]>()
+for (const [key, value] of normalizedEntries) {
+  const identity = paperAbbreviationIdentity(value)
+  if (!canonicalEntryByIdentity.has(identity)) canonicalEntryByIdentity.set(identity, [key, value])
+}
+const normalizedPaperAbbreviations = Object.fromEntries(canonicalEntryByIdentity.values())
 
 interface YokubiSidebarLabels {
   introduction: string

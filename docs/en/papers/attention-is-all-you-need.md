@@ -14,7 +14,7 @@ The dominant sequence transduction models are based on complex recurrent or conv
 
 ## 1 Introduction
 
-Recurrent neural networks, long short-term memory [Neural97] and gated recurrent [CoRRb14] neural networks in particular, have been firmly established as state of the art approaches in sequence modeling and transduction problems such as language modeling and machine translation [System14, CoRR14, CoRRa14]. Numerous efforts have since continued to push the boundaries of recurrent language models and encoder-decoder architectures [Xivh16, Xivd15, Xivf16].
+Recurrent neural networks, long short-term memory [Neural97] and gated recurrent [CoRRb14] neural networks in particular, have been firmly established as state of the art approaches in sequence modeling and transduction problems such as language modeling and machine translation [System14, CoRR14, CoRRa14]. Numerous efforts have since continued to push the boundaries of recurrent language models and encoder-decoder architectures [Xivh16, Xivd15, Jozefo16].
 
 Recurrent models typically factor computation along the symbol positions of the input and output sequences. Aligning the positions to steps in computation time, they generate a sequence of hidden states $h_{t}$, as a function of the previous hidden state $h_{t-1}$ and the input for position $t$. This inherently sequential nature precludes parallelization within training examples, which becomes critical at longer sequence lengths, as memory constraints limit batching across examples. Recent work has achieved significant improvements in computational efficiency through factorization tricks [Xivb17] and conditional computation [Xive17], while also improving model performance in case of the latter. The fundamental constraint of sequential computation, however, remains.
 
@@ -48,7 +48,7 @@ The Transformer follows this overall architecture using stacked self-attention a
 
 ##### Encoder:
 
-The encoder is composed of a stack of $N=6$ identical layers. Each layer has two sub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, position-wise fully connected feed-forward network. We employ a residual connection [Recogn16] around each of the two sub-layers, followed by layer normalization [Xivc16]. That is, the output of each sub-layer is $\mathrm{LayerNorm}(x+\mathrm{Sublayer}(x))$, where $\mathrm{Sublayer}(x)$ is the function implemented by the sub-layer itself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding layers, produce outputs of dimension $d_{\mathrm{model}}=512$.
+The encoder is composed of a stack of $N=6$ identical layers. Each layer has two sub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, position-wise fully connected feed-forward network. We employ a residual connection [IEEEa16] around each of the two sub-layers, followed by layer normalization [Xivad16]. That is, the output of each sub-layer is $\mathrm{LayerNorm}(x+\mathrm{Sublayer}(x))$, where $\mathrm{Sublayer}(x)$ is the function implemented by the sub-layer itself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding layers, produce outputs of dimension $d_{\mathrm{model}}=512$.
 
 ##### Decoder:
 
@@ -180,7 +180,7 @@ We trained our models on one machine with 8 NVIDIA P100 GPUs. For our base model
 
 ### 5.3 Optimizer
 
-We used the Adam optimizer [ICLRa15] with $\beta_{1}=0.9$, $\beta_{2}=0.98$ and $\epsilon=10^{-9}$. We varied the learning rate over the course of training, according to the formula:
+We used the Adam optimizer [ICLR15] with $\beta_{1}=0.9$, $\beta_{2}=0.98$ and $\epsilon=10^{-9}$. We varied the learning rate over the course of training, according to the formula:
 
 $$
 \mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})\tag{3}
