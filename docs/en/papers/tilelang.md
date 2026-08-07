@@ -69,12 +69,7 @@ In this section, we introduce the foundations of our tile-based programming mode
 
 <span id="table-01"></span>
 
-| Dataflow Centric Tile Operators | Description | Scheduling Primitives | Description |
-| --- | --- | --- | --- |
-| `T.copy` | A specialized memory copy operator that abstracts parallel data movement among registers, shared memory, and global memory. | `T.Parallel` | Automates parallelization of loop iterations, mapping them to hardware threads, can also enable vectorization for additional performance gains. |
-| `T.gemm` | Automatically selects implementations (cute/cuda/hip) for high-performance matrix multiplication on different GPUs. | `T.Pipelined` | Enables loop-level pipelining to overlap data transfers with computation and supports hardware-specific instructions such as async copy and TMA. |
-| `T.reduce` | A flexible reduction operator (e.g., sum, min, max) exploiting warp- and block-level parallelism. | `T.annotate_layout` | Allows the definition of custom memory layouts to minimize bank conflicts and optimize thread binding. |
-| `T.atomic` | Provides atomic operations (e.g., add, min, max) to ensure thread-safe updates in shared or global memory. | `T.use_swizzle` | Improves L2 cache locality via swizzle thread blocks. |
+![Original paper Table 1](../../papers/tilelang/table-01.png)
 
 **Table 1.** A partial list of the dataflow operators and scheduling primitives supported by TileLang.
 
@@ -289,45 +284,19 @@ Our system is open-sourced to support future development and community contribut
 
 <span id="table-02"></span>
 
-|   | V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| m | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
-| n | 16384 | 43008 | 14336 | 57344 | 14336 | 9216 | 36864 | 9216 |
-| k | 16384 | 14336 | 14336 | 14336 | 57344 | 9216 | 9216 | 36864 |
-|   | M0 | M1 | M2 | M3 | M4 | M5 | M6 | M7 |
-| m | 4096 | 4096 | 4096 | 4096 | 8192 | 8192 | 8192 | 8192 |
-| n | 1024 | 8192 | 28672 | 8192 | 1024 | 8192 | 28672 | 8192 |
-| k | 8192 | 8192 | 8192 | 28672 | 8192 | 8192 | 8192 | 28672 |
+![Original paper Table 2](../../papers/tilelang/table-02.png)
 
 **Table 2.** Matrix shapes in our benchmark.
 
 <span id="table-03"></span>
 
-|   | FA0 | FA1 | FA2 | FA3 | FA4 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| batch | 1 | 1 | 1 | 1 | 1 |
-| nheads | 32 | 32 | 32 | 32 | 32 |
-| seq_len | 512 | 512 | 1024 | 1024 | 4096 |
-| head_dim | 128 | 128 | 128 | 128 | 128 |
-| causal | true | false | true | false | true |
+![Original paper Table 3](../../papers/tilelang/table-03.png)
 
 **Table 3.** FlashAttention shapes in our benchmark.
 
 <span id="table-04"></span>
 
-|   | CC0 | CC1 | CC2 | CC3 | CC4 | CC5 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| batch | 1 | 1 | 1 | 64 | 64 | 64 |
-| nheads | 64 | 64 | 64 | 64 | 64 | 64 |
-| seq_len | 1024 | 2048 | 8192 | 1024 | 2048 | 8192 |
-| head_dim | 64 | 64 | 64 | 64 | 64 | 64 |
-| d_state | 128 | 128 | 128 | 128 | 128 | 128 |
-|   | CT0 | CT1 | CT2 | CT3 | CT4 | CT5 |
-| batch | 1 | 1 | 1 | 64 | 64 | 64 |
-| nheads | 64 | 64 | 64 | 64 | 64 | 64 |
-| seq_len | 1024 | 2048 | 8192 | 1024 | 2048 | 8192 |
-| head_dim | 64 | 64 | 64 | 64 | 64 | 64 |
-| d_state | 128 | 128 | 128 | 128 | 128 | 128 |
+![Original paper Table 4](../../papers/tilelang/table-04.png)
 
 **Table 4.** Linear Attention shapes in our benchmark.
 

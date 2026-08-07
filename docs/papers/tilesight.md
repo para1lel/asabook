@@ -61,19 +61,9 @@ pageClass: tilesight-paper
 
 <span id="table-01"></span>
 
-<div class="paper-wide-table">
 
-| 特性 | Roofline [Wil09] | NeuSight [Lee25] | PipeWeave [Zha26p] | GenZ [Bam24] | Vidur [Agr24] | SimAI [Wan25s] | TileSight |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 无需 kernel profiling/training¹ | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
-| Pipeline-aware² | ✗ | ✗ | ○ | ✗ | ✗ | ✗ | ✓ |
-| Cache-aware³ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
-| 显式融合程序⁴ | ✗ | ✗ | ○ | ✗ | ✗ | ✗ | ✓ |
-| 分布式⁵ | ✗ | ○ | ○ | ○ | ✓ | ✓ | ✓ |
-| 计算-通信重叠⁶ | ✗ | ✗ | ✗ | ✗ | ✗ | ○ | ✓ |
-| 可解释⁷ | ✓ | ✗ | ○ | ✓ | ✗ | ✗ | ✓ |
+![论文原表 1](./tilesight/table-01.png)
 
-</div>
 
 **表 1.** 与已有性能建模工具的比较. ✓ 完全支持. ○ 部分支持. ✗ 不支持. ¹无需 kernel profiling/training: 不需要 kernel 执行 trace 或 ML 训练; TileSight 仅使用每种架构一次性的 microbenchmark (带宽/吞吐量/延迟 sweep, 约数分钟). ²Pipeline-aware: tile 内 DAG 调度和计算-内存 pipeline 重叠. ³Cache-aware: 预测 L2/L1.5 命中率以及与调度有关的 tile locality 效应. ⁴显式融合程序: 由用户描述的任意多操作 DAG kernel (例如 FA-3, MLA), 不局限于一组固定的受支持模式. ⁵分布式: 多 GPU collective communication 建模. ⁶计算-通信重叠: 融合的计算-通信 kernel (例如 AllGather+GEMM). SimAI 接受用户指定的重叠比例, 但不会以分析方式推导它们. ⁷可解释: 支持瓶颈诊断的白盒模型.
 
@@ -93,14 +83,7 @@ TileSight 的输入是高层工作负载, 如 tiled GEMM, 融合 attention kerne
 
 <span id="table-02"></span>
 
-| 字段 | 侧别 | 在模型中的作用 |
-| --- | --- | --- |
-| Tensor access | Tile 内 | 每 tile footprint, 以及记录 tensor tile 在何处产生和位于何处的 placement descriptor: register, 架构特定 tensor memory (TMEM), SMEM, 本地 cache/DDR, 或 GPU group 上的 shard/replica. 复用维度输入 tile 间 cache 建模. |
-| 操作类型 | Tile 内 | Tile 执行的 action: load, store, tensor-core 或 CUDA-core matmul, reduction, exponential, rescaling, remote transfer 或 fused composite. |
-| 资源向量 | Tile 内 | 每个可独立调度资源上的每 tile 时间 (tensor core (TC), CUDA core, SFU, TMEM, SMEM, L1.5, L2, DDR, Net); 由操作, footprint, placement 和校准后的硬件速率推导. |
-| Tile grid | Tile 间 | 空间 tile shape, launch order, swizzle, loop/reduction depth 和 distributed partition. 决定 tile 执行顺序, wave 和每设备的本地工作量. |
-| Producer-consumer DAG | Tile 间 | 基于张量产生和消费的 tile 间 edge; 与 placement 一起确定单次迭代内的合法顺序. |
-| 并发与深度 | Tile 间 | Software-pipeline stage, 每个 SM 的 resident block, 以及哪些 tile 可以同时 issue. 设定有效 pipeline 深度. |
+![论文原表 2](./tilesight/table-02.png)
 
 **表 2.** Tile execution plan 按字段描述的是孤立的单个 tile (tile 内) 还是 tile 之间的关系 (tile 间) 对字段分组.
 
@@ -347,13 +330,7 @@ TileSight 只需要影响 tile execution plan 及其 placement descriptor 的参
 
 <span id="table-03"></span>
 
-| GPU | SM 数 | VEC FP32 T spec / meas. | TC FP16 T spec / meas. | SFU T spec / meas. | L2 TB/s meas. | DDR TB/s spec / meas. |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| A100 | 108 | 19.5 / 19.0 | 312 / 299 | 2.4 / 2.4 | 3.2 | 1.9 / 1.7 |
-| H200\* | 132 | 61.8 / 49.5 | 989 / 928 | 3.9 / 4.1 | 9.2 | 4.8 / 4.2 |
-| B6000 | 188 | 117 / 88.6 | 468 / 433 | 7.3 / 6.7 | 7.6 | 1.8 / 1.4 |
-| B200 | 148 | 74.5 / 57.7 | 2382 / 2185 | 4.7 / 4.5 | 20.5 | 8.0 / 7.0 |
-| MI210 | 104 | 45.3 / 34.4 | 181 / 167 | 2.8 / 1.1 | 4.8 | 1.6 / 1.4 |
+![论文原表 3](./tilesight/table-03.png)
 
 *注*: TileSight 的硬件抽象还包括 cache 层次结构, 架构特定的 TMEM 带宽, SMEM/occupancy 限制, 以及跨 GPU group 的网络层次结构. 为简洁起见, 此处未列出. \*H200 的最大时钟为 1980 MHz, 默认时钟为 1830 MHz.
 
@@ -377,10 +354,7 @@ TileSight 使用 Python 实现 (约 6K 行), 支持 NVIDIA 和 AMD GPU. 用户�
 
 <span id="table-04"></span>
 
-|  | 时间 (ms) | L2 命中 (%) | L2 利用率 (%) | SMEM (%) | TC (%) | SFU (%) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| NCU | 5.58 | 96.50 | 38.66 | 51.14 | 74.78 | 38.58 |
-| TileSight | 5.73 | 95.26 | 35.72 | 43.13 | 70.30 | 35.42 |
+![论文原表 4](./tilesight/table-04.png)
 
 **组合与校准.** 建模链自底向上运行: cache 模型根据 tile 调度和复用距离计算 L1.5/L2/DDR 流量比例. 这些流量数据输入每 tile pipeline overlap 模型. Wave 模型将每 tile 结果聚合为每设备时间, 分布式模型则添加通信并计算重叠. Memory/TMEM 带宽, 每单元计算吞吐量和其他硬件参数通过小型 microbenchmark 对每种架构校准一次. 这包括[图 2](#figure-02) 所示的跨工作集大小带宽 sweep, 以及只需数秒的短矩阵乘 probe.
 
@@ -430,15 +404,7 @@ TileSight 使用 Python 实现 (约 6K 行), 支持 NVIDIA 和 AMD GPU. 用户�
 
 <span id="table-05"></span>
 
-| Kernel | 框架 | 设备 | Baseline | 问题 | 解决方案 | 优化后 | 加速比 |
-| --- | --- | --- | ---: | --- | --- | ---: | ---: |
-| ReLU | Triton | MI210 | 1.40 ms | 间接寻址 | 展开寻址 | 1.10 ms | $1.27\times$ |
-| Avg_Pool | Triton | MI210 | 0.20 ms | 间接寻址 + 未重叠 | 展开寻址 + 小 tile | 0.10 ms | $2.00\times$ |
-| Avg_Pool | Torch | MI210 | 0.15 ms | 未重叠 | 小 tile | 0.10 ms | $1.50\times$ |
-| GEMM(M128) | CK | MI210 | 3.68 ms | 未重叠 | 每个 SM 多个 thread block | 2.68 ms | $1.37\times$ |
-| GEMM(K57344) | CK | MI210 | 55.63 ms | 大 K 导致 L2 命中率问题 | 大 tilek -> 每 CU 1 TB | 51.90 ms | $1.07\times$ |
-| RMS_Norm | Torch.Compile | H100 | 0.21 ms | 未重叠 | 每个 SM 多个 thread block | 0.18 ms | $1.17\times$ |
-| MLA(kv8192 b128 h128) | Triton | MI210 | 66.38 ms | Tiling, 内存分配, SMEM conflict | Register 分配, 更大的 tile, 消除 conflict | 7.40 ms | **$8.97\times$** |
+![论文原表 5](./tilesight/table-05.png)
 
 <span id="figure-11"></span>
 

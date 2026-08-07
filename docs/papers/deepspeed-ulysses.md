@@ -84,12 +84,7 @@ DeepSpeed-Ulysses 能够训练比现有系统大 4 倍序列长度的 Transforme
 
 <span id="table-01"></span>
 
-|方法|通信|激活|参数|注意力|易用性|
-| --- | --- | --- | --- | --- | --- |
-|复杂性|内存效率|内存效率|不相关|易用性||
-|ColAI-SP [Reff22]|$O(M)$| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓|x|x|x|
-|Megatron-SP [Korthi22]|$O(M)$| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓|x| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓|x|
-|DS-Ulysses|$O(M/P)$| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓| \textpdfrender TextRenderingMode=FillStroke, LineWidth=. 75pt, ✓|
+![论文原表 1](./deepspeed-ulysses/table-01.png)
 
 **表 1.** 我们的工作 (DS-Ulysses) 与其他序列并行方法的比较.
 
@@ -185,21 +180,13 @@ DeepSpeed 对分布式注意力模块的实现具有足够的通用性, 可以�
 
 <span id="table-02"></span>
 
-|序列长度|GPUs|时间 (毫秒)|TFLOPs|
-| --- | --- | --- | --- |
-|131072|64|32432.1333|165.526667|
-|131072|128|17052.5143|157.41|
-|131072|256|9886.7|136.09|
+![论文原表 2](./deepspeed-ulysses/table-02.png)
 
 **表 2.** 固定序列长度的并行扩展研究
 
 <span id="table-03"></span>
 
-|序列长度|GPUs|时间 (毫秒)|TFLOPs|
-| --- | --- | --- | --- |
-|65536|64|9676.76|161.3626667|
-|131072|128|17052.5143|157.41|
-|262144|256|33486.5|147.4|
+![论文原表 3](./deepspeed-ulysses/table-03.png)
 
 **表 3.** 不同序列长度的并行扩展研究
 

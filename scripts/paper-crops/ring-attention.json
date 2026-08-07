@@ -34,5 +34,50 @@
     "width": 376.5,
     "height": 259,
     "preserveSource": true
+  },
+  {
+    "name": "table-01",
+    "page": 5,
+    "x": 159.5,
+    "y": 142,
+    "width": 291,
+    "height": 85,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 5,
+    "x": 135,
+    "y": 285.5,
+    "width": 339.5,
+    "height": 106,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 7,
+    "x": 117,
+    "y": 142,
+    "width": 375.5,
+    "height": 290.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 8,
+    "x": 112.5,
+    "y": 284,
+    "width": 384.5,
+    "height": 78,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 8,
+    "x": 118,
+    "y": 612.5,
+    "width": 376,
+    "height": 108.5,
+    "preserveSource": false
   }
 ]

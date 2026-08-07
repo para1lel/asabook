@@ -64,12 +64,7 @@ Ring-Based Blockwise Attention. To tackle the aforementioned challenges, we leve
 
 <span id="table-01"></span>
 
-| Layer Type | Self-Attention | FeedForward | Total |
-| --- | --- | --- | --- |
-| Vanilla | $2\mathrm{bns}^{2}$ | $8\mathrm{bsh}$ | $2\mathrm{bhs}^{2}$ |
-| Memory efficient attention | $2\mathrm{bsh}+4\mathrm{bch}$ | $8\mathrm{bsh}$ | $8\mathrm{bsh}$ |
-| Memory efficient attention and feedforward | $2\mathrm{bsh}$ | $2\mathrm{bsh}$ | $2\mathrm{bsh}$ |
-| Ring Attention | $6\mathrm{bch}$ | $2\mathrm{bch}$ | $6\mathrm{bch}$ |
+![Original paper Table 1](../../papers/ring-attention/table-01.png)
 
 **Table 1.** Comparison of maximum activation sizes among different Transformer architectures. Here, $b$ is batch size, $h$ is hidden dimension, $n$ is number of head, $s$ is sequence length, $c$ is block size, the block size ($c$) is independent of the input sequence length ($s$). The comparison is between vanilla Transformer [Vaswan17], memory efficient attention [Staata21], memory efficient attention and feedforward [Abbeea23], and our proposed approach Ring Attention. Numbers are shown in bytes per layer, assuming bfloat16 precision.
 
@@ -81,14 +76,7 @@ Our analysis shows that the model needs to have a sequence length of $s=6c$, whi
 
 <span id="table-02"></span>
 
-| Spec Per Host | FLOPS | HBM | Interconnect Bandwidth | Minimal Blocksize | Minimal Sequence Len |
-| --- | --- | --- | --- | --- | --- |
-|  | (TF) | (GB) | (GB/s) | ($\times 1\mathrm{e}3$) | ($\times 1\mathrm{e}3$) |
-| A100 NVLink | 312 | 80 | 300 | 1.0 | 6.2 |
-| A100 InfiniBand | 312 | 80 | 12.5 | 24.5 | 149.5 |
-| TPU v3 | 123 | 16 | 112 | 1.1 | 6.6 |
-| TPU v4 | 275 | 32 | 268 | 1.0 | 6.2 |
-| TPU v5e | 196 | 16 | 186 | 1.1 | 6.3 |
+![Original paper Table 2](../../papers/ring-attention/table-02.png)
 
 **Table 2.** Minimal sequence length needed on each device. Interconnect Bandwidth is the unidirectional bandwidth between hosts, i.e., NVLink / InfiniBand bandwidth between GPUs and ICI bandwidth between TPUs. The minimal block size required $c=\mathrm{FLOPS}/\mathrm{Bandwidth}$, and minimal sequence length $s=6c$.
 
@@ -130,37 +118,13 @@ Our Ring Attention model consistently surpasses baselines, delivering superior s
 
 <span id="table-03"></span>
 
-|  | Max context size supported ($\times 1\mathrm{e}3$) |  |  |  |  |
-| --- | --- | --- | --- | --- | --- |
-|  | Vanilla | Memory Efficient Attn | Memory Efficient Attn and FFN | Ring Attention (Ours) | Ours vs SOTA |
-| 8x A100 NVLink |  |  |  |  |  |
-| 3B | 4 | 32 | 64 | 512 | 8x |
-| 7B | 2 | 16 | 32 | 256 | 8x |
-| 13B | 2 | 4 | 16 | 128 | 8x |
-| 32x A100 InfiniBand |  |  |  |  |  |
-| 7B | 4 | 64 | 128 | 4096 | 32x |
-| 13B | 4 | 32 | 64 | 2048 | 32x |
-| TPUv3-512 |  |  |  |  |  |
-| 7B | 1 | 4 | 8 | 2048 | 256x |
-| 13B | 1 | 2 | 8 | 1024 | 128x |
-| TPUv4-1024 |  |  |  |  |  |
-| 3B | 8 | 16 | 32 | 16384 | 512x |
-| 7B | 4 | 8 | 16 | 8192 | 512x |
-| 13B | 4 | 8 | 16 | 4096 | 256x |
-| 30B | 2 | 4 | 8 | 2048 | 256x |
-| TPUv5e-256 |  |  |  |  |  |
-| 3B | 4 | 8 | 32 | 4096 | 128x |
-| 7B | 2 | 8 | 16 | 2048 | 128x |
+![Original paper Table 3](../../papers/ring-attention/table-03.png)
 
 **Table 3.** The maximum context length supported in end-to-end training using fully sharded data parallelism and various transformers architectures. We show different model sizes and accelerators. Baselines are vanilla transformer [Vaswan17], transformer with memory efficient attention [Staata21], and transformer with memory efficient attention and feedforward [Abbeea23]. The context size is reported in tokens (1e3). Our Ring Attention substantially outperforms baselines and enables training sequences that are up to device count times longer than prior state-of-the-arts.
 
 <span id="table-04"></span>
 
-|  | Model size | 7B | 13B | 13B | 30B | 65B |
-| --- | --- | --- | --- | --- | --- | --- |
-|  | Compute | 8x A100 | 8x A100 | 32x A100 | TPUv4-1024 | TPUv4-1024 |
-| Memory efficient attention & FFN | Context size ($\times 1\mathrm{e}3$) | 32 | 16 | 64 | 16 | 8 |
-| Ring Attention | Context size ($\times 1\mathrm{e}3$) | 256 | 128 | 2048 | 2048 | 1024 |
+![Original paper Table 4](../../papers/ring-attention/table-04.png)
 
 **Table 4.** Model flops utilization (MFU) with different training configurations: model sizes, compute, and context lengths. Ring Attention enables training large models (7B-65B) on large input context sizes (over 4M) with negligible overheads.
 
@@ -176,16 +140,7 @@ We present results of applying Ring Attention for learning trial-and-error RL ex
 
 <span id="table-05"></span>
 
-| ExoRL | BC-10% | DT | AT + ME | AT + BPT | AT + BPT | AT + RA |
-| --- | --- | --- | --- | --- | --- | --- |
-| Task |  |  | N Trajs = 32 | N Trajs = 32 | N Trajs = 128 | N Trajs = 128 |
-| Walker Stand | 52.91 | 34.54 | oom | 95.45 | oom | 98.23 |
-| Walker Run | 34.81 | 49.82 | oom | 105.88 | oom | 110.45 |
-| Walker Walk | 13.53 | 34.94 | oom | 78.56 | oom | 78.95 |
-| Cheetah Run | 34.66 | 67.53 | oom | 178.75 | oom | 181.34 |
-| Jaco Reach | 23.95 | 18.64 | oom | 87.56 | oom | 89.51 |
-| Cartpole Swingup | 56.82 | 67.56 | oom | 120.56 | oom | 123.45 |
-| Total Average | 36.11 | 45.51 | oom | 111.13 | oom | 113.66 |
+![Original paper Table 5](../../papers/ring-attention/table-05.png)
 
 **Table 5.** Application of Ring Attention on improving Transformer in RL. BC and DT use vanilla attention. AT + ME denotes using memory efficient attention, AT + BPT denotes using blockwise parallel transformer. AT + RA denotes using Ring Attention.
 

@@ -196,14 +196,7 @@ $c$および$\alpha$が与えられ、十分な計算リソースがあると仮
 
 <span id="table-01"></span>
 
-|$\alpha$|$\gamma$|操作|速度|
-| --- | --- | --- | --- |
-|0.6|2|1.53X|1.96X|
-|0.7|3|1.58X|2.53X|
-|0.8|2|1.23X|2.44X|
-|0.8|5|1.63X|3.69X|
-|0.9|2|1.11X|2.71X|
-|0.9|10|1.60X|6.86X|
+![論文の表 1](../../papers/speculative-decoding/table-01.png)
 
 **表1.** さまざまな$\gamma$および$\alpha$の値に対して、$c=\hat{c}=0$を仮定した場合の総演算回数と推論速度（ベースラインに対する倍率）。
 
@@ -249,20 +242,7 @@ $\gamma$の単一値を$\alpha$に基づいて選択する代わりに、$\beta$
 
 <span id="table-02"></span>
 
-|（十億単位）|$M_{q}$|温度|$\gamma$|$\alpha$|速度|
-| --- | --- | --- | --- | --- | --- |
-|EnDe|T5-small $\bigstar$|0|7|0.75|3.4X|
-|EnDe|T5-base|0|7|0.8|2.8X|
-|EnDe|T5-large|0|7|0.82|1.7X|
-|EnDe|T5-small $\bigstar$|1|7|0.62|2.6X|
-|EnDe|T5-base|1|5|0.68|2.4X|
-|EnDe|T5-large|1|3|0.71|1.4X|
-|CNNDM|T5-small $\bigstar$|0|5|0.65|3.1X|
-|CNNDM|T5-base|0|5|0.73|3.0X|
-|CNNDM|T5-large|0|3|0.74|2.2X|
-|CNNDM|T5-small $\bigstar$|1|5|0.53|2.3X|
-|CNNDM|T5-base|1|3|0.55|2.2X|
-|CNNDM|T5-large|1|3|0.56|1.7X|
+![論文の表 2](../../papers/speculative-decoding/table-02.png)
 
 **表2.** T5-XXL 11Bモデルからの推論高速化の実証結果。
 
@@ -286,40 +266,7 @@ T5-XXL （11Bパラメータ） モデルの設定については [セクショ�
 
 <span id="table-03"></span>
 
-|$M_{p}$|$M_{q}$|Smpl|$\alpha$|
-| --- | --- | --- | --- |
-|GPT-like （97M）|ユニグラム|t=0|0.03|
-|GPT-like （97M）|バイグラム|t=0|0.05|
-|GPT-like （97M）|GPT-like （6M）|t=0|0.88|
-|GPT-like （97M）|ユニグラム|t=1|0.03|
-|GPT-like （97M）|バイグラム|t=1|0.05|
-|GPT風（97M）|GPT風（6M）|t=1|0.89|
-|T5-XXL（EnDe）|ユニグラム|t=0|0.08|
-|T5-XXL（EnDe）|バイグラム|t=0|0.20|
-|T5-XXL（EnDe）|T5-small|t=0|0.75|
-|T5-XXL（EnDe）|T5-base|t=0|0.80|
-|T5-XXL（EnDe）|T5-large|t=0|0.82|
-|T5-XXL（EnDe）|ユニグラム|t=1|0.07|
-|T5-XXL（EnDe）|バイグラム|t=1|0.19|
-|T5-XXL（EnDe）|T5-small|t=1|0.62|
-|T5-XXL（EnDe）|T5-base|t=1|0.68|
-|T5-XXL（EnDe）|T5-large|t=1|0.71|
-|T5-XXL（CNNDM）|ユニグラム|t=0|0.13|
-|T5-XXL（CNNDM）|バイグラム|t=0|0.23|
-|T5-XXL（CNNDM）|T5-small|t=0|0.65|
-|T5-XXL（CNNDM）|T5-ベース|t=0|0.73|
-|T5-XXL（CNNDM）|T5-ラージ|t=0|0.74|
-|T5-XXL（CNNDM）|ユニグラム|t=1|0.08|
-|T5-XXL（CNNDM）|バイグラム|t=1|0.16|
-|T5-XXL（CNNDM）|T5-スモール|t=1|0.53|
-|T5-XXL（CNNDM）|T5-ベース|t=1|0.55|
-|T5-XXL（CNNDM）|T5-ラージ|t=1|0.56|
-|LaMDA（137B）|LaMDA（100M）|t=0|0.61|
-|LaMDA（137B）|LaMDA（2B）|t=0|0.71|
-|LaMDA（137B）|LaMDA（8B）|t=0|0.75|
-|LaMDA（137B）|LaMDA（100M）|t=1|0.57|
-|LaMDA（137B）|LaMDA（2B）|t=1|0.71|
-|LaMDA（137B）|LaMDA（8B）|t=1|0.74|
+![論文の表 3](../../papers/speculative-decoding/table-03.png)
 
 **表3.** さまざまなターゲットモデル$M_{p}$、近似モデル$M_{q}$、およびサンプリング設定に対する実証的$\alpha$値。T=0およびT=1はそれぞれargmaxと標準サンプリングを示す。
 
@@ -405,20 +352,7 @@ $M=\max_{x}\frac{p(x)}{q(x)}$がある場所。私たちは、推測サンプリ
 
 <span id="table-04"></span>
 
-|（十億単位）|$M_{q}$|一時的|$\gamma$|$\alpha$|$c$|期待される改善係数|実際に測定された改善係数|
-| --- | --- | --- | --- | --- | --- | --- | --- |
-|EnDe|T5-small|0|7|0.75|0.02|3.2|3.4|
-|EnDe|T5-base|0|7|0.8|0.04|3.3|2.8|
-|EnDe|T5-large|0|7|0.82|0.11|2.5|1.7|
-|EnDe|T5-small|1|7|0.62|0.02|2.3|2.6|
-|EnDe|T5-base|1|5|0.68|0.04|2.4|2.4|
-|EnDe|T5-large|1|3|0.71|0.11|2.0|1.4|
-|CNNDM|T5-small|0|5|0.65|0.02|2.4|3.1|
-|CNNDM|T5-base|0|5|0.73|0.04|2.6|3.0|
-|CNNDM|T5-large|0|3|0.74|0.11|2.0|2.2|
-|CNNDM|T5-small|1|5|0.53|0.02|1.9|2.3|
-|CNNDM|T5-base|1|3|0.55|0.04|1.8|2.2|
-|CNNDM|T5-large|1|3|0.56|0.11|1.6|1.7|
+![論文の表 4](../../papers/speculative-decoding/table-04.png)
 
 **表4.** 期待される改善係数（Exp）と経験的に測定された改善係数（Emp）の比較。
 
@@ -440,12 +374,7 @@ $\frac{p(x)}{\mathrm{lq}(x)}$&$\mathrm{lq}(x)>p(x)$\
 
 <span id="table-05"></span>
 
-|$M_{q}$|$l=1$|$l=0.5$|$l=0.3$|$l=0.1$|
-| --- | --- | --- | --- | --- |
-|ユニグラム|0.07|0.1|0.11|0.16|
-|バイグラム|0.19|0.23|0.25|0.32|
-|T5-スモール（77歳男性）|0.62|0.71|0.76|0.84|
-|T5ベース（250M）|0.68|0.8|0.83|0.90|
+![論文の表 5](../../papers/speculative-decoding/table-05.png)
 
 **表5.** 標準サンプリングを用いた様々な$l$値の値を、EnDeの翻訳タスクにおけるT5-XXL（11B）$M_{p}$ $\alpha$
 

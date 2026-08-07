@@ -428,15 +428,7 @@ Here we share a qualitative analysis for each experiment and discuss the implica
 
 <span id="table-01"></span>
 
-| Id | Model | Experts<br>Per-layer | Experts<br>total | TPU v3<br>Cores | Enc+Dec<br>layers | Weights |
-| --- | --- | --- | --- | --- | --- | --- |
-| (1) | MoE(2048E, 36L) | 2048 | 36684 | 2048 | 36 | 600B |
-| (2) | MoE(2048E, 12L) | 2048 | 12228 | 2048 | 12 | 200B |
-| (3) | MoE(512E, 36L) | 512 | 9216 | 512 | 36 | 150B |
-| (4) | MoE(512E, 12L) | 512 | 3072 | 512 | 12 | 50B |
-| (5) | MoE(128E, 36L) | 128 | 2304 | 128 | 36 | 37B |
-| (6) | MoE(128E, 12L) | 128 | 768 | 128 | 12 | 12.5B |
-| \* | MoE(2048E, 60L) | 2048 | 61440 | 2048 | 60 | 1T |
+![Original paper Table 1](../../papers/gshard/table-01.png)
 
 **Table 1.** MoE Transformer model family. To achieve desired capacity we i) increased the depth by stacking more layers, ii) increased the width of the network by scaling the number of experts per MoE layer along with number of cores used for training.
 
@@ -476,15 +468,7 @@ For this purpose, we compare number of tokens being processed by each model to r
 
 <span id="table-02"></span>
 
-| Id | Model | Cores | Billion tokens to<br>cross-entropy of |  |  |
-| --- | --- | --- | --- | --- | --- |
-| 0.7 | 0.6 | 0.5 |  |  |  |
-| (1) | MoE(2048E, 36L) | 2048 | 82 | 175 | 542 |
-| (2) | MoE(2048E, 12L) | 2048 | 176 | 484 | 1780 |
-| (3) | MoE(512E, 36L) | 512 | 66 | 170 | 567 |
-| (4) | MoE(512E, 12L) | 512 | 141 | 486 | - |
-| (5) | MoE(128E, 36L) | 128 | 321 | 1074 | - |
-| (6) | MoE(128E, 12L) | 128 | 995 | - | - |
+![Original paper Table 2](../../papers/gshard/table-02.png)
 
 **Table 2.** The number of tokens have been seen by a model during training to reach three different cross-entropy loss. A general trend is that deeper models are more sample efficient and converge faster than the comparable shallow ones.
 
@@ -500,15 +484,7 @@ Results in [Table 3](#table-03) again validates scaling with conditional computa
 
 <span id="table-03"></span>
 
-| Id | Model | Cores | Steps<br>per sec. | Batch sz.<br>(Tokens) | TPU core<br>years | Training<br>time (days) | BLEU<br>avg. |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| (1) | MoE(2048E, 36L) | 2048 | 0.72 | 4M | 22.4 | 4.0 | 44.3 |
-| (2) | MoE(2048E, 12L) | 2048 | 2.15 | 4M | 7.5 | 1.4 | 41.3 |
-| (3) | MoE(512E, 36L) | 512 | 1.05 | 1M | 15.5 | 11.0 | 43.7 |
-| (4) | MoE(512E, 12L) | 512 | 3.28 | 1M | 4.9 | 3.5 | 40.0 |
-| (5) | MoE(128E, 36L) | 128 | 0.67 | 1M | 6.1 | 17.3 | 39.0 |
-| (6) | MoE(128E, 12L) | 128 | 2.16 | 1M | 1.9 | 5.4 | 36.7 |
-| \* | T(96L) | 2048 | - | 4M | $\sim$235.5 | $\sim$42 | 36.9 |
+![Original paper Table 3](../../papers/gshard/table-03.png)
 
 **Table 3.** Performance of MoE models with different number of experts and layers.
 
@@ -594,18 +570,7 @@ AllGather and CollectivePermute are easier to analyze. AllGather’s output is $
 
 <span id="table-04"></span>
 
-|  | $O(D)$ | Total | Per-partition |  |
-| --- | --- | --- | --- | --- |
-|  | Dimensions | Compute | Compute | Communication |
-| Add(A,A->A) | A | $O(D)$ | $O(1)$ | 0 |
-| Matmul(AB,BC->AC) | B | $O(D)$ | $O(1)$ | $O(1)$ AR |
-| Matmul(AB,BC->AC) | A | $O(D)$ | $O(1)$ | 0 |
-| Matmul(AB,BC->AC) | A,B | $O(D^{2})$ | $O(D)$ | $O(D)$ AG or CP |
-| Matmul(AB,BC->AC) | A,C | $O(D^{2})$ | $O(D)$ | $O(D)$ AG or CP |
-| Reduce(AB->A) | A | $O(D)$ | $O(1)$ | 0 |
-| Reduce(AB->B) | A | $O(D)$ | $O(1)$ | $O(1)$ AR |
-| Einsum(GSEC,GSM->EGCM) | G,E \* | $O(D)$ | $O(1)$ | $O(\sqrt{D})$ AA |
-| Convolution(BIXY,xyIO->BOXY) | X \*\* | $O(D)$ | $O(1)$ | $O(1)$ CP |
+![Original paper Table 4](../../papers/gshard/table-04.png)
 
 **Table 4.** Scalability of partitioned operators. Abbreviation for communication primitives: AR: AllReduce, AG: AllGather, CP: CollectivePermute, AA: AllToAll. \*This is the dispatch Einsum in our model, where we set C to $O(1/D)$. \*\*I/O are the input/output feature dimensions, B is the batch dimension, X/Y are input spatial dimensions, and x/y are the kernal spatial dimensions.
 

@@ -385,5 +385,122 @@
     "width": 353,
     "height": 158.5,
     "preserveSource": true
+  },
+  {
+    "name": "table-01",
+    "page": 2,
+    "x": 102,
+    "y": 62.5,
+    "width": 408,
+    "height": 145,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 7,
+    "x": 170,
+    "y": 62.5,
+    "width": 272,
+    "height": 133,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 10,
+    "x": 76,
+    "y": 62.5,
+    "width": 460,
+    "height": 61,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 13,
+    "x": 102.5,
+    "y": 62.5,
+    "width": 407,
+    "height": 252.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 17,
+    "x": 105,
+    "y": 62.5,
+    "width": 398.62999560000026,
+    "height": 102,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 18,
+    "x": 96.463,
+    "y": 62.5,
+    "width": 415.75848808000023,
+    "height": 126,
+    "preserveSource": false
+  },
+  {
+    "name": "table-08",
+    "page": 29,
+    "x": 68,
+    "y": 61,
+    "width": 486,
+    "height": 245,
+    "preserveSource": false
+  },
+  {
+    "name": "table-20",
+    "page": 38,
+    "x": 319.5,
+    "y": 68,
+    "width": 225,
+    "height": 154,
+    "preserveSource": false
+  },
+  {
+    "name": "table-31",
+    "page": 67,
+    "x": 70,
+    "y": 62.5,
+    "width": 469,
+    "height": 66,
+    "preserveSource": false
+  },
+  {
+    "name": "table-32",
+    "page": 67,
+    "x": 105.5,
+    "y": 171,
+    "width": 397.5,
+    "height": 49,
+    "preserveSource": false
+  },
+  {
+    "name": "table-33",
+    "page": 68,
+    "x": 152.5,
+    "y": 340.5,
+    "width": 307,
+    "height": 61.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-34",
+    "page": 68,
+    "x": 328,
+    "y": 575,
+    "width": 203,
+    "height": 61,
+    "preserveSource": false
+  },
+  {
+    "name": "table-35",
+    "page": 69,
+    "x": 84,
+    "y": 62.5,
+    "width": 451,
+    "height": 50,
+    "preserveSource": false
   }
 ]

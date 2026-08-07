@@ -258,5 +258,14 @@
     "height": 83,
     "matchScore": 0.848,
     "preserveSource": true
+  },
+  {
+    "name": "table-01",
+    "page": 9,
+    "x": 75.5,
+    "y": 84.5,
+    "width": 194.68355856000005,
+    "height": 76,
+    "preserveSource": false
   }
 ]

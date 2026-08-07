@@ -165,13 +165,7 @@ where $\beta_{t}$ represents the (adaptive) learning rate. From this perspective
 
 <span id="table-01"></span>
 
-| Method | Online Learning Objective $\bm{L_{t}(S)}$ | Online Update |
-| --- | --- | --- |
-| LA | $\|{\mathbf{S}}_{t}-{\mathbf{S}}_{t-1}\|_{F}^{2}-2\langle{\mathbf{S}}_{t}{\bm{k}}_{t},{\bm{v}}_{t}\rangle$ | ${\mathbf{S}}_{t}={\mathbf{S}}_{t-1}+{\bm{v}}_{t}{\bm{k}}_{t}^\top$ |
-| Mamba2 | $\|{\mathbf{S}}_{t}-\alpha_{t}{\mathbf{S}}_{t-1}\|_{F}^{2}-2\langle{\mathbf{S}}_{t}{\bm{k}}_{t},{\bm{v}}_{t}\rangle$ | ${\mathbf{S}}_{t}=\alpha_{t}{\mathbf{S}}_{t-1}+{\bm{v}}_{t}{\bm{k}}_{t}^\top$ |
-| Longhorn | $\|{\mathbf{S}}_{t}-{\mathbf{S}}_{t-1}\|_{F}^{2}-\beta_{t}\|{\mathbf{S}}_{t}{\bm{k}}_{t}-{\bm{v}}_{t}\|^{2}$ | ${\mathbf{S}}_{t}={\mathbf{S}}_{t-1}({\mathbf{I}}-\epsilon{\bm{k}}_{t}{\bm{k}}_{t}^\top)+\epsilon_{t}{\bm{v}}_{t}{\bm{k}}_{t}^\top,\epsilon_{t}=\frac{\beta_{t}}{1+\beta_{t}{\bm{k}}_{t}^{\top}{\bm{k}}_{t}}$ |
-| DeltaNet | $\|{\mathbf{S}}_{t}-{\mathbf{S}}_{t-1}\|_{F}^{2}-2\langle{\mathbf{S}}_{t}{\bm{k}}_{t},\beta_{t}\left({\bm{v}}_{t}-{\mathbf{S}}_{t-1}{\bm{k}}_{t}\right)\rangle$ | ${\mathbf{S}}_{t}={\mathbf{S}}_{t-1}({\mathbf{I}}-\beta_{t}{\bm{k}}_{t}{\bm{k}}_{t}^\top)+\beta_{t}{\bm{v}}_{t}{\bm{k}}_{t}^\top$ |
-| Gated DeltaNet | $\|{\mathbf{S}}_{t}-\alpha_{t}{\mathbf{S}}_{t-1}\|_{F}^{2}-2\langle{\mathbf{S}}_{t}{\bm{k}}_{t},\beta_{t}\left({\bm{v}}_{t}-\alpha_{t}{\mathbf{S}}_{t-1}{\bm{k}}_{t}\right)\rangle$ | ${\mathbf{S}}_{t}={\mathbf{S}}_{t-1}\left(\alpha_{t}({\mathbf{I}}-\beta_{t}{\bm{k}}_{t}{\bm{k}}_{t}^\top)\right)+\beta_{t}{\bm{v}}_{t}{\bm{k}}_{t}^\top$ |
+![Original paper Table 1](../../papers/gated-delta-networks/table-01.png)
 
 **Table 1.** Comparison of different linear RNN models and their corresponding online learning objectives using the framework from [Liua24]. For convenience, we simplify Longhorn’s vector-valued ${\bm{\beta}}$ to scalar $\beta$.
 
@@ -253,21 +247,7 @@ Our experiments encompass a comprehensive comparison of recent state-of-the-art 
 
 <span id="table-02"></span>
 
-| Model | Wiki. | LMB. | LMB. | PIQA | Hella. | Wino. | ARC-e | ARC-c | SIQA | BoolQ | Avg. |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | ppl $\downarrow$ | ppl $\downarrow$ | acc $\uparrow$ | acc $\uparrow$ | acc\_n $\uparrow$ | acc $\uparrow$ | acc $\uparrow$ | acc\_n $\uparrow$ | acc $\uparrow$ | acc $\uparrow$ |  |
-| Recurrent models |  |  |  |  |  |  |  |  |  |  |  |
-| RetNet | 19.08 | 17.27 | 40.52 | 70.07 | 49.16 | 54.14 | 67.34 | 33.78 | 40.78 | 60.39 | 52.02 |
-| HGRN2 | 19.10 | 17.69 | 39.54 | 70.45 | 49.53 | 52.80 | 69.40 | 35.32 | 40.63 | 56.66 | 51.79 |
-| Mamba | 17.92 | 15.06 | 43.98 | 71.32 | 52.91 | 52.95 | 69.52 | 35.40 | 37.76 | 61.13 | 53.12 |
-| Mamba2 | 16.56 | 12.56 | 45.66 | 71.87 | 55.67 | 55.24 | 72.47 | 37.88 | 40.20 | 60.13 | 54.89 |
-| DeltaNet | 17.71 | 16.88 | 42.46 | 70.72 | 50.93 | 53.35 | 68.47 | 35.66 | 40.22 | 55.29 | 52.14 |
-| Gated DeltaNet | 16.42 | 12.17 | 46.65 | 72.25 | 55.76 | 57.45 | 71.21 | 38.39 | 40.63 | 60.24 | 55.32 |
-| Attention or hybrid models |  |  |  |  |  |  |  |  |  |  |  |
-| Transformer++ | 18.53 | 18.32 | 42.60 | 70.02 | 50.23 | 53.51 | 68.83 | 35.10 | 40.66 | 57.09 | 52.25 |
-| Samba | 16.13 | 13.29 | 44.94 | 70.94 | 53.42 | 55.56 | 68.81 | 36.17 | 39.96 | 62.11 | 54.00 |
-| Gated DeltaNet-H1 | 16.07 | 12.12 | 47.73 | 72.57 | 56.53 | 58.40 | 71.75 | 40.10 | 41.40 | 63.21 | 56.40 |
-| Gated DeltaNet-H2 | 15.91 | 12.55 | 48.76 | 72.19 | 56.88 | 57.77 | 71.33 | 39.07 | 41.91 | 61.55 | 56.18 |
+![Original paper Table 2](../../papers/gated-delta-networks/table-02.png)
 
 **Table 2.** Performance comparison on language modeling and zero-shot common-sense reasoning.
 
@@ -277,13 +257,7 @@ In [Table 2](#table-02), we present the language modeling perplexity and zero-sh
 
 <span id="table-03"></span>
 
-|  |  | S-NIAH-1 |  |  |  | S-NIAH-2 |  |  |  | S-NIAH-3 |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  | (pass-key retrieval) |  |  |  | (number in haystack) |  |  |  | (word in haystack) |  |  |
-| Model |  | 1K | 2K | 4K | 8K | 1K | 2K | 4K | 8K | 1K | 2K | 4K |
-| DeltaNet |  | 97.4 | 96.8 | 99.0 | 98.8 | 98.4 | 45.6 | 18.6 | 14.4 | 85.2 | 47.0 | 22.4 |
-| Mamba2 |  | 99.2 | 98.8 | 65.4 | 30.4 | 99.4 | 98.8 | 56.2 | 17.0 | 64.4 | 47.6 | 4.6 |
-| Gated DeltaNet |  | 98.4 | 88.4 | 91.4 | 91.8 | 100.0 | 99.8 | 92.2 | 29.6 | 86.6 | 84.2 | 27.6 |
+![Original paper Table 3](../../papers/gated-delta-networks/table-03.png)
 
 **Table 3.** Performance comparison on S-NIAH benchmark suite.
 
@@ -297,20 +271,7 @@ However, retrieval from memory depends on not only retention but also the abilit
 
 <span id="table-04"></span>
 
-| Models | SWDE | SQD | FDA | TQA | NQ | Drop | Avg |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Recurrent models |  |  |  |  |  |  |  |
-| RetNet | 14.0 | 28.5 | 7.0 | 54.4 | 16.2 | 17.3 | 22.9 |
-| HGRN2 | 8.3 | 25.3 | 4.8 | 51.2 | 14.2 | 16.9 | 20.1 |
-| Mamba | 9.8 | 25.8 | 3.7 | 54.3 | 14.9 | 17.4 | 21.0 |
-| Mamba2 | 19.1 | 33.6 | 25.3 | 61.0 | 20.8 | 19.2 | 29.8 |
-| DeltaNet | 17.9 | 30.9 | 18.4 | 53.9 | 17.3 | 18.6 | 26.2 |
-| Gated DeltaNet | 25.4 | 34.8 | 23.7 | 60.0 | 20.0 | 19.8 | 30.6 |
-| Attention or hybrid models |  |  |  |  |  |  |  |
-| Transformer++ | 29.5 | 38.0 | 52.2 | 58.3 | 22.5 | 21.6 | 37.0 |
-| Samba | 33.0 | 39.2 | 50.5 | 57.7 | 23.5 | 20.2 | 37.3 |
-| Gated DeltaNet-H1 | 35.6 | 39.7 | 52.0 | 60.1 | 24.6 | 22.2 | 39.0 |
-| Gated DeltaNet-H2 | 38.2 | 40.4 | 50.7 | 63.3 | 24.8 | 23.3 | 40.1 |
+![Original paper Table 4](../../papers/gated-delta-networks/table-04.png)
 
 **Table 4.** Accuracy on recall-world retrieval tasks with input truncated to 2K tokens. SQD: SQUADE. TQA: Trivial QA.
 
@@ -334,21 +295,7 @@ As demonstrated in [Table 5](#table-05), we evaluated the models’ performance 
 
 <span id="table-05"></span>
 
-|  | Single-Doc QA |  |  | Multi-Doc QA |  |  | Summarization |  |  | Few-shot |  |  | Code |  | Avg |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model | NQA | QQA | MFQ | HQA | 2WM | Mus | GvR | QMS | MNs | TRC | TQA | SSM | LCC | RBP |  |
-| Recurrent models |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| RetNet | 12.1 | 10.7 | 19.1 | 10.7 | 18.0 | 5.8 | 4.8 | 15.8 | 7.9 | 19.0 | 18.0 | 12.8 | 14.1 | 17.9 | 13.2 |
-| HGRN2 | 10.7 | 12.1 | 19.1 | 11.3 | 15.7 | 6.0 | 5.2 | 15.1 | 9.2 | 16.0 | 15.8 | 10.3 | 18.6 | 20.8 | 13.5 |
-| Mamba | 13.0 | 10.1 | 20.4 | 10.1 | 16.7 | 6.0 | 7.2 | 15.9 | 8.4 | 23.1 | 21.9 | 11.2 | 17.9 | 19.0 | 14.6 |
-| DeltaNet | 12.9 | 10.8 | 21.5 | 10.9 | 13.2 | 5.1 | 6.5 | 13.5 | 7.2 | 15.5 | 23.3 | 11.6 | 17.6 | 20.3 | 13.6 |
-| Mamba2 | 11.1 | 11.3 | 18.6 | 11.8 | 15.1 | 6.7 | 6.7 | 14.5 | 7.4 | 13.0 | 23.6 | 8.4 | 17.9 | 20.6 | 13.5 |
-| Gated DeltaNet | 14.1 | 14.0 | 23.3 | 13.7 | 14.4 | 5.8 | 7.5 | 16.4 | 7.9 | 30.0 | 22.4 | 23.0 | 18.7 | 22.1 | 16.6 |
-| Attention or hyrbid models |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| Transformer++ | 11.8 | 9.3 | 10.0 | 10.9 | 4.2 | 6.1 | 7.4 | 15.8 | 6.6 | 16.9 | 13.5 | 3.9 | 17.2 | 18.7 | 11.0 |
-| Samba | 12.5 | 12.9 | 25.4 | 11.2 | 19.7 | 6.8 | 9.1 | 15.7 | 11.0 | 20.0 | 22.7 | 22.8 | 18.1 | 21.1 | 15.9 |
-| Gated DeltaNet-H1 | 14.5 | 12.3 | 26.6 | 12.6 | 23.6 | 6.1 | 9.1 | 16.1 | 12.8 | 33.5 | 23.9 | 26.8 | 15.5 | 19.2 | 17.8 |
-| Gated DeltaNet-H2 | 12.7 | 13.0 | 27.1 | 12.7 | 20.6 | 7.5 | 10.4 | 16.2 | 13.0 | 40.5 | 22.7 | 27.9 | 19.9 | 22.1 | 18.4 |
+![Original paper Table 5](../../papers/gated-delta-networks/table-05.png)
 
 **Table 5.** Accuracy on 14 tasks from LongBench [Bai23]: Narrative QA, QasperQA, MultiField QA, HotpotQA, 2WikiMulti QA, Musique, GovReport, QMSum, MultiNews, TRec, Trivia QA, SamSum, LCC, and RepoBench-P by order.
 
@@ -448,36 +395,13 @@ has already been proved in [Yanga24].
 
 <span id="table-06"></span>
 
-| Gated DeltaNet Ablations (400M) | Avg-PPL (${\downarrow}$) | Avg-Acc (${\uparrow}$) |
-| --- | --- | --- |
-| Gated DeltaNet w Head Dim 128, | 27.35 | 47.26 |
-| *Macro Design* |  |  |
-| w. naive Delta Rule | 30.87 | 45.12 |
-| w/o. Short Conv | 28.95 | 46.16 |
-| w/o. Output Gate | 29.12 | 45.46 |
-| w/o. Output Norm | 27.55 | 47.07 |
-| *Normalization & Feature Map* |  |  |
-| w. $L_{1}$-norm & ReLU | 30.79 | 45.92 |
-| w. $L_{1}$-norm & 1+ELU | 30.34 | 46.05 |
-| w. $L_{1}$-norm & SiLU | 30.18 | 46.09 |
-| w. $L_{2}$-norm & ReLU | 27.67 | 46.94 |
-| w. $L_{2}$-norm & 1+ELU | 27.58 | 47.17 |
-| *Model Dimensions* |  |  |
-| w. Head Dim 64 | 28.31 | 46.35 |
-| w. Head Dim 256 | 27.13 | 47.38 |
+![Original paper Table 6](../../papers/gated-delta-networks/table-06.png)
 
 **Table S.1.** Ablation study on the Gated DeltaNet block. Avg-PPL and Avg-Acc denote average perplexity and zero-shot commonsense reasoning accuracy (as in [Table 2](#table-02)), respectively. All models have 400M parameters and are trained for 15B tokens on the same subset of FineWeb-Edu dataset [Penedo24].
 
 <span id="table-07"></span>
 
-| Model | Wiki. | LMB. | LMB. | PIQA | Hella. | Wino. | ARC-e | ARC-c | SIQA | BoolQ | Avg. |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | ppl $\downarrow$ | ppl $\downarrow$ | acc $\uparrow$ | acc $\uparrow$ | acc\_n $\uparrow$ | acc $\uparrow$ | acc $\uparrow$ | acc\_n $\uparrow$ | acc $\uparrow$ | acc $\uparrow$ |  |
-| Hybrid Ablations (500M/15B) |  |  |  |  |  |  |  |  |  |  |  |
-| Gated DeltaNet + SWA + Mamba2 | 24.02 | 28.20 | 34.77 | 67.08 | 40.84 | 50.74 | 60.35 | 28.83 | 38.94 | 61.49 | 47.88 |
-| Gated DeltaNet + Mamba2 + SWA | 23.69 | 26.83 | 36.17 | 67.51 | 41.51 | 51.85 | 61.19 | 29.77 | 38.58 | 53.73 | 47.54 |
-| Mamba2 + SWA + Gated DeltaNet | 24.14 | 25.21 | 36.79 | 64.96 | 41.18 | 52.01 | 60.90 | 30.03 | 38.07 | 59.44 | 47.92 |
-| Mamba2 + Gated DeltaNet + SWA | 23.54 | 24.11 | 36.92 | 66.48 | 41.70 | 52.72 | 61.06 | 30.54 | 39.91 | 60.51 | 48.73 |
+![Original paper Table 7](../../papers/gated-delta-networks/table-07.png)
 
 **Table S.2.** Ablation studies of Gated DeltaNet models. All evaluations are performed by using lm-evaluation-harness [Gaob21]. All models use the Llama tokenizer and are trained on the same subset of the FineWeb-Edu dataset [Penedo24].
 

@@ -252,13 +252,7 @@ In each step, the scheduler first prepares the message with input token IDs for 
 
 <span id="table-01"></span>
 
-| Model size | 13B | 66B | 175B |
-| --- | --- | --- | --- |
-| GPUs | A100 | 4$\times$A100 | 8$\times$A100-80GB |
-| Total GPU memory | 40 GB | 160 GB | 640 GB |
-| Parameter size | 26 GB | 132 GB | 346 GB |
-| Memory for KV cache | 12 GB | 21 GB | 264 GB |
-| Max. # KV cache slots | 15.7K | 9.7K | 60.1K |
+![Original paper Table 1](../../papers/vllm/table-01.png)
 
 **Table 1.** Model sizes and server configurations.
 

@@ -128,5 +128,50 @@
     "height": 106,
     "matchScore": 0.71,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 9,
+    "x": 54.5,
+    "y": 70.5,
+    "width": 239.5,
+    "height": 61,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 12,
+    "x": 59.5,
+    "y": 70.5,
+    "width": 227,
+    "height": 99,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 17,
+    "x": 79.5,
+    "y": 479.5,
+    "width": 189,
+    "height": 61.193999999999846,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 17,
+    "x": 343.5,
+    "y": 339,
+    "width": 189,
+    "height": 64.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 18,
+    "x": 52.5,
+    "y": 557.5,
+    "width": 216,
+    "height": 89,
+    "preserveSource": false
   }
 ]

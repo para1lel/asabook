@@ -122,29 +122,13 @@ Alpa optimizes the intra-operator parallelism plan within a device mesh. Alpa ad
 
 <span id="table-01"></span>
 
-| Spec | Device 0 | Device 1 | Device 2 | Device 3 |
-| --- | --- | --- | --- | --- |
-| $\mathrm{RR}$ | $A[0:N,0:M]$ | $A[0:N,0:M]$ | $A[0:N,0:M]$ | $A[0:N,0:M]$ |
-| $S^{0}S^{1}$ | $A[0:\frac{N}{2},0:\frac{M}{2}]$ | $A[0:\frac{N}{2},\frac{M}{2}:M]$ | $A[\frac{N}{2}:N,0:\frac{M}{2}]$ | $A[\frac{N}{2}:N,\frac{M}{2}:M]$ |
-| $S^{1}S^{0}$ | $A[0:\frac{N}{2},0:\frac{M}{2}]$ | $A[\frac{N}{2}:N,0:\frac{M}{2}]$ | $A[0:\frac{N}{2},\frac{M}{2}:M]$ | $A[\frac{N}{2}:N,\frac{M}{2}:M]$ |
-| $S^{0}R$ | $A[0:\frac{N}{2},0:M]$ | $A[0:\frac{N}{2},0:M]$ | $A[\frac{N}{2}:N,0:M]$ | $A[\frac{N}{2}:N,0:M]$ |
-| $S^{1}R$ | $A[0:\frac{N}{2},0:M]$ | $A[\frac{N}{2}:N,0:M]$ | $A[0:\frac{N}{2},0:M]$ | $A[\frac{N}{2}:N,0:M]$ |
-| $\mathrm{RS}^{0}$ | $A[0:N,0:\frac{M}{2}]$ | $A[0:N,0:\frac{M}{2}]$ | $A[0:N,\frac{M}{2}:M]$ | $A[0:N,\frac{M}{2}:M]$ |
-| $\mathrm{RS}^{1}$ | $A[0:N,0:\frac{M}{2}]$ | $A[0:N,\frac{M}{2}:M]$ | $A[0:N,0:\frac{M}{2}]$ | $A[0:N,\frac{M}{2}:M]$ |
-| $S^{01}R$ | $A[0:\frac{N}{4},0:M]$ | $A[\frac{N}{4}:\frac{N}{2},0:M]$ | $A[\frac{N}{2}:\frac{3N}{4},0:M]$ | $A[\frac{3N}{4}:N,0:M]$ |
-| $\mathrm{RS}^{01}$ | $A[0:N,0:\frac{M}{4}]$ | $A[0:N,\frac{M}{4}:\frac{M}{2}]$ | $A[0:N,\frac{M}{2}:\frac{3M}{4}]$ | $A[0:N,\frac{3M}{4}:M]$ |
+![Original paper Table 1](../../papers/alpa/table-01.png)
 
 **Table 1.** Sharding specs of a 2-dimentional tensor on a $2\times 2$ device mesh. $A$ is a $(N,M)$ tensor. The device mesh is \[\[Device 0, Device 1\], \[Device 2, Device 3\]\]. Each device stores a partition of $A$. The first column is the name of the sharding spec. The latter columns use Numpy syntax to describe the partitions stored on each device.
 
 <span id="table-02"></span>
 
-| # | Src Spec | Dst Spec | Communication Cost |
-| --- | --- | --- | --- |
-| 1 | $\mathrm{RR}$ | $S^{0}S^{1}$ | $0$ |
-| 2 | $S^{0}R$ | $\mathrm{RR}$ | $\mathrm{all}\mathchar 45\relax \mathrm{gather}(M,0)$ |
-| 3 | $S^{0}S^{1}$ | $S^{0}R$ | $\mathrm{all}\mathchar 45\relax \mathrm{gather}(\frac{M}{n_{0}},1)$ |
-| 4 | $S^{0}R$ | $\mathrm{RS}^{0}$ | $\mathrm{all}\mathchar 45\relax \mathrm{to}\mathchar 45\relax \mathrm{all}(\frac{M}{n_{0}},0)$ |
-| 5 | $S^{0}S^{1}$ | $S^{01}R$ | $\mathrm{all}\mathchar 45\relax \mathrm{to}\mathchar 45\relax \mathrm{all}(\frac{M}{n_{0}\cdot n_{1}},1)$ |
+![Original paper Table 2](../../papers/alpa/table-02.png)
 
 **Table 2.** Several cases of resharding. $\mathrm{all}\mathchar 45\relax \mathrm{gather}(x,i)$ means an all-gather of $x$ bytes along the $i$-th mesh axis. $M$ is the size of the tensor. $(n_{0},n_{1})$ is the mesh shape.
 
@@ -160,16 +144,7 @@ Resharding. When an input tensor of an operator does not satisfy the sharding sp
 
 <span id="table-03"></span>
 
-| # | Parallel | Output | Input | Communication |
-| --- | --- | --- | --- | --- |
-| Mapping | Spec | Specs | Cost |  |
-| 1 | $i\rightarrow 0,j\rightarrow 1$ | $\mathrm{RS}^{0}S^{1}$ | $\mathrm{RS}^{0}R,\mathrm{RRS}^{1}$ | 0 |
-| 2 | $i\rightarrow 0,k\rightarrow 1$ | $\mathrm{RS}^{0}R$ | $\mathrm{RS}^{0}S^{1},\mathrm{RS}^{1}R$ | $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$ |
-| 3 | $j\rightarrow 0,k\rightarrow 1$ | $\mathrm{RRS}^{0}$ | $\mathrm{RRS}^{1},\mathrm{RS}^{1}S^{0}$ | $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$ |
-| 4 | $b\rightarrow 0,i\rightarrow 1$ | $S^{0}S^{1}R$ | $S^{0}S^{1}R,S^{0}\mathrm{RR}$ | 0 |
-| 5 | $b\rightarrow 0,k\rightarrow 1$ | $S^{0}\mathrm{RR}$ | $S^{0}\mathrm{RS}^{1},S^{0}S^{1}R$ | $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$ |
-| 6 | $i\rightarrow\{0,1\}$ | $\mathrm{RS}^{01}R$ | $\mathrm{RS}^{01}R,\mathrm{RRR}$ | 0 |
-| 7 | $k\rightarrow\{0,1\}$ | $\mathrm{RRR}$ | $\mathrm{RRS}^{01},\mathrm{RS}^{01}R$ | $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(M,\{0,1\})$ |
+![Original paper Table 3](../../papers/alpa/table-03.png)
 
 **Table 3.** Several parallel algorithms for a batched matmul $C_{b,i,j}=\sum_{k}A_{b,i,k}B_{b,k,j}$. The notation $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(x,i)$ means an all-reduce of $x$ bytes along the $i$-th mesh axis. $M$ is the size of the output tensor. $(n_{0},n_{1})$ is the mesh shape.
 
@@ -370,11 +345,7 @@ We compare Alpa against two state-of-the-art distributed systems for training la
 
 <span id="table-04"></span>
 
-| Model | Task | Batch size | #params (billion) | Precision |
-| --- | --- | --- | --- | --- |
-| GPT-3 [Xivn05] | LM | 1024 | 0.35, 1.3, 2.6, 6.7, 15, 39 | FP16 |
-| GShard MoE [Xivm06] | LM | 1024 | 0.38, 1.3, 2.4, 10, 27, 70 | FP16 |
-| Wide-ResNet [Xivat16] | IC | 1536 | 0.25, 1.0, 2.0, 4.0, 6.7, 13 | FP32 |
+![Original paper Table 4](../../papers/alpa/table-04.png)
 
 **Table 4.** Models used in the end-to-end evaluation. LM = language model. IC = image classification.
 
@@ -458,13 +429,7 @@ We evaluate our generalized local all-gather optimization for cross-mesh reshard
 
 <span id="table-05"></span>
 
-| Steps | Ours | w/o optimization |
-| --- | --- | --- |
-| Compilation | 1582.66 s | \> 16hr |
-| Profiling | 804.48 s | \> 24hr |
-| Stage Construction DP | 1.65 s | N/A |
-| Other | 4.47 s | N/A |
-| Total | 2393.26 s | \> 40hr |
+![Original paper Table 5](../../papers/alpa/table-05.png)
 
 **Table 5.** Compilation time breakdown of GPT-39B.
 
@@ -538,40 +503,19 @@ For Wide-ResNet models, we use input image size = (224, 224, 3) and #class = 102
 
 <span id="table-06"></span>
 
-| #params | Hidden size | #layers | #heads | #gpus |
-| --- | --- | --- | --- | --- |
-| 350M | 1024 | 24 | 16 | 1 |
-| 1.3B | 2048 | 24 | 32 | 4 |
-| 2.6B | 2560 | 32 | 32 | 8 |
-| 6.7B | 4096 | 32 | 32 | 16 |
-| 15B | 5120 | 48 | 32 | 32 |
-| 39B | 8192 | 48 | 64 | 64 |
+![Original paper Table 6](../../papers/alpa/table-06.png)
 
 **Table 6.** GPT-3 Model Specification
 
 <span id="table-07"></span>
 
-| #params | Hidden size | #layers | #heads | #experts | #gpus |
-| --- | --- | --- | --- | --- | --- |
-| 380M | 768 | 8 | 16 | 8 | 1 |
-| 1.3B | 768 | 16 | 16 | 16 | 4 |
-| 2.4B | 1024 | 16 | 16 | 16 | 8 |
-| 10B | 1536 | 16 | 16 | 32 | 16 |
-| 27B | 2048 | 16 | 32 | 48 | 32 |
-| 70B | 2048 | 32 | 32 | 64 | 64 |
+![Original paper Table 7](../../papers/alpa/table-07.png)
 
 **Table 7.** GShard MoE Model Specification
 
 <span id="table-08"></span>
 
-| #params | #layers | Base channel | Width factor | #gpus |
-| --- | --- | --- | --- | --- |
-| 250M | 50 | 160 | 2 | 1 |
-| 1B | 50 | 320 | 2 | 4 |
-| 2B | 50 | 448 | 2 | 8 |
-| 4B | 50 | 640 | 2 | 16 |
-| 6.8B | 50 | 320 | 16 | 32 |
-| 13B | 101 | 320 | 16 | 64 |
+![Original paper Table 8](../../papers/alpa/table-08.png)
 
 **Table 8.** Wide-ResNet Model Specification
 

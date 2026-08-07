@@ -181,14 +181,7 @@ The results of these models are shown in [Figure 2](#figure-02)-left. The model 
 
 <span id="table-01"></span>
 
-|  | Test | Test | #Parameters | ops/timestep | Training | TFLOPS |
-| --- | --- | --- | --- | --- | --- | --- |
-|  | Perplexity | Perplexity | excluding embedding |  | Time | /GPU |
-|  | 10 epochs | 100 epochs | and softmax layers |  | 10 epochs |  |
-| Best Published Results | 34.7 | 30.6 | 151 million | 151 million | 59 hours, 32 k40s | 1.09 |
-| Low-Budget MoE Model | 34.1 |  | 4303 million | 8.9 million | 15 hours, 16 k40s | 0.74 |
-| Medium-Budget MoE Model | 31.3 |  | 4313 million | 33.8 million | 17 hours, 32 k40s | 1.22 |
-| High-Budget MoE Model | 28.0 |  | 4371 million | 142.7 million | 47 hours, 32 k40s | 1.56 |
+![Original paper Table 1](../../papers/sparsely-gated-moe/table-01.png)
 
 **Table 1.** Summary of high-capacity MoE-augmented models with varying computational budgets, vs. best previously published results [Jozefo16]. Details in Appendix [C](#Ax1.SS3 "C 1 Billion Word Language Modeling Benchmark - Experimental Details ‣ Appendices ‣ Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer").
 
@@ -232,41 +225,19 @@ We benchmarked our method on the WMT’14 En$\rightarrow$Fr and En$\rightarrow$D
 
 <span id="table-02"></span>
 
-| Model | Test | Test | ops/timenstep | Total | Training |
-| --- | --- | --- | --- | --- | --- |
-|  | Perplexity | BLEU |  | #Parameters | Time |
-| MoE with 2048 Experts | 2.69 | 40.35 | 85M | 8.7B | 3 days/64 k40s |
-| MoE with 2048 Experts (longer training) | 2.63 | 40.56 | 85M | 8.7B | 6 days/64 k40s |
-| GNMT [Ref16] | 2.79 | 39.22 | 214M | 278M | 6 days/96 k80s |
-| GNMT+RL [Ref16] | 2.96 | 39.92 | 214M | 278M | 6 days/96 k80s |
-| PBMT [Durran14] |  | 37.0 |  |  |  |
-| LSTM (6-layer) [Luonga15] |  | 31.5 |  |  |  |
-| LSTM (6-layer+PosUnk) [Luonga15] |  | 33.1 |  |  |  |
-| DeepAtt [Zhou16] |  | 37.7 |  |  |  |
-| DeepAtt+PosUnk [Zhou16] |  | 39.2 |  |  |  |
+![Original paper Table 2](../../papers/sparsely-gated-moe/table-02.png)
 
 **Table 2.** Results on WMT’14 En$\rightarrow$ Fr newstest2014 (bold values represent best results).
 
 <span id="table-03"></span>
 
-| Model | Test | Test | ops/timestep | Total | Training |
-| --- | --- | --- | --- | --- | --- |
-|  | Perplexity | BLEU |  | #Parameters | Time |
-| MoE with 2048 Experts | 4.64 | 26.03 | 85M | 8.7B | 1 day/64 k40s |
-| GNMT [Ref16] | 5.25 | 24.91 | 214M | 278M | 1 day/96 k80s |
-| GNMT +RL [Ref16] | 8.08 | 24.66 | 214M | 278M | 1 day/96 k80s |
-| PBMT [Durran14] |  | 20.7 |  |  |  |
-| DeepAtt [Zhou16] |  | 20.6 |  |  |  |
+![Original paper Table 3](../../papers/sparsely-gated-moe/table-03.png)
 
 **Table 3.** Results on WMT’14 En $\rightarrow$ De newstest2014 (bold values represent best results).
 
 <span id="table-04"></span>
 
-| Model | Eval | Eval | Test | Test | ops/timestep | Total | Training |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-|  | Perplexity | BLEU | Perplexity | BLEU |  | #Parameters | Time |
-| MoE with 2048 Experts | 2.60 | 37.27 | 2.69 | 36.57 | 85M | 8.7B | 1 day/64 k40s |
-| GNMT [Ref16] | 2.78 | 35.80 | 2.87 | 35.56 | 214M | 278M | 6 days/96 k80s |
+![Original paper Table 4](../../papers/sparsely-gated-moe/table-04.png)
 
 **Table 4.** Results on the Google Production En$\rightarrow$ Fr dataset (bold values represent best results).
 
@@ -286,25 +257,7 @@ Results for the single-pair GNMT models, the multilingual GNMT model and the mul
 
 <span id="table-05"></span>
 
-|  | GNMT-Mono | GNMT-Multi | MoE-Multi | MoE-Multi vs. |
-| --- | --- | --- | --- | --- |
-|  |  |  |  | GNMT-Multi |
-| Parameters | 278M / model | 278M | 8.7B |  |
-| ops/timestep | 212M | 212M | 102M |  |
-| training time, hardware | various | 21 days, 96 k20s | 12 days, 64 k40s |  |
-| Perplexity (dev) |  | 4.14 | 3.35 | -19% |
-| French $\rightarrow$ English Test BLEU | 36.47 | 34.40 | 37.46 | +3.06 |
-| German $\rightarrow$ English Test BLEU | 31.77 | 31.17 | 34.80 | +3.63 |
-| Japanese $\rightarrow$ English Test BLEU | 23.41 | 21.62 | 25.91 | +4.29 |
-| Korean $\rightarrow$ English Test BLEU | 25.42 | 22.87 | 28.71 | +5.84 |
-| Portuguese $\rightarrow$ English Test BLEU | 44.40 | 42.53 | 46.13 | +3.60 |
-| Spanish $\rightarrow$ English Test BLEU | 38.00 | 36.04 | 39.39 | +3.35 |
-| English $\rightarrow$ French Test BLEU | 35.37 | 34.00 | 36.59 | +2.59 |
-| English $\rightarrow$ German Test BLEU | 26.43 | 23.15 | 24.53 | +1.38 |
-| English $\rightarrow$ Japanese Test BLEU | 23.66 | 21.10 | 22.78 | +1.68 |
-| English $\rightarrow$ Korean Test BLEU | 19.75 | 18.41 | 16.62 | -1.79 |
-| English $\rightarrow$ Portuguese Test BLEU | 38.40 | 37.35 | 37.90 | +0.55 |
-| English $\rightarrow$ Spanish Test BLEU | 34.50 | 34.25 | 36.21 | +1.96 |
+![Original paper Table 5](../../papers/sparsely-gated-moe/table-05.png)
 
 **Table 5.** Multilingual Machine Translation (bold values represent best results).
 
@@ -358,14 +311,7 @@ We trained a set of models with identical architecture (the MoE-256 model descri
 
 <span id="table-06"></span>
 
-| $w_{\mathrm{importance}}$ | $w_{\mathrm{load}}$ | Test Perplexity | $\mathrm{CV}(\mathrm{Importance}(X))$ | $\mathrm{CV}(\mathrm{Load}(X))$ | $\frac{\max(\mathrm{Load}(X))}{\mathrm{mean}(\mathrm{Load}(X))}$ |
-| --- | --- | --- | --- | --- | --- |
-| 0.0 | 0.0 | 39.8 | 3.04 | 3.01 | 17.80 |
-| 0.2 | 0.0 | 35.6 | 0.06 | 0.17 | 1.47 |
-| 0.0 | 0.2 | 35.7 | 0.22 | 0.04 | 1.15 |
-| 0.1 | 0.1 | 35.6 | 0.06 | 0.05 | 1.14 |
-| 0.01 | 0.01 | 35.7 | 0.48 | 0.11 | 1.37 |
-| 1.0 | 1.0 | 35.7 | 0.03 | 0.02 | 1.07 |
+![Original paper Table 6](../../papers/sparsely-gated-moe/table-06.png)
 
 **Table 6.** Experiments with different combinations of losses.
 
@@ -439,27 +385,7 @@ We evaluate our model using perplexity on the holdout dataset, used by [Chelba13
 
 <span id="table-07"></span>
 
-| Model | Test | Test | ops/timestep | #Params excluding | Total | $\mathrm{Drop}$- | TFLOPS |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-|  | Perplexity | Perplexity | (millions) | embed. & softmax | #Params | $\mathrm{Prob}$ | per GPU |
-|  | 10 epochs | (final) |  | (millions) | (billions) |  | (observed) |
-| Kneser-Ney 5-gram\* |  | 67.6 | 0.00001 |  | 1.8 |  |  |
-| LSTM-512-512\* |  | 54.1 | 2.4 | 2.4 | 0.8 | 0.1 |  |
-| LSTM-1024-512\* |  | 48.2 | 4.7 | 4.7 | 0.8 | 0.1 |  |
-| LSTM-2048-512\* | 45.0 | 43.7 | 9.4 | 9.4 | 0.8 | 0.1 | 0.61 |
-| LSTM-2048-512 | 44.7 |  | 9.4 | 9.4 | 0.8 | 0.1 | 1.21 |
-| 4xLSTM-512 | 46.0 |  | 8.4 | 8.4 | 0.8 | 0.1 | 1.07 |
-| MoE-1-Wide | 46.1 |  | 8.4 | 8.4 | 0.8 | 0.1 | 1.29 |
-| MoE-1-Deep | 45.7 |  | 8.4 | 8.4 | 0.8 | 0.1 | 1.29 |
-| MoE-4 | 45.0 |  | 8.4 | 8.4 | 0.8 | 0.1 | 0.52 |
-| MoE-32 | 39.7 |  | 8.4 | 37.8 | 0.9 | 0.1 | 0.87 |
-| MoE-256 | 35.7 |  | 8.6 | 272.9 | 1.1 | 0.1 | 0.81 |
-| MoE-256-h | 36.0 |  | 8.4 | 272.9 | 1.1 | 0.1 | 0.89 |
-| MoE-1024-h | 34.6 |  | 8.5 | 1079.0 | 1.9 | 0.2 | 0.90 |
-| MoE-4096-h | 34.1 |  | 8.9 | 4303.4 | 5.1 | 0.2 | 0.74 |
-| 2xLSTM-8192-1024\* | 34.7 | 30.6 | 151.0 | 151.0 | 1.8 | 0.25 | 1.09 |
-| MoE-34M | 31.3 |  | 33.8 | 4313.9 | 6.0 | 0.3 | 1.22 |
-| MoE-143M | 28.0 |  | 142.7 | 4371.1 | 6.0 | 0.4 | 1.56 |
+![Original paper Table 7](../../papers/sparsely-gated-moe/table-07.png)
 
 **Table 7.** Model comparison on 1 Billion Word Language Modeling Benchmark. Models marked with \* are from [Jozefo16].
 
@@ -485,19 +411,7 @@ The Adam optimizer [Kingma15] keeps first and second moment estimates of the per
 
 <span id="table-08"></span>
 
-| Model | Test | Test | ops/timestep | #Params excluding | Total | TFLOPS |
-| --- | --- | --- | --- | --- | --- | --- |
-|  | Perplexity | Perplexity | (millions) | embed. & softmax | #Params | per GPU |
-|  | .1 epochs | 1 epoch |  | (millions) | (billions) | (observed) |
-| Kneser-Ney 5-gram | 67.1 | 45.3 | 0.00001 |  | 76.0 |  |
-| 4xLSTM-512 | 54.5 | 47.0 | 8.4 | 8.4 | 0.1 | 1.23 |
-| MoE-32 | 48.5 | 40.4 | 8.4 | 37.8 | 0.1 | 0.83 |
-| MoE-256-h | 42.8 | 35.3 | 8.4 | 272.9 | 0.4 | 1.11 |
-| MoE-1024-h | 40.3 | 32.7 | 8.5 | 1079.0 | 1.2 | 1.14 |
-| MoE-4096-h | 38.9 | 30.9 | 8.6 | 4303.4 | 4.4 | 1.07 |
-| MoE-16384-h | 38.2 | 29.7 | 8.8 | 17201.0 | 17.3 | 0.96 |
-| MoE-65536-h | 38.2 | 28.9 | 9.2 | 68791.0 | 68.9 | 0.72 |
-| MoE-131072-h | 39.8 | 29.2 | 9.7 | 137577.6 | 137.7 | 0.30 |
+![Original paper Table 8](../../papers/sparsely-gated-moe/table-08.png)
 
 **Table 8.** Model comparison on 100 Billion Word Google News Dataset
 
@@ -545,19 +459,7 @@ We found that the experts indeed become highly specialized by syntax and/or sema
 
 <span id="table-09"></span>
 
-| Expert 381 | Expert 752 | Expert 2004 |
-| --- | --- | --- |
-| … with researchers , … | … plays a core … | … with rapidly growing … |
-| … to innovation . | … plays a critical … | … under static conditions … |
-| … tics researchers . | … provides a legislative … | … to swift ly … |
-| … the generation of … | … play a leading … | … to dras tically … |
-| … technology innovations is … | … assume a leadership … | … the rapid and … |
-| … technological innovations , … | … plays a central … | … the fast est … |
-| … support innovation throughout … | … taken a leading … | … the Quick Method … |
-| … role innovation will … | … established a reconciliation … | … rec urrent ) … |
-| … research scienti st … | … played a vital … | … provides quick access … |
-| … promoting innovation where … | … have a central … | … of volatile organic … |
-| … | … | … |
+![Original paper Table 9](../../papers/sparsely-gated-moe/table-09.png)
 
 **Table 9.** Contexts corresponding to a few of the 2048 experts in the MoE layer in the encoder portion of the WMT’14 En$\rightarrow$ Fr translation model. For each expert $i$, we sort the inputs in a training batch in decreasing order of $G(x)_{i}$, and show the words surrounding the corresponding positions in the input sentences.
 

@@ -104,15 +104,7 @@ Ansor は自動化されたテンソルプログラム生成フレームワー�
 
 <span id="table-01"></span>
 
-|いいえ|ルール名|条件|適用|
-| --- | --- | --- | --- |
-|1|スキップ|$\neg \mathrm{IsStrictInlinable}(S,i)$|$S^{\prime}=S;i^{\prime}=i-1$|
-|2|常にインライン|$\mathrm{IsStrictInlinable}(S,i)$|$S^{\prime}=\mathrm{Inline}(S,i)$； $i^{\prime}=i-1$ |
-|3|マルチレベルタイル|$\mathrm{HasDataReuse}(S,i)$|$S^{\prime}=\mathrm{MultiLevelTiling}(S,i);i^{\prime}=i-1$|
-|4|フュージョン付きマルチレベルタイル|$\mathrm{HasDataReuse}(S,i)\wedge \mathrm{HasFusibleConsumer}(S,i)$|$S^{\prime}=\mathrm{FuseConsumer}(\mathrm{MultiLevelTiling}(S,i),i);i^{\prime}=i-1$|
-|5|キャッシュステージを追加|$\mathrm{HasDataReuse}(S,i)\wedge\neg \mathrm{HasFusibleConsumer}(S,i)$|$S^{\prime}=\mathrm{AddCacheWrite}(S,i);i=i^{\prime}$|
-|6|リダクション因数分解|$\mathrm{HasMoreReductionParallel}(S,i)$|$S^{\prime}=\mathrm{AddRfactor}(S,i);i^{\prime}=i-1$|
-|…|ユーザー定義ルール|…|…|
+![論文の表 1](../../papers/ansor/table-01.png)
 
 **表1.** スケッチを生成するために使用される導出ルール。条件は現在の状態$\sigma=(S,i)$で実行されます。アプリケーションは現在の状態$\sigma$から次の状態$\sigma^{\prime}=(S^{\prime},i^{\prime})$を導出します。注意すべきは、一部の関数（例：$\mathrm{AddRfactor}$, $\mathrm{FuseConsumer}$）が$S^{\prime}$の複数の可能な値を返すことができる点です。この場合、可能な$S^{\prime}$をすべて収集し、単一の入力状態$\sigma$に対して複数の次状態$\sigma^{\prime}$を返します。
 
@@ -255,11 +247,7 @@ DNNのセットをチューニングする際には、いくつかの選択肢�
 
 <span id="table-02"></span>
 
-|$f_{1}=\sum_{j=1}^{m}\sum_{i\in S(j)}w_{i}\times g_{i}(t)$|
-| --- |
-|$f_{2}=\sum_{j=1}^{m}{\max(\sum_{i\in S(j)}w_{i}\times g_{i}(t),L_{j})}$|
-|$f_{3}=-(\prod_{j=1}^{m}{\frac{B_{j}}{\sum_{i\in S(j)}w_{i}\times g_{i}(t)}})^{\frac{1}{m}}$|
-|$f_{4}=\sum_{j=1}^{m}{\sum_{i\in S(j)}w_{i}\times\max(g_{i}(t),\mathrm{ES}(g_{i},t))}$|
+![論文の表 2](../../papers/ansor/table-02.png)
 
 **表2.** 複数のニューラルネットワークのための目的関数の例
 
@@ -365,13 +353,7 @@ Ansorは効率的に検索を行い、検索時間が短くてもAutoTVMに勝�
 
 <span id="table-03"></span>
 
-||AutoTVM|Ansor|時間節約|
-| --- | --- | --- | --- |
-|ResNet-50|21,220|6,403|3.3 $\times$|
-|Mobilenet-V2|31,272|1,892|16.5 $\times$|
-|3D-ResNet|5,158|1,927|2.7 $\times$|
-|DCGAN|3,003|298|10.1 $\times$|
-|BERT|6,220|496|12.5 $\times$|
+![論文の表 3](../../papers/ansor/table-03.png)
 
 **表3.** Ansor が Intel CPU で AutoTVM の性能にマッチするために使用した測定回数とウォールクロック時間（バッチサイズ=1）。
 

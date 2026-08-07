@@ -196,14 +196,7 @@ Given $c$ and $\alpha$ and assuming enough compute resources (see [Section 3.4](
 
 <span id="table-01"></span>
 
-| $\alpha$ | $\gamma$ | Operations | Speed |
-| --- | --- | --- | --- |
-| 0.6 | 2 | 1.53X | 1.96X |
-| 0.7 | 3 | 1.58X | 2.53X |
-| 0.8 | 2 | 1.23X | 2.44X |
-| 0.8 | 5 | 1.63X | 3.69X |
-| 0.9 | 2 | 1.11X | 2.71X |
-| 0.9 | 10 | 1.60X | 6.86X |
+![Original paper Table 1](../../papers/speculative-decoding/table-01.png)
 
 **Table 1.** The total number of arithmetic operations and the inference speed vs the baseline, for various values of $\gamma$ and $\alpha$, assuming $c=\hat{c}=0$.
 
@@ -249,20 +242,7 @@ We test a standard encoder-decoder T5 version 1.1 model [Raffel20] on two tasks 
 
 <span id="table-02"></span>
 
-| Task | $M_{q}$ | Temp | $\gamma$ | $\alpha$ | Speed |
-| --- | --- | --- | --- | --- | --- |
-| EnDe | T5-small $\bigstar$ | 0 | 7 | 0.75 | 3.4X |
-| EnDe | T5-base | 0 | 7 | 0.8 | 2.8X |
-| EnDe | T5-large | 0 | 7 | 0.82 | 1.7X |
-| EnDe | T5-small $\bigstar$ | 1 | 7 | 0.62 | 2.6X |
-| EnDe | T5-base | 1 | 5 | 0.68 | 2.4X |
-| EnDe | T5-large | 1 | 3 | 0.71 | 1.4X |
-| CNNDM | T5-small $\bigstar$ | 0 | 5 | 0.65 | 3.1X |
-| CNNDM | T5-base | 0 | 5 | 0.73 | 3.0X |
-| CNNDM | T5-large | 0 | 3 | 0.74 | 2.2X |
-| CNNDM | T5-small $\bigstar$ | 1 | 5 | 0.53 | 2.3X |
-| CNNDM | T5-base | 1 | 3 | 0.55 | 2.2X |
-| CNNDM | T5-large | 1 | 3 | 0.56 | 1.7X |
+![Original paper Table 2](../../papers/speculative-decoding/table-02.png)
 
 **Table 2.** Empirical results for speeding up inference from a T5-XXL 11B model.
 
@@ -284,40 +264,7 @@ See [Section 4.1](#S4.SS1 "4.1 Empirical Walltime Improvement ‣ 4 Experiments 
 
 <span id="table-03"></span>
 
-| $M_{p}$ | $M_{q}$ | Smpl | $\alpha$ |
-| --- | --- | --- | --- |
-| GPT-like (97M) | Unigram | t=0 | 0.03 |
-| GPT-like (97M) | Bigram | t=0 | 0.05 |
-| GPT-like (97M) | GPT-like (6M) | t=0 | 0.88 |
-| GPT-like (97M) | Unigram | t=1 | 0.03 |
-| GPT-like (97M) | Bigram | t=1 | 0.05 |
-| GPT-like (97M) | GPT-like (6M) | t=1 | 0.89 |
-| T5-XXL (EnDe) | Unigram | t=0 | 0.08 |
-| T5-XXL (EnDe) | Bigram | t=0 | 0.20 |
-| T5-XXL (EnDe) | T5-small | t=0 | 0.75 |
-| T5-XXL (EnDe) | T5-base | t=0 | 0.80 |
-| T5-XXL (EnDe) | T5-large | t=0 | 0.82 |
-| T5-XXL (EnDe) | Unigram | t=1 | 0.07 |
-| T5-XXL (EnDe) | Bigram | t=1 | 0.19 |
-| T5-XXL (EnDe) | T5-small | t=1 | 0.62 |
-| T5-XXL (EnDe) | T5-base | t=1 | 0.68 |
-| T5-XXL (EnDe) | T5-large | t=1 | 0.71 |
-| T5-XXL (CNNDM) | Unigram | t=0 | 0.13 |
-| T5-XXL (CNNDM) | Bigram | t=0 | 0.23 |
-| T5-XXL (CNNDM) | T5-small | t=0 | 0.65 |
-| T5-XXL (CNNDM) | T5-base | t=0 | 0.73 |
-| T5-XXL (CNNDM) | T5-large | t=0 | 0.74 |
-| T5-XXL (CNNDM) | Unigram | t=1 | 0.08 |
-| T5-XXL (CNNDM) | Bigram | t=1 | 0.16 |
-| T5-XXL (CNNDM) | T5-small | t=1 | 0.53 |
-| T5-XXL (CNNDM) | T5-base | t=1 | 0.55 |
-| T5-XXL (CNNDM) | T5-large | t=1 | 0.56 |
-| LaMDA (137B) | LaMDA (100M) | t=0 | 0.61 |
-| LaMDA (137B) | LaMDA (2B) | t=0 | 0.71 |
-| LaMDA (137B) | LaMDA (8B) | t=0 | 0.75 |
-| LaMDA (137B) | LaMDA (100M) | t=1 | 0.57 |
-| LaMDA (137B) | LaMDA (2B) | t=1 | 0.71 |
-| LaMDA (137B) | LaMDA (8B) | t=1 | 0.74 |
+![Original paper Table 3](../../papers/speculative-decoding/table-03.png)
 
 **Table 3.** Empirical $\alpha$ values for various target models $M_{p}$, approximation models $M_{q}$, and sampling settings. T=0 and T=1 denote argmax and standard sampling respectively [+6].
 
@@ -403,20 +350,7 @@ Where $M=\max_{x}\frac{p(x)}{q(x)}$. We could employ a non-iterative version of 
 
 <span id="table-04"></span>
 
-| Task | $M_{q}$ | Temp | $\gamma$ | $\alpha$ | $c$ | Exp | Emp |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| EnDe | T5-small | 0 | 7 | 0.75 | 0.02 | 3.2 | 3.4 |
-| EnDe | T5-base | 0 | 7 | 0.8 | 0.04 | 3.3 | 2.8 |
-| EnDe | T5-large | 0 | 7 | 0.82 | 0.11 | 2.5 | 1.7 |
-| EnDe | T5-small | 1 | 7 | 0.62 | 0.02 | 2.3 | 2.6 |
-| EnDe | T5-base | 1 | 5 | 0.68 | 0.04 | 2.4 | 2.4 |
-| EnDe | T5-large | 1 | 3 | 0.71 | 0.11 | 2.0 | 1.4 |
-| CNNDM | T5-small | 0 | 5 | 0.65 | 0.02 | 2.4 | 3.1 |
-| CNNDM | T5-base | 0 | 5 | 0.73 | 0.04 | 2.6 | 3.0 |
-| CNNDM | T5-large | 0 | 3 | 0.74 | 0.11 | 2.0 | 2.2 |
-| CNNDM | T5-small | 1 | 5 | 0.53 | 0.02 | 1.9 | 2.3 |
-| CNNDM | T5-base | 1 | 3 | 0.55 | 0.04 | 1.8 | 2.2 |
-| CNNDM | T5-large | 1 | 3 | 0.56 | 0.11 | 1.6 | 1.7 |
+![Original paper Table 4](../../papers/speculative-decoding/table-04.png)
 
 **Table 4.** Expected improvement factor (Exp) vs. empirically measured improvement factor (Emp).
 
@@ -438,12 +372,7 @@ $\frac{p(x)}{\mathrm{lq}(x)}$&$\mathrm{lq}(x)>p(x)$\\
 
 <span id="table-05"></span>
 
-| $M_{q}$ | $l=1$ | $l=0.5$ | $l=0.3$ | $l=0.1$ |
-| --- | --- | --- | --- | --- |
-| Unigram | 0.07 | 0.1 | 0.11 | 0.16 |
-| Bigram | 0.19 | 0.23 | 0.25 | 0.32 |
-| T5-small (77M) | 0.62 | 0.71 | 0.76 | 0.84 |
-| T5-base (250M) | 0.68 | 0.8 | 0.83 | 0.90 |
+![Original paper Table 5](../../papers/speculative-decoding/table-05.png)
 
 **Table 5.** $\alpha$ values for various values of $l$ with standard sampling where $M_{p}$ is T5-XXL (11B) on the EnDe translation task.
 

@@ -92,17 +92,19 @@ Example:
 
 ## Figures and Tables
 
-- Prefer source image files over screenshots. Use PDF rendering when source assets cannot reproduce the published composite figure.
-- Render every PDF-derived screenshot at scale 4 or higher (about 288 DPI). Keep `scripts/paper-crops/<slug>.json` so the crop is reproducible, and require every referenced local PNG to have a metadata entry.
+- Prefer source image files for figures when they reproduce the published figure exactly. Use PDF rendering when source assets cannot reproduce the published composite figure.
+- Never typeset a paper table with Markdown or HTML table markup. Always crop the complete table directly from the published PDF, even when source TeX or extracted cell text is available.
+- Render every PDF-derived figure or table screenshot at scale 4 or higher (about 288 DPI). Keep `scripts/paper-crops/<slug>.json` so the crop is reproducible, and require every referenced local PNG to have a metadata entry.
 - Retain an original source image only when it supplies at least four pixels per PDF point at the size used in the paper. Never upscale or sharpen an existing low-resolution PNG in place of a fresh PDF render or a genuinely higher-resolution source.
 - Crop screenshots to the figure or table itself. Remove page headers, body text, captions that will be recreated in Markdown, and excessive white margins.
 - Retain a small safety margin so lines and labels at the boundary are not clipped.
 - Use lossless PNG for diagrams, plots, and tables. Avoid JPEG artifacts on text and thin lines.
 - Use stable two-digit numbering: `figure-01.png`, `table-01.png`.
 - Verify image dimensions against the scale-4 crop dimensions and inspect the actual pixels after cropping. File existence alone is not sufficient; pay special attention to low-confidence template matches and visually similar subfigures.
+- Reuse identical table pixels across English, Simplified Chinese, and Japanese pages. Localize only alt text and captions, and carry semantic context there without reproducing the table cells as text.
 - Format the caption as a separate bold label, for example `**Figure 8.**`, `**图 8.**`, or `**図 8.**`.
 - Put a stable two-digit HTML anchor immediately before every numbered object: `<span id="figure-08"></span>` for figures and `<span id="table-03"></span>` for tables.
-- Link every reference in prose, captions, tables, algorithms, and appendices to that local anchor. Use `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, or `[図 8](#figure-08)` according to the page language.
+- Link every reference in prose, captions, algorithms, and appendices to that local anchor. Use `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, or `[図 8](#figure-08)` according to the page language.
 - Link each number separately in compound references. A subfigure reference such as `[Figure 16a](#figure-16)` targets the base numbered figure.
 
 ## English

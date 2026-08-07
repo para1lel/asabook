@@ -69,12 +69,7 @@ TVM のようにスケジューリングと計算を分離する既存の機械�
 
 <span id="table-01"></span>
 
-| Dataflow Centric Tile Operator | 説明 | Scheduling Primitive | 説明 |
-| --- | --- | --- | --- |
-| `T.copy` | レジスタ、共有メモリ、グローバルメモリ間の並列データ移動を抽象化する専用のメモリコピー operator。 | `T.Parallel` | ループ反復を自動的に並列化してハードウェアスレッドへマッピングし、追加の性能向上のために vectorization も有効化できる。 |
-| `T.gemm` | 異なる GPU 上の高性能行列乗算に対し、実装（cute/cuda/hip）を自動選択する。 | `T.Pipelined` | ループレベルの pipelining を有効にしてデータ転送と計算を重ね合わせ、async copy や TMA などのハードウェア固有命令をサポートする。 |
-| `T.reduce` | warp-level と block-level の並列性を活用する柔軟な reduction operator（sum、min、max など）。 | `T.annotate_layout` | bank conflict を最小化し、thread binding を最適化するカスタム memory layout の定義を可能にする。 |
-| `T.atomic` | 共有メモリまたはグローバルメモリの thread-safe update を保証する atomic operation（add、min、max など）を提供する。 | `T.use_swizzle` | thread block を swizzle することで L2 cache locality を改善する。 |
+![論文の表 1](../../papers/tilelang/table-01.png)
 
 **表 1。** TileLang がサポートする dataflow operator と scheduling primitive の一部。
 
@@ -289,45 +284,19 @@ ThunderKittens [Thu24] と比較して、TileLang は開発者が完全に Pytho
 
 <span id="table-02"></span>
 
-|   | V0 | V1 | V2 | V3 | V4 | V5 | V6 | V7 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| m | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
-| n | 16384 | 43008 | 14336 | 57344 | 14336 | 9216 | 36864 | 9216 |
-| k | 16384 | 14336 | 14336 | 14336 | 57344 | 9216 | 9216 | 36864 |
-|   | M0 | M1 | M2 | M3 | M4 | M5 | M6 | M7 |
-| m | 4096 | 4096 | 4096 | 4096 | 8192 | 8192 | 8192 | 8192 |
-| n | 1024 | 8192 | 28672 | 8192 | 1024 | 8192 | 28672 | 8192 |
-| k | 8192 | 8192 | 8192 | 28672 | 8192 | 8192 | 8192 | 28672 |
+![論文の表 2](../../papers/tilelang/table-02.png)
 
 **表 2。** ベンチマークにおける行列 shape。
 
 <span id="table-03"></span>
 
-|   | FA0 | FA1 | FA2 | FA3 | FA4 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| batch | 1 | 1 | 1 | 1 | 1 |
-| nheads | 32 | 32 | 32 | 32 | 32 |
-| seq_len | 512 | 512 | 1024 | 1024 | 4096 |
-| head_dim | 128 | 128 | 128 | 128 | 128 |
-| causal | true | false | true | false | true |
+![論文の表 3](../../papers/tilelang/table-03.png)
 
 **表 3。** ベンチマークにおける FlashAttention shape。
 
 <span id="table-04"></span>
 
-|   | CC0 | CC1 | CC2 | CC3 | CC4 | CC5 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| batch | 1 | 1 | 1 | 64 | 64 | 64 |
-| nheads | 64 | 64 | 64 | 64 | 64 | 64 |
-| seq_len | 1024 | 2048 | 8192 | 1024 | 2048 | 8192 |
-| head_dim | 64 | 64 | 64 | 64 | 64 | 64 |
-| d_state | 128 | 128 | 128 | 128 | 128 | 128 |
-|   | CT0 | CT1 | CT2 | CT3 | CT4 | CT5 |
-| batch | 1 | 1 | 1 | 64 | 64 | 64 |
-| nheads | 64 | 64 | 64 | 64 | 64 | 64 |
-| seq_len | 1024 | 2048 | 8192 | 1024 | 2048 | 8192 |
-| head_dim | 64 | 64 | 64 | 64 | 64 | 64 |
-| d_state | 128 | 128 | 128 | 128 | 128 | 128 |
+![論文の表 4](../../papers/tilelang/table-04.png)
 
 **表 4。** ベンチマークにおける Linear Attention shape。
 

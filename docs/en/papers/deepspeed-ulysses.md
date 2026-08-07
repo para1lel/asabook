@@ -84,12 +84,7 @@ The authors in  [Reff22] (henceforward called *ColAI-SP*) introduce ring self at
 
 <span id="table-01"></span>
 
-| Method | Comm | Activation | Parameter | Attention | Ease |
-| --- | --- | --- | --- | --- | --- |
-| complexity | memory efficiency | memory efficiency | agnostic | of use |  |
-| ColAI-SP  [Reff22] | $O(M)$ | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | x | x | x |
-| Megatron-SP  [Korthi22] | $O(M)$ | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | x | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | x |
-| DS-Ulysses | $O(M/P)$ | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | \\textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ |
+![Original paper Table 1](../../papers/deepspeed-ulysses/table-01.png)
 
 **Table 1.** Comparison of our work (DS-Ulysses) to other sequence parallelism methods.
 
@@ -185,21 +180,13 @@ DeepSpeed sequence parallelism outperforms Megatron-LM for sequence length that 
 
 <span id="table-02"></span>
 
-| Seqlen | GPUs | Time (ms) | TFLOPs |
-| --- | --- | --- | --- |
-| 131072 | 64 | 32432.1333 | 165.526667 |
-| 131072 | 128 | 17052.5143 | 157.41 |
-| 131072 | 256 | 9886.7 | 136.09 |
+![Original paper Table 2](../../papers/deepspeed-ulysses/table-02.png)
 
 **Table 2.** Parallel scaling study with fixed sequence length
 
 <span id="table-03"></span>
 
-| Seqlen | GPUs | Time (ms) | TFLOPs |
-| --- | --- | --- | --- |
-| 65536 | 64 | 9676.76 | 161.3626667 |
-| 131072 | 128 | 17052.5143 | 157.41 |
-| 262144 | 256 | 33486.5 | 147.4 |
+![Original paper Table 3](../../papers/deepspeed-ulysses/table-03.png)
 
 **Table 3.** Parallel scaling study with varying sequence length
 

@@ -61,19 +61,9 @@ The missing abstraction appears at three levels. **Intra-tile**: each tile uses 
 
 <span id="table-01"></span>
 
-<div class="paper-wide-table">
 
-| Feature | Roofline [Wil09] | NeuSight [Lee25] | PipeWeave [Zha26p] | GenZ [Bam24] | Vidur [Agr24] | SimAI [Wan25s] | TileSight |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| No kernel profiling/training¹ | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
-| Pipeline-aware² | ✗ | ✗ | ○ | ✗ | ✗ | ✗ | ✓ |
-| Cache-aware³ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
-| Explicit fused program⁴ | ✗ | ✗ | ○ | ✗ | ✗ | ✗ | ✓ |
-| Distributed⁵ | ✗ | ○ | ○ | ○ | ✓ | ✓ | ✓ |
-| Compute-comm. overlap⁶ | ✗ | ✗ | ✗ | ✗ | ✗ | ○ | ✓ |
-| Interpretable⁷ | ✓ | ✗ | ○ | ✓ | ✗ | ✗ | ✓ |
+![Original paper Table 1](../../papers/tilesight/table-01.png)
 
-</div>
 
 **Table 1.** Comparison with prior performance modeling tools. ✓ Full support. ○ Partial. ✗ Not supported. ¹No kernel profiling/training: no kernel execution traces or ML training are required; TileSight uses only one-time per-architecture microbenchmarks (bandwidth/throughput/latency sweeps, $\sim$minutes). ²Pipeline-aware: intra-tile DAG scheduling and compute-memory pipeline overlap. ³Cache-aware: predicts L2/L1.5 hit rates and schedule-dependent tile locality effects. ⁴Explicit fused program: user-described arbitrary multi-op DAG kernels (e.g., FA-3, MLA), not limited to a fixed set of supported patterns. ⁵Distributed: multi-GPU collective communication modeling. ⁶Compute-communication overlap: fused compute-communication kernels (e.g., AllGather+GEMM). SimAI accepts user-specified overlap ratios but does not derive them analytically. ⁷Interpretable: white-box model supporting bottleneck diagnosis.
 
@@ -93,14 +83,7 @@ The input to TileSight is a high-level workload, such as a tiled GEMM, a fused a
 
 <span id="table-02"></span>
 
-| Field | Side | Role in the model |
-| --- | --- | --- |
-| Tensor accesses | Intra | Per-tile footprint and a placement descriptor recording where a tensor tile is produced and where it resides: register, architecture-specific tensor memory (TMEM), SMEM, local cache/DDR, or shard/replica on a GPU group. Reuse dimensions feed inter-tile cache modeling. |
-| Operation type | Intra | The action a tile performs: load, store, tensor-core or CUDA-core matmul, reduction, exponential, rescaling, remote transfer, or fused composite. |
-| Resource vector | Intra | Per-tile time on independently schedulable resources (tensor cores (TC), CUDA cores, SFU, TMEM, SMEM, L1.5, L2, DDR, Net); derived from the operation, footprint, placement, and calibrated hardware rates. |
-| Tile grid | Inter | Spatial tile shape, launch order, swizzle, loop/reduction depth, and distributed partition. Determines tile execution order, waves, and local work per device. |
-| Producer-consumer DAG | Inter | Edges among tiles based on tensor production and consumption; together with placement, fixes the legal orderings within an iteration. |
-| Concurrency & depth | Inter | Software-pipeline stages, resident blocks per SM, and which tiles may issue together. Sets the effective pipeline depth. |
+![Original paper Table 2](../../papers/tilesight/table-02.png)
 
 **Table 2.** The tile execution plan groups its fields by what they describe: a single tile in isolation (intra) or relationships among tiles (inter).
 
@@ -347,13 +330,7 @@ TileSight requires only the parameters that affect the tile execution plan and i
 
 <span id="table-03"></span>
 
-| GPU | SMs | VEC FP32 T spec / meas. | TC FP16 T spec / meas. | SFU T spec / meas. | L2 TB/s meas. | DDR TB/s spec / meas. |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| A100 | 108 | 19.5 / 19.0 | 312 / 299 | 2.4 / 2.4 | 3.2 | 1.9 / 1.7 |
-| H200\* | 132 | 61.8 / 49.5 | 989 / 928 | 3.9 / 4.1 | 9.2 | 4.8 / 4.2 |
-| B6000 | 188 | 117 / 88.6 | 468 / 433 | 7.3 / 6.7 | 7.6 | 1.8 / 1.4 |
-| B200 | 148 | 74.5 / 57.7 | 2382 / 2185 | 4.7 / 4.5 | 20.5 | 8.0 / 7.0 |
-| MI210 | 104 | 45.3 / 34.4 | 181 / 167 | 2.8 / 1.1 | 4.8 | 1.6 / 1.4 |
+![Original paper Table 3](../../papers/tilesight/table-03.png)
 
 *Note*: TileSight's hardware abstraction also includes cache hierarchy, architecture-specific TMEM bandwidth, SMEM/occupancy limits, and network hierarchy across GPU groups. Not listed here for simplicity. \*H200 has a maximum clock of 1980 MHz and a default clock of 1830 MHz.
 
@@ -377,10 +354,7 @@ TileSight is implemented in Python ($\sim$6K lines) and supports NVIDIA and AMD 
 
 <span id="table-04"></span>
 
-|  | Time (ms) | L2 hit (%) | L2 util. (%) | SMEM (%) | TC (%) | SFU (%) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| NCU | 5.58 | 96.50 | 38.66 | 51.14 | 74.78 | 38.58 |
-| TileSight | 5.73 | 95.26 | 35.72 | 43.13 | 70.30 | 35.42 |
+![Original paper Table 4](../../papers/tilesight/table-04.png)
 
 **Composition and calibration.** The modeling chain runs bottom-up: our cache model computes L1.5/L2/DDR traffic fractions based on tile schedule and reuse distances. These traffic data feed into the per-tile pipeline overlap model. The wave model aggregates per-tile results into per-device time, while the distributed model adds communication and computes overlap. Memory/TMEM bandwidth, per-unit compute throughput, and other hardware parameters are calibrated once per architecture with small microbenchmarks. This consists of bandwidth sweeps over working-set sizes, as in [Figure 2](#figure-02), and short matrix-multiply probes that only take seconds.
 
@@ -430,15 +404,7 @@ We first describe the experimental setup in Section 5.1, including the hardware 
 
 <span id="table-05"></span>
 
-| Kernel | Framework | Device | Baseline | Issue | Solution | Optimized | Speedup |
-| --- | --- | --- | ---: | --- | --- | ---: | ---: |
-| ReLU | Triton | MI210 | 1.40 ms | Indirect addr. | Unroll addr. | 1.10 ms | $1.27\times$ |
-| Avg_Pool | Triton | MI210 | 0.20 ms | Indirect addr. + Not Overlapped | Unroll addr. + Small tile | 0.10 ms | $2.00\times$ |
-| Avg_Pool | Torch | MI210 | 0.15 ms | Not Overlapped | Small tile | 0.10 ms | $1.50\times$ |
-| GEMM(M128) | CK | MI210 | 3.68 ms | Not Overlapped | Multi Thread Block per SM | 2.68 ms | $1.37\times$ |
-| GEMM(K57344) | CK | MI210 | 55.63 ms | Large K with L2 hit rate issue | large tilek->1 TB per CU | 51.90 ms | $1.07\times$ |
-| RMS_Norm | Torch.Compile | H100 | 0.21 ms | Not Overlapped | Multi Thread Block per SM | 0.18 ms | $1.17\times$ |
-| MLA(kv8192 b128 h128) | Triton | MI210 | 66.38 ms | Tiling, Memory Alloc., SMEM Conflict | Register alloc., larger Tile, Conflict Elim. | 7.40 ms | **$8.97\times$** |
+![Original paper Table 5](../../papers/tilesight/table-05.png)
 
 <span id="figure-11"></span>
 

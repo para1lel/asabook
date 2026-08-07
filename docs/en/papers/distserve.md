@@ -263,13 +263,7 @@ In this section, we evaluate DistServe under different sizes of LLMs ranging fro
 
 <span id="table-01"></span>
 
-| Application | Model Size | TTFT | TPOT | Dataset |
-| --- | --- | --- | --- | --- |
-| Chatbot OPT-13B | 26GB | 0.2s | 0.1s | ShareGPT [Shareg23] |
-| Chatbot OPT-66B | 132GB | 0.4s | 0.1s | ShareGPT [Shareg23] |
-| Chatbot OPT-175B | 350GB | 4.0s | 0.2s | ShareGPT [Shareg23] |
-| Code Completion OPT-66B | 132GB | 0.125s | 0.2s | HumanEval [Evalua21] |
-| Summarization OPT-66B | 132GB | 15s | 0.15s | LongBench [Longbe23] |
+![Original paper Table 1](../../papers/distserve/table-01.png)
 
 **Table 1.** Workloads in evaluation and latency requirements.
 
@@ -343,16 +337,7 @@ To understand DistServe’s performance in detail, we make a latency breakdown o
 
 <span id="table-02"></span>
 
-| Rate (req/s) | vLLM |  | DistServe-Low |  |
-| --- | --- | --- | --- | --- |
-| Real System | Simulator | Real System | Simulator |  |
-| 1.0 | 97.0% | 96.8% | 100.0% | 100.0% |
-| 1.5 | 65.5% | 65.1% | 100.0% | 100.0% |
-| 2.0 | 52.8% | 51.0% | 99.3% | 99.3% |
-| 2.5 | 44.9% | 46.1% | 87.3% | 88.3% |
-| 3.0 | 36.7% | 38.3% | 83.0% | 84.1% |
-| 3.5 | 27.8% | 28.0% | 77.3% | 77.0% |
-| 4.0 | 23.6% | 24.1% | 70.0% | 68.9% |
+![Original paper Table 2](../../papers/distserve/table-02.png)
 
 **Table 2.** Comparison of the SLO attainment reported by the simulator and the real system under different rates.
 
@@ -452,12 +437,7 @@ Since the attention operation uses specially optimized kernels, we first discuss
 
 <span id="table-03"></span>
 
-| GEMM Name | Shape of $M$ | Shape of $N$ |
-| --- | --- | --- |
-| QKV Linear | $(t,h)$ | $(h,3h)$ |
-| Attn Output | $(t,h)$ | $(h,h)$ |
-| FFN Input | $(t,h)$ | $(h,m)$ |
-| FFN Output | $(t,m)$ | $(m,h)$ |
+![Original paper Table 3](../../papers/distserve/table-03.png)
 
 **Table 3.**
 
@@ -487,12 +467,7 @@ Similarly, we first focus on the following GEMMs in the decoding phase:
 
 <span id="table-04"></span>
 
-| GEMM Name | Shape of $M$ | Shape of $N$ |
-| --- | --- | --- |
-| QKV Linear | $(B,h)$ | $(h,3h)$ |
-| Attn Output | $(B,h)$ | $(h,h)$ |
-| FFN Input | $(B,h)$ | $(h,m)$ |
-| FFN Output | $(B,m)$ | $(m,h)$ |
+![Original paper Table 4](../../papers/distserve/table-04.png)
 
 **Table 4.**
 
@@ -522,14 +497,7 @@ In the end-to-end experiments [6.2](#S6.SS2 "6.2 End-to-end Experiments ‣ 6 Ev
 
 <span id="table-05"></span>
 
-| Model | Dataset | Prefill |  | Decoding |  |
-| --- | --- | --- | --- | --- | --- |
-| TP | PP | TP | PP |  |  |
-| OPT-13B | ShareGPT | 2 | 1 | 1 | 1 |
-| OPT-66B | ShareGPT | 4 | 1 | 2 | 2 |
-| OPT-66B | LongBench | 4 | 1 | 2 | 2 |
-| OPT-66B | HumanEval | 4 | 1 | 2 | 2 |
-| OPT-175B | ShareGPT | 3 | 3 | 4 | 3 |
+![Original paper Table 5](../../papers/distserve/table-05.png)
 
 **Table 5.**
 

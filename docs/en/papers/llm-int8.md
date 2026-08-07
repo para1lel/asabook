@@ -139,17 +139,7 @@ When we look at the scaling trends of zeroshot performance of OPT models on the 
 
 <span id="table-01"></span>
 
-| Parameters | 125M | 1.3B | 2.7B | 6.7B | 13B |
-| --- | --- | --- | --- | --- | --- |
-| 32-bit Float | 25.65 | 15.91 | 14.43 | 13.30 | 12.45 |
-| Int8 absmax | 87.76 | 16.55 | 15.11 | 14.59 | 19.08 |
-| Int8 zeropoint | 56.66 | 16.24 | 14.76 | 13.49 | 13.94 |
-| Int8 absmax row-wise | 30.93 | 17.08 | 15.24 | 14.13 | 16.49 |
-| Int8 absmax vector-wise | 35.84 | 16.82 | 14.98 | 14.13 | 16.48 |
-| Int8 zeropoint vector-wise | 25.72 | 15.94 | 14.36 | 13.38 | 13.47 |
-| Int8 absmax row-wise + decomposition | 30.76 | 16.19 | 14.65 | 13.25 | 12.46 |
-| Absmax LLM.int8() (vector-wise + decomp) | 25.83 | 15.93 | 14.44 | 13.24 | 12.45 |
-| Zeropoint LLM.int8() (vector-wise + decomp) | 25.69 | 15.92 | 14.43 | 13.24 | 12.45 |
+![Original paper Table 1](../../papers/llm-int8/table-01.png)
 
 **Table 1.** C4 validation perplexities of quantization methods for different transformer sizes ranging from 125M to 13B parameters. We see that absmax, row-wise, zeropoint, and vector-wise quantization leads to significant performance degradation as we scale, particularly at the 13B mark where 8-bit 13B perplexity is worse than 8-bit 6.7B perplexity. If we use LLM.int8(), we recover full perplexity as we scale. Zeropoint quantization shows an advantage due to asymmetric quantization but is no longer advantageous when used with mixed-precision decomposition.
 
@@ -235,15 +225,7 @@ A final limitation is that we focus on inference but do not study training or fi
 
 <span id="table-02"></span>
 
-|  |  |  | Largest Model that can be run |  |
-| --- | --- | --- | --- | --- |
-| Class | Hardware | GPU Memory | 8-bit | 16-bit |
-| Enterprise | 8x A100 | 80 GB | OPT-175B / BLOOM | OPT-175B / BLOOM |
-| Enterprise | 8x A100 | 40 GB | OPT-175B / BLOOM | OPT-66B |
-| Academic server | 8x RTX 3090 | 24 GB | OPT-175B / BLOOM | OPT-66B |
-| Academic desktop | 4x RTX 3090 | 24 GB | OPT-66B | OPT-30B |
-| Paid Cloud | Colab Pro | 15 GB | OPT-13B | GPT-J-6B |
-| Free Cloud | Colab | 12 GB | T0/T5-11B | GPT-2 1.3B |
+![Original paper Table 2](../../papers/llm-int8/table-02.png)
 
 **Table 2.** Different hardware setups and which methods can be run in 16-bit vs. 8-bit precision. We can see that our 8-bit method makes many models accessible that were not accessible before, in particular, OPT-175B/BLOOM.
 
@@ -373,15 +355,7 @@ Please do not modify the questions and only use the provided macros for your ans
 
 <span id="table-03"></span>
 
-|  |  |  | Largest Model that can be run |  |
-| --- | --- | --- | --- | --- |
-| Class | Hardware | GPU Memory | 8-bit | 16-bit |
-| Enterprise | 8x A100 | 80 GB | OPT-175B / BLOOM | OPT-175B / BLOOM |
-| Enterprise | 8x A100 | 40 GB | OPT-175B / BLOOM | OPT-66B |
-| Academic server | 8x RTX 3090 | 24 GB | OPT-175B / BLOOM | OPT-66B |
-| Academic desktop | 4x RTX 3090 | 24 GB | OPT-66B | OPT-30B |
-| Paid Cloud | Colab Pro | 15 GB | OPT-13B | GPT-J-6B |
-| Free Cloud | Colab | 12 GB | T0/T5-11B | GPT-2 1.3B |
+![Original paper Table 3](../../papers/llm-int8/table-03.png)
 
 **Table 3.** Different hardware setups and which methods can be run in 16-bit vs. 8-bit precision. We can see that our 8-bit method makes many models accessible that were not accessible before, in particular, OPT-175B/BLOOM.
 
@@ -405,19 +379,7 @@ Another line of work that focuses on convolutional network quantization is to le
 
 <span id="table-04"></span>
 
-|  |  |  | Outliers |  | Frequency |  |  | Top-1 softmax p |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model | PPL$\downarrow$ | Params | Count | 1-sided | Layers | SDims | Quartiles | w/ Outlier | No Outlier |
-| GPT2 | 33.5 | 117M | 1 | 1 | 25% | 6% | (-8, -7, -6) | 45% | 19% |
-| GPT2 | 26.0 | 345M | 2 | 1 | 29% | 18% | (6, 7, 8) | 45% | 19% |
-| FSEQ | 25.7 | 125M | 2 | 2 | 25% | 22% | (-40, -23, -11) | 32% | 24% |
-| GPT2 | 22.6 | 762M | 2 | 0 | 31% | 16% | (-9, -6, 9) | 41% | 18% |
-| GPT2 | 21.0 | 1.5B | 2 | 1 | 41% | 35% | (-11, -9, -7) | 41% | 25% |
-| FSEQ | 15.9 | 1.3B | 4 | 3 | 64% | 47% | (-33, -21, -11) | 39% | 15% |
-| FSEQ | 14.4 | 2.7B | 5 | 5 | 52% | 18% | (-25, -16, -9) | 45% | 13% |
-| GPT-J | 13.8 | 6.0B | 6 | 6 | 62% | 28% | (-21, -17, -14) | 55% | 10% |
-| FSEQ | 13.3 | 6.7B | 6 | 6 | 100% | 75% | (-44, -40, -35) | 35% | 13% |
-| FSEQ | 12.5 | 13B | 7 | 6 | 100% | 73% | (-63, -58, -45) | 37% | 16% |
+![Original paper Table 4](../../papers/llm-int8/table-04.png)
 
 **Table 4.** Summary statistics of outliers with a magnitude of at least 6 that occur in at least 25% of all layers and at least 6% of all sequence dimensions. We can see that the lower the C4 validation perplexity, the more outliers are present. Outliers are usually one-sided, and their quartiles with maximum range show that the outlier magnitude is 3-20x larger than the largest magnitude of other feature dimensions, which usually have a range of \[-3.5, 3.5\]. With increasing scale, outliers become more and more common in all layers of the transformer, and they occur in almost all sequence dimensions. A phase transition occurs at 6.7B parameters when the same outlier occurs in all layers in the same feature dimension for about 75% of all sequence dimensions (SDim). Despite only making up about 0.1% of all features, the outliers are essential for large softmax probabilities. The mean top-1 softmax probability shrinks by about 20% if outliers are removed. Because the outliers have mostly asymmetric distributions across the sequence dimension $s$, these outlier dimensions disrupt symmetric absmax quantization and favor asymmetric zeropoint quantization. This explains the results in our validation perplexity analysis. These observations appear to be universal as they occur for models trained in different software frameworks (fairseq, OpenAI, Tensorflow-mesh), and they occur in different inference frameworks (fairseq, Hugging Face Transformers). These outliers also appear robust to slight variations of the transformer architecture (rotary embeddings, embedding norm, residual scaling, different initializations).
 
@@ -433,15 +395,7 @@ These numbers could be improved significantly with optimized CUDA kernels for th
 
 <span id="table-05"></span>
 
-| GPT-3 Size | Small | Medium | Large | XL | 2.7B | 6.7B | 13B | 175B |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model dimension | 768 | 1024 | 1536 | 2048 | 2560 | 4096 | 5140 | 12288 |
-| FP16-bit baseline | 1.00x | 1.00x | 1.00x | 1.00x | 1.00x | 1.00x | 1.00x | 1.00x |
-| Int8 without overhead | 0.99x | 1.08x | 1.43x | 1.61x | 1.63x | 1.67x | 2.13x | 2.29x |
-| Absmax PyTorch+NVIDIA | 0.25x | 0.24x | 0.36x | 0.45x | 0.53x | 0.70x | 0.96x | 1.50x |
-| Vector-wise PyTorch+NVIDIA | 0.21x | 0.22x | 0.33x | 0.41x | 0.50x | 0.65x | 0.91x | 1.50x |
-| Vector-wise | 0.43x | 0.49x | 0.74x | 0.91x | 0.94x | 1.18x | 1.59x | 2.00x |
-| LLM.int8() (vector-wise+decomp) | 0.14x | 0.20x | 0.36x | 0.51x | 0.64x | 0.86x | 1.22x | 1.81x |
+![Original paper Table 5](../../papers/llm-int8/table-05.png)
 
 **Table 5.** Inference speedups compared to 16-bit matrix multiplication for the first hidden layer in the feed-forward of differently sized GPT-3 transformers. The hidden dimension is 4x the model dimension. The 8-bit without overhead speedups assumes that no quantization or dequantization is performed. Numbers small than 1.0x represent slowdowns. Int8 matrix multiplication speeds up inference only for models with large model and hidden dimensions.
 
@@ -453,12 +407,7 @@ We benchmark vs. 16-bit and try settings that use a larger batch size or fewer G
 
 <span id="table-06"></span>
 
-| Batch Size | Hardware | 1 | 8 | 32 |
-| --- | --- | --- | --- | --- |
-| bfloat16 baseline | 8xA100 80GB | 239 | 32 | 9.94 |
-| LLM.int8() | 8xA100 80GB | 253 | 34 | 10.44 |
-| LLM.int8() | 4xA100 80GB | 246 | 33 | 9.40 |
-| LLM.int8() | 3xA100 80GB | 247 | 33 | 9.11 |
+![Original paper Table 6](../../papers/llm-int8/table-06.png)
 
 **Table 6.** Ablation study on the number of GPUs used to run several types of inferences of BLOOM-176B model. We compare the number of GPUs used by our quantized BLOOM-176B model together with the native BLOOM-176B model. We also report the per-token generation speed in milliseconds for different batch sizes. We use our method integrated into transformers[Wolf19] powered by accelerate library from HuggingFace to deal with multi-GPU inference. Our method reaches a similar performance to the native model by fitting into fewer GPUs than the native model.
 
@@ -470,36 +419,13 @@ The results are shown in [Table 7](#table-07) and [Table 8](#table-08). We can s
 
 <span id="table-07"></span>
 
-|  | Is 8-bit |  |  |  |  |
-| --- | --- | --- | --- | --- | --- |
-| Params | FFN | Linear | Attention | Decomp | PPL |
-| 209M |  |  |  | 0% | 16.74 |
-| 209M | ✓ |  |  | 0% | 16.77 |
-| 209M | ✓ | ✓. |  | 0% | 16.83 |
-| 209M | ✓ | ✓ |  | 2% | 16.78 |
-| 209M | ✓ | ✓ |  | 5% | 16.77 |
-| 209M | ✓ | ✓ |  | 10% | 16.80 |
-| 209M | ✓ | ✓ | ✓ | 2% | 24.33 |
-| 209M | ✓ | ✓ | ✓ | 5% | 20.00 |
-| 209M | ✓ | ✓ | ✓ | 10% | 19.00 |
-| 1.1B |  |  |  | 0% | 9.99 |
-| 1.1B | ✓ |  |  | 0% | 9.93 |
-| 1.1B | ✓ | ✓ |  | 0% | 10.52 |
-| 1.1B | ✓ | ✓ |  | 1% | 10.41 |
+![Original paper Table 7](../../papers/llm-int8/table-07.png)
 
 **Table 7.** Initial results on small and large-scale language modeling. Doing attention in 8-bit severely degrades performance and performance cannot fully recovered with mixed-precision decomposition. While small-scale language models is close to baseline performance for both 8-bit FFN and 8-bit linear projects in the attention layers performance degrades at the large scale.
 
 <span id="table-08"></span>
 
-| Is 8-bit |  |  |  |
-| --- | --- | --- | --- |
-| FFN | Linear | Decomp | BLEU |
-|  |  | 0% | 28.9 |
-| ✓ |  | 0% | 28.8 |
-| ✓ | ✓ | 0% | unstable |
-| ✓ | ✓ | 2% | 28.0 |
-| ✓ | ✓ | 5% | 27.6 |
-| ✓ | ✓ | 10% | 27.5 |
+![Original paper Table 8](../../papers/llm-int8/table-08.png)
 
 **Table 8.** Neural machine translation results for 8-bit FFN and linear attention layers for WMT14+16. Decomp indicates the percentage that is computed in 16-bit instead of 8-bit. The BLEU score is the median of three random seeds.
 
@@ -511,28 +437,13 @@ We also test 8-bit finetuning on RoBERTa-large finetuned on GLUE. We run two dif
 
 <span id="table-09"></span>
 
-| Method | MNLI | QNLI | QQP | RTE | SST-2 | MRPC | CoLA | STS-B | Mean |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 32-bit Baseline | 90.4 | 94.9 | 92.2 | 84.5 | 96.4 | 90.1 | 67.4 | 93.0 | 88.61 |
-| 32-bit Replication | 90.3 | 94.8 | 92.3 | 85.4 | 96.6 | 90.4 | 68.8 | 92.0 | 88.83 |
-| Q-BERT [Shen20] | 87.8 | 93.0 | 90.6 | 84.7 | 94.8 | 88.2 | 65.1 | 91.1 | 86.91 |
-| Q8BERT [Zafrir19] | 85.6 | 93.0 | 90.1 | 84.8 | 94.7 | 89.7 | 65.0 | 91.1 | 86.75 |
-| PSQ [Chen20] | 89.9 | 94.5 | 92.0 | 86.8 | 96.2 | 90.4 | 67.5 | 91.9 | 88.65 |
-| Vector-wise | 90.2 | 94.7 | 92.3 | 85.4 | 96.4 | 91.0 | 68.6 | 91.9 | 88.81 |
+![Original paper Table 9](../../papers/llm-int8/table-09.png)
 
 **Table 9.** GLUE finetuning results for quantization methods for the feedforward layer in 8-bit while the rest is in 16-bit. No mixed-precision decomposition is used. We can see that vector-wise quantization improve upon the baselines.
 
 <span id="table-10"></span>
 
-| Is 8-bit |  |  |  |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| FFN | Linear | Decomp | MNLI | QNLI | QQP | RTE | SST-2 | MRPC | CoLA | STS-B | MEAN |
-|  |  | 0% | 90.4 | 94.9 | 92.2 | 84.5 | 96.4 | 90.1 | 67.4 | 93.0 | 88.6 |
-| ✓ |  | 0% | 90.2 | 94.7 | 92.3 | 85.4 | 96.4 | 91.0 | 68.6 | 91.9 | 88.8 |
-| ✓ | ✓ | 0% | 90.2 | 94.4 | 92.2 | 84.1 | 96.2 | 89.7 | 63.6 | 91.6 | 87.7 |
-| ✓ | ✓ | 1% | 90.0 | 94.6 | 92.2 | 83.0 | 96.2 | 89.7 | 65.8 | 91.8 | 87.9 |
-| ✓ | ✓ | 2% | 90.0 | 94.5 | 92.2 | 85.9 | 96.7 | 90.4 | 68.0 | 91.9 | 88.7 |
-| ✓ | ✓ | 3% | 90.0 | 94.6 | 92.2 | 86.3 | 96.4 | 90.2 | 68.3 | 91.8 | 88.7 |
+![Original paper Table 10](../../papers/llm-int8/table-10.png)
 
 **Table 10.** Breakdown for 8-bit feedforward network (FFN) and linear attention layers for GLUE. Scores are median of 5 random seeds. Decomp indicates the percentage that is decomposed into 16-bit matrix multplication. Compared to inference, fine-tuning appears to need a higher decomp percentage if the linear attention layers are also converted to 8-bit.
 

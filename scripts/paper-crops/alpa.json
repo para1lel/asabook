@@ -178,5 +178,77 @@
     "width": 484,
     "height": 125,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 6,
+    "x": 56,
+    "y": 119,
+    "width": 236,
+    "height": 108,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 5,
+    "x": 348.5,
+    "y": 340.5,
+    "width": 179,
+    "height": 84,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 6,
+    "x": 57.5,
+    "y": 120.5,
+    "width": 233,
+    "height": 105,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 10,
+    "x": 318.5,
+    "y": 92.5,
+    "width": 238.5,
+    "height": 44.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 13,
+    "x": 338.5,
+    "y": 88.5,
+    "width": 197,
+    "height": 70.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 19,
+    "x": 324.5,
+    "y": 142.5,
+    "width": 224,
+    "height": 97.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 19,
+    "x": 319,
+    "y": 367,
+    "width": 237.5,
+    "height": 86,
+    "preserveSource": false
+  },
+  {
+    "name": "table-08",
+    "page": 19,
+    "x": 320.5,
+    "y": 581,
+    "width": 232,
+    "height": 90,
+    "preserveSource": false
   }
 ]

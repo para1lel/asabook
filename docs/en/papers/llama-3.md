@@ -25,18 +25,7 @@ The development of modern foundation models consists of two main stages: (1) a p
 
 <span id="table-01"></span>
 
-|  | Finetuned | Multilingual | Long context | Tool use | Release |
-| --- | --- | --- | --- | --- | --- |
-| Llama 3 8B | ✗ | ✗${}^{\textrm{1}}$ | ✗ | ✗ | April 2024 |
-| Llama 3 8B Instruct | ✓ | ✗ | ✗ | ✗ | April 2024 |
-| Llama 3 70B | ✗ | ✗${}^{\textrm{1}}$ | ✗ | ✗ | April 2024 |
-| Llama 3 70B Instruct | ✓ | ✗ | ✗ | ✗ | April 2024 |
-| Llama 3.1 8B | ✗ | ✓ | ✓ | ✗ | July 2024 |
-| Llama 3.1 8B Instruct | ✓ | ✓ | ✓ | ✓ | July 2024 |
-| Llama 3.1 70B | ✗ | ✓ | ✓ | ✗ | July 2024 |
-| Llama 3.1 70B Instruct | ✓ | ✓ | ✓ | ✓ | July 2024 |
-| Llama 3.1 405B | ✗ | ✓ | ✓ | ✗ | July 2024 |
-| Llama 3.1 405B Instruct | ✓ | ✓ | ✓ | ✓ | July 2024 |
+![Original paper Table 1](../../papers/llama-3/table-01.png)
 
 **Table 1.** Overview of the Llama 3 Herd of models. All results in this paper are for the Llama 3.1 models.
 
@@ -210,17 +199,7 @@ We make a few small modifications compared to Llama 2:
 
 <span id="table-03"></span>
 
-|  | 8B | 70B | 405B |
-| --- | --- | --- | --- |
-| Layers | 32 | 80 | 126 |
-| Model Dimension | 4,096 | 8192 | 16,384 |
-| FFN Dimension | 14,336 | 28,672 | 53,248 |
-| Attention Heads | 32 | 64 | 128 |
-| Key/Value Heads | 8 | 8 | 8 |
-| Peak Learning Rate | $3\times 10^{-4}$ | $1.5\times 10^{-4}$ | $8\times 10^{-5}$ |
-| Activation Function | SwiGLU |  |  |
-| Vocabulary Size | 128,000 |  |  |
-| Positional Embeddings | RoPE ($\theta=500,000$) |  |  |
+![Original paper Table 3](../../papers/llama-3/table-03.png)
 
 **Table 3.** Overview of the key hyperparameters of Llama 3. We display settings for 8B, 70B, and 405B language models.
 
@@ -310,11 +289,7 @@ GPU utilization. Through careful tuning of the parallelism configuration, hardwa
 
 <span id="table-04"></span>
 
-| GPUs | TP | CP | PP | DP | Seq. Len. | Batch size/DP | Tokens/Batch | TFLOPs/GPU | BF16 MFU |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 8,192 | 8 | 1 | 16 | 64 | 8,192 | 32 | 16M | 430 | 43% |
-| 16,384 | 8 | 1 | 16 | 128 | 8,192 | 16 | 16M | 400 | 41% |
-| 16,384 | 8 | 16 | 16 | 4 | 131,072 | 16 | 16M | 380 | 38% |
+![Original paper Table 4](../../papers/llama-3/table-04.png)
 
 **Table 4.** Scaling configurations and MFU for each stage of Llama 3 405B pre-training. See text and [Figure 5](#figure-05) for descriptions of each type of parallelism.
 
@@ -366,26 +341,7 @@ During a 54-day snapshot period of pre-training, we experienced a total of 466 j
 
 <span id="table-05"></span>
 
-| Component | Category | Interruption Count | % of Interruptions |
-| --- | --- | --- | --- |
-| Faulty GPU | GPU | 148 | 30.1% |
-| GPU HBM3 Memory | GPU | 72 | 17.2% |
-| Software Bug | Dependency | 54 | 12.9% |
-| Network Switch/Cable | Network | 35 | 8.4% |
-| Host Maintenance | Unplanned<br>Maintenance | 32 | 7.6% |
-| GPU SRAM Memory | GPU | 19 | 4.5% |
-| GPU System Processor | GPU | 17 | 4.1% |
-| NIC | Host | 7 | 1.7% |
-| NCCL Watchdog Timeouts | Unknown | 7 | 1.7% |
-| Silent Data Corruption | GPU | 6 | 1.4% |
-| GPU Thermal Interface + Sensor | GPU | 6 | 1.4% |
-| SSD | Host | 3 | 0.7% |
-| Power Supply | Host | 3 | 0.7% |
-| Server Chassis | Host | 2 | 0.5% |
-| IO Expansion Board | Host | 2 | 0.5% |
-| Dependency | Dependency | 2 | 0.5% |
-| CPU | Host | 2 | 0.5% |
-| System Memory | Host | 2 | 0.5% |
+![Original paper Table 5](../../papers/llama-3/table-05.png)
 
 **Table 5.** Root-cause categorization of unexpected interruptions during a 54-day period of Llama 3 405B pre-training. About 78% of unexpected interruptions were attributed to confirmed or suspected hardware issues.
 
@@ -477,14 +433,7 @@ In each round of post-training, we use all the preference data that is available
 
 <span id="table-06"></span>
 
-|  | % of | Avg. # turns | Avg. # tokens | Avg. # tokens | Avg. # tokens |
-| --- | --- | --- | --- | --- | --- |
-| Dataset | comparisons | per dialog | per example | in prompt | in response |
-| General English | 81.99% | 4.1 | 1,000.4 | 36.4 | 271.2 |
-| Coding | 6.93% | 3.2 | 1,621.0 | 113.8 | 462.9 |
-| Multilingual | 5.19% | 1.8 | 1,299.4 | 77.1 | 420.9 |
-| Reasoning and tools | 5.89% | 1.6 | 707.7 | 46.6 | 129.9 |
-| Total | 100% | 3.8 | 1,041.6 | 44.5 | 284.0 |
+![Original paper Table 6](../../papers/llama-3/table-06.png)
 
 **Table 6.** Statistics of human preference data. We list statistics of the internally collected human preference data used for Llama 3 alignment. We ask annotators to perform multi-turn dialogues with the models and make comparisons among responses at each turn. In post-processing, we split each dialogue to multiple examples at a turn level. Each example consists of a prompt (including previous dialog if available) and a response (e.g., chosen or rejected response).
 
@@ -514,16 +463,7 @@ Overall data composition. [Table 7](#table-07) shows data statistics for each br
 
 <span id="table-07"></span>
 
-|  |  |  |  | Avg. # tokens | Avg. # tokens |
-| --- | --- | --- | --- | --- | --- |
-| Dataset | % of examples | Avg. # turns | Avg. # tokens | in context | in final response |
-| General English | 52.66% | 6.3 | 974.0 | 656.7 | 317.1 |
-| Code | 14.89% | 2.7 | 753.3 | 378.8 | 374.5 |
-| Multilingual | 3.01% | 2.7 | 520.5 | 230.8 | 289.7 |
-| Exam-like | 8.14% | 2.3 | 297.8 | 124.4 | 173.4 |
-| Reasoning and tools | 21.19% | 3.1 | 661.6 | 359.8 | 301.9 |
-| Long context | 0.11% | 6.7 | 38,135.6 | 37,395.2 | 740.5 |
-| Total | $100\%$ | 4.7 | 846.1 | 535.7 | 310.4 |
+![Original paper Table 7](../../papers/llama-3/table-07.png)
 
 **Table 7.** Statistics of SFT data. We list internally collected SFT data used for Llama 3 alignment. Each SFT example consists of a context (i.e., all conversation turns except the last one) and a final response.
 
@@ -861,14 +801,7 @@ In this section, we report evaluation results for our pre-trained Llama 3 (Secti
 
 <span id="table-08"></span>
 
-| Reading Comprehension | SQuAD V2 [July18], QuaC [Tsujii18], RACE [Riedea17], |
-| --- | --- |
-| Code | HumanEval [Xivbh21], MBPP [Xivbi21], |
-| Commonsense reasoning/understanding | CommonSenseQA [Solora19], PiQA [AAAIb20], SiQA [Wan19], OpenBookQA [Tsujia18], WinoGrande [ACM21] |
-| Math, reasoning, and problem solving | GSM8K [Xivbj21], MATH [Benchm21], ARC Challenge [Xivbm18], DROP [Solori19], WorldSense [CoRRb23] |
-| Adversarial | Adv SQuAD [Riedel17], Dynabench SQuAD [Zhou21], GSM-Plus [Xiv25] PAWS [Solorb19] |
-| Long context | QuALITY [Ruiz22], many-shot GSM8K [Xivak23] |
-| Aggregate | MMLU [ICLR21], MMLU-Pro [Xivq24], AGIEval [Xivbn23], BIG-Bench Hard [ACL23] |
+![Original paper Table 8](../../papers/llama-3/table-08.png)
 
 **Table 8.** Pre-training benchmarks by category. Overview of all benchmarks we use to evaluate pre-trained Llama 3 models, grouped by capability category.
 
@@ -1355,7 +1288,7 @@ ActivityNet-QA (test) 52.7 56.3 49.8 52.2 57.5 – 61.9
 
 <span id="table-20"></span>
 
-<div class="paper-object-marker"></div>
+![Original paper Table 20](../../papers/llama-3/table-20.png)
 
 **Table 20.** Multilingual benchmarks. For MGSM [Langua22], we report 0-shot CoT results for our Llama 3 models.
 
@@ -1505,12 +1438,7 @@ We evaluate the speech understanding capabilities of our speech interface for Ll
 
 <span id="table-31"></span>
 
-|  | Llama 3 8B | Llama 3 70B | Whisper | SeamlessM4T v2 | Gemini 1.0 Ultra | Gemini 1.5 Pro |
-| --- | --- | --- | --- | --- | --- | --- |
-| MLS (English) | 4.9 | 4.4 | 6.2 (v2) | 6.5 | 4.4 | **4.2** |
-| LibriSpeech (test-other) | 3.4 | **3.1** | 4.9 (v2) | 6.2 | — | — |
-| VoxPopuli (English) | 6.2 | **5.7** | 7.0 (v2) | 7.0 | — | — |
-| FLEURS (34 languages) | 9.6 | **8.2** | 14.4 (v3) | 11.7 | — | — |
+![Original paper Table 31](../../papers/llama-3/table-31.png)
 
 **Table 31.** **Word error rate of our speech interface for Llama 3 on speech recognition tasks.** We report the performance of Whisper, SeamlessM4T, and Gemini for reference.
 
@@ -1518,10 +1446,7 @@ We evaluate the speech understanding capabilities of our speech interface for Ll
 
 <span id="table-32"></span>
 
-|  | Llama 3 8B | Llama 3 70B | Whisper v2 | SeamlessM4T v2 |
-| --- | --- | --- | --- | --- |
-| FLEURS (33 lang. $\rightarrow$ English) | 29.5 | **33.7** | 21.9 | 28.6 |
-| Covost 2 (15 lang. $\rightarrow$ English) | 34.4 | **38.8** | 33.8 | 37.9 |
+![Original paper Table 32](../../papers/llama-3/table-32.png)
 
 **Table 32.** **BLEU score of our speech interface for Llama 3 on speech translation tasks.** We report the performance of Whisper and SeamlessM4T for reference.
 
@@ -1537,10 +1462,7 @@ We evaluate the speech understanding capabilities of our speech interface for Ll
 
 <span id="table-33"></span>
 
-|  | Llama 3 8B AT $\downarrow$ | Llama 3 8B LT $\uparrow$ | Llama 3 70B AT $\downarrow$ | Llama 3 70B LT $\uparrow$ | Gemini 1.5 Pro AT $\downarrow$ | Gemini 1.5 Pro LT $\uparrow$ |
-| --- | --- | --- | --- | --- | --- | --- |
-| English | 0.84 | 15.09 | **0.68** | **15.46** | 1.44 | 13.42 |
-| Overall | 2.31 | 9.89 | **2.00** | 10.29 | 2.06 | **10.94** |
+![Original paper Table 33](../../papers/llama-3/table-33.png)
 
 **Table 33.** **Speech toxicity of our speech interface to Llama 3 on the MuTox dataset.** AT refers to added toxicity (%) and LT refers to lost toxicity (%).
 
@@ -1554,11 +1476,7 @@ For speech generation, we focus on evaluating the quality of token-wise input st
 
 <span id="table-34"></span>
 
-| Model | Context | Accuracy |
-| --- | --- | --- |
-| Without Llama 3 8B | 3 | 73.6% |
-| Without Llama 3 8B | $\infty$ | 88.0% |
-| With Llama 3 8B | 3 | **90.7%** |
+![Original paper Table 34](../../papers/llama-3/table-34.png)
 
 **Table 34.** **Sample-wise text normalization (TN) accuracy.** We compare models with or without Llama 3 8B embeddings, and using different right-context values.
 
@@ -1566,12 +1484,7 @@ For speech generation, we focus on evaluating the quality of token-wise input st
 
 <span id="table-35"></span>
 
-| Comparison | Model | Preference |
-| --- | --- | --- |
-| Streaming | PM for Llama 3 8B | **60.0%** |
-| Streaming | Streaming phone-only baseline | 40.0% |
-| Non-streaming | PM for Llama 3 8B | **63.6%** |
-| Non-streaming | Non-streaming phone-only baseline | 36.4% |
+![Original paper Table 35](../../papers/llama-3/table-35.png)
 
 **Table 35.** **Prosody Modeling (PM) evaluation.** *Left:* Rater preferences of PM for Llama 3 8B vs. streaming phone-only baseline. *Right:* Rater preferences of PM for Llama 3 8B vs. non-streaming phone-only baseline.
 First, we compare directly to a streaming baseline model without Llama 3 embeddings. In the second test, the Llama 3 8B PM is compared to a non-streaming baseline model without Llama 3 embeddings. As shown in [Table 35](#table-35), the Llama 3 8B PM is preferred 60% of the time compared to the streaming baseline, and 63.6% of the time compared to the non-streaming baseline, indicating a significant improvement in perceived quality. The key advantage of the Llama 3 8B PM is its token-wise streaming capability ([Section 8.2.2](#section-8-2-2)), which maintains low latency during inference. This reduces the model's lookahead requirements, enabling more responsive and real-time speech synthesis compared to non-streaming baselines. Overall, the Llama 3 8B prosody model consistently outperforms the baseline models, demonstrating its effectiveness in enhancing the naturalness and expressiveness of synthesized speech.

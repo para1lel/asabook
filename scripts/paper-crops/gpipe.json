@@ -52,5 +52,50 @@
     "width": 397,
     "height": 188,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 4,
+    "x": 114,
+    "y": 132,
+    "width": 384,
+    "height": 123,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 5,
+    "x": 304.5,
+    "y": 295.5,
+    "width": 203,
+    "height": 64,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 5,
+    "x": 319,
+    "y": 518,
+    "width": 172,
+    "height": 44,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 6,
+    "x": 129.5,
+    "y": 143,
+    "width": 353,
+    "height": 103,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 7,
+    "x": 344.5,
+    "y": 677,
+    "width": 164,
+    "height": 42,
+    "preserveSource": false
   }
 ]

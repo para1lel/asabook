@@ -104,15 +104,7 @@ In this section, we introduce techniques to push the boundary of the considered 
 
 <span id="table-01"></span>
 
-| No | Rule Name | Condition | Application |
-| --- | --- | --- | --- |
-| 1 | Skip | $\neg \mathrm{IsStrictInlinable}(S,i)$ | $S^{\prime}=S;i^{\prime}=i-1$ |
-| 2 | Always Inline | $\mathrm{IsStrictInlinable}(S,i)$ | $S^{\prime}=\mathrm{Inline}(S,i)$; $i^{\prime}=i-1$ |
-| 3 | Multi-level Tiling | $\mathrm{HasDataReuse}(S,i)$ | $S^{\prime}=\mathrm{MultiLevelTiling}(S,i);i^{\prime}=i-1$ |
-| 4 | Multi-level Tiling with Fusion | $\mathrm{HasDataReuse}(S,i)\wedge \mathrm{HasFusibleConsumer}(S,i)$ | $S^{\prime}=\mathrm{FuseConsumer}(\mathrm{MultiLevelTiling}(S,i),i);i^{\prime}=i-1$ |
-| 5 | Add Cache Stage | $\mathrm{HasDataReuse}(S,i)\wedge\neg \mathrm{HasFusibleConsumer}(S,i)$ | $S^{\prime}=\mathrm{AddCacheWrite}(S,i);i=i^{\prime}$ |
-| 6 | Reduction Factorization | $\mathrm{HasMoreReductionParallel}(S,i)$ | $S^{\prime}=\mathrm{AddRfactor}(S,i);i^{\prime}=i-1$ |
-| … | User Defined Rule | … | … |
+![Original paper Table 1](../../papers/ansor/table-01.png)
 
 **Table 1.** Derivation rules used to generate sketches. The condition runs on the current state $\sigma=(S,i)$. The application derives the next state $\sigma^{\prime}=(S^{\prime},i^{\prime})$ from the current state $\sigma$. Note that some function (e.g., $\mathrm{AddRfactor}$, $\mathrm{FuseConsumer}$) can return multiple possible values of $S^{\prime}$. In this case we collect all possible $S^{\prime}$, and return multiple next states $\sigma^{\prime}$ for a single input state $\sigma$.
 
@@ -254,11 +246,7 @@ When tuning a set of DNNs, there are several options. [Table 2](#table-02) shows
 
 <span id="table-02"></span>
 
-| $f_{1}=\sum_{j=1}^{m}\sum_{i\in S(j)}w_{i}\times g_{i}(t)$ |
-| --- |
-| $f_{2}=\sum_{j=1}^{m}{\max(\sum_{i\in S(j)}w_{i}\times g_{i}(t),L_{j})}$ |
-| $f_{3}=-(\prod_{j=1}^{m}{\frac{B_{j}}{\sum_{i\in S(j)}w_{i}\times g_{i}(t)}})^{\frac{1}{m}}$ |
-| $f_{4}=\sum_{j=1}^{m}{\sum_{i\in S(j)}w_{i}\times\max(g_{i}(t),\mathrm{ES}(g_{i},t))}$ |
+![Original paper Table 2](../../papers/ansor/table-02.png)
 
 **Table 2.** Examples of objective functions for multiple neural networks
 
@@ -364,13 +352,7 @@ Typically, it takes several hours for Ansor to generate fully-optimized programs
 
 <span id="table-03"></span>
 
-|  | AutoTVM | Ansor | Time-saving |
-| --- | --- | --- | --- |
-| ResNet-50 | 21,220 | 6,403 | 3.3 $\times$ |
-| Mobilenet-V2 | 31,272 | 1,892 | 16.5 $\times$ |
-| 3D-ResNet | 5,158 | 1,927 | 2.7 $\times$ |
-| DCGAN | 3,003 | 298 | 10.1 $\times$ |
-| BERT | 6,220 | 496 | 12.5 $\times$ |
+![Original paper Table 3](../../papers/ansor/table-03.png)
 
 **Table 3.** The number of measurements and wall-clock time used for Ansor to match the performance of AutoTVM on the Intel CPU (batch size=1).
 

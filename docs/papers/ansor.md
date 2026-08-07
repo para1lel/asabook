@@ -104,15 +104,7 @@ Ansor 是一个自动化张量程序生成框架. [图 4](#figure-04) 展示了 
 
 <span id="table-01"></span>
 
-|无|规则名称|条件|应用|
-| --- | --- | --- | --- |
-|1|跳过|$\neg \mathrm{IsStrictInlinable}(S,i)$|$S^{\prime}=S;i^{\prime}=i-1$|
-|2|始终内联|$\mathrm{IsStrictInlinable}(S,i)$|$S^{\prime}=\mathrm{Inline}(S,i)$; $i^{\prime}=i-1$|
-|3|多级切片|$\mathrm{HasDataReuse}(S,i)$|$S^{\prime}=\mathrm{MultiLevelTiling}(S,i);i^{\prime}=i-1$|
-|4|带融合的多级切片|$\mathrm{HasDataReuse}(S,i)\wedge \mathrm{HasFusibleConsumer}(S,i)$|$S^{\prime}=\mathrm{FuseConsumer}(\mathrm{MultiLevelTiling}(S,i),i);i^{\prime}=i-1$|
-|5|添加缓存阶段|$\mathrm{HasDataReuse}(S,i)\wedge\neg \mathrm{HasFusibleConsumer}(S,i)$|$S^{\prime}=\mathrm{AddCacheWrite}(S,i);i=i^{\prime}$|
-|6|归约分解|$\mathrm{HasMoreReductionParallel}(S,i)$|$S^{\prime}=\mathrm{AddRfactor}(S,i);i^{\prime}=i-1$|
-|…|用户定义规则|…|…|
+![论文原表 1](./ansor/table-01.png)
 
 **表 1.** 用于生成草图的推导规则. 条件在当前状态 $\sigma=(S,i)$ 上运行. 应用程序从当前状态 $\sigma$ 推导出下一个状态 $\sigma^{\prime}=(S^{\prime},i^{\prime})$. 请注意, 某些函数 (例如 $\mathrm{AddRfactor}$, $\mathrm{FuseConsumer}$) 可以返回多个可能的 $S^{\prime}$ 值. 在这种情况下, 我们收集所有可能的 $S^{\prime}$, 并为单个输入状态 $\sigma$ 返回多个下一个状态 $\sigma^{\prime}$.
 
@@ -254,11 +246,7 @@ $$
 
 <span id="table-02"></span>
 
-|$f_{1}=\sum_{j=1}^{m}\sum_{i\in S(j)}w_{i}\times g_{i}(t)$|
-| --- |
-|$f_{2}=\sum_{j=1}^{m}{\max(\sum_{i\in S(j)}w_{i}\times g_{i}(t),L_{j})}$|
-|$f_{3}=-(\prod_{j=1}^{m}{\frac{B_{j}}{\sum_{i\in S(j)}w_{i}\times g_{i}(t)}})^{\frac{1}{m}}$|
-|$f_{4}=\sum_{j=1}^{m}{\sum_{i\in S(j)}w_{i}\times\max(g_{i}(t),\mathrm{ES}(g_{i},t))}$|
+![论文原表 2](./ansor/table-02.png)
 
 **表 2.** 多个神经网络目标函数示例
 
@@ -364,13 +352,7 @@ Ansor 的搜索效率很高, 可以在更少的搜索时间内超越或匹配 Au
 
 <span id="table-03"></span>
 
-||AutoTVM|Ansor|节省时间|
-| --- | --- | --- | --- |
-|ResNet-50|21, 220|6, 403|3.3 $\times$|
-|Mobilenet-V2|31, 272|1, 892|16.5 $\times$|
-|3D-ResNet|5, 158|1, 927 ZX0015QXZ 2.7 $\times$|2.7 $\times$|
-|DCGAN|3, 003|298|10.1 $\times$|
-|BERT|6, 220|496|12.5 $\times$|
+![论文原表 3](./ansor/table-03.png)
 
 **表 3.** Ansor 在 Intel CPU 上 (批量大小=1) 匹配 AutoTVM 性能所使用的测量次数和实际时间.
 

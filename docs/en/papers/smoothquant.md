@@ -76,12 +76,7 @@ LLMs are notoriously difficult to quantize due to the outliers in the activation
 
 <span id="table-01"></span>
 
-| Model size (OPT-) | 6.7B | 13B | 30B | 66B | 175B |
-| --- | --- | --- | --- | --- | --- |
-| FP16 | 64.9% | 65.6% | 67.9% | 69.5% | 71.6% |
-| INT8 per-tensor | 39.9% | 33.0% | 32.8% | 33.1% | 32.3% |
-| INT8 per-token | 42.5% | 33.0% | 33.1% | 32.9% | 31.7% |
-| INT8 per-channel | 64.8% | 65.6% | 68.0% | 69.4% | 71.4% |
+![Original paper Table 1](../../papers/smoothquant/table-01.png)
 
 **Table 1.** Among different activation quantization schemes, only per-channel quantization [Bondaa21] preserves the accuracy, but it is *not* compatible (marked in gray) with INT8 GEMM kernels. We report the average accuracy on WinoGrande, HellaSwag, PIQA, and LAMBADA.
 
@@ -141,15 +136,7 @@ Linear layers take up most of the parameters and computation of LLM models. By d
 
 <span id="table-02"></span>
 
-| Method | Weight | Activation |
-| --- | --- | --- |
-| W8A8 | per-tensor | per-tensor dynamic |
-| ZeroQuant | group-wise | per-token dynamic |
-| LLM.int8() | per-channel | per-token dynamic+FP16 |
-| Outlier Suppression | per-tensor | per-tensor static |
-| SmoothQuant-O1 | per-tensor | per-token dynamic |
-| SmoothQuant-O2 | per-tensor | per-tensor dynamic |
-| SmoothQuant-O3 | per-tensor | per-tensor static |
+![Original paper Table 2](../../papers/smoothquant/table-02.png)
 
 **Table 2.** Quantization setting of the baselines and SmoothQuant. All weight and activations use INT8 representations unless specified. For SmoothQuant, the efficiency improves from O1 to O3 (i.e., lower latency).
 
@@ -157,31 +144,13 @@ We compare with four baselines in the INT8 post-training quantization setting, i
 
 <span id="table-03"></span>
 
-| *OPT-175B* | LAMBADA | HellaSwag | PIQA | WinoGrande | OpenBookQA | RTE | COPA | Average$\uparrow$ | WikiText$\downarrow$ |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| FP16 | 74.7% | 59.3% | 79.7% | 72.6% | 34.0% | 59.9% | 88.0% | 66.9% | 10.99 |
-| W8A8 | 0.0% | 25.6% | 53.4% | 50.3% | 14.0% | 49.5% | 56.0% | 35.5% | 93080 |
-| ZeroQuant | 0.0%\* | 26.0% | 51.7% | 49.3% | 17.8% | 50.9% | 55.0% | 35.8% | 84648 |
-| LLM.int8() | 74.7% | 59.2% | 79.7% | 72.1% | 34.2% | 60.3% | 87.0% | 66.7% | 11.10 |
-| Outlier Suppression | 0.00% | 25.8% | 52.5% | 48.6% | 16.6% | 53.4% | 55.0% | 36.0% | 96151 |
-| SmoothQuant-O1 | 74.7% | 59.2% | 79.7% | 71.2% | 33.4% | 58.1% | 89.0% | 66.5% | 11.11 |
-| SmoothQuant-O2 | 75.0% | 59.0% | 79.2% | 71.2% | 33.0% | 59.6% | 88.0% | 66.4% | 11.14 |
-| SmoothQuant-O3 | 74.6% | 58.9% | 79.7% | 71.2% | 33.4% | 59.9% | 90.0% | 66.8% | 11.17 |
+![Original paper Table 3](../../papers/smoothquant/table-03.png)
 
 **Table 3.** SmoothQuant maintains the accuracy of OPT-175B model after INT8 quantization, even with the most aggressive and most efficient O3 setting ([Table 2](#table-02)). We extensively benchmark the performance on 7 zero-shot benchmarks (by reporting the average accuracy) and 1 language modeling benchmark (perplexity). \*For ZeroQuant, we also tried leaving the input activation of self-attention in FP16 and quantizing the rest to INT8, which is their solution to the GPT-NeoX-20B. But this does not solve the accuracy degradation of OPT-175B.
 
 <span id="table-04"></span>
 
-| Method | OPT-175B | BLOOM-176B | GLM-130B\* |
-| --- | --- | --- | --- |
-| FP16 | 71.6% | 68.2% | 73.8% |
-| W8A8 | 32.3% | 64.2% | 26.9% |
-| ZeroQuant | 31.7% | 67.4% | 26.7% |
-| LLM.int8() | 71.4% | 68.0% | 73.8% |
-| Outlier Suppression | 31.7% | 54.1% | 63.5% |
-| SmoothQuant-O1 | 71.2% | 68.3% | 73.7% |
-| SmoothQuant-O2 | 71.1% | 68.4% | 72.5% |
-| SmoothQuant-O3 | 71.1% | 67.4% | 72.8% |
+![Original paper Table 4](../../papers/smoothquant/table-04.png)
 
 **Table 4.** SmoothQuant works for different LLMs. We can quantize the 3 largest, openly available LLM models into INT8 without degrading the accuracy. For OPT-175B and BLOOM-176B, we show the average accuracy on WinoGrande, HellaSwag, PIQA, and LAMBADA. For GLM-130B we show the average accuracy on LAMBADA, MMLU, MNLI, and QNLI. \*Accuracy is not column-wise comparable due to different datasets.
 
@@ -221,14 +190,7 @@ SmoothQuant works not only for the very large LLMs beyond 100B parameters, but i
 
 <span id="table-05"></span>
 
-| OPT-IML-30B | LAMBADA $\uparrow$ | WikiText $\downarrow$ |
-| --- | --- | --- |
-| FP16 | 69.12% | 14.26 |
-| W8A8 | 4.21% | 576.53 |
-| ZeroQuant | 5.12% | 455.12 |
-| LLM.int8() | 69.14% | 14.27 |
-| Outlier Suppression | 0.00% | 9485.62 |
-| SmoothQuant-O3 | 69.77% | 14.37 |
+![Original paper Table 5](../../papers/smoothquant/table-05.png)
 
 **Table 5.** SmoothQuant’s performance on the OPT-IML model.
 
@@ -238,10 +200,7 @@ Shown in [Table 5](#table-05), SmoothQuant also works on instruction-tuned LLMs.
 
 <span id="table-06"></span>
 
-| Wiki PPL$\downarrow$ | 7B | 13B | 30B | 65B |
-| --- | --- | --- | --- | --- |
-| FP16 | 11.51 | 10.05 | 7.53 | 6.17 |
-| W8A8 SmoothQuant | 11.56 | 10.08 | 7.56 | 6.20 |
+![Original paper Table 6](../../papers/smoothquant/table-06.png)
 
 **Table 6.** SmoothQuant can enable lossless W8A8 quantization for LLaMA models [Touvro23]. Results are perplexity on WikiText-2 dataset. We used per-token activation quantization and $\alpha$\=0.8 for SmoothQuant.
 
@@ -279,43 +238,19 @@ In [Table 7](#table-07), we show SmoothQuant can significantly accelerate the au
 
 <span id="table-07"></span>
 
-| BS | SeqLen | Latency (ms) |  |  | Memory (GB) |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| FP16 | Ours | Speedup ($\uparrow$) | FP16 | Ours | Saving ($\uparrow$) |  |  |
-| OPT-30B (1 GPU) |  |  |  |  |  |  |  |
-| 1 | 512 | 422 | 314 | 1.35$\times$ | 57 | 30 | 1.91$\times$ |
-| 1 | 1024 | 559 | 440 | 1.27$\times$ | 58 | 31 | 1.87$\times$ |
-| 16 | 512 | 2488 | 1753 | 1.42$\times$ | 69 | 44 | 1.59$\times$ |
-| 16 | 1024 | OOM | 3947 | - | OOM | 61 | - |
-| OPT-175B (8 GPUs) |  |  |  |  |  |  |  |
-| 1 | 512 | 426 | 359 | 1.19$\times$ | 44 | 23 | 1.87$\times$ |
-| 1 | 1024 | 571 | 475 | 1.20$\times$ | 44 | 24 | 1.85$\times$ |
-| 16 | 512 | 2212 | 1628 | 1.36$\times$ | 50 | 30 | 1.67$\times$ |
-| 16 | 1024 | 4133 | 3231 | 1.28$\times$ | 56 | 37 | 1.52$\times$ |
+![Original paper Table 7](../../papers/smoothquant/table-07.png)
 
 **Table 7.** SmoothQuant ’s performance in the decoding stage.
 
 <span id="table-08"></span>
 
-|  | LAMBADA | HellaSwag | PIQA | WinoGrande | Average |
-| --- | --- | --- | --- | --- | --- |
-| FP16 | 76.6% | 62.1% | 81.0% | 72.9% | 73.1% |
-| INT8 | 77.2% | 60.4% | 80.7% | 74.1% | 73.1% |
+![Original paper Table 8](../../papers/smoothquant/table-08.png)
 
 **Table 8.** SmoothQuant can quantize MT-NLG 530B to W8A8 with negligible accuracy loss.
 
 <span id="table-09"></span>
 
-| SeqLen | Prec. | #GPUs | Latency | Memory |
-| --- | --- | --- | --- | --- |
-| 128 | FP16 | 16 | 232ms | 1040GB |
-|  | INT8 | 8 | 253ms | 527GB |
-| 256 | FP16 | 16 | 451ms | 1054GB |
-|  | INT8 | 8 | 434ms | 533GB |
-| 512 | FP16 | 16 | 838ms | 1068GB |
-|  | INT8 | 8 | 839ms | 545GB |
-| 1024 | FP16 | 16 | 1707ms | 1095GB |
-|  | INT8 | 8 | 1689ms | 570GB |
+![Original paper Table 9](../../papers/smoothquant/table-09.png)
 
 **Table 9.** When serving MT-NLG 530B, SmoothQuant can reduce the memory by half at a similar latency using *half* number of GPUs, which allows serving the 530B model within a single node.
 
@@ -325,14 +260,7 @@ We can further scale up SmoothQuant beyond 500B-level models, enabling efficient
 
 <span id="table-10"></span>
 
-| Model | OPT-13B |  | OPT-30B |  |
-| --- | --- | --- | --- | --- |
-| Sequence Length | 256 | 512 | 256 | 512 |
-| FP16 | 152.6 | 296.3 | 343.0 | 659.9 |
-| LLM.int8() | 237.1 | 371.5 | 387.9 | 654.9 |
-| SmoothQuant-O1 | 124.5 | 243.3 | 246.7 | 490.7 |
-| SmoothQuant-O2 | 120.5 | 235.1 | 240.2 | 478.3 |
-| SmoothQuant-O3 | 112.1 | 223.1 | 227.6 | 458.4 |
+![Original paper Table 10](../../papers/smoothquant/table-10.png)
 
 **Table 10.** GPU Latency (ms) of different quantization schemes. The coarser the quantization scheme (from per-token to per-tensor, dynamic to static, O1 to O3, defined in [Table 2](#table-02)), the lower the latency. SmoothQuant achieves lower latency compared to FP16 under all settings, while LLM.int8() is mostly slower. The batch size is 4.
 

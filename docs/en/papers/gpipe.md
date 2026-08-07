@@ -70,17 +70,7 @@ GPipe also introduces low communication overhead, given that we only need to pas
 
 <span id="table-01"></span>
 
-| NVIDIA GPUs (8GB each) | Naive-1 | Pipeline-1 | Pipeline-2 | Pipeline-4 | Pipeline-8 |
-| --- | --- | --- | --- | --- | --- |
-| AmoebaNet-D (L, D) | (18, 208) | (18, 416) | (18, 544) | (36, 544) | (72, 512) |
-| \# of Model Parameters | 82M | 318M | 542M | 1.05B | 1.8B |
-| Total Model Parameter Memory | 1.05GB | 3.8GB | 6.45GB | 12.53GB | 24.62GB |
-| Peak Activation Memory | 6.26GB | 3.46GB | 8.11GB | 15.21GB | 26.24GB |
-| Cloud TPUv3 (16GB each) | Naive-1 | Pipeline-1 | Pipeline-8 | Pipeline-32 | Pipeline-128 |
-| Transformer-L | 3 | 13 | 103 | 415 | 1663 |
-| \# of Model Parameters | 282.2M | 785.8M | 5.3B | 21.0B | 83.9B |
-| Total Model Parameter Memory | 11.7G | 8.8G | 59.5G | 235.1G | 937.9G |
-| Peak Activation Memory | 3.15G | 6.4G | 50.9G | 199.9G | 796.1G |
+![Original paper Table 1](../../papers/gpipe/table-01.png)
 
 **Table 1.** Maximum model size of AmoebaNet supported by GPipe under different scenarios. Naive-1 refers to the sequential version without GPipe. Pipeline-$k$ means $k$ partitions with GPipe on $k$ accelerators. AmoebaNet-D (L, D): AmoebaNet model with $L$ normal cell layers and filter size $D$ . Transformer-L: Transformer model with $L$ layers, 2048 model and 8192 hidden dimensions. Each model parameter needs $12$ bytes since we applied RMSProp during training.
 
@@ -92,12 +82,7 @@ We next trained Transformer models using Cloud TPUv3s with 16GB memory per accel
 
 <span id="table-02"></span>
 
-| TPU | AmoebaNet |  |  | Transformer |  |  |
-| --- | --- | --- | --- | --- | --- | --- |
-| $K=$ | 2 | 4 | 8 | 2 | 4 | 8 |
-| $M=1$ | 1 | 1.13 | 1.38 | 1 | 1.07 | 1.3 |
-| $M=4$ | 1.07 | 1.26 | 1.72 | 1.7 | 3.2 | 4.8 |
-| $M=32$ | 1.21 | 1.84 | 3.48 | 1.8 | 3.4 | 6.3 |
+![Original paper Table 2](../../papers/gpipe/table-02.png)
 
 **Table 2.** Normalized training throughput using GPipe with different # of partitions $K$ and different # of micro-batches $M$ on TPUs. Performance increases with more micro-batches. There is an almost linear speedup with the number of accelerators for Transformer model when $M\gg K$. Batch size was adjusted to fit memory if necessary.
 
@@ -107,10 +92,7 @@ To measure the effect of communication overhead with GPipe, we ran our experimen
 
 <span id="table-03"></span>
 
-| GPU | AmoebaNet |  |  | Transformer |  |  |
-| --- | --- | --- | --- | --- | --- | --- |
-| $K=$ | 2 | 4 | 8 | 2 | 4 | 8 |
-| $M=32$ | 1 | 1.7 | 2.7 | 1 | 1.8 | 3.3 |
+![Original paper Table 3](../../papers/gpipe/table-03.png)
 
 **Table 3.** Normalized training throughput using GPipe on GPUs without high-speed interconnect.
 
@@ -124,16 +106,7 @@ We further demonstrate the effectiveness of giant convolution networks on other 
 
 <span id="table-04"></span>
 
-| Dataset | \# Train | \# Test | \# Classes | Accuracy ($\%$) | Previous Best ($\%$) |
-| --- | --- | --- | --- | --- | --- |
-| ImageNet-2012 | 1,281,167 | 50,000 | 1000 | $\mathbf{84.4}$ | $83.9$ [Xiva18] ($85.4^{*}$[ECCV18]) |
-| CIFAR-10 | 50,000 | 10,000 | 10 | $\mathbf{99.0}$ | $98.5$ [Xivb18] |
-| CIFAR-100 | 50,000 | 10,000 | 100 | $\mathbf{91.3}$ | $89.3$ [Xivb18] |
-| Stanford Cars | 8,144 | 8,041 | 196 | $94.6$ | $\mathbf{94.8^{*}}$ [Xivb18] |
-| Oxford Pets | 3,680 | 3,369 | 37 | $\mathbf{95.9}$ | $93.8^{*}$ [Proces18] |
-| Food-101 | 75,750 | 25,250 | 101 | $\mathbf{93.0}$ | $90.4^{*}$ [CVPRb18] |
-| FGVC Aircraft | 6,667 | 3,333 | 100 | $92.7$ | $\mathbf{92.9^{*}}$ [CVPRc18] |
-| Birdsnap | 47,386 | 2,443 | 500 | $\mathbf{83.6}$ | $80.2^{*}$ [Recogn18] |
+![Original paper Table 4](../../papers/gpipe/table-04.png)
 
 **Table 4.** Image classification accuracy using AmoebaNet-B (18, 512) first trained on ImageNet 2012 then fine-tuned on others. Please refer to the supplementary material for a detailed description of our training setup. Our fine-tuned results were averaged across 5 fine-tuning runs. Baseline results from Real *et al*. [Xiva18] and Cubuk *et al*. [Xivb18] were directly trained from scratch. \*Mahajan *et al*.’s model [ECCV18] achieved $85.4\%$ top-1 accuracy but it was pretrained on non-public Instagram data. Ngiam *et al*. [Domain18] achieved better results by pre-training with data from a private dataset (JFT-300M).
 
@@ -161,10 +134,7 @@ Trainability Challenges with Deep Models: Although depth increases the represent
 
 <span id="table-05"></span>
 
-| Batch Size | 260K | 1M | 4M |
-| --- | --- | --- | --- |
-| BLEU | 30.92 | 31.86 | 32.71 |
-| Loss (NLL) | 2.58 | 2.51 | 2.46 |
+![Original paper Table 5](../../papers/gpipe/table-05.png)
 
 **Table 5.** The Effect of Batch Size
 

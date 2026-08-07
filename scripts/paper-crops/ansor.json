@@ -115,5 +115,32 @@
     "width": 243.5,
     "height": 116.5,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 5,
+    "x": 56,
+    "y": 70.5,
+    "width": 500,
+    "height": 94.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 9,
+    "x": 345,
+    "y": 70.5,
+    "width": 187,
+    "height": 72.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 13,
+    "x": 326.5,
+    "y": 70.5,
+    "width": 223,
+    "height": 75.5,
+    "preserveSource": false
   }
 ]

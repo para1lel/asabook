@@ -209,6 +209,32 @@ function validateRunInParagraphHeadings(markdown, label) {
   }
 }
 
+function validateNoTypesetTables(markdown, label) {
+  const lines = markdown.split(/\r?\n/)
+  let fenceMarker = null
+
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|')
+    const markdownSeparator = cells.length > 1
+      && cells.every((cell) => /^\s*:?-{3,}:?\s*$/.test(cell))
+    if (markdownSeparator) {
+      fail(`${label}: Markdown table at line ${index + 1}; crop the published table from the PDF`)
+    }
+    if (/<\/?(?:table|thead|tbody|tfoot|tr|th|td)\b/i.test(line)) {
+      fail(`${label}: HTML table markup at line ${index + 1}; crop the published table from the PDF`)
+    }
+  }
+}
+
 function figureTableReferencePattern() {
   return /\b(?:Figures?|Tables?)\s+\d+(?:\([a-z]\)|[a-z])?|\b(?:Figs?|Tabs?)\.\s*\d+(?:\([a-z]\)|[a-z])?|(?:图|図|表)\s*\d+(?:\([a-z]\)|[a-z])?/giu
 }
@@ -438,6 +464,7 @@ for (const page of pages) {
   }
   validateFencedCodeIndentation(markdown, label)
   validateRunInParagraphHeadings(markdown, label)
+  validateNoTypesetTables(markdown, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {
     fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)

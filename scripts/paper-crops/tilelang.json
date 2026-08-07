@@ -121,5 +121,41 @@
     "preserveSource": true,
     "sourceHeight": 1001,
     "sourceWidth": 2872
+  },
+  {
+    "name": "table-01",
+    "page": 5,
+    "x": 46,
+    "y": 511,
+    "width": 394,
+    "height": 132,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 19,
+    "x": 144.5,
+    "y": 163,
+    "width": 197,
+    "height": 72,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 19,
+    "x": 145.5,
+    "y": 280,
+    "width": 195,
+    "height": 72.7028845399999,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 19,
+    "x": 145,
+    "y": 401.5,
+    "width": 196,
+    "height": 131.5,
+    "preserveSource": false
   }
 ]

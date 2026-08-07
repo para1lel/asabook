@@ -122,29 +122,13 @@ Alpa 优化了设备网格内的算子内部并行计划. Alpa 采用 SPMD 风�
 
 <span id="table-01"></span>
 
-|规范|设备 0|设备 1|设备 2|设备 3|
-| --- | --- | --- | --- | --- |
-|$\mathrm{RR}$|$A[0:N,0:M]$|$A[0:N,0:M]$|$A[0:N,0:M]$|$A[0:N,0:M]$|
-|$S^{0}S^{1}$|$A[0:\frac{N}{2},0:\frac{M}{2}]$|$A[0:\frac{N}{2},\frac{M}{2}:M]$|$A[\frac{N}{2}:N,0:\frac{M}{2}]$|$A[\frac{N}{2}:N,\frac{M}{2}:M]$|
-|$S^{1}S^{0}$|$A[0:\frac{N}{2},0:\frac{M}{2}]$|$A[\frac{N}{2}:N,0:\frac{M}{2}]$|$A[0:\frac{N}{2},\frac{M}{2}:M]$|$A[\frac{N}{2}:N,\frac{M}{2}:M]$|
-|$S^{0}R$|$A[0:\frac{N}{2},0:M]$|$A[0:\frac{N}{2},0:M]$|$A[\frac{N}{2}:N,0:M]$|$A[\frac{N}{2}:N,0:M]$|
-|$S^{1}R$|$A[0:\frac{N}{2},0:M]$|$A[\frac{N}{2}:N,0:M]$|$A[0:\frac{N}{2},0:M]$|$A[\frac{N}{2}:N,0:M]$|
-|$\mathrm{RS}^{0}$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:M]$|$A[0:N,\frac{M}{2}:M]$|
-|$\mathrm{RS}^{1}$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:M]$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:M]$|
-|$S^{01}R$|$A[0:\frac{N}{4},0:M]$|$A[\frac{N}{4}:\frac{N}{2},0:M]$|$A[\frac{N}{2}:\frac{3N}{4},0:M]$|$A[\frac{3N}{4}:N,0:M]$|
-|$\mathrm{RS}^{01}$|$A[0:N,0:\frac{M}{4}]$|$A[0:N,\frac{M}{4}:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:\frac{3M}{4}]$|$A[0:N,\frac{3M}{4}:M]$|
+![论文原表 1](./alpa/table-01.png)
 
 **表 1.** $2\times 2$ 设备网格上二维张量的分片规格. $A$ 是一个 $(N,M)$ 张量. 设备网格是\[\[Device 0, Device 1\], \[Device 2, Device 3\]\]. 每个设备存储一个 $A$ 分区. 第一列是分片专题的名称. 后面的列使用 Numpy 语法描述每个设备上存储的分区.
 
 <span id="table-02"></span>
 
-|#|标准规范|Dst 规格|通信成本|
-| --- | --- | --- | --- |
-|1|$\mathrm{RR}$|$S^{0}S^{1}$|$0$|
-|2|$S^{0}R$|$\mathrm{RR}$|$\mathrm{all}\mathchar 45\relax \mathrm{gather}(M,0)$|
-|3|$S^{0}S^{1}$|$S^{0}R$|$\mathrm{all}\mathchar 45\relax \mathrm{gather}(\frac{M}{n_{0}},1)$|
-|4|$S^{0}R$|$\mathrm{RS}^{0}$|$\mathrm{all}\mathchar 45\relax \mathrm{to}\mathchar 45\relax \mathrm{all}(\frac{M}{n_{0}},0)$|
-|5|$S^{0}S^{1}$|$S^{01}R$|$\mathrm{all}\mathchar 45\relax \mathrm{to}\mathchar 45\relax \mathrm{all}(\frac{M}{n_{0}\cdot n_{1}},1)$|
+![论文原表 2](./alpa/table-02.png)
 
 **表 2.** 重新分片的几个案例. $\mathrm{all}\mathchar 45\relax \mathrm{gather}(x,i)$ 表示沿着 $i$ 维网格轴进行 $x$ 字节的全聚集操作. $M$ 是张量的大小. $(n_{0},n_{1})$ 是网格形状.
 
@@ -160,16 +144,7 @@ Alpa 优化了设备网格内的算子内部并行计划. Alpa 采用 SPMD 风�
 
 <span id="table-03"></span>
 
-|#|并行|输出|输入|通信|
-| --- | --- | --- | --- | --- |
-|映射|规范|规格|成本||
-|1|$i\rightarrow 0,j\rightarrow 1$|$\mathrm{RS}^{0}S^{1}$|$\mathrm{RS}^{0}R,\mathrm{RRS}^{1}$|0|
-|2|$i\rightarrow 0,k\rightarrow 1$|$\mathrm{RS}^{0}R$|$\mathrm{RS}^{0}S^{1},\mathrm{RS}^{1}R$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$|
-|3|$j\rightarrow 0,k\rightarrow 1$|$\mathrm{RRS}^{0}$|$\mathrm{RRS}^{1},\mathrm{RS}^{1}S^{0}$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$|
-|4|$b\rightarrow 0,i\rightarrow 1$|$S^{0}S^{1}R$|$S^{0}S^{1}R,S^{0}\mathrm{RR}$|0|
-|5|$b\rightarrow 0,k\rightarrow 1$|$S^{0}\mathrm{RR}$|$S^{0}\mathrm{RS}^{1},S^{0}S^{1}R$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$|
-|6|$i\rightarrow\{0,1\}$|$\mathrm{RS}^{01}R$|$\mathrm{RS}^{01}R,\mathrm{RRR}$|0|
-|7|$k\rightarrow\{0,1\}$|$\mathrm{RRR}$|$\mathrm{RRS}^{01},\mathrm{RS}^{01}R$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(M,\{0,1\})$|
+![论文原表 3](./alpa/table-03.png)
 
 **表 3.** 批处理矩阵乘法的几种并行算法 $C_{b,i,j}=\sum_{k}A_{b,i,k}B_{b,k,j}$. 符号 $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(x,i)$ 表示沿 $i$ 轴进行 $x$ 字节的全归约. $M$ 是输出张量的大小. $(n_{0},n_{1})$ 是网格形状.
 
@@ -370,11 +345,7 @@ Alpa 是用大约 16K 行 Python 代码和 6K 行 C 代码实现的. Alpa 使用
 
 <span id="table-04"></span>
 
-|模型|任务|批量大小|#params (十亿参数)|精度|
-| --- | --- | --- | --- | --- |
-|GPT-3 [Xivn05]|语言模型|1024|0.35, 1.3, 2.6, 6.7, 15, 39|FP16|
-|GShard MoE [Xivm06]|语言模型|1024|0.38, 1.3, 2.4, 10, 27, 70|FP16|
-|Wide-ResNet [Xivat16]|图像分类|1536|0.25, 1.0, 2.0, 4.0, 6.7, 13|FP32|
+![论文原表 4](./alpa/table-04.png)
 
 **表 4.** 用于端到端评估的模型. LM = 语言模型. IC = 图像分类.
 
@@ -458,13 +429,7 @@ Wide-ResNet 的结果. 与前两个堆叠相同层的模型不同, Wide-ResNet �
 
 <span id="table-05"></span>
 
-|步骤|我们的|没有优化|
-| --- | --- | --- |
-|合辑|1582.66 秒|\> 16 小时|
-|画像|804.48 秒|\> 24 小时|
-|舞台建设 DP|1.65 秒|无|
-|其他|4.47 秒|无|
-|总计|2393.26 秒|\> 40 小时|
+![论文原表 5](./alpa/table-05.png)
 
 **表 5.** GPT-39B 的编译时间分解.
 
@@ -538,40 +503,19 @@ $$
 
 <span id="table-06"></span>
 
-|#params|隐藏层大小|#layers|#heads|#gpus|
-| --- | --- | --- | --- | --- |
-|350M|1024|24|16|1|
-|1.3B|2048|24|32|4|
-|2.6B|2560|32|32|8|
-|6.7B|4096|32|32|16|
-|15B|5120|48|32|32|
-|39B|8192|48|64|64|
+![论文原表 6](./alpa/table-06.png)
 
 **表 6.** GPT-3 模型规格
 
 <span id="table-07"></span>
 
-|#params|隐藏层大小|#layers|#heads|#experts|#gpus|
-| --- | --- | --- | --- | --- | --- |
-|380M|768|8|16|8|1|
-|1.3B|768|16|16|16|4|
-|2.4B|1024|16|16|16|8|
-|10B|1536|16|16|32|16|
-|27B|2048|16|32|48|32|
-|70B|2048|32|32|64|64|
+![论文原表 7](./alpa/table-07.png)
 
 **表 7.** GShard MoE 模型规格
 
 <span id="table-08"></span>
 
-|#params|#layers|基础通道|宽度因子|#gpus|
-| --- | --- | --- | --- | --- |
-|250M|50|160|2|1|
-|1B|50|320|2|4|
-|2B|50|448|2|8|
-|4B|50|640|2|16|
-|6.8B|50|320|16|32|
-|13B|101|320|16|64|
+![论文原表 8](./alpa/table-08.png)
 
 **表 8.** Wide-ResNet 模型规格
 

@@ -186,5 +186,41 @@
     "height": 90,
     "matchScore": 0.922,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 3,
+    "x": 347,
+    "y": 69.06505999999996,
+    "width": 184,
+    "height": 79.93494000000004,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 7,
+    "x": 55.5,
+    "y": 69.06505999999996,
+    "width": 239,
+    "height": 60.43494000000004,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 8,
+    "x": 329.5,
+    "y": 70.5,
+    "width": 217,
+    "height": 69,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 9,
+    "x": 59.2744,
+    "y": 231.96491999999992,
+    "width": 235.59863647999998,
+    "height": 78.55648000000005,
+    "preserveSource": false
   }
 ]

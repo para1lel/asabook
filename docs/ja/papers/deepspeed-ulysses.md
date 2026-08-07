@@ -84,12 +84,7 @@ MLPブロックに続くアテンションブロックは、エンコーダ、�
 
 <span id="table-01"></span>
 
-|方法|通信|アクティベーション|パラメータ|注意|使いやすさ|
-| --- | --- | --- | --- | --- | --- |
-|複雑さ|メモリ効率|メモリ効率|無依存|使いやすさ||
-|ColAI-SP [Reff22]|$O(M)$| \textpdfrender TextRenderingMode=FillStroke, 線幅=.75pt, ✓ |x|x|x|
-|Megatron-SP [Korthi22]|$O(M)$| \textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ |x| \textpdfrender TextRenderingMode=FillStroke, 線幅=.75pt, ✓ |x|
-|DS-Ulysses|$O(M/P)$| \textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | \textpdfrender TextRenderingMode=FillStroke, 線幅=.75pt, ✓ | \textpdfrender TextRenderingMode=FillStroke, LineWidth=.75pt, ✓ | \textpdfrender TextRenderingMode=FillStroke, 線幅=.75pt, ✓ |
+![論文の表 1](../../papers/deepspeed-ulysses/table-01.png)
 
 **表 1.** 我々の研究（DS-Ulysses）と他のシーケンス並列手法の比較。
 
@@ -185,21 +180,13 @@ DeepSpeedシーケンス並列化は、両方で実行可能なシーケンス�
 
 <span id="table-02"></span>
 
-|Seqlen|GPU|時間 （ms）|TFLOPs|
-| --- | --- | --- | --- |
-|131072|64|32432.1333|165.526667|
-|131072|128|17052.5143|157.41|
-|131072|256|9886.7|136.09|
+![論文の表 2](../../papers/deepspeed-ulysses/table-02.png)
 
 **表2.** 固定シーケンス長での並列スケーリング研究
 
 <span id="table-03"></span>
 
-|シーケンス長|GPU|時間 （ms）|TFLOPs|
-| --- | --- | --- | --- |
-|65536|64|9676.76|161.3626667|
-|131072|128|17052.5143|157.41|
-|262144|256|33486.5|147.4|
+![論文の表 3](../../papers/deepspeed-ulysses/table-03.png)
 
 **表3.** 可変シーケンス長での並列スケーリング研究
 

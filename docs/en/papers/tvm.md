@@ -212,11 +212,7 @@ An alternate approach is to build a predefined cost model to guide the search fo
 
 <span id="table-01"></span>
 
-| Method Category | Data Cost | Model Bias | Need Hardware Info | Learn from History |
-| --- | --- | --- | --- | --- |
-| Blackbox auto-tuning | high | none | no | no |
-| Predefined cost model | none | high | yes | no |
-| ML based cost model | low | low | no | yes |
+![Original paper Table 1](../../papers/tvm/table-01.png)
 
 **Table 1.** Comparison of automation methods. Model bias refers to inaccuracy due to modeling.
 
@@ -256,20 +252,7 @@ A distributed device pool scales up the running of on-hardware trials and enable
 
 <span id="table-02"></span>
 
-| Name | Operator | $H,W$ | $\mathrm{IC},\mathrm{OC}$ | $K,S$ |
-| --- | --- | --- | --- | --- |
-| C1 | conv2d | 224, 224 | 3,64 | 7, 2 |
-| C2 | conv2d | 56, 56 | 64,64 | 3, 1 |
-| C3 | conv2d | 56, 56 | 64,64 | 1, 1 |
-| C4 | conv2d | 56, 56 | 64,128 | 3, 2 |
-| C5 | conv2d | 56, 56 | 64,128 | 1, 2 |
-| C6 | conv2d | 28, 28 | 128,128 | 3, 1 |
-| C7 | conv2d | 28, 28 | 128,256 | 3, 2 |
-| C8 | conv2d | 28, 28 | 128,256 | 1, 2 |
-| C9 | conv2d | 14, 14 | 256,256 | 3, 1 |
-| C10 | conv2d | 14, 14 | 256,512 | 3, 2 |
-| C11 | conv2d | 14, 14 | 256,512 | 1, 2 |
-| C12 | conv2d | 7, 7 | 512,512 | 3, 1 |
+![Original paper Table 2](../../papers/tvm/table-02.png)
 
 **Table 2.** Configurations of all conv2d operators in ResNet-18 and all depthwise conv2d operators in MobileNet used in the single kernel experiments. H/W denotes height and width, IC input channels, OC output channels, K kernel size, and S stride size. All ops use “SAME” padding. All depthwise conv2d operations have channel multipliers of 1.
 

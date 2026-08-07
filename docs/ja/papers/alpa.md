@@ -122,29 +122,13 @@ Alpaは、デバイスメッシュ内でのオペレータ内部の並列化プ�
 
 <span id="table-01"></span>
 
-|仕様|デバイス 0|デバイス 1|デバイス 2|デバイス 3|
-| --- | --- | --- | --- | --- |
-|$\mathrm{RR}$|$A[0:N,0:M]$|$A[0:N,0:M]$|$A[0:N,0:M]$|$A[0:N,0:M]$|
-|$S^{0}S^{1}$|$A[0:\frac{N}{2},0:\frac{M}{2}]$|$A[0:\frac{N}{2},\frac{M}{2}:M]$|$A[\frac{N}{2}:N,0:\frac{M}{2}]$|$A[\frac{N}{2}:N,\frac{M}{2}:M]$|
-|$S^{1}S^{0}$|$A[0:\frac{N}{2},0:\frac{M}{2}]$|$A[\frac{N}{2}:N,0:\frac{M}{2}]$|$A[0:\frac{N}{2},\frac{M}{2}:M]$|$A[\frac{N}{2}:N,\frac{M}{2}:M]$|
-|$S^{0}R$|$A[0:\frac{N}{2},0:M]$|$A[0:\frac{N}{2},0:M]$|$A[\frac{N}{2}:N,0:M]$|$A[\frac{N}{2}:N,0:M]$|
-|$S^{1}R$|$A[0:\frac{N}{2},0:M]$|$A[\frac{N}{2}:N,0:M]$|$A[0:\frac{N}{2},0:M]$|$A[\frac{N}{2}:N,0:M]$|
-|$\mathrm{RS}^{0}$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:M]$|$A[0:N,\frac{M}{2}:M]$|
-|$\mathrm{RS}^{1}$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:M]$|$A[0:N,0:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:M]$|
-|$S^{01}R$|$A[0:\frac{N}{4},0:M]$|$A[\frac{N}{4}:\frac{N}{2},0:M]$|$A[\frac{N}{2}:\frac{3N}{4},0:M]$|$A[\frac{3N}{4}:N,0:M]$|
-|$\mathrm{RS}^{01}$|$A[0:N,0:\frac{M}{4}]$|$A[0:N,\frac{M}{4}:\frac{M}{2}]$|$A[0:N,\frac{M}{2}:\frac{3M}{4}]$|$A[0:N,\frac{3M}{4}:M]$|
+![論文の表 1](../../papers/alpa/table-01.png)
 
 **表1.** $2\times 2$デバイスメッシュ上の2次元テンソルのシャーディング仕様。$A$はテンソル$(N,M)$です。デバイスメッシュは \[\[Device 0, Device 1\], \[Device 2, Device 3\]\] です。各デバイスは$A$パーティションを保存します。最初の列はシャーディング仕様の名前です。後者の列は、各デバイスに保存されるパーティションを記述するためにNumpy構文を使用しています。
 
 <span id="table-02"></span>
 
-|#|標準仕様|DSTスペック|通信コスト|
-| --- | --- | --- | --- |
-|1|$\mathrm{RR}$|$S^{0}S^{1}$|$0$|
-|2|$S^{0}R$|$\mathrm{RR}$|$\mathrm{all}\mathchar 45\relax \mathrm{gather}(M,0)$|
-|3|$S^{0}S^{1}$|$S^{0}R$|$\mathrm{all}\mathchar 45\relax \mathrm{gather}(\frac{M}{n_{0}},1)$|
-|4|$S^{0}R$|$\mathrm{RS}^{0}$|$\mathrm{all}\mathchar 45\relax \mathrm{to}\mathchar 45\relax \mathrm{all}(\frac{M}{n_{0}},0)$|
-|5|$S^{0}S^{1}$|$S^{01}R$|$\mathrm{all}\mathchar 45\relax \mathrm{to}\mathchar 45\relax \mathrm{all}(\frac{M}{n_{0}\cdot n_{1}},1)$|
+![論文の表 2](../../papers/alpa/table-02.png)
 
 **表2.** いくつかのリシャーディングの例。$\mathrm{all}\mathchar 45\relax \mathrm{gather}(x,i)$ は、$i$ 軸に沿った $x$ バイトのオールギャザーを意味します。$M$ はテンソルのサイズです。$(n_{0},n_{1})$ はメッシュの形状です。
 
@@ -160,16 +144,7 @@ Alpaは、デバイスメッシュ内でのオペレータ内部の並列化プ�
 
 <span id="table-03"></span>
 
-|#|並列|出力|入力|通信|
-| --- | --- | --- | --- | --- |
-|マッピング|仕様|仕様群|コスト||
-|1|$i\rightarrow 0,j\rightarrow 1$|$\mathrm{RS}^{0}S^{1}$|$\mathrm{RS}^{0}R,\mathrm{RRS}^{1}$|0|
-|2|$i\rightarrow 0,k\rightarrow 1$|$\mathrm{RS}^{0}R$|$\mathrm{RS}^{0}S^{1},\mathrm{RS}^{1}R$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$|
-|3|$j\rightarrow 0,k\rightarrow 1$|$\mathrm{RRS}^{0}$|$\mathrm{RRS}^{1},\mathrm{RS}^{1}S^{0}$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$|
-|4|$b\rightarrow 0,i\rightarrow 1$|$S^{0}S^{1}R$|$S^{0}S^{1}R,S^{0}\mathrm{RR}$|0|
-|5|$b\rightarrow 0,k\rightarrow 1$|$S^{0}\mathrm{RR}$|$S^{0}\mathrm{RS}^{1},S^{0}S^{1}R$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(\frac{M}{n_{0}},1)$|
-|6|$i\rightarrow\{0,1\}$|$\mathrm{RS}^{01}R$|$\mathrm{RS}^{01}R,\mathrm{RRR}$|0|
-|7|$k\rightarrow\{0,1\}$|$\mathrm{RRR}$|$\mathrm{RRS}^{01},\mathrm{RS}^{01}R$|$\mathrm{all}\mathchar 45\relax \mathrm{reduce}(M,\{0,1\})$|
+![論文の表 3](../../papers/alpa/table-03.png)
 
 **表3.** バッチ行列積のためのいくつかの並列アルゴリズム $C_{b,i,j}=\sum_{k}A_{b,i,k}B_{b,k,j}$。記法 $\mathrm{all}\mathchar 45\relax \mathrm{reduce}(x,i)$ は $x$ バイトの全体集約（all-reduce）を $i$ 番目のメッシュ軸に沿って行うことを意味します。$M$ は出力テンソルのサイズです。$(n_{0},n_{1})$ はメッシュの形状です。
 
@@ -369,11 +344,7 @@ AlpaはPythonで約16K行、Cで6K行にて実装されています。Alpaはフ
 
 <span id="table-04"></span>
 
-|モデル|（十億単位）|バッチサイズ|精度 #params GPT-3|LM|
-| --- | --- | --- | --- | --- |
-|0.35, 1.3, 2.6, 6.7, 15, 39 [Xivn05] FP16|GShard MoE|1024|LM|0.38, 1.3, 2.4, 10, 27, 70|
-|FP16 [Xivm06] Wide-ResNet|IC|1024|0.25, 1.0, 2.0, 4.0, 6.7, 13|FP32|
-|**[表 4](#table-04).** エンドツーエンド評価で使用されるモデル。LM = 言語モデル。IC = 画像分類。| IC |1536| 0.25, 1.0, 2.0, 4.0, 6.7, 13 | FP32 |
+![論文の表 4](../../papers/alpa/table-04.png)
 
 **表4.** エンドツーエンド評価で使用されたモデル。LM = 言語モデル。IC = 画像分類。
 
@@ -457,13 +428,7 @@ Wide-ResNetの結果。以前の2つのモデルとは異なり、同じ層を�
 
 <span id="table-05"></span>
 
-|ステップ|我々|最適化なし|
-| --- | --- | --- |
-|コンパイル|1582.66 秒|>16時間|
-|プロファイリング|804.48 秒|>24時間|
-|ステージ構築 DP|1.65 秒|該当なし|
-|その他|4.47 秒|該当なし|
-|合計|2393.26 秒|>40時間|
+![論文の表 5](../../papers/alpa/table-05.png)
 
 **表5.** GPT-39Bのコンパイル時間内訳。
 
@@ -537,40 +502,19 @@ Wide-ResNet モデルの場合、すべてのモデルに対して入力画像�
 
 <span id="table-06"></span>
 
-|#params|隠れ層サイズ|#layers|#heads|#gpus|
-| --- | --- | --- | --- | --- |
-|350M|1024|24|16|1|
-|1.3B|2048|24|32|4|
-|2.6B|2560|32|32|8|
-|6.7B|4096|32|32|16|
-|15B|5120|48|32|32|
-|39B|8192|48|64|64|
+![論文の表 6](../../papers/alpa/table-06.png)
 
 **表 6.** GPT-3 モデル仕様
 
 <span id="table-07"></span>
 
-|#params|隠れ層サイズ|#layers|#heads|#experts|#gpus|
-| --- | --- | --- | --- | --- | --- |
-|380M|768|8|16|8|1|
-|1.3B|768|16|16|16|4|
-|2.4B|1024|16|16|16|8|
-|10B|1536|16|16|32|16|
-|27B|2048|16|32|48|32|
-|70B|2048|32|32|64|64|
+![論文の表 7](../../papers/alpa/table-07.png)
 
 **表 7.** GShard MoE モデル仕様
 
 <span id="table-08"></span>
 
-|#params|#layers|基本チャンネル|幅係数|#gpus|
-| --- | --- | --- | --- | --- |
-|250M|50|160|2|1|
-|1B|50|320|2|4|
-|2B|50|448|2|8|
-|4B|50|640|2|16|
-|6.8B|50|320|16|32|
-|13B|101|320|16|64|
+![論文の表 8](../../papers/alpa/table-08.png)
 
 **表8.** Wide-ResNetモデル仕様
 

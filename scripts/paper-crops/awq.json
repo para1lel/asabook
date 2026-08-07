@@ -58,5 +58,69 @@
     "height": 29,
     "matchScore": 0.422,
     "preserveSource": true
+  },
+  {
+    "name": "table-01",
+    "page": 4,
+    "x": 97,
+    "y": 70.5,
+    "width": 402.5,
+    "height": 70.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 4,
+    "x": 55.5,
+    "y": 208.5,
+    "width": 234,
+    "height": 78,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 4,
+    "x": 314,
+    "y": 208.5,
+    "width": 221,
+    "height": 81.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 7,
+    "x": 107.5,
+    "y": 65.5,
+    "width": 382,
+    "height": 143.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 8,
+    "x": 105.5,
+    "y": 65.5,
+    "width": 386,
+    "height": 107.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 9,
+    "x": 314.5,
+    "y": 335,
+    "width": 220,
+    "height": 75.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 14,
+    "x": 150,
+    "y": 525,
+    "width": 312,
+    "height": 60.5,
+    "preserveSource": true,
+    "sourceVersion": "arXiv:2306.00978v1"
   }
 ]

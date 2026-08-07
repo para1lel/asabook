@@ -79,5 +79,194 @@
     "width": 396,
     "height": 183.5,
     "preserveSource": true
+  },
+  {
+    "name": "table-01",
+    "page": 7,
+    "x": 196.492,
+    "y": 633.1566,
+    "width": 212.87529056000002,
+    "height": 34.28239999999994,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 8,
+    "x": 129.5,
+    "y": 143,
+    "width": 346.5,
+    "height": 79,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 8,
+    "x": 92.73700000000002,
+    "y": 334.4486,
+    "width": 417.31521408,
+    "height": 111.39339999999993,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 8,
+    "x": 97.15899999999993,
+    "y": 585.3376,
+    "width": 406.56304063999994,
+    "height": 56.20140000000015,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 9,
+    "x": 116.224901,
+    "y": 412.95246060000005,
+    "width": 183.1476959068799,
+    "height": 25.86743439999998,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 9,
+    "x": 319.5,
+    "y": 387.5,
+    "width": 168,
+    "height": 83.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 28,
+    "x": 165.29700000000003,
+    "y": 103.5,
+    "width": 278.3396492799999,
+    "height": 84,
+    "preserveSource": false
+  },
+  {
+    "name": "table-08",
+    "page": 31,
+    "x": 159.5,
+    "y": 93.5,
+    "width": 293,
+    "height": 174.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-09",
+    "page": 31,
+    "x": 85.96599999999998,
+    "y": 312,
+    "width": 437.534,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-10",
+    "page": 32,
+    "x": 81.996,
+    "y": 109.5,
+    "width": 445.504,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-11",
+    "page": 32,
+    "x": 78.977,
+    "y": 273.5,
+    "width": 451.523,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-12",
+    "page": 32,
+    "x": 83.98099999999997,
+    "y": 437.5,
+    "width": 441.519,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-13",
+    "page": 32,
+    "x": 81.99600000000001,
+    "y": 601.5,
+    "width": 445.504,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-14",
+    "page": 33,
+    "x": 78.97700000000003,
+    "y": 109.5,
+    "width": 451.52299999999997,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-15",
+    "page": 33,
+    "x": 85.96599999999998,
+    "y": 273.5,
+    "width": 437.534,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-16",
+    "page": 33,
+    "x": 81.996,
+    "y": 437.5,
+    "width": 445.504,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-17",
+    "page": 33,
+    "x": 78.977,
+    "y": 601.5,
+    "width": 451.523,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-18",
+    "page": 34,
+    "x": 86.99900000000005,
+    "y": 109.5,
+    "width": 435.501,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-19",
+    "page": 34,
+    "x": 81.99600000000001,
+    "y": 273.5,
+    "width": 445.504,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-20",
+    "page": 34,
+    "x": 78.97700000000003,
+    "y": 437.5,
+    "width": 451.52299999999997,
+    "height": 114,
+    "preserveSource": false
+  },
+  {
+    "name": "table-21",
+    "page": 34,
+    "x": 94.77000000000001,
+    "y": 601.5,
+    "width": 419.7797079399993,
+    "height": 114,
+    "preserveSource": false
   }
 ]

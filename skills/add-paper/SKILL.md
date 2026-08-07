@@ -1,6 +1,6 @@
 ---
 name: add-paper
-description: Add or revise an arXiv paper in the ASa Book papers collection as English, Simplified Chinese, and Japanese pages. Use when Codex needs to add, typeset, translate, localize, synchronize, validate, revise, or commit a paper from an arXiv identifier or URL; preserve the English source, write natural localized technical Chinese and Japanese without semantic drift, use concise titles and Plume content annotations, omit standalone reference lists, preserve shared figures and inline citations, link every figure and table reference to a stable anchor, validate the production build, and commit all current repository changes together.
+description: Add or revise an arXiv paper in the ASa Book papers collection as English, Simplified Chinese, and Japanese pages. Use when Codex needs to add, typeset, translate, localize, synchronize, validate, revise, or commit a paper from an arXiv identifier or URL; preserve the English source, write natural localized technical Chinese and Japanese without semantic drift, use concise titles and Plume content annotations, omit standalone reference lists, preserve shared figures and inline citations, crop every table directly from the published PDF instead of typesetting it, link every figure and table reference to a stable anchor, validate the production build, and commit all current repository changes together.
 ---
 
 # Add an arXiv Paper
@@ -77,15 +77,17 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 1. Store all page-specific raster assets in `docs/papers/<slug>/` with deterministic names such as `figure-01.png` and `table-01.png`.
 2. Reuse the same assets from all languages. Reference them as `./<slug>/...` from Chinese and `../../papers/<slug>/...` from English and Japanese.
-3. Prefer original source assets only when they are at least as sharp as a PDF crop rendered at scale 4. When extraction from PDF is necessary, render with `npm run paper:refresh-screenshots -- --write --scale 4 <slug>`; scale 4 (about 288 DPI) is the minimum, not a suggested default.
-4. Remove excessive surrounding whitespace. Preserve labels, legends, axes, footnotes, and border strokes; add only a small consistent safety margin.
-5. Never enlarge, resample, sharpen, or re-encode an old low-resolution PNG as a substitute for rendering the PDF or using a higher-resolution source asset. A retained source asset must have at least four pixels per PDF point at its displayed PDF size in both dimensions.
-6. Keep the reproducible crop metadata in `scripts/paper-crops/<slug>.json`. Every local PNG referenced by the page must have one metadata entry; use `preserveSource: true` only when the source-density requirement above is met.
-7. Compare every cropped asset with the PDF at actual pixels. Pay particular attention to multi-panel figures and dense tables, where automatic matching or trimming can select the wrong panel or remove meaningful edge content.
-8. Write localized Markdown alt text and an explicit localized bold caption below each asset.
-9. Add a stable two-digit HTML anchor immediately before every numbered figure or table object, such as `<span id="figure-08"></span>` or `<span id="table-03"></span>`.
-10. Link every figure and table reference in prose, captions, tables, algorithms, and appendices to its local anchor. Use localized labels, for example `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, and `[図 8](#figure-08)`.
-11. Link every number in a compound reference separately. Point subfigure references such as `Figure 16a` to the base figure anchor `#figure-16`. In Chinese, keep one space between `图` or `表` and its number, and one space between the linked reference and following Han text.
+3. Never recreate a paper table with Markdown or HTML table markup. Crop the complete published table directly from the paper PDF and render it at scale 4 or higher, even when source TeX or extracted cell text is available.
+4. Reuse identical table pixels across all three languages. Localize only the alt text and caption; keep semantic context there without transcribing or reconstructing the table cells.
+5. Prefer original source assets for figures only when they are at least as sharp as a PDF crop rendered at scale 4. When PDF rendering is necessary, use `npm run paper:refresh-screenshots -- --write --scale 4 <slug>`; scale 4 (about 288 DPI) is the minimum, not a suggested default.
+6. Remove excessive surrounding whitespace. Preserve labels, legends, axes, table footnotes, and border strokes; add only a small consistent safety margin.
+7. Never enlarge, resample, sharpen, or re-encode an old low-resolution PNG as a substitute for rendering the PDF or using a higher-resolution source asset. A retained source asset must have at least four pixels per PDF point at its displayed PDF size in both dimensions.
+8. Keep the reproducible crop metadata in `scripts/paper-crops/<slug>.json`. Every local PNG referenced by the page must have one metadata entry; use `preserveSource: true` only when the source-density requirement above is met.
+9. Compare every cropped asset with the PDF at actual pixels. Pay particular attention to multi-panel figures and dense tables, where automatic matching or trimming can select the wrong panel or remove meaningful edge content.
+10. Write localized Markdown alt text and an explicit localized bold caption below each asset.
+11. Add a stable two-digit HTML anchor immediately before every numbered figure or table object, such as `<span id="figure-08"></span>` or `<span id="table-03"></span>`.
+12. Link every figure and table reference in prose, captions, algorithms, and appendices to its local anchor. Use localized labels, for example `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, and `[図 8](#figure-08)`.
+13. Link every number in a compound reference separately. Point subfigure references such as `Figure 16a` to the base figure anchor `#figure-16`. In Chinese, keep one space between `图` or `表` and its number, and one space between the linked reference and following Han text.
 
 ## Register Citations and Navigation
 

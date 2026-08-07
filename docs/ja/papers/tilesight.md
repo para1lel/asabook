@@ -61,19 +61,9 @@ Kernel 最適化を容易にするため、GPU programming community は共通�
 
 <span id="table-01"></span>
 
-<div class="paper-wide-table">
 
-| 機能 | Roofline [Wil09] | NeuSight [Lee25] | PipeWeave [Zha26p] | GenZ [Bam24] | Vidur [Agr24] | SimAI [Wan25s] | TileSight |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Kernel profiling/training 不要¹ | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ | ✓ |
-| Pipeline-aware² | ✗ | ✗ | ○ | ✗ | ✗ | ✗ | ✓ |
-| Cache-aware³ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ |
-| 明示的な fused program⁴ | ✗ | ✗ | ○ | ✗ | ✗ | ✗ | ✓ |
-| Distributed⁵ | ✗ | ○ | ○ | ○ | ✓ | ✓ | ✓ |
-| Compute-communication overlap⁶ | ✗ | ✗ | ✗ | ✗ | ✗ | ○ | ✓ |
-| Interpretable⁷ | ✓ | ✗ | ○ | ✓ | ✗ | ✗ | ✓ |
+![論文の表 1](../../papers/tilesight/table-01.png)
 
-</div>
 
 **表 1.** 既存 performance modeling tool との比較。✓ 完全対応。○ 部分対応。✗ 非対応。¹Kernel profiling/training 不要: kernel execution trace や ML training は不要です。TileSight が使用するのは architecture ごとに一度だけ行う microbenchmark (bandwidth/throughput/latency sweep、約数分) のみです。²Pipeline-aware: tile 内 DAG scheduling と compute-memory pipeline overlap。³Cache-aware: L2/L1.5 hit rate と schedule-dependent tile locality effect を予測します。⁴明示的な fused program: 固定された対応 pattern に限定されず、ユーザーが記述する任意の multi-op DAG kernel (FA-3、MLA など) を扱います。⁵Distributed: multi-GPU collective communication modeling。⁶Compute-communication overlap: fused compute-communication kernel (AllGather+GEMM など)。SimAI はユーザー指定 overlap ratio を受け取りますが、analytical には導出しません。⁷Interpretable: bottleneck diagnosis を支援する white-box model。
 
@@ -93,14 +83,7 @@ TileSight への入力は、tiled GEMM、fused attention kernel、all-gather に
 
 <span id="table-02"></span>
 
-| Field | 側 | Model における役割 |
-| --- | --- | --- |
-| Tensor access | Tile 内 | tile ごとの footprint と、tensor tile がどこで生成され、どこに存在するかを記録する placement descriptor。register、architecture-specific tensor memory (TMEM)、SMEM、local cache/DDR、または GPU group 上の shard/replica。Reuse dimension は tile 間 cache modeling への入力となります。 |
-| Operation type | Tile 内 | Tile が行う action。load、store、tensor-core または CUDA-core matmul、reduction、exponential、rescaling、remote transfer、fused composite。 |
-| Resource vector | Tile 内 | 独立 scheduling 可能な resource (tensor core (TC)、CUDA core、SFU、TMEM、SMEM、L1.5、L2、DDR、Net) 上での tile ごとの時間。operation、footprint、placement、calibration 済み hardware rate から導出されます。 |
-| Tile grid | Tile 間 | spatial tile shape、launch order、swizzle、loop/reduction depth、distributed partition。tile execution order、wave、device ごとの local work を決めます。 |
-| Producer-consumer DAG | Tile 間 | tensor の production と consumption に基づく tile 間 edge。placement とともに、iteration 内の合法的 ordering を決めます。 |
-| Concurrency と depth | Tile 間 | software-pipeline stage、SM あたりの resident block、同時 issue 可能な tile。effective pipeline depth を設定します。 |
+![論文の表 2](../../papers/tilesight/table-02.png)
 
 **表 2.** Tile execution plan は、各 field が単独の tile (tile 内) を記述するか、tile 間の relationship (tile 間) を記述するかによって field を分類します。
 
@@ -347,13 +330,7 @@ TileSight が必要とするのは、tile execution plan とその placement des
 
 <span id="table-03"></span>
 
-| GPU | SM 数 | VEC FP32 T spec / meas. | TC FP16 T spec / meas. | SFU T spec / meas. | L2 TB/s meas. | DDR TB/s spec / meas. |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| A100 | 108 | 19.5 / 19.0 | 312 / 299 | 2.4 / 2.4 | 3.2 | 1.9 / 1.7 |
-| H200\* | 132 | 61.8 / 49.5 | 989 / 928 | 3.9 / 4.1 | 9.2 | 4.8 / 4.2 |
-| B6000 | 188 | 117 / 88.6 | 468 / 433 | 7.3 / 6.7 | 7.6 | 1.8 / 1.4 |
-| B200 | 148 | 74.5 / 57.7 | 2382 / 2185 | 4.7 / 4.5 | 20.5 | 8.0 / 7.0 |
-| MI210 | 104 | 45.3 / 34.4 | 181 / 167 | 2.8 / 1.1 | 4.8 | 1.6 / 1.4 |
+![論文の表 3](../../papers/tilesight/table-03.png)
 
 *注*: TileSight の hardware abstraction には cache hierarchy、architecture-specific TMEM bandwidth、SMEM/occupancy limit、GPU group 間の network hierarchy も含まれます。簡潔さのため、ここには記載していません。\*H200 の maximum clock は 1980 MHz、default clock は 1830 MHz です。
 
@@ -377,10 +354,7 @@ TileSight は Python (約 6K lines) で実装され、NVIDIA GPU と AMD GPU を
 
 <span id="table-04"></span>
 
-|  | Time (ms) | L2 hit (%) | L2 util. (%) | SMEM (%) | TC (%) | SFU (%) |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| NCU | 5.58 | 96.50 | 38.66 | 51.14 | 74.78 | 38.58 |
-| TileSight | 5.73 | 95.26 | 35.72 | 43.13 | 70.30 | 35.42 |
+![論文の表 4](../../papers/tilesight/table-04.png)
 
 **Composition と calibration。** Modeling chain は bottom-up に動作します。Cache model は tile schedule と reuse distance に基づいて L1.5/L2/DDR traffic fraction を計算します。この traffic data が tile ごとの pipeline overlap model に入力されます。Wave model は tile ごとの結果を device ごとの time へ aggregate し、distributed model は communication を加えて overlap を計算します。Memory/TMEM bandwidth、unit ごとの compute throughput、その他 hardware parameter は、小規模 microbenchmark によって architecture ごとに 1 回 calibration されます。これには[図 2](#figure-02) のような working-set size 全体の bandwidth sweep と、数秒しか要しない短い matrix-multiply probe が含まれます。
 
@@ -430,15 +404,7 @@ TileSight は Python (約 6K lines) で実装され、NVIDIA GPU と AMD GPU を
 
 <span id="table-05"></span>
 
-| Kernel | Framework | Device | Baseline | 問題 | 解決策 | 最適化後 | Speedup |
-| --- | --- | --- | ---: | --- | --- | ---: | ---: |
-| ReLU | Triton | MI210 | 1.40 ms | indirect addressing | address unroll | 1.10 ms | $1.27\times$ |
-| Avg_Pool | Triton | MI210 | 0.20 ms | indirect addressing + overlap なし | address unroll + small tile | 0.10 ms | $2.00\times$ |
-| Avg_Pool | Torch | MI210 | 0.15 ms | overlap なし | small tile | 0.10 ms | $1.50\times$ |
-| GEMM(M128) | CK | MI210 | 3.68 ms | overlap なし | SM あたり複数 thread block | 2.68 ms | $1.37\times$ |
-| GEMM(K57344) | CK | MI210 | 55.63 ms | large K による L2 hit-rate 問題 | large tilek -> CU あたり 1 TB | 51.90 ms | $1.07\times$ |
-| RMS_Norm | Torch.Compile | H100 | 0.21 ms | overlap なし | SM あたり複数 thread block | 0.18 ms | $1.17\times$ |
-| MLA(kv8192 b128 h128) | Triton | MI210 | 66.38 ms | tiling、memory allocation、SMEM conflict | register allocation、larger tile、conflict elimination | 7.40 ms | **$8.97\times$** |
+![論文の表 5](../../papers/tilesight/table-05.png)
 
 <span id="figure-11"></span>
 

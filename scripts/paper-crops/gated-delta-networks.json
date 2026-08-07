@@ -28,5 +28,68 @@
     "height": 179,
     "matchScore": 0.555,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 5,
+    "x": 104.99991000000023,
+    "y": 109,
+    "width": 402.0000899999998,
+    "height": 94.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 7,
+    "x": 122.5,
+    "y": 336.5,
+    "width": 365,
+    "height": 132.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 5,
+    "x": 164.5,
+    "y": 219,
+    "width": 278.5,
+    "height": 56.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 7,
+    "x": 295.5,
+    "y": 567,
+    "width": 197.5,
+    "height": 125,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 9,
+    "x": 117.5,
+    "y": 80.5,
+    "width": 377,
+    "height": 130,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 22,
+    "x": 200.5,
+    "y": 120.5,
+    "width": 209,
+    "height": 169,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 22,
+    "x": 107.5,
+    "y": 332.5,
+    "width": 395.5,
+    "height": 74.5,
+    "preserveSource": false
   }
 ]

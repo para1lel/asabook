@@ -58,5 +58,95 @@
     "height": 150,
     "matchScore": 0.883,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 6,
+    "x": 119.5,
+    "y": 144,
+    "width": 373,
+    "height": 136,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 10,
+    "x": 106.5,
+    "y": 385,
+    "width": 399,
+    "height": 99,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 16,
+    "x": 106.5,
+    "y": 187,
+    "width": 399,
+    "height": 99,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 17,
+    "x": 106.5,
+    "y": 264,
+    "width": 399,
+    "height": 136,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 18,
+    "x": 106.5,
+    "y": 132,
+    "width": 399,
+    "height": 94.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 18,
+    "x": 188,
+    "y": 460,
+    "width": 236,
+    "height": 72,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 19,
+    "x": 185,
+    "y": 156.5,
+    "width": 242,
+    "height": 194,
+    "preserveSource": false
+  },
+  {
+    "name": "table-08",
+    "page": 19,
+    "x": 225,
+    "y": 615,
+    "width": 162,
+    "height": 106,
+    "preserveSource": false
+  },
+  {
+    "name": "table-09",
+    "page": 20,
+    "x": 106.5,
+    "y": 203,
+    "width": 399,
+    "height": 88.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-10",
+    "page": 20,
+    "x": 106.5,
+    "y": 534,
+    "width": 399,
+    "height": 94.5,
+    "preserveSource": false
   }
 ]

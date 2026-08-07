@@ -82,14 +82,7 @@ The decode phase performs the same operations as prefill, but only for the singl
 
 <span id="table-01"></span>
 
-| Operation | Shapes of tensors |  |  |
-| --- | --- | --- | --- |
-| Input(s) | Weight(s) | Output(s) |  |
-| preproj | $[B,L,H]$ | $[H,H]$ | $[B,L,H]$ |
-| attn | $[B,L,H]$ | - | $[B,L,H]$ |
-| postproj | $[B,L,H]$ | $[H,H]$ | $[B,L,H]$ |
-| ffn\_ln1 | $[B,L,H]$ | $[H,H_{2}]$ | $[B,L,H_{2}]$ |
-| ffn\_ln2 | $[B,L,H_{2}]$ | $[H_{2},H]$ | $[B,L,H]$ |
+![Original paper Table 1](../../papers/sarathi/table-01.png)
 
 **Table 1.** Shapes of the input, weight, and output tensors in a transformer decoder block. B, L and H denote batch size, embedding (aka hidden) size and sequence length (L=1 during decode, except for attention).
 
@@ -203,12 +196,7 @@ In contrast, decode-maximal batching computes over the decode tokens using matri
 
 <span id="table-02"></span>
 
-| Batching | Operation(s) |  | Total | Per-token Time |  |
-| --- | --- | --- | --- | --- | --- |
-| Scheme | Linear | Attn | Time | Prefill | Decode |
-| Prefill-only | 224.8 | 10 | 234.8 | 0.229 | - |
-| Decode-only | 44.28 | 5.68 | 49.96 | - | 12.49 |
-| Decode-maximal | 223.2 | 15.2 | 238.4 | 0.229 | 1.2 |
+![Original paper Table 2](../../papers/sarathi/table-02.png)
 
 **Table 2.** Per-token prefill and decode time (in ms) For LLaMA-13B on A6000 GPU, the rows show operation times for 1) prefill-only requests of prompt size 1024 of batch size 4, 2) decode-only batch size of 4 with sequence length 1024, and c) a mixed batch of a single 1021 prefills and 3 decodes. Decode-maximal batching reduces the decode time per token by an order of magnitude.
 
@@ -248,12 +236,7 @@ We support different model configurations in our codebase to evaluate Sarathi ov
 
 <span id="table-03"></span>
 
-| Model | GPU | Num | Per-GPU | Mode |
-| --- | --- | --- | --- | --- |
-|  |  | GPUs | Mem(GB) |  |
-| LLaMA-13B | A6000 | 1 | 48 | Deployment |
-| LLaMA-33B | A100 | 1 | 80 | Deployment |
-| GPT-3 | A100 | 64 | 80 | Simulation |
+![Original paper Table 3](../../papers/sarathi/table-03.png)
 
 **Table 3.** Models, GPUs, and mode of evaluation.
 
@@ -295,15 +278,7 @@ We observe that our decode speedup reduces as we increase the batch size or sequ
 
 <span id="table-04"></span>
 
-| Model | Sequence | Batch | P:D | Decode | Throughput |
-| --- | --- | --- | --- | --- | --- |
-| (GPU) | Length | Size | Ratio | Speedup | Gain |
-| LLaMA-13B | 1K | 6 | 50:1 | $5.45\times$ | $1.33\times$ |
-| (A6000) | 2K | 6 | 50:1 | $3.26\times$ | $1.26\times$ |
-|  | 3K | 6 | 50:1 | $2.51\times$ | $1.22\times$ |
-| LLaMA-33B | 1K | 10 | 28:1 | $3.83\times$ | $1.25\times$ |
-| (A100) | 2K | 5 | 63:1 | $4.25\times$ | $1.22\times$ |
-|  | 3K | 3 | 127:1 | $3.51\times$ | $1.14\times$ |
+![Original paper Table 4](../../papers/sarathi/table-04.png)
 
 **Table 4.** Peak throughput gains with Sarathi for different sequence lengths with two different model-GPU combinations (chunk size = 256).
 

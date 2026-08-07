@@ -38,12 +38,7 @@ AWQ has been widely adopted by various open-source LLM serving solutions includi
 
 <span id="table-01"></span>
 
-| PPL $\downarrow$ | FP16 | RTN | FP16% (based on act.) |  |  | FP16% (based on W) |  |  | FP16% (random) |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| (w3-g128) | 0.1% | 1% | 3% | 0.1% | 1% | 3% | 0.1% | 1% | 3% |  |  |
-| OPT-1.3B | 14.62 | 119.00 | 25.03 | 16.91 | 16.68 | 108.71 | 98.55 | 98.08 | 119.76 | 109.38 | 61.49 |
-| OPT-6.7B | 10.86 | 23.54 | 11.58 | 11.39 | 11.36 | 23.41 | 22.37 | 22.45 | 23.54 | 24.23 | 24.22 |
-| OPT-13B | 10.13 | 46.04 | 10.51 | 10.43 | 10.42 | 46.07 | 48.96 | 54.49 | 44.87 | 42.00 | 39.71 |
+![Original paper Table 1](../../papers/awq/table-01.png)
 
 **Table 1.** Keeping a small fraction of weights (0.1%-1%) in FP16 significantly improves the performance of the quantized models over round-to-nearest (RTN). It is only effective when we select the important weights in FP16 by looking at *activation* distribution instead of *weight* distribution. We highlight results with a decent perplexity in green. We used INT3 quantization with a group size of 128 and measured the WikiText perplexity ($\downarrow$).
 
@@ -73,24 +68,13 @@ To verify the idea, we multiply the 1% salient channels with $s>1$ for the OPT-6
 
 <span id="table-02"></span>
 
-| OPT-6.7B | $s=1$ | $s=1.25$ | $s=1.5$ | $s=2$ | $s=4$ |
-| --- | --- | --- | --- | --- | --- |
-| proportion of $\Delta^{ {}^{\prime}}\neq\Delta$ | 0% | 2.8% | 4.4% | 8.2% | 21.2% |
-| average $\Delta^{ {}^{\prime}}/\Delta$ | 1 | 1.005 | 1.013 | 1.038 | 1.213 |
-| average $\frac{\Delta^{ {}^{\prime}}}{\Delta}\cdot\frac{1}{s}$ (error reduction rate) | 1 | 0.804 | 0.676 | 0.519 | 0.303 |
-| Wiki-2 PPL | 23.54 | 12.87 | 12.48 | 11.92 | 12.36 |
+![Original paper Table 2](../../papers/awq/table-02.png)
 
 **Table 2.** Statistics when multiplying the 1% salient channels by $s>1$. Scaling up the salient channels significantly improves the perplexity (23.54 to 11.92). As $s$ goes larger, the percentage of changed $\Delta$ increases, and the error reduction rate for salient channels also increases. However, the best perplexity is achieved at $s=2$, since further increasing $s$ will increase the quantization error for *non-salient* channels.
 
 <span id="table-03"></span>
 
-| OPT / PPL$\downarrow$ |  | 1.3B | 2.7B | 6.7B | 13B | 30B |
-| --- | --- | --- | --- | --- | --- | --- |
-| FP16 | - | 14.62 | 12.47 | 10.86 | 10.13 | 9.56 |
-| INT3 g128 | RTN | 119.47 | 298.00 | 23.54 | 46.04 | 18.80 |
-| 1% FP16 | 16.91 | 13.69 | 11.39 | 10.43 | 9.85 |  |
-| $s=2$ | 18.63 | 14.94 | 11.92 | 10.80 | 10.32 |  |
-| AWQ | 16.32 | 13.58 | 11.39 | 10.56 | 9.77 |  |
+![Original paper Table 3](../../papers/awq/table-03.png)
 
 **Table 3.** AWQ protects salient weights and reduces quantization error by using a scaling-based method. It consistently outperforms Round-to-nearest quantization (RTN) and achieves comparable performance as mixed-precision (1% FP16) while being more hardware-friendly.
 
@@ -140,18 +124,7 @@ We focus our study on LLaMA models (LLaMA [Xive23] and Llama-2 [Xivf23]) due to 
 
 <span id="table-04"></span>
 
-| PPL$\downarrow$ |  | Llama-2 |  |  | LLaMA |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | 7B | 13B | 70B | 7B | 13B | 30B | 65B |  |
-| FP16 | - | 5.47 | 4.88 | 3.32 | 5.68 | 5.09 | 4.10 | 3.53 |
-| INT3 g128 | RTN | 6.66 | 5.52 | 3.98 | 7.01 | 5.88 | 4.88 | 4.24 |
-| GPTQ | 6.43 | 5.48 | 3.88 | 8.81 | 5.66 | 4.88 | 4.17 |  |
-| GPTQ-R | 6.42 | 5.41 | 3.86 | 6.53 | 5.64 | 4.74 | 4.21 |  |
-| AWQ | 6.24 | 5.32 | 3.74 | 6.35 | 5.52 | 4.61 | 3.95 |  |
-| INT4 g128 | RTN | 5.73 | 4.98 | 3.46 | 5.96 | 5.25 | 4.23 | 3.67 |
-| GPTQ | 5.69 | 4.98 | 3.42 | 6.22 | 5.23 | 4.24 | 3.66 |  |
-| GPTQ-R | 5.63 | 4.99 | 3.43 | 5.83 | 5.20 | 4.22 | 3.66 |  |
-| AWQ | 5.60 | 4.97 | 3.41 | 5.78 | 5.19 | 4.21 | 3.62 |  |
+![Original paper Table 4](../../papers/awq/table-04.png)
 
 **Table 4.** AWQ improves over round-to-nearest quantization (RTN) for different model sizes and different bit-precisions. It consistently achieves better perplexity than GPTQ (w/ and w/o reordering) on LLaMA & Llama-2 models.
 
@@ -167,15 +140,7 @@ Instruction tuning can significantly improve the models’ performance and usabi
 
 <span id="table-05"></span>
 
-| COCO (CIDEr $\uparrow$) |  | 0-shot | 4-shot | 8-shot | 16-shot | 32-shot | *$\Delta$(32-shot)* |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| FP16 | - | 63.73 | 72.18 | 76.95 | 79.74 | 81.70 | - |
-| INT4 g128 | RTN | 60.24 | 68.07 | 72.46 | 74.09 | 77.13 | -4.57 |
-| GPTQ | 59.72 | 67.68 | 72.53 | 74.98 | 74.98 | -6.72 |  |
-| AWQ | 62.57 | 71.02 | 74.75 | 78.23 | 80.53 | -1.17 |  |
-| INT3 g128 | RTN | 46.07 | 55.13 | 60.46 | 63.21 | 64.79 | -16.91 |
-| GPTQ | 29.84 | 50.77 | 56.55 | 60.54 | 64.77 | -16.93 |  |
-| AWQ | 56.33 | 64.73 | 68.79 | 72.86 | 74.47 | -7.23 |  |
+![Original paper Table 5](../../papers/awq/table-05.png)
 
 **Table 5.** Quantization results of a visual language model OpenFlamingo-9B [March23] on COCO Captioning datasets. AWQ outperforms existing methods under zero-shot and various few-shot settings, demonstrating the generability to different modalities and in-context learning workloads. AWQ reduces the quantization degradation (32-shot) from 4.57 to 1.17 under INT4-g128, providing 4$\times$ model size reduction with negligible performance loss.
 
@@ -201,12 +166,7 @@ We further provide some qualitative visual reasoning examples of the LLaVA-13B [
 
 <span id="table-06"></span>
 
-| OPT / Wiki PPL$\downarrow$ |  | 1.3B | 2.7B | 6.7B | 13B | 30B |
-| --- | --- | --- | --- | --- | --- | --- |
-| FP16 | - | 14.62 | 12.47 | 10.86 | 10.13 | 9.56 |
-| INT2 g64 | RTN | 10476 | 193210 | 7622 | 17564 | 8170 |
-| GPTQ | 46.67 | 28.15 | 16.65 | 16.74 | 11.75 |  |
-| AWQ +GPTQ | 35.71 | 25.70 | 15.71 | 13.25 | 11.38 |  |
+![Original paper Table 6](../../papers/awq/table-06.png)
 
 **Table 6.** Our method is orthogonal to GPTQ: it further closes the performance gap under extreme low-bit quantization (INT2-g64) when combined with GPTQ. Results are WikiText-2 perplexity of OPT models.
 
@@ -282,11 +242,7 @@ Our method searches for good scaling to protect the salient weight channels. It 
 
 <span id="table-07"></span>
 
-| PPL $\downarrow$ | FP16 | INT3 (group 128) |  |  | INT3 (no group) |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| RTN | 1% FP16 | AWQ | RTN | 1% FP16 | AWQ |  |  |
-| OPT-6.7B | 12.29 | 43.16 | 13.02 | 12.99 | 21160 | 14.67 | 18.11 |
-| LLaMA-7B | 9.49 | 12.10 | 10.77 | 10.82 | 50.45 | 14.06 | 20.52 |
+![Original paper Table 7](../../papers/awq/table-07.png)
 
 **Table 7.** AWQ can match the performance of keeping 1% salient weights in FP16 under grouped quantization without introducing mixed-precisions, but not for no-group quantization. Nonetheless, grouped quantization has a far better performance compared to no-group, making it a far more practical setting for weight-only quantization of LLMs, while AWQ performs quite well under this setting. Results are perplexity on the WikiText-2 dataset.
 

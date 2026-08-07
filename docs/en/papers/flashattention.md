@@ -232,10 +232,7 @@ FlashAttention yields the fastest single-node BERT training speed that we know o
 
 <span id="table-01"></span>
 
-| BERT Implementation | Training time (minutes) |
-| --- | --- |
-| Nvidia MLPerf 1.1 [Mattso20] | 20.0 $\pm$ 1.5 |
-| FlashAttention (ours) | 17.4 $\pm$ 1.4 |
+![Original paper Table 1](../../papers/flashattention/table-01.png)
 
 **Table 1.** Training time of BERT-large, starting from the same initialization provided by the MLPerf benchmark, to reach the target accuracy of 72.0% on masked language modeling. Averaged over 10 runs on 8$\times$A100 GPUs.
 
@@ -245,14 +242,7 @@ FlashAttention yields faster training times for GPT-2 [Radfor19] on the large Op
 
 <span id="table-02"></span>
 
-| Model implementations | OpenWebText (ppl) | Training time (speedup) |
-| --- | --- | --- |
-| GPT-2 small - Huggingface [Wolf20] | 18.2 | 9.5 days (1.0$\times$) |
-| GPT-2 small - Megatron-LM [Shoeyb19] | 18.2 | 4.7 days (2.0$\times$) |
-| GPT-2 small - FlashAttention | 18.2 | 2.7 days (3.5$\times$) |
-| GPT-2 medium - Huggingface [Wolf20] | 14.2 | 21.0 days (1.0$\times$) |
-| GPT-2 medium - Megatron-LM [Shoeyb19] | 14.3 | 11.5 days (1.8$\times$) |
-| GPT-2 medium - FlashAttention | 14.3 | 6.9 days (3.0$\times$) |
+![Original paper Table 2](../../papers/flashattention/table-02.png)
 
 **Table 2.** GPT-2 small and medium using FlashAttention achieve up to 3$\times$ speed up compared to Huggingface implementation and up to 1.7$\times$ compared to Megatron-LM. Training time reported on 8$\times$A100s GPUs.
 
@@ -262,17 +252,7 @@ We compare vanilla Transformer (with either standard implementation or FlashAtte
 
 <span id="table-03"></span>
 
-| Models | ListOps | Text | Retrieval | Image | Pathfinder | Avg | Speedup |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Transformer | 36.0 | 63.6 | 81.6 | 42.3 | 72.7 | 59.3 | - |
-| FlashAttention | 37.6 | 63.9 | 81.4 | 43.5 | 72.7 | 59.8 | 2.4$\times$ |
-| Block-sparse FlashAttention | 37.0 | 63.0 | 81.3 | 43.6 | 73.3 | 59.6 | 2.8$\times$ |
-| Linformer [Wang20] | 35.6 | 55.9 | 77.7 | 37.8 | 67.6 | 54.9 | 2.5$\times$ |
-| Linear Attention [Kathar20] | 38.8 | 63.2 | 80.7 | 42.6 | 72.5 | 59.6 | 2.3$\times$ |
-| Performer [Chorom20] | 36.8 | 63.6 | 82.2 | 42.1 | 69.9 | 58.9 | 1.8$\times$ |
-| Local Attention [Tay20] | 36.1 | 60.2 | 76.7 | 40.6 | 66.6 | 56.0 | 1.7$\times$ |
-| Reformer [Kitaev20] | 36.5 | 63.8 | 78.5 | 39.6 | 69.4 | 57.6 | 1.3$\times$ |
-| Smyrf [Daras20] | 36.1 | 64.1 | 79.0 | 39.6 | 70.5 | 57.9 | 1.7$\times$ |
+![Original paper Table 3](../../papers/flashattention/table-03.png)
 
 **Table 3.** The performance of standard attention, FlashAttention, block-sparse FlashAttention, and approximate attention baselines on the Long-Range-Arena benchmarks.
 
@@ -284,12 +264,7 @@ The runtime and memory-efficiency of FlashAttention allow us to increase the con
 
 <span id="table-04"></span>
 
-| Model implementations | Context length | OpenWebText (ppl) | Training time (speedup) |
-| --- | --- | --- | --- |
-| GPT-2 small - Megatron-LM | 1k | 18.2 | 4.7 days (1.0$\times$) |
-| GPT-2 small - FlashAttention | 1k | 18.2 | 2.7 days (1.7$\times$) |
-| GPT-2 small - FlashAttention | 2k | 17.6 | 3.0 days (1.6$\times$) |
-| GPT-2 small - FlashAttention | 4k | 17.5 | 3.6 days (1.3$\times$) |
+![Original paper Table 4](../../papers/flashattention/table-04.png)
 
 **Table 4.** GPT-2 small with FlashAttention, with 4$\times$ larger context length compared to Megatron-LM, is still 30% faster while achieving 0.7 better perplexity. Training time on 8$\times$A100 GPUs is reported.
 
@@ -301,26 +276,13 @@ Training Transformers with longer sequences with FlashAttention improves perform
 
 <span id="table-05"></span>
 
-|  | 512 | 1024 | 2048 | 4096 | 8192 | 16384 |
-| --- | --- | --- | --- | --- | --- | --- |
-| MIMIC-III [Johnsa16] | 52.8 | 50.7 | 51.7 | 54.6 | 56.4 | 57.1 |
-| ECtHR [Chalki19] | 72.2 | 74.3 | 77.1 | 78.6 | 80.7 | 79.2 |
+![Original paper Table 5](../../papers/flashattention/table-05.png)
 
 **Table 5.** Long Document performance (micro $F_{1}$) at different sequence lengths using FlashAttention.
 
 <span id="table-06"></span>
 
-| Model | Path-X | Path-256 |
-| --- | --- | --- |
-| Transformer | &#10007; | &#10007; |
-| Linformer [Wang20] | &#10007; | &#10007; |
-| Linear Attention [Kathar20] | &#10007; | &#10007; |
-| Performer [Chorom20] | &#10007; | &#10007; |
-| Local Attention [Tay20] | &#10007; | &#10007; |
-| Reformer [Kitaev20] | &#10007; | &#10007; |
-| SMYRF [Daras20] | &#10007; | &#10007; |
-| FlashAttention | **61.4** | &#10007; |
-| Block-sparse FlashAttention | 56.0 | **63.1** |
+![Original paper Table 6](../../papers/flashattention/table-06.png)
 
 **Table 6.** We report the first Transformer model that can achieve non-random performance on Path-X and Path-256.
 
@@ -897,14 +859,7 @@ In [Table 7](#table-07), we compare the performance of FlashAttention and Apex F
 
 <span id="table-07"></span>
 
-| Attention Method | 128 | 256 | 512 |
-| --- | --- | --- | --- |
-| Apex FMHA forward | 0.10 | 0.29 | 1.14 |
-| FlashAttention forward | 0.08 | 0.22 | 0.81 |
-| Apex FMHA backward | 0.17 | 0.52 | 1.81 |
-| FlashAttention backward | 0.20 | 0.53 | 2.00 |
-| Apex FMHA forward + backward | 0.27 | 0.81 | 2.95 |
-| FlashAttention forward + backward | 0.28 | 0.75 | 2.81 |
+![Original paper Table 7](../../papers/flashattention/table-07.png)
 
 **Table 7.** Runtime (ms) of FlashAttention compared to FMHA by sequence length, with masking and dropout, measured on an A100-SXM4-40GB GPU. Batch size 64, 16 heads, head dimension 64 (i.e., BERT-large size).
 
@@ -978,268 +933,85 @@ We measure memory usage on the combined forward + backward pass, without dropout
 
 <span id="table-08"></span>
 
-| Dropout | Masking | Pass | Table |
-| --- | --- | --- | --- |
-| Yes | Yes | Forward | [Table 9](#table-09) |
-| Yes | Yes | Backward | [Table 10](#table-10) |
-| Yes | Yes | Combined | [Table 11](#table-11) |
-| No | Yes | Forward | [Table 12](#table-12) |
-| No | Yes | Backward | [Table 13](#table-13) |
-| No | Yes | Combined | [Table 14](#table-14) |
-| Yes | No | Forward | [Table 15](#table-15) |
-| Yes | No | Backward | [Table 16](#table-16) |
-| Yes | No | Combined | [Table 17](#table-17) |
-| No | No | Forward | [Table 18](#table-18) |
-| No | No | Backward | [Table 19](#table-19) |
-| No | No | Combined | [Table 20](#table-20) |
-| No | No | Memory Usage (Combined) | [Table 21](#table-21) |
+![Original paper Table 8](../../papers/flashattention/table-08.png)
 
 **Table 8.** Pointers to results tables.
 
 <span id="table-09"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.36 | 0.34 | 0.78 | 2.54 | 9.33 | 36.33 | - | - | - | - |
-| Megatron | 0.40 | 0.40 | 1.10 | 3.65 | 16.19 | - | - | - | - | - |
-| Reformer | 2.03 | 3.15 | 5.67 | 11.02 | 22.59 | 46.14 | 97.38 | 212.13 | - | - |
-| Local Attention | 0.83 | 0.86 | 1.01 | 2.20 | 7.13 | 14.32 | 28.60 | 57.79 | 117.67 | - |
-| Linformer | 0.67 | 0.52 | 0.69 | 0.71 | 1.65 | 3.18 | 6.15 | 12.16 | 24.17 | 52.39 |
-| Smyrf | 2.27 | 2.34 | 3.91 | 7.44 | 14.71 | 29.22 | 58.27 | 116.41 | - | - |
-| LSformer | 1.18 | 1.27 | 1.34 | 3.38 | 11.40 | 22.55 | 44.95 | 89.76 | 179.66 | - |
-| Block Sparse | 1.12 | 1.11 | 2.13 | 2.77 | 6.95 | 20.91 | - | - | - | - |
-| Longformer | 1.22 | 1.14 | 1.08 | 1.95 | 5.72 | 12.98 | - | - | - | - |
-| BigBird | 1.13 | 1.12 | 1.12 | 1.77 | 6.03 | 13.68 | - | - | - | - |
-| FlashAttention | 0.04 | 0.06 | 0.21 | 0.82 | 2.85 | 10.41 | 41.74 | 167.19 | 670.76 | 2682.35 |
-| Block-Sparse FlashAttention | 0.06 | 0.06 | 0.06 | 0.12 | 0.44 | 0.86 | 1.70 | 3.29 | 6.55 | 13.34 |
+![Original paper Table 9](../../papers/flashattention/table-09.png)
 
 **Table 9.** Forward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with dropout and masking. Best in bold, second best underlined.
 
 <span id="table-10"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.37 | 0.49 | 1.66 | 5.81 | 22.32 | 87.67 | - | - | - | - |
-| Megatron | 0.35 | 0.32 | 0.77 | 2.42 | 8.43 | - | - | - | - | - |
-| Reformer | 2.37 | 4.59 | 8.91 | 17.68 | 35.13 | 70.05 | 140.01 | - | - | - |
-| Local Attention | 0.55 | 0.62 | 1.49 | 4.03 | 13.78 | 27.61 | 55.20 | 110.27 | 221.40 | - |
-| Linformer | 0.89 | 0.80 | 0.81 | 0.93 | 2.48 | 4.75 | 9.29 | 18.27 | 36.53 | - |
-| Smyrf | 1.41 | 2.83 | 5.43 | 10.72 | 21.25 | 42.31 | 84.48 | 168.95 | - | - |
-| LSformer | 1.75 | 1.76 | 3.01 | 7.50 | 20.07 | 39.08 | 76.39 | 150.82 | - | - |
-| Block Sparse | 1.29 | 1.28 | 2.18 | 3.04 | 7.27 | 21.16 | - | - | - | - |
-| Longformer | 1.27 | 1.31 | 1.29 | 2.04 | 5.24 | 10.74 | 25.95 | - | - | - |
-| BigBird | 1.33 | 1.28 | 1.32 | 1.81 | 5.55 | 11.44 | 27.45 | - | - | - |
-| FlashAttention | 0.30 | 0.26 | 0.68 | 2.02 | 6.84 | 26.89 | 105.70 | 418.96 | 1666.89 | 6660.44 |
-| Block-Sparse FlashAttention | 0.30 | 0.27 | 0.29 | 0.59 | 1.50 | 2.94 | 5.82 | 11.85 | 23.98 | 47.61 |
+![Original paper Table 10](../../papers/flashattention/table-10.png)
 
 **Table 10.** Backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with dropout and masking. Best in bold, second best underlined.
 
 <span id="table-11"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.84 | 0.86 | 2.35 | 8.29 | 31.75 | 124.19 | - | - | - | - |
-| Megatron | 0.87 | 0.89 | 1.33 | 4.21 | 16.50 | - | - | - | - | - |
-| Reformer | 4.30 | 7.76 | 14.60 | 28.74 | 57.79 | 116.34 | 237.57 | - | - | - |
-| Local Attention | 1.40 | 1.60 | 2.06 | 6.06 | 20.94 | 42.01 | 84.08 | 168.48 | 339.45 | - |
-| Linformer | 1.57 | 1.49 | 1.55 | 1.60 | 4.19 | 8.04 | 15.71 | 30.92 | 61.47 | - |
-| Smyrf | 3.41 | 5.08 | 9.35 | 18.18 | 36.03 | 71.68 | 143.04 | 285.87 | - | - |
-| LSformer | 3.08 | 3.10 | 4.26 | 10.90 | 31.59 | 61.72 | 121.51 | 241.18 | - | - |
-| Block Sparse | 2.54 | 2.52 | 3.71 | 5.44 | 13.29 | 39.19 | - | - | - | - |
-| Longformer | 2.47 | 2.49 | 2.51 | 3.10 | 10.39 | 22.49 | 60.44 | - | - | - |
-| BigBird | 2.51 | 2.49 | 2.52 | 3.40 | 10.97 | 23.89 | 63.28 | - | - | - |
-| FlashAttention | 0.43 | 0.41 | 0.95 | 2.55 | 9.56 | 37.49 | 147.75 | 586.61 | 2339.11 | 9341.30 |
-| Block-Sparse FlashAttention | 0.44 | 0.44 | 0.45 | 0.89 | 1.95 | 4.12 | 7.64 | 16.60 | 32.73 | 64.11 |
+![Original paper Table 11](../../papers/flashattention/table-11.png)
 
 **Table 11.** Forward pass + backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with dropout and masking. Best in bold, second best underlined.
 
 <span id="table-12"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.30 | 0.30 | 0.63 | 1.93 | 7.08 | 27.45 | 112.90 | - | - | - |
-| Megatron | 0.45 | 0.41 | 0.43 | 1.52 | 5.80 | - | - | - | - | - |
-| Reformer | 1.87 | 3.00 | 5.37 | 10.43 | 21.40 | 43.83 | 92.80 | 203.24 | - | - |
-| Local Attention | 0.70 | 0.81 | 1.02 | 2.09 | 6.64 | 13.34 | 26.77 | 54.02 | 110.11 | - |
-| Linformer | 0.63 | 0.50 | 0.67 | 0.65 | 1.36 | 2.60 | 5.04 | 9.92 | 19.69 | 43.47 |
-| Smyrf | 2.38 | 2.32 | 3.76 | 7.16 | 14.14 | 28.09 | 55.98 | 111.73 | - | - |
-| LSformer | 1.22 | 1.29 | 1.44 | 3.28 | 10.99 | 21.72 | 43.29 | 86.32 | 172.76 | - |
-| Block Sparse | 0.96 | 1.04 | 1.66 | 2.16 | 5.41 | 16.15 | - | - | - | - |
-| Longformer | 0.99 | 0.98 | 0.99 | 1.56 | 4.79 | 11.07 | 32.98 | - | - | - |
-| BigBird | 0.96 | 1.02 | 1.02 | 1.48 | 5.05 | 11.59 | 34.16 | - | - | - |
-| FlashAttention | 0.03 | 0.04 | 0.17 | 0.68 | 2.28 | 8.40 | 33.55 | 134.14 | 537.50 | 2150.88 |
-| Block-Sparse FlashAttention | 0.05 | 0.04 | 0.05 | 0.11 | 0.35 | 0.68 | 1.33 | 2.54 | 5.34 | 10.73 |
+![Original paper Table 12](../../papers/flashattention/table-12.png)
 
 **Table 12.** Forward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with masking. Best in bold, second best underlined.
 
 <span id="table-13"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.44 | 0.46 | 1.53 | 5.33 | 20.34 | 79.87 | - | - | - | - |
-| Megatron | 0.29 | 0.31 | 0.65 | 1.95 | 6.49 | - | - | - | - | - |
-| Reformer | 2.31 | 4.47 | 8.68 | 17.20 | 34.14 | 68.09 | 136.02 | - | - | - |
-| Local Attention | 0.51 | 0.62 | 1.30 | 3.81 | 13.33 | 26.72 | 53.41 | 106.82 | 214.15 | - |
-| Linformer | 0.76 | 0.81 | 0.94 | 0.87 | 2.24 | 4.25 | 8.35 | 16.38 | 32.67 | 72.11 |
-| Smyrf | 1.34 | 2.77 | 5.30 | 10.46 | 20.73 | 41.27 | 82.41 | 164.86 | - | - |
-| LSformer | 1.66 | 1.61 | 3.09 | 7.42 | 19.68 | 38.35 | 74.92 | 147.86 | - | - |
-| Block Sparse | 1.24 | 1.25 | 2.04 | 2.91 | 6.78 | 19.67 | - | - | - | - |
-| Longformer | 1.27 | 1.23 | 1.24 | 1.85 | 4.99 | 10.21 | 24.89 | - | - | - |
-| BigBird | 1.43 | 1.50 | 1.44 | 1.69 | 5.25 | 10.86 | 26.26 | - | - | - |
-| FlashAttention | 0.21 | 0.22 | 0.62 | 1.84 | 5.77 | 22.25 | 86.21 | 338.91 | 1343.91 | 5361.09 |
-| Block-Sparse FlashAttention | 0.22 | 0.22 | 0.26 | 0.57 | 1.55 | 3.13 | 5.98 | 12.21 | 23.49 | 47.85 |
+![Original paper Table 13](../../papers/flashattention/table-13.png)
 
 **Table 13.** Backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with masking. Best in bold, second best underlined.
 
 <span id="table-14"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.80 | 0.81 | 2.08 | 7.23 | 27.51 | 107.58 | - | - | - | - |
-| Megatron | 0.81 | 0.83 | 1.09 | 3.36 | 12.39 | - | - | - | - | - |
-| Reformer | 4.16 | 7.46 | 14.06 | 27.68 | 55.66 | 112.15 | 229.37 | - | - | - |
-| Local Attention | 1.39 | 1.68 | 2.08 | 5.83 | 20.04 | 40.16 | 80.44 | 161.35 | 325.11 | - |
-| Linformer | 1.51 | 1.42 | 1.56 | 1.67 | 3.67 | 6.99 | 13.63 | 26.77 | 53.36 | 117.56 |
-| Smyrf | 3.38 | 4.93 | 9.07 | 17.66 | 34.94 | 69.55 | 138.72 | 277.41 | - | - |
-| LSformer | 3.08 | 3.10 | 4.26 | 10.90 | 31.59 | 61.72 | 121.51 | 241.18 | - | - |
-| Block Sparse | 2.39 | 2.40 | 3.31 | 5.02 | 12.25 | 35.94 | - | - | - | - |
-| Longformer | 2.36 | 2.34 | 2.38 | 2.94 | 9.83 | 21.35 | 58.12 | - | - | - |
-| BigBird | 2.35 | 2.35 | 2.37 | 3.25 | 10.36 | 22.57 | 60.63 | - | - | - |
-| FlashAttention | 0.32 | 0.30 | 0.83 | 2.37 | 7.95 | 30.77 | 119.98 | 473.65 | 1883.43 | 7513.01 |
-| Block-Sparse FlashAttention | 0.34 | 0.34 | 0.36 | 0.69 | 1.85 | 3.89 | 7.16 | 14.85 | 30.46 | 60.03 |
+![Original paper Table 14](../../papers/flashattention/table-14.png)
 
 **Table 14.** Forward pass + backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with masking. Best in bold, second best underlined.
 
 <span id="table-15"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.26 | 0.24 | 0.57 | 1.80 | 6.56 | 25.34 | - | - | - | - |
-| Megatron | 0.27 | 0.27 | 0.56 | 1.88 | 6.56 | - | - | - | - | - |
-| Reformer | 1.83 | 2.96 | 5.31 | 10.33 | 21.19 | 43.42 | 91.96 | 201.34 | - | - |
-| Local Attention | 0.51 | 0.60 | 0.78 | 2.01 | 6.23 | 12.52 | 25.07 | 50.50 | 102.18 | - |
-| Linformer | 0.47 | 0.37 | 0.49 | 0.52 | 1.37 | 2.65 | 5.12 | 10.13 | 20.25 | 44.16 |
-| Smyrf | 2.12 | 2.01 | 3.15 | 5.97 | 11.83 | 23.36 | 46.48 | 92.72 | - | - |
-| LSformer | 1.28 | 1.33 | 1.51 | 3.39 | 11.40 | 22.54 | 44.96 | 89.85 | 179.73 | - |
-| Block Sparse | 1.03 | 1.00 | 1.72 | 2.39 | 5.96 | 17.88 | - | - | - | - |
-| Longformer | 1.02 | 1.03 | 1.03 | 1.73 | 5.10 | 11.63 | 34.22 | - | - | - |
-| BigBird | 0.99 | 1.03 | 1.01 | 1.58 | 5.36 | 12.27 | 35.56 | - | - | - |
-| FlashAttention | 0.10 | 0.10 | 0.22 | 0.83 | 2.81 | 10.38 | 41.63 | 167.01 | 668.74 | 2678.11 |
-| Block-Sparse FlashAttention | 0.54 | 0.51 | 0.68 | 0.61 | 0.67 | 1.10 | 1.89 | 3.71 | 7.18 | 14.41 |
+![Original paper Table 15](../../papers/flashattention/table-15.png)
 
 **Table 15.** Forward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with dropout. Best in bold, second best underlined.
 
 <span id="table-16"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.44 | 0.35 | 0.90 | 2.94 | 10.77 | 41.67 | - | - | - | - |
-| Megatron | 0.28 | 0.33 | 0.92 | 2.94 | 10.80 | - | - | - | - | - |
-| Reformer | 2.24 | 4.34 | 8.39 | 16.62 | 33.02 | 65.77 | 131.52 | - | - | - |
-| Local Attention | 0.51 | 0.58 | 1.41 | 3.71 | 12.96 | 25.98 | 51.94 | 103.72 | 207.78 | - |
-| Linformer | 0.84 | 0.74 | 0.79 | 0.85 | 2.28 | 4.37 | 8.66 | 17.02 | 33.78 | - |
-| Smyrf | 1.27 | 2.56 | 4.90 | 9.66 | 19.16 | 38.13 | 76.17 | 152.39 | - | - |
-| LSformer | 1.67 | 1.77 | 3.03 | 7.52 | 20.10 | 39.13 | 76.35 | 150.83 | - | - |
-| Block Sparse | 1.27 | 1.36 | 2.15 | 3.04 | 7.27 | 21.18 | - | - | - | - |
-| Longformer | 1.28 | 1.34 | 1.38 | 1.98 | 5.24 | 10.74 | 25.95 | - | - | - |
-| BigBird | 1.48 | 1.47 | 1.50 | 1.81 | 5.57 | 11.38 | 27.43 | - | - | - |
-| FlashAttention | 0.15 | 0.18 | 0.58 | 1.86 | 6.50 | 26.21 | 104.27 | 416.10 | 1661.92 | 6643.01 |
-| Block-Sparse FlashAttention | 0.17 | 0.17 | 0.17 | 0.40 | 1.10 | 2.04 | 4.43 | 9.33 | 18.28 | 37.31 |
+![Original paper Table 16](../../papers/flashattention/table-16.png)
 
 **Table 16.** Backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with dropout. Best in bold, second best underlined.
 
 <span id="table-17"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.66 | 0.67 | 1.43 | 4.82 | 17.47 | 67.29 | - | - | - | - |
-| Megatron | 0.88 | 0.90 | 1.49 | 4.73 | 17.41 | - | - | - | - | - |
-| Reformer | 4.06 | 7.28 | 13.68 | 26.98 | 54.27 | 109.39 | 223.80 | - | - | - |
-| Local Attention | 1.09 | 1.40 | 1.99 | 5.61 | 19.23 | 38.62 | 77.30 | 154.63 | 311.12 | - |
-| Linformer | 1.31 | 1.21 | 1.30 | 1.39 | 3.73 | 7.15 | 14.05 | 27.69 | 55.00 | - |
-| Smyrf | 3.00 | 4.37 | 8.05 | 15.66 | 31.04 | 61.64 | 123.04 | 245.65 | - | - |
-| LSformer | 3.07 | 3.17 | 4.31 | 10.89 | 31.54 | 61.78 | 121.56 | 240.94 | - | - |
-| Block Sparse | 2.54 | 2.52 | 3.71 | 5.44 | 13.29 | 39.19 | - | - | - | - |
-| Longformer | 2.47 | 2.49 | 2.51 | 3.10 | 10.39 | 22.49 | 60.44 | - | - | - |
-| BigBird | 2.51 | 2.49 | 2.52 | 3.40 | 10.97 | 23.89 | 63.28 | - | - | - |
-| FlashAttention | 0.35 | 0.36 | 0.80 | 2.52 | 9.16 | 36.70 | 146.13 | 583.45 | 2332.01 | 9323.63 |
-| Block-Sparse FlashAttention | 0.91 | 0.83 | 0.94 | 0.92 | 1.83 | 3.50 | 7.02 | 13.56 | 26.71 | 53.92 |
+![Original paper Table 17](../../papers/flashattention/table-17.png)
 
 **Table 17.** Forward pass + backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length, with dropout. Best in bold, second best underlined.
 
 <span id="table-18"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.21 | 0.22 | 0.43 | 1.27 | 4.32 | 16.47 | 67.77 | - | - | - |
-| Megatron | 0.24 | 0.26 | 0.42 | 1.33 | 4.28 | - | - | - | - | - |
-| Reformer | 1.77 | 2.82 | 5.01 | 9.74 | 20.03 | 41.11 | 87.39 | 192.40 | - | - |
-| Local Attention | 0.48 | 0.57 | 0.80 | 1.90 | 5.76 | 11.56 | 23.13 | 46.65 | 94.74 | - |
-| Linformer | 0.46 | 0.36 | 0.45 | 0.50 | 1.09 | 2.09 | 4.01 | 7.90 | 15.70 | 35.40 |
-| Smyrf | 1.94 | 1.96 | 3.01 | 5.69 | 11.26 | 22.23 | 44.21 | 88.22 | - | - |
-| LSformer | 1.21 | 1.34 | 1.34 | 3.31 | 11.01 | 21.71 | 43.27 | 86.32 | 172.85 | - |
-| Block Sparse | 0.96 | 1.04 | 1.66 | 2.16 | 5.41 | 16.15 | - | - | - | - |
-| Longformer | 0.99 | 0.98 | 0.99 | 1.56 | 4.79 | 11.07 | 32.98 | - | - | - |
-| BigBird | 0.96 | 1.02 | 1.02 | 1.48 | 5.05 | 11.59 | 34.16 | - | - | - |
-| FlashAttention | 0.08 | 0.09 | 0.18 | 0.68 | 2.40 | 8.42 | 33.54 | 134.03 | 535.95 | 2147.05 |
-| Block-Sparse FlashAttention | 0.56 | 0.52 | 0.63 | 0.65 | 0.61 | 0.96 | 1.69 | 3.02 | 5.69 | 11.77 |
+![Original paper Table 18](../../papers/flashattention/table-18.png)
 
 **Table 18.** Forward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length. Best in bold, second best underlined.
 
 <span id="table-19"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.26 | 0.29 | 0.78 | 2.44 | 8.82 | 33.87 | - | - | - | - |
-| Megatron | 0.29 | 0.30 | 0.80 | 2.59 | 8.86 | - | - | - | - | - |
-| Reformer | 2.18 | 4.21 | 8.14 | 16.12 | 32.02 | 63.84 | 127.60 | - | - | - |
-| Local Attention | 0.51 | 0.64 | 1.28 | 3.60 | 12.52 | 25.08 | 50.22 | 100.23 | 200.66 | - |
-| Linformer | 0.69 | 0.76 | 0.69 | 0.80 | 2.04 | 3.88 | 7.67 | 15.04 | 30.11 | 63.15 |
-| Smyrf | 1.24 | 2.49 | 4.77 | 9.42 | 18.65 | 37.12 | 74.15 | 148.35 | - | - |
-| LSformer | 1.68 | 1.61 | 3.02 | 7.40 | 19.72 | 38.27 | 74.89 | 147.99 | - | - |
-| Block Sparse | 1.24 | 1.25 | 2.04 | 2.91 | 6.78 | 19.67 | - | - | - | - |
-| Longformer | 1.27 | 1.23 | 1.24 | 1.85 | 4.99 | 10.21 | 24.89 | - | - | - |
-| BigBird | 1.43 | 1.50 | 1.44 | 1.69 | 5.25 | 10.86 | 26.26 | - | - | - |
-| FlashAttention | 0.11 | 0.16 | 0.52 | 1.62 | 5.45 | 21.57 | 84.75 | 336.00 | 1338.56 | 5343.19 |
-| Block-Sparse FlashAttention | 0.11 | 0.12 | 0.16 | 0.38 | 1.20 | 2.34 | 4.69 | 9.10 | 18.74 | 37.04 |
+![Original paper Table 19](../../papers/flashattention/table-19.png)
 
 **Table 19.** Backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length. Best in bold, second best underlined.
 
 <span id="table-20"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 0.67 | 0.70 | 1.18 | 3.67 | 13.22 | 50.44 | - | - | - | - |
-| Megatron | 0.74 | 0.65 | 1.23 | 3.80 | 13.21 | - | - | - | - | - |
-| Reformer | 3.93 | 7.01 | 13.15 | 25.89 | 52.09 | 105.00 | 215.13 | - | - | - |
-| Local Attention | 1.09 | 1.27 | 1.99 | 5.38 | 18.32 | 36.77 | 73.67 | 147.29 | 296.35 | - |
-| Linformer | 1.31 | 1.25 | 1.30 | 1.29 | 3.20 | 6.10 | 11.93 | 23.39 | 46.72 | 100.52 |
-| Smyrf | 2.98 | 4.23 | 7.78 | 15.12 | 29.96 | 59.45 | 118.60 | 237.02 | - | - |
-| LSformer | 3.03 | 3.05 | 4.26 | 10.70 | 30.77 | 60.15 | 118.33 | 234.94 | - | - |
-| Block Sparse | 2.39 | 2.40 | 3.31 | 5.02 | 12.25 | 35.94 | - | - | - | - |
-| Longformer | 2.36 | 2.34 | 2.38 | 2.94 | 9.83 | 21.35 | 58.12 | - | - | - |
-| BigBird | 2.35 | 2.35 | 2.37 | 3.25 | 10.36 | 22.57 | 60.63 | - | - | - |
-| FlashAttention | 0.31 | 0.31 | 0.73 | 2.29 | 7.64 | 30.09 | 118.50 | 470.51 | 1876.08 | 7492.85 |
-| Block-Sparse FlashAttention | 0.74 | 0.77 | 0.82 | 0.88 | 1.71 | 3.21 | 6.56 | 12.60 | 24.93 | 50.39 |
+![Original paper Table 20](../../papers/flashattention/table-20.png)
 
 **Table 20.** Forward pass + backward pass runtime (ms) of various exact/approximate/sparse attention mechanisms by sequence length. Best in bold, second best underlined.
 
 <span id="table-21"></span>
 
-| Attention Method | 128 | 256 | 512 | 1024 | 2048 | 4096 | 8192 | 16384 | 32768 | 65536 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PyTorch Attention | 36 | 104 | 336 | 1184 | 4416 | 17024 | - | - | - | - |
-| Megatron | 36 | 104 | 336 | 1184 | 4416 | - | - | - | - | - |
-| Reformer | 377 | 754 | 1508 | 3016 | 6033 | 12067 | 24134 | - | - | - |
-| Local Attention | 53 | 110 | 232 | 592 | 1696 | 3392 | 6784 | 13568 | 27136 | - |
-| Linformer | 25 | 52 | 114 | 287 | 832 | 1652 | 3292 | 6572 | 13132 | 26252 |
-| Smyrf | 217 | 434 | 868 | 1737 | 3474 | 6947 | 13894 | 27788 | - | - |
-| LSformer | 72 | 152 | 333 | 796 | 2540 | 5068 | 10125 | 20240 | - | - |
-| Block Sparse | 33 | 82 | 228 | 408 | 910 | 2401 | - | - | - | - |
-| Longformer | 30 | 61 | 124 | 277 | 681 | 1370 | 2748 | - | - | - |
-| BigBird | 33 | 66 | 131 | 294 | 708 | 1431 | 2872 | - | - | - |
-| FlashAttention | 22 | 44 | 104 | 209 | 418 | 836 | 1672 | 3344 | 6688 | 13376 |
-| Block-Sparse FlashAttention | 22 | 44 | 104 | 209 | 418 | 836 | 1672 | 3344 | 6690 | 13384 |
+![Original paper Table 21](../../papers/flashattention/table-21.png)
 
 **Table 21.** Memory usage (MB) of various exact/approximate/sparse attention mechanisms by sequence length. Best in bold, second best underlined.
 

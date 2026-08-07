@@ -70,5 +70,41 @@
     "width": 398,
     "height": 217.5,
     "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 6,
+    "x": 117,
+    "y": 111.5,
+    "width": 378,
+    "height": 76.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 8,
+    "x": 127.5,
+    "y": 91,
+    "width": 357,
+    "height": 155.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 9,
+    "x": 106.5,
+    "y": 128,
+    "width": 403.5,
+    "height": 257.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 10,
+    "x": 144,
+    "y": 92,
+    "width": 324,
+    "height": 142.59,
+    "preserveSource": false
   }
 ]

@@ -192,15 +192,7 @@ Memory Savings: By removing both gradient and optimizer state redundancy, we red
 
 <span id="table-01"></span>
 
-| DP | 7.5B Model (GB) |  |  | 128B Model (GB) |  |  | 1T Model (GB) |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Pos | Pos+g | Pos+g+p | Pos | Pos+g | Pos+g+p | Pos | Pos+g | Pos+g+p |  |
-| 1 | 120 | 120 | 120 | 2048 | 2048 | 2048 | 16000 | 16000 | 16000 |
-| 4 | 52.5 | 41.3 | 30 | 896 | 704 | 512 | 7000 | 5500 | 4000 |
-| 16 | 35.6 | 21.6 | 7.5 | 608 | 368 | 128 | 4750 | 2875 | 1000 |
-| 64 | 31.4 | 16.6 | 1.88 | 536 | 284 | 32 | 4187 | 2218 | 250 |
-| 256 | 30.4 | 15.4 | 0.47 | 518 | 263 | 8 | 4046 | 2054 | 62.5 |
-| 1024 | 30.1 | 15.1 | 0.12 | 513 | 257 | 2 | 4011 | 2013 | 15.6 |
+![Original paper Table 1](../../papers/zero/table-01.png)
 
 **Table 1.** Per-device memory consumption of different optimizations in *ZeRO*-DP as a function of DP degree . Bold-faced text are the combinations for which the model can fit into a cluster of 32GB V100 GPUs.
 
@@ -246,14 +238,7 @@ State-of-art implementation of all-reduce uses a two-step approach, where the fi
 
 <span id="table-02"></span>
 
-| MP | GPUs | Max Theoretical Model Size |  |  |  | Measured Model Size |  |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Baseline | Pos | Pos+g | Pos+g+p | Baseline | *ZeRO*-DP (Pos) |  |  |
-| 1 | 64 | 2B | 7.6B | 14.4B | 128B | 1.3B | 6.2B |
-| 2 | 128 | 4B | 15.2B | 28.8B | 256B | 2.5B | 12.5B |
-| 4 | 256 | 8B | 30.4B | 57.6B | 0.5T | 5B | 25B |
-| 8 | 512 | 16B | 60.8B | 115.2B | 1T | 10B | 50B |
-| 16 | 1024 | 32B | 121.6B | 230.4B | 2T | 20B | 100B |
+![Original paper Table 2](../../papers/zero/table-02.png)
 
 **Table 2.** Maximum model size through memory analysis (left) and the measured model size when running with *ZeRO-OS* (right). The measured model size with $P_{\mathrm{os}}$ matches the theoretical maximum, demonstrating that our memory analysis provides realistic upper bounds on model sizes.
 
@@ -361,13 +346,7 @@ For *ZeRO*-100B, the slight reduction in performance beyond 100B is due to lack 
 
 <span id="table-03"></span>
 
-|  | *ZeRO*-DP | *ZeRO*-R |
-| --- | --- | --- |
-| 1 | Pos | CB+MD |
-| 2 | Pos | CB+MD+Pa |
-| 3 | Pos+g | CB+MD |
-| 4 | Pos+g | CB+M${}_{D}+$Pa |
-| 5 | Pos+g | CB+MD+Pa+cpu |
+![Original paper Table 3](../../papers/zero/table-03.png)
 
 **Table 3.** *ZeRO* configurations
 
@@ -393,14 +372,7 @@ We look into the benefits and impact of different optimizations on maximum model
 
 <span id="table-04"></span>
 
-| [Figure 2](#figure-02) |  |  | [Figures 3](#figure-03), [5](#figure-05) |  |  |
-| --- | --- | --- | --- | --- | --- |
-|  | Layers | HD |  | Layers | HD |
-| 1.5B | 48 | 1600 | 1.16B-2.5B | 24,34,54 | 1920 |
-| 8B | 72 | 3072 | 4B | 64 | 2304 |
-| 40B-60B | 88,132 | 4096 | 6B-8B | 52,72 | 3072 |
-| 80B-170B | 100,125,150 | 8192 | 10B-13B | 50,54,58,62 | 4096 |
-| 140B-170B | 175,212 | 8192 | 60B | 75 | 8192 |
+![Original paper Table 4](../../papers/zero/table-04.png)
 
 **Table 4.** Configurations for different model sizes, number of layers, and hidden dimensions (HD) across [Figures 2](#figure-02), [3](#figure-03), [5](#figure-05).
 
@@ -424,81 +396,31 @@ We thank Junhua Wang for his valuable support and advice. We thank Minjia Zhang,
 
 <span id="table-05"></span>
 
-| [Figure 2](#figure-02) |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model size | ZeRO/Baseline | Number of GPUs | MP | Layers | Hidden size | Attention head | Batch size | Total batch size |
-| 1.5B | ZeRO | 400 | 1 | 48 | 1600 | 16 | 24 | 9600 |
-| 1.5B | Baseline | 400 | 2 | 48 | 1600 | 16 | 16 | 3200 |
-| 8B | ZeRO | 400 | 4 | 72 | 3072 | 24 | 64 | 6400 |
-| 8B | Baseline | 400 | 8 | 72 | 3072 | 24 | 8 | 400 |
-| 40B | ZeRO | 400 | 4 | 88 | 6144 | 32 | 12 | 1200 |
-| 40B | Baseline | 384 | 32 | 88 | 6144 | 64 | 4 | 48 |
-| 60B | ZeRO | 400 | 16 | 132 | 6144 | 32 | 64 | 1600 |
-| 60B | Baseline | 384 | 64 | 132 | 6144 | 64 | 4 | 24 |
-| 80B | ZeRO | 400 | 16 | 100 | 8192 | 64 | 32 | 800 |
-| 80B | Baseline | 384 | 128 | 100 | 8192 | 128 | 4 | 12 |
-| 100B | ZeRO | 400 | 16 | 125 | 8192 | 64 | 32 | 800 |
-| 100B | Baseline | 384 | 128 | 125 | 8192 | 128 | 2 | 6 |
-| 120B | ZeRO | 400 | 16 | 150 | 8192 | 64 | 24 | 600 |
-| 120B | Baseline | 384 | 128 | 150 | 8192 | 128 | 2 | 6 |
-| 140B | ZeRO | 400 | 16 | 175 | 8192 | 64 | 16 | 400 |
-| 140B | Baseline | 384 | 128 | 175 | 8192 | 128 | 2 | 6 |
-| 170B | ZeRO | 400 | 16 | 212 | 8192 | 64 | 12 | 300 |
-| 170B | Baseline | 256 | 256 | 212 | 8192 | 256 | 2 | 2 |
+![Original paper Table 5](../../papers/zero/table-05.png)
 
 **Table 5.** Model configurations for [Figure 2](#figure-02) related to ZeRO throughput compared with baseline.
 
 <span id="table-06"></span>
 
-| [Figure 3](#figure-03) |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model size | ZeRO/Baseline | Number of GPUs | MP | Layers | Hidden size | Attention head | Batch size | Total batch size |
-| 60B | ZeRO | 64 | 16 | 75 | 8192 | 32 | 16 | 64 |
-| 60B | ZeRO | 128 | 16 | 75 | 8192 | 32 | 48 | 384 |
-| 60B | ZeRO | 256 | 16 | 75 | 8192 | 32 | 48 | 768 |
-| 60B | ZeRO | 400 | 16 | 75 | 8192 | 32 | 64 | 1600 |
+![Original paper Table 6](../../papers/zero/table-06.png)
 
 **Table 6.** Model configurations for [Figure 3](#figure-03) related to superlinear scalability.
 
 <span id="table-07"></span>
 
-| [Figure 4](#figure-04) |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model size | ZeRO/Baseline | Number of GPUs | MP | Layers | Hidden size | Attention head | Batch size | Total batch size |
-| 40B | ZeRO | 400 | 16 | 50 | 8192 | 32 | 16 | 400 |
-| 60B | ZeRO | 400 | 16 | 132 | 6144 | 64 | 16 | 400 |
-| 140B | ZeRO | 400 | 16 | 175 | 8192 | 64 | 16 | 400 |
-| 150B | ZeRO | 400 | 16 | 187 | 8192 | 64 | 16 | 400 |
-| 50B | ZeRO | 400 | 16 | 62 | 8192 | 32 | 16 | 400 |
+![Original paper Table 7](../../papers/zero/table-07.png)
 
 **Table 7.** Model configurations for [Figure 4](#figure-04) related to max model size with different ZeRO configurations.
 
 <span id="table-08"></span>
 
-| [Figure 5](#figure-05) |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model size | ZeRO/Baseline | Number of GPUs | MP | Layers | Hidden size | Attention head | Batch size | Total batch size |
-| 40B | ZeRO | 400 | 16 | 50 | 8192 | 32 | 16 | 400 |
-| 40B | ZeRO | 400 | 16 | 50 | 8192 | 32 | 16 | 400 |
-| 40B | ZeRO | 400 | 16 | 50 | 8192 | 32 | 16 | 400 |
-| 40B | ZeRO | 400 | 16 | 50 | 8192 | 32 | 16 | 400 |
-| 40B | ZeRO | 400 | 16 | 50 | 8192 | 32 | 16 | 400 |
-| 100B | ZeRO | 400 | 16 | 125 | 8192 | 64 | 32 | 800 |
-| 100B | ZeRO | 400 | 16 | 125 | 8192 | 64 | 32 | 800 |
+![Original paper Table 8](../../papers/zero/table-08.png)
 
 **Table 8.** Model configurations for [Figure 5](#figure-05) related to memory allocated with different ZeRO configurations.
 
 <span id="table-09"></span>
 
-| [Figure 6](#figure-06) |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model size | ZeRO/Baseline | Number of GPUs | MP | Layers | Hidden size | Attention head | Batch size | Total batch size |
-| 60B | ZeRO | 128 | 16 | 75 | 8192 | 64 | 2 | 16 |
-| 60B | ZeRO | 128 | 16 | 75 | 8192 | 64 | 4 | 32 |
-| 60B | ZeRO | 128 | 16 | 75 | 8192 | 64 | 32 | 256 |
-| 60B | ZeRO | 128 | 16 | 75 | 8192 | 64 | 32 | 256 |
-| 60B | ZeRO | 128 | 16 | 75 | 8192 | 64 | 8 | 64 |
-| 170B | ZeRO | 400 | 16 | 212 | 8192 | 64 | 12 | 300 |
+![Original paper Table 9](../../papers/zero/table-09.png)
 
 **Table 9.** Model configurations for [Figure 6](#figure-06) related to throughput with different ZeRO configurations.
 
@@ -512,20 +434,7 @@ Also, we want to point out that we are comparing the performance per GPU, not th
 
 <span id="table-10"></span>
 
-| [Figure 7](#figure-07) |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Model size | ZeRO/Baseline | Number of GPUs | MP | Layers | Hidden size | Attention head | Batch size | Total batch size |
-| 1.5B | ZeRO | 128 | 1 | 34 | 1920 | 16 | 24 | 3072 |
-| 2.5B | ZeRO | 128 | 1 | 54 | 1920 | 16 | 24 | 3072 |
-| 4B | ZeRO | 128 | 1 | 64 | 2304 | 24 | 16 | 2048 |
-| 6B | ZeRO | 128 | 1 | 52 | 3072 | 24 | 12 | 1536 |
-| 8B | ZeRO | 128 | 1 | 72 | 3072 | 24 | 8 | 1024 |
-| 10B | ZeRO | 128 | 1 | 50 | 4096 | 32 | 6 | 768 |
-| 11B | ZeRO | 128 | 1 | 54 | 4096 | 32 | 4 | 512 |
-| 12B | ZeRO | 128 | 1 | 58 | 4096 | 32 | 4 | 512 |
-| 13B | ZeRO | 128 | 1 | 62 | 4096 | 32 | 2 | 256 |
-| 1p16B | Baseline | 128 | 1 | 24 | 1920 | 16 | 8 | 1024 |
-| 1p38B | Baseline | 128 | 1 | 40 | 1536 | 16 | 1 | 128 |
+![Original paper Table 10](../../papers/zero/table-10.png)
 
 **Table 10.** Model configurations for [Figure 7](#figure-07) related to evaluating maximum model sizes vs throughput while using only data-parallelism.
 
