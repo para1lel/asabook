@@ -60,6 +60,12 @@
     "preserveSource": false
   },
   {
+    "name": "figure-06",
+    "preserveSource": true,
+    "sourceWidth": 1991,
+    "sourceHeight": 1138
+  },
+  {
     "name": "figure-07",
     "page": 6,
     "x": 63,
