@@ -24,33 +24,21 @@ Scaling neural networks brings dramatic quality gains over a wide array of machi
 
 Here we enumerate major practical challenges faced especially when training massive-scale models that are orders of magnitude larger than the capacity limit of a single accelerator memory (e.g., GPUs or TPUs).
 
-##### Architecture-specific model parallelism support
+**Architecture-specific model parallelism support.** There is a lack of support for efficient model parallelism algorithms under commonly used deep learning frameworks such as TensorFlow [OSDId16] and PyTorch [Automc17]. Naive model parallelism with graph partition is supported but it would lead to severe under-utilization due to the sequential dependency of the network and gradient based optimization. In order to scale up the existing models efficiently, users typically need to invest a lot of engineering work, for example, migrating the model code to special frameworks [Systeb18, Systed19].
 
-There is a lack of support for efficient model parallelism algorithms under commonly used deep learning frameworks such as TensorFlow [OSDId16] and PyTorch [Automc17]. Naive model parallelism with graph partition is supported but it would lead to severe under-utilization due to the sequential dependency of the network and gradient based optimization. In order to scale up the existing models efficiently, users typically need to invest a lot of engineering work, for example, migrating the model code to special frameworks [Systeb18, Systed19].
+**Super-linear scaling of computation cost vs model size.** Straightforward scaling of the mode size by increasing the depth or width [Xivb05, Systed19] generally results in at least linear increase of training step time. Model parallelism by splitting layer weights and computation across multiple devices generally becomes necessary, leading to network communication overhead and device under-utilization. Device under-utilization stems from imbalanced assignment and sequential dependencies of the underlying neural network. This super-linear relationship between the computation cost and the model size can not be resolved by simply using more devices, making training massive models impractical.
 
-##### Super-linear scaling of computation cost vs model size
+**Infrastructure scalability for giant model representation.** A naive graph representation for the massive-scale model distributed across thousands of devices may become a bottleneck for both deep learning frameworks and their optimizing compilers. For example, adding $D$ times more layers with inter-op partitioning or increasing model dimensions with intra-op partitioning across $D$ devices may result in a graph with $O(D)$ nodes. Communication channels between devices could further increase the graph size by up to $O(D^{2})$ (e.g., partitioning gather or transpose). Such increase in the graph size would result in an infeasible amount of graph building and compilation time for massive-scale models.
 
-Straightforward scaling of the mode size by increasing the depth or width [Xivb05, Systed19] generally results in at least linear increase of training step time. Model parallelism by splitting layer weights and computation across multiple devices generally becomes necessary, leading to network communication overhead and device under-utilization. Device under-utilization stems from imbalanced assignment and sequential dependencies of the underlying neural network. This super-linear relationship between the computation cost and the model size can not be resolved by simply using more devices, making training massive models impractical.
-
-##### Infrastructure scalability for giant model representation
-
-A naive graph representation for the massive-scale model distributed across thousands of devices may become a bottleneck for both deep learning frameworks and their optimizing compilers. For example, adding $D$ times more layers with inter-op partitioning or increasing model dimensions with intra-op partitioning across $D$ devices may result in a graph with $O(D)$ nodes. Communication channels between devices could further increase the graph size by up to $O(D^{2})$ (e.g., partitioning gather or transpose). Such increase in the graph size would result in an infeasible amount of graph building and compilation time for massive-scale models.
-
-##### Non-trivial efforts for implementing partitioning strategies
-
-Partitioning a model to run on many devices efficiently is challenging, as it requires coordinating communications across devices. For graph-level partitioning, sophisticated algorithms [Systed19, Xivn18] are needed to reduce the overhead introduced by the sequential dependencies between different partitions of graphs allocated on different devices. For operator-level parallelism, there are different communication patterns for different partitioned operators, depending on the semantics, e.g., whether it needs to accumulate partial results, or to rearrange data shards. According to our experience, manually handling these issues in the model requires substantial amount of effort, given the fact that the frameworks like TensorFlow have a large sets of operators with ad-hoc semantics. In all cases, implementing model partitioning would particularly be a burden for practitioners, as changing model architecture would require changing the underlying device communications, causing a ripple effect.
+**Non-trivial efforts for implementing partitioning strategies.** Partitioning a model to run on many devices efficiently is challenging, as it requires coordinating communications across devices. For graph-level partitioning, sophisticated algorithms [Systed19, Xivn18] are needed to reduce the overhead introduced by the sequential dependencies between different partitions of graphs allocated on different devices. For operator-level parallelism, there are different communication patterns for different partitioned operators, depending on the semantics, e.g., whether it needs to accumulate partial results, or to rearrange data shards. According to our experience, manually handling these issues in the model requires substantial amount of effort, given the fact that the frameworks like TensorFlow have a large sets of operators with ad-hoc semantics. In all cases, implementing model partitioning would particularly be a burden for practitioners, as changing model architecture would require changing the underlying device communications, causing a ripple effect.
 
 ### 1.2 Design Principles for Efficient Training at Scale
 
 In this paper, we demonstrate how to overcome these challenges by building a $600$ billion parameters sequence-to-sequence Transformer model with Sparsely-Gated Mixture-of-Experts layers, which enjoys sub-linear computation cost and $O(1)$ compilation time. We trained this model with $2048$ TPU v3 devices for $4$ days on a multilingual machine translation task and achieved far superior translation quality compared to prior art when translating $100$ languages to English with a single non-ensemble model. We conducted experiments with various model sizes and found that the translation quality increases as the model gets bigger, yet the total wall-time to train only increases sub-linearly with respect to the model size, as illustrated in [Figure 1](#figure-01). To build such an extremely large model, we made the following key design choices.
 
-##### Sub-linear Scaling
+**Sub-linear Scaling.** First, model architecture should be designed to keep the computation and communication requirements sublinear in the model capacity. Conditional computation [Condit15, Xivp17, ArXivb10, Contro20] enables us to satisfy training and inference efficiency by having a sub-network activated on the per-input basis. Scaling capacity of RNN-based machine translation and language models by adding Position-wise Sparsely Gated Mixture-of-Experts (MoE) layers [Xivp17] allowed to achieve state-of-the-art results with sublinear computation cost. We therefore present our approach to extend Transformer architecture with MoE layers in Section [2](#S2 "2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
 
-First, model architecture should be designed to keep the computation and communication requirements sublinear in the model capacity. Conditional computation [Condit15, Xivp17, ArXivb10, Contro20] enables us to satisfy training and inference efficiency by having a sub-network activated on the per-input basis. Scaling capacity of RNN-based machine translation and language models by adding Position-wise Sparsely Gated Mixture-of-Experts (MoE) layers [Xivp17] allowed to achieve state-of-the-art results with sublinear computation cost. We therefore present our approach to extend Transformer architecture with MoE layers in Section [2](#S2 "2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
-
-##### The Power of Abstraction
-
-Second, the model description should be separated from the partitioning implementation and optimization. This separation of concerns let model developers focus on the network architecture and flexibly change the partitioning strategy, while the underlying system applies semantic-preserving transformations and implements efficient parallel execution. To this end we propose a module, GShard, which only requires the user to annotate a few critical tensors in the model with partitioning policies. It consists of a set of simple APIs for annotations, and a compiler extension in XLA [Tensor19] for automatic parallelization. Model developers write models as if there is a single device with huge memory and computation capacity, and the compiler automatically partitions the computation for the target based on the annotations and their own heuristics. We provide more annotation examples in Section [3.2](#S3.SS2 "3.2 GShard Annotation API for Parallel Execution ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
+**The Power of Abstraction.** Second, the model description should be separated from the partitioning implementation and optimization. This separation of concerns let model developers focus on the network architecture and flexibly change the partitioning strategy, while the underlying system applies semantic-preserving transformations and implements efficient parallel execution. To this end we propose a module, GShard, which only requires the user to annotate a few critical tensors in the model with partitioning policies. It consists of a set of simple APIs for annotations, and a compiler extension in XLA [Tensor19] for automatic parallelization. Model developers write models as if there is a single device with huge memory and computation capacity, and the compiler automatically partitions the computation for the target based on the annotations and their own heuristics. We provide more annotation examples in Section [3.2](#S3.SS2 "3.2 GShard Annotation API for Parallel Execution ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
 
 <span id="figure-02"></span>
 
@@ -60,9 +48,7 @@ Second, the model description should be separated from the partitioning implemen
 
 **Figure 2.** Comparison between MPMD and our proposed SPMD partitioning of a Dot operator ($[M,K]\times[K,N]=[M,N]$) across 4 devices. In this example, both operands are partitioned along the contracting dimension $K$, where each device computes the local result and globally combines with an AllReduce. MPMD partitioning generates separate operators for each device, limiting its scalability, whereas SPMD partitioning generates one program to run on all devices. Note that the compilation time with our SPMD partitioning is not-dependent of the number of devices being used.
 
-##### Scalable Compilers
-
-Third, the system infrastructure, including the computation representation and compilation, must scale with thousands of devices for parallel execution. For example, [Figure 2](#figure-02) illustrates two different ways of partitioning a dot-product operation across 4 devices (color-coded). Notice that with the usual MPMD (Multiple Program Multiple Data) approach in [Figure 2a](#figure-02) scaling becomes more challenging since the number of nodes in the graph increases linearly with the number of devices. Instead, we developed a compiler technique for SPMD (Single Program Multiple Data) transformation that generates a single program to run on all devices, keeping the compilation time constant independent of the number of devices, as illustrated in [Figure 2b](#figure-02). We will discuss our SPMD framework in more details in Section [3.3](#S3.SS3 "3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
+**Scalable Compilers.** Third, the system infrastructure, including the computation representation and compilation, must scale with thousands of devices for parallel execution. For example, [Figure 2](#figure-02) illustrates two different ways of partitioning a dot-product operation across 4 devices (color-coded). Notice that with the usual MPMD (Multiple Program Multiple Data) approach in [Figure 2a](#figure-02) scaling becomes more challenging since the number of nodes in the graph increases linearly with the number of devices. Instead, we developed a compiler technique for SPMD (Single Program Multiple Data) transformation that generates a single program to run on all devices, keeping the compilation time constant independent of the number of devices, as illustrated in [Figure 2b](#figure-02). We will discuss our SPMD framework in more details in Section [3.3](#S3.SS3 "3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
 
 The rest of the paper is organized as the following. Section [2](#S2 "2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") describes our Transformer architecture with Sparsely-Gated MoE layer in more details. Section [3](#S3 "3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") introduces our development module GShard. Section [4](#S4 "4 Massively Multilingual, Massive Machine Translation (M4) ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") demonstrates the application of our mixture of expert models on the multilingual machine translation task over $100$ language pairs. Section [5](#S5 "5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") has performance and memory measurements of our implementation. Section [6](#S6 "6 Related Work ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") discusses related work.
 
@@ -100,31 +86,21 @@ where $x_{s}$ is the input token to the MoE layer, wiand wobeing the input and o
 
 The gating function $\mathrm{GATE}(\cdot)$ is critical to the MoE layer, which is modeled by a softmax activation function to indicate the weights of each expert in processing incoming tokens. In other words, to indicate how good an expert is at processing the incoming token. Furthermore, the gating function must satisfy two goals:
 
--   •
+- Balanced load It is desirable that the MoE layer to sparsely activate the experts for a given token. A naive solution would be just to choose the top-$k$ experts according to the softmax probability distribution. However, it is known that this approach leads to load imbalance problem for training [Xivp17]: most tokens seen during training would have been dispatched to a small number of experts, amassing a very large input buffer for only a few (busy) experts leaving other experts untrained, slowing down the training. Meanwhile many other experts do not get sufficiently trained at all. A better design of the gating function would distribute processing burden more evenly across all experts.
 
-    Balanced load It is desirable that the MoE layer to sparsely activate the experts for a given token. A naive solution would be just to choose the top-$k$ experts according to the softmax probability distribution. However, it is known that this approach leads to load imbalance problem for training [Xivp17]: most tokens seen during training would have been dispatched to a small number of experts, amassing a very large input buffer for only a few (busy) experts leaving other experts untrained, slowing down the training. Meanwhile many other experts do not get sufficiently trained at all. A better design of the gating function would distribute processing burden more evenly across all experts.
+- Efficiency at scale It would be rather trivial to achieve a balanced load if the gating function is done sequentially. The computation cost for the gating function alone is at least $O(\mathrm{NE}$) for all $N$ tokens in the input batch given $E$ experts. However, in our study, $N$ is in the order of millions and $E$ is in the order of thousands, a sequential implementation of the gating function would keep most of the computational resources idle most of the time. Therefore, we need an efficient parallel implementation of the gating function to leverage many devices.
 
--   •
+We designed the following mechanisms in the gating function $\mathrm{GATE}(\cdot)$ to meet the above requirements (details illustrated in Algorithm [1](#algorithm-01 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")):
 
-    Efficiency at scale It would be rather trivial to achieve a balanced load if the gating function is done sequentially. The computation cost for the gating function alone is at least $O(\mathrm{NE}$) for all $N$ tokens in the input batch given $E$ experts. However, in our study, $N$ is in the order of millions and $E$ is in the order of thousands, a sequential implementation of the gating function would keep most of the computational resources idle most of the time. Therefore, we need an efficient parallel implementation of the gating function to leverage many devices.
+- Expert capacity To ensure the load is balanced, we enforce that the number of tokens processed by one expert is below some uniform threshold, which we define as expert capacity. Assuming that the total number of tokens in a training batch is $N$, and each token is dispatched to at most two experts, then the expert capacity is set to be $O(N/E)$. $\mathrm{GATE}(\cdot)$ keeps a running counter $c_{e}$ for how many tokens are dispatched to an expert. When both experts selected by a token already exceed their capacity, the token is considered as an overflowed token, where $\mathcal{G}_{s,E}$ degenerates into a zero vector. Such tokens have their representation $x_{s}$ passed on to the next layer via residual connections.
 
-We designed the following mechanisms in the gating function $\mathrm{GATE}(\cdot)$ to meet the above requirements (details illustrated in Algorithm [1](#alg1 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")):
+- Local group dispatching $\mathrm{GATE}(\cdot)$ partitions all tokens in a training batch evenly into $G$ groups, i.e., each group contains $S=N/G$ tokens. All groups are processed independently in parallel. Each group is given a fractional capacity of each expert, $2N/(G\cdot E)$. Each group ensures that at most this many tokens are dispatched to an expert. In this way, we can ensure that expert capacity is still enforced and the overall load is balanced.
 
--   •
+- Auxiliary loss It is important that the gating function does not always choose the same few experts, as this would lead to a capacity overflow for only a few experts and under-utilization for the remaining ones. Following [Xivp17], we define an auxiliary loss term $\ell_{\mathrm{aux}}$ to enforce this constraint. It is added to the overall loss function of the model $\mathcal{L}=\ell_{\mathrm{nll}}+k*\ell_{\mathrm{aux}}$ with a constant multiplier $k$. The particular form of the auxiliary loss term $\ell_{\mathrm{aux}}$ in line (13) of algorithm [1](#algorithm-01 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") is motivated by the following consideration: the term $c_{e}/S$ represents the fraction of input routed to each expert, and we want to minimize mean square of $c_{e}/S$. But because $c_{e}$ is derived from top-2 operation and is not differentiable, we use the mean gates per expert $m_{e}$ as a differentiable approximation and replace $(c_{e}/S)^{2}$ with $m_{e}(c_{e}/S)$, which can now be optimized with gradient descent.
 
-    Expert capacity To ensure the load is balanced, we enforce that the number of tokens processed by one expert is below some uniform threshold, which we define as expert capacity. Assuming that the total number of tokens in a training batch is $N$, and each token is dispatched to at most two experts, then the expert capacity is set to be $O(N/E)$. $\mathrm{GATE}(\cdot)$ keeps a running counter $c_{e}$ for how many tokens are dispatched to an expert. When both experts selected by a token already exceed their capacity, the token is considered as an overflowed token, where $\mathcal{G}_{s,E}$ degenerates into a zero vector. Such tokens have their representation $x_{s}$ passed on to the next layer via residual connections.
+- Random routing Intuitively, because $y_{s}$ is a weighted average of what selected experts return, if the weight for the 2nd expert is very small, we can simply ignore the 2nd expert to conserve the overall expert capacity. Hence, in addition to respecting the expert capacity constraint, $\mathrm{GATE}(\cdot)$ dispatches to the 2nd-best expert with the probability proportional to its weight $g_{2}$.
 
--   •
-
-    Local group dispatching $\mathrm{GATE}(\cdot)$ partitions all tokens in a training batch evenly into $G$ groups, i.e., each group contains $S=N/G$ tokens. All groups are processed independently in parallel. Each group is given a fractional capacity of each expert, $2N/(G\cdot E)$. Each group ensures that at most this many tokens are dispatched to an expert. In this way, we can ensure that expert capacity is still enforced and the overall load is balanced.
-
--   •
-
-    Auxiliary loss It is important that the gating function does not always choose the same few experts, as this would lead to a capacity overflow for only a few experts and under-utilization for the remaining ones. Following [Xivp17], we define an auxiliary loss term $\ell_{\mathrm{aux}}$ to enforce this constraint. It is added to the overall loss function of the model $\mathcal{L}=\ell_{\mathrm{nll}}+k*\ell_{\mathrm{aux}}$ with a constant multiplier $k$. The particular form of the auxiliary loss term $\ell_{\mathrm{aux}}$ in line (13) of algorithm [1](#alg1 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") is motivated by the following consideration: the term $c_{e}/S$ represents the fraction of input routed to each expert, and we want to minimize mean square of $c_{e}/S$. But because $c_{e}$ is derived from top-2 operation and is not differentiable, we use the mean gates per expert $m_{e}$ as a differentiable approximation and replace $(c_{e}/S)^{2}$ with $m_{e}(c_{e}/S)$, which can now be optimized with gradient descent.
-
--   •
-
-    Random routing Intuitively, because $y_{s}$ is a weighted average of what selected experts return, if the weight for the 2nd expert is very small, we can simply ignore the 2nd expert to conserve the overall expert capacity. Hence, in addition to respecting the expert capacity constraint, $\mathrm{GATE}(\cdot)$ dispatches to the 2nd-best expert with the probability proportional to its weight $g_{2}$.
+<span id="algorithm-01"></span>
 
 **Algorithm 1: Group-level top-2 gating with auxiliary loss**
 
@@ -156,7 +132,7 @@ We designed the following mechanisms in the gating function $\mathrm{GATE}(\cdot
 
 This section describes the implementation of the model in Section [2](#S2 "2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") that runs efficiently on a cluster of TPU devices.
 
-The first step is to express the model in terms of linear algebra operations, in which our software stack (TensorFlow [OSDId16]) and the hardware platform (TPU) are highly tailored and optimized. It is readily easy to code up most of the model in terms of linear algebra in the same way as the original Transformer. However, it requires some effort to express the MoE Layer, in particular $\mathrm{GATE}(\cdot)$ function presented in Algorithm [1](#alg1 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") due to its sequential nature, and we describe the details in Section [3.1](#S3.SS1 "3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
+The first step is to express the model in terms of linear algebra operations, in which our software stack (TensorFlow [OSDId16]) and the hardware platform (TPU) are highly tailored and optimized. It is readily easy to code up most of the model in terms of linear algebra in the same way as the original Transformer. However, it requires some effort to express the MoE Layer, in particular $\mathrm{GATE}(\cdot)$ function presented in Algorithm [1](#algorithm-01 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") due to its sequential nature, and we describe the details in Section [3.1](#S3.SS1 "3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
 
 Next, we annotate the linear algebra computation to express parallelism. Each tensor in the computation can be annotated for replication or distribution across a cluster of devices using sharding APIs in Section [3.2](#S3.SS2 "3.2 GShard Annotation API for Parallel Execution ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). Using sharding annotations enables separation of concerns between the model description and the efficient parallel implementation, and allows users to flexibly express diverse parallelization strategies. For example, (1) the attention layer is parallelized by splitting along the batch dimension and replicating its weights to all devices. On the other hand, (2) experts in the MoE layer are infeasible to be replicated in all the devices due to its sheer size and the only viable strategy is to shard experts into many devices. Furthermore, the whole model alternates between these two modes (1)-(2). Using annotations frees model developers from the system optimization efforts and avoids baking the parallel implementation and low-level details into the model code.
 
@@ -164,13 +140,16 @@ Finally, the compiler infrastructure takes a (partially) annotated linear algebr
 
 ### 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra
 
-Our model implementation (Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")) views the whole accelerator cluster as a single device and expresses its core mathematical algorithm in a few tensor operations independent of the concrete setup of the cluster. Einstein summation notation [Spring23] (i.e., tf.einsum) is a powerful construct to concisely express the model and we use it extensively in our implementation. The softmax gates computation is trivially expressed by one einsum followed by the softmax function. Dispatching of inputs to selected experts is expressed by a single einsum between the dispatching mask and the input. All $\mathrm{FFN}_{e}$ weights are combined into single 3-D tensors wi amd wo and the computation by $\mathrm{FFN}_{1}\dots\mathrm{FFN}_{E}$ is expressed using 3 operators (two einsum and one relu). Finally, taking weighted average of all experts output into the final output is expressed in another einsum.
+Our model implementation (Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")) views the whole accelerator cluster as a single device and expresses its core mathematical algorithm in a few tensor operations independent of the concrete setup of the cluster. Einstein summation notation [Spring23] (i.e., tf.einsum) is a powerful construct to concisely express the model and we use it extensively in our implementation. The softmax gates computation is trivially expressed by one einsum followed by the softmax function. Dispatching of inputs to selected experts is expressed by a single einsum between the dispatching mask and the input. All $\mathrm{FFN}_{e}$ weights are combined into single 3-D tensors wi amd wo and the computation by $\mathrm{FFN}_{1}\dots\mathrm{FFN}_{E}$ is expressed using 3 operators (two einsum and one relu). Finally, taking weighted average of all experts output into the final output is expressed in another einsum.
 
-Top2Gating in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") computes the union of all group-local $\mathcal{G}_{S,E}$ described in Algorithm [1](#alg1 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). combine\_weights is a 4-D tensor with shape \[G, S, E, C\]. The value combine\_weights\[g, s, e, c\] is non-zero when the input token $s$ in group $g$ is sent to the input buffer of expert $e$ at buffer position $c$. For a specific g and s, a slice combine\_weight\[g, s, :, :\] contains at most two non-zero vaules. Binary dispatch\_mask is produced from combine\_weights by simply setting all non-zero values to 1.
+Top2Gating in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") computes the union of all group-local $\mathcal{G}_{S,E}$ described in Algorithm [1](#algorithm-01 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). combine\_weights is a 4-D tensor with shape \[G, S, E, C\]. The value combine\_weights\[g, s, e, c\] is non-zero when the input token $s$ in group $g$ is sent to the input buffer of expert $e$ at buffer position $c$. For a specific g and s, a slice combine\_weight\[g, s, :, :\] contains at most two non-zero vaules. Binary dispatch\_mask is produced from combine\_weights by simply setting all non-zero values to 1.
+
+<span id="algorithm-02"></span>
 
 **Algorithm 2: Forward pass of the Positions-wise MoE layer. The underscored letter (e.g., G and E) indicates the dimension along which a tensor will be partitioned.**
 
-[⬇](data:text/plain;base64,Z2F0ZXMgPSBzb2Z0bWF4KGVpbnN1bSgiJlxHRyZTTSxNRS0+JlxHRyZTRSIsIGlucHV0cywgd2cpKQpjb21iaW5lX3dlaWdodHMsIGRpc3BhdGNoX21hc2sgPSBUb3AyR2F0aW5nKGdhdGVzKQpkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZTTS0+JlxFRSZHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCmggPSBlaW5zdW0oIiZcRUUmR0NNLCZcRUUmTUgtPiZcRUUmR0NIIiwgZGlzcGF0Y2hlZF9leHBlcnRfaW5wdXRzLCB3aSkKaCA9IHJlbHUoaCkKZXhwZXJ0X291dHB1dHMgPSBlaW5zdW0oIiZcRUUmR0NILCZcRUUmSE0tPiZcR0cmRUNNIiwgaCwgd28pCm91dHB1dHMgPSBlaW5zdW0oCiAgICAiJlxHRyZTRUMsJlxHRyZFQ00tPiZcR0cmU00iLCBjb21iaW5lX3dlaWdodHMsIGV4cGVydF9vdXRwdXRzKQ==)
+
+<div class="paper-algorithm">
 
 - $\mathrm{gates}\leftarrow\mathrm{softmax}(\mathrm{einsum}("\mathrm{GSM},\mathrm{ME}\to\mathrm{GSE}",\mathrm{inputs},\mathrm{wg}))$.
 - $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$.
@@ -180,11 +159,13 @@ Top2Gating in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer
 - $\mathrm{expert\_outputs}\leftarrow\mathrm{einsum}("\mathrm{EGCH},\mathrm{EHM}\to\mathrm{GECM}",h,\mathrm{wo})$.
 - $\mathrm{outputs}\leftarrow\mathrm{einsum}("\mathrm{GSEC},\mathrm{GECM}\to\mathrm{GSM}",\mathrm{combine\_weights},\mathrm{expert\_outputs})$.
 
+</div>
+
 We need to choose the number of groups $G$ and the number of experts $E$ properly so that the algorithm can scale to a cluster with $D$ devices. It is worthwhile to analyze its overall computation complexity (the total number of floating point operations) for a training step given a training batch of $N$ tokens.
 
-We analyze Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") computation complexity scaling with number the of devices $D$ with the following assumptions: a) number of tokens per device $\frac{N}{D}=O(1)$ is constant [+1]; b) $G=O(D)$, $S=O(1)$ and $N=O(\mathrm{GS})=O(D)$; c) $M=O(1)$, $H=O(1)$; d) $E=O(D)$; and e) $C=O(\frac{2S}{E})=O(\frac{1}{D}),D<S$ and is a positive integer [+2] .
+We analyze Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") computation complexity scaling with number the of devices $D$ with the following assumptions: a) number of tokens per device $\frac{N}{D}=O(1)$ is constant [+1]; b) $G=O(D)$, $S=O(1)$ and $N=O(\mathrm{GS})=O(D)$; c) $M=O(1)$, $H=O(1)$; d) $E=O(D)$; and e) $C=O(\frac{2S}{E})=O(\frac{1}{D}),D<S$ and is a positive integer [+2] .
 
-The total number of floating point operations $\mathrm{FLOPS}$ in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"):
+The total number of floating point operations $\mathrm{FLOPS}$ in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"):
 
 $$
 \mathrm{FLOPS}_{\mathrm{Softmax}}\qquad +\qquad \mathrm{FLOPS}_{\mathrm{Top2Gating}}\qquad +\qquad \mathrm{FLOPS}_{\mathrm{Dispatch|Combine}}\qquad +\qquad \mathrm{FLOPS}_{\mathrm{FFN}}=
@@ -208,69 +189,65 @@ In addition to the computation cost, we have non-constant cross-device communica
 
 ### 3.2 GShard Annotation API for Parallel Execution
 
-Due to the daunting size and computation demand of tensors in Algorithm [1](#alg1 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"), we have to parallelize the algorithm over many devices. An immediate solution of how to shard each tensor in the algorithm is illustrated by underscored letters in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). The *sharding* API in GShard allows us to annotate tensors in the program to selectively specify how they should be partitioned. This information is propagated to the compiler so that the compiler can automatically apply transformations for parallel execution. We use the following APIs in TensorFlow/Lingvo [Xivd02] in our work.
+Due to the daunting size and computation demand of tensors in Algorithm [1](#algorithm-01 "In 2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"), we have to parallelize the algorithm over many devices. An immediate solution of how to shard each tensor in the algorithm is illustrated by underscored letters in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). The *sharding* API in GShard allows us to annotate tensors in the program to selectively specify how they should be partitioned. This information is propagated to the compiler so that the compiler can automatically apply transformations for parallel execution. We use the following APIs in TensorFlow/Lingvo [Xivd02] in our work.
 
--   •
+- replicate(tensor) annotates tensor to be replicated across partitions, and returns the annotated tensor. This is often used for the non-MoE layers in our model to replicate the weights.
 
-    replicate(tensor) annotates tensor to be replicated across partitions, and returns the annotated tensor. This is often used for the non-MoE layers in our model to replicate the weights.
+- split(tensor, split\_dimension, num\_partitions) annotates tensor to be partitioned along split\_dimension, and returns the annotated tensor. Partition $i$ is placed on the $i$’th device, and num\_partitions must not exceed the number of devices on the system.
 
--   •
-
-    split(tensor, split\_dimension, num\_partitions) annotates tensor to be partitioned along split\_dimension, and returns the annotated tensor. Partition $i$ is placed on the $i$’th device, and num\_partitions must not exceed the number of devices on the system.
-
--   •
-
-    shard(tensor, device\_assignment) generalizes split() to allow partitioning multiple dimensions and specifying the placement of each partition. Appendix [A.3](#A1.SS3 "A.3 General Sharding API ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") describes this API with more details.
+- shard(tensor, device\_assignment) generalizes split() to allow partitioning multiple dimensions and specifying the placement of each partition. Appendix [A.3](#A1.SS3 "A.3 General Sharding API ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") describes this API with more details.
 
 Note that the invocations to split or shard only adds annotations and does not change the logical shape in the user program. The user still works with full shapes and does not need to worry about issues like uneven partitioning.
 
 GShard is general in the sense that the simple APIs apply to all dimensions in the same way. The sharded dimensions could include batch (data-parallelism), feature, expert, and even spatial dimensions in image models, depending on the use cases. Also, since the sharding annotation is per tensor, different parts of the model can be partitioned in different ways. This flexibility enables us to partition the giant MoE weights and switch partition modes between MoE and non-MoE layers, as well as uses cases beyond this paper, e.g., spatial partitioning of large images [TPUs19] (Appendix [A.4](#A1.SS4 "A.4 SPMD Partitioning for Convolution and Window-Based Operators ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")).
 
-With the above sharding APIs, we can express the sharding strategy shown in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") as below. The input tensor is split along the first dimension and the gating weight tensor is replicated. After computing the dispatched expert inputs, we apply split to change the sharding from the group ($G$) dimension to the expert ($E$) dimension. $D$ is device count.
+With the above sharding APIs, we can express the sharding strategy shown in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") as below. The input tensor is split along the first dimension and the gating weight tensor is replicated. After computing the dispatched expert inputs, we apply split to change the sharding from the group ($G$) dimension to the expert ($E$) dimension. $D$ is device count.
 
-[⬇](data:text/plain;base64,ICAjIFBhcnRpdGlvbiBpbnB1dHMgYWxvbmcgZ3JvdXAgKEcpIGRpbS4KJVxIaWxpZ2h0JSsgaW5wdXRzID0gc3BsaXQoaW5wdXRzLCAwLCBEKQogICMgUmVwbGljYXRlIHRoZSBnYXRpbmcgd2VpZ2h0cwolXEhpbGlnaHQlKyB3ZyA9IHJlcGxpY2F0ZSh3ZykKICBnYXRlcyA9IHNvZnRtYXgoZWluc3VtKCJHU00sTUUtPkdTRSIsIGlucHV0cywgd2cpKQogIGNvbWJpbmVfd2VpZ2h0cywgZGlzcGF0Y2hfbWFzayA9IFRvcDJHYXRpbmcoZ2F0aW5nX2xvZ2l0cykKICBkaXNwYXRjaGVkX2V4cGVydF9pbnB1dHMgPSBlaW5zdW0oCiAgICAiR1NFQyxHU00tPkVHQ00iLCBkaXNwYXRjaF9tYXNrLCByZXNoYXBlZF9pbnB1dHMpCiAgIyBQYXJ0aXRpb24gZGlzcGF0Y2hlZCBpbnB1dHMgYWxvbmcgZXhwZXJ0IChFKSBkaW0uCiVcSGlsaWdodCUrIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cyA9IHNwbGl0KGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgMCwgRCkKICBoID0gZWluc3VtKCJFR0NNLEVNSC0+RUdDSCIsIGRpc3BhdGNoZWRfZXhwZXJ0X2lucHV0cywgd2kpCiAgLi4u)
 
-- **Partition inputs along group (G) dim.**
-- \`inputs \= split(inputs, 0, D)\`.
-- **Replicate the gating weights.**
-- \`wg \= replicate(wg)\`.
-- \`gates \= softmax(einsum("GSM,ME->GSE", inputs, wg))\`.
-- \`combine\_weights, dispatch\_mask \= Top2Gating(gating\_logits)\`.
-- \`dispatched\_expert\_inputs \= einsum("GSEC,GSM->EGCM", dispatch\_mask, reshaped\_inputs)\`.
-- **Partition dispatched inputs along expert (E) dim.**
-- \`dispatched\_expert\_inputs \= split(dispatched\_expert\_inputs, 0, D)\`.
-- \`h \= einsum("EGCM,EMH->EGCH", dispatched\_expert\_inputs, wi)\`.
-- \`...\`
+```pseudocode
+# Partition inputs along group (G) dimension
+inputs = split(inputs, 0, D)
+# Replicate the gating weights
+wg = replicate(wg)
+gates = softmax(einsum("GSM,ME->GSE", inputs, wg))
+combine_weights, dispatch_mask = Top2Gating(gating_logits)
+dispatched_expert_inputs = einsum(
+  "GSEC,GSM->EGCM", dispatch_mask, reshaped_inputs)
+# Partition dispatched inputs along expert (E) dimension
+dispatched_expert_inputs = split(dispatched_expert_inputs, 0, D)
+h = einsum("EGCM,EMH->EGCH", dispatched_expert_inputs, wi)
+...
+```
 
-##### Per-tensor sharding assignment
-
-As shown in the example above, users are not required to annotate every tensor in the program. Annotations are typically only required on a few important operators like Einsums in our model and the compiler uses its own heuristics to infer sharding for the rest of the tensors [+3]. For example, since the input tensor is partitioned along $G$ and the weight tensor is replicated, the compiler chooses to partition the einsum output along the same $G$ dimension (Line 5). Similarly, since both inputs are partitioned along the $G$ dimension for the input dispatch einsum (Line 7), the output sharding is inferred to be split along the $G$ dimension, and then we add the split annotation on the output to reshard along the $E$ dimension. Some annotations in the above example could also be determined by the compiler (e.g., replicate(wg)) but it is recommended to annotate the initial input and final output tensors of the computation.
+**Per-tensor sharding assignment.** As shown in the example above, users are not required to annotate every tensor in the program. Annotations are typically only required on a few important operators like Einsums in our model and the compiler uses its own heuristics to infer sharding for the rest of the tensors [+3]. For example, since the input tensor is partitioned along $G$ and the weight tensor is replicated, the compiler chooses to partition the einsum output along the same $G$ dimension (Line 5). Similarly, since both inputs are partitioned along the $G$ dimension for the input dispatch einsum (Line 7), the output sharding is inferred to be split along the $G$ dimension, and then we add the split annotation on the output to reshard along the $E$ dimension. Some annotations in the above example could also be determined by the compiler (e.g., replicate(wg)) but it is recommended to annotate the initial input and final output tensors of the computation.
 
 The compiler currently uses an iterative data-flow analysis to propagate sharding information from an operator to its neighbors (operands and users), starting from the user-annotated operators. The analysis tries to minimize the chance of resharding by aligning the sharding decisions of adjacent operators. There could be other approaches such as integer programming or machine-learning methods, but improving the automatic sharding assignment is not the focus of this paper and we leave it as future work.
 
-##### Mixing manual and automatic sharding
+**Mixing manual and automatic sharding.** Automatic partitioning with sharding annotations is often enough for common cases, but GShard also has the flexibility to allow mixing manually partitioned operators with auto-partitioned operators. This provides users with more controls on how operators are partitioned, and one example is that the user has more run-time knowledge beyond the operators’ semantics. For example, neither XLA’s nor TensorFlow’s Gather operator definition conveys information about the index bounds for different ranges in the input, but the user might know that a specific Gather operator shuffles data only within each partition. In this case, the user can trivially partition the operator by simply shrinking the dimension size and performing a local Gather; otherwise, the compiler would need to be conservative about the index range and add unnecessary communication overhead. For example, the dispatching Einsum (Line 3) in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"), which uses an one-hot matrix to dispatch inputs, can be alternatively implemented with a Gather operator using trivial manual partitioning, while the rest of the model is partitioned automatically. Below is the pseudocode illustrating this use case.
 
-Automatic partitioning with sharding annotations is often enough for common cases, but GShard also has the flexibility to allow mixing manually partitioned operators with auto-partitioned operators. This provides users with more controls on how operators are partitioned, and one example is that the user has more run-time knowledge beyond the operators’ semantics. For example, neither XLA’s nor TensorFlow’s Gather operator definition conveys information about the index bounds for different ranges in the input, but the user might know that a specific Gather operator shuffles data only within each partition. In this case, the user can trivially partition the operator by simply shrinking the dimension size and performing a local Gather; otherwise, the compiler would need to be conservative about the index range and add unnecessary communication overhead. For example, the dispatching Einsum (Line 3) in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"), which uses an one-hot matrix to dispatch inputs, can be alternatively implemented with a Gather operator using trivial manual partitioning, while the rest of the model is partitioned automatically. Below is the pseudocode illustrating this use case.
 
-[⬇](data:text/plain;base64,IyBpbnB1dCBoYXMgc2hhcGUgW0csIFMsIE1dLiBzcGxpdCgpIGRvZXMgbm90IGNoYW5nZSBsb2dpY2FsIHNoYXBlLgppbnB1dCA9IHNwbGl0KGlucHV0LCAwLCBudW1fZGV2aWNlcykKIyBzX2luZGljZXMgaGFzIHNoYXBlIFtFLCBHLCBDLCAxXS4gVmFsdWVzOiBpbmRpY2VzIHRvIFMgaW4gaW5wdXQuCnNfaW5kaWNlcyA9IHNwbGl0KHNfaW5kaWNlcywgMSwgbnVtX2RldmljZXMpCgojIEJlZ2luIG1hbnVhbCBwYXJ0aXRpb25pbmcuCiMgcGFydGl0aW9uZWRfaW5wdXQgaGFzIHNoYXBlIFtHL251bV9kZXZpY2VzLCBTLCBNXQolXEhpbGlnaHQlcGFydGl0aW9uZWRfaW5wdXQgPSBhdXRvX3RvX21hbnVhbF9zcG1kX3BhcnRpdGlvbihpbnB1dCkKIyBwYXJ0aXRpb25lZF9zX2luZGljZXMgaGFzIHNoYXBlIFtFLCBHL251bV9kZXZpY2VzLCBDLCAxXQolXEhpbGlnaHQlcGFydGl0aW9uZWRfc19pbmRpY2VzID0gYXV0b190b19tYW51YWxfc3BtZF9wYXJ0aXRpb24oc19pbmRpY2VzKQojIENvbmNhdCB3aXRoIEcgaW5kaWNlcyBpbiBwYXJ0aXRpb25lZF9pbnB1dDogSW90YSBvbiBHIGRpbWVuc2lvbi4KcGFydGl0aW9uZWRfZ3NfaW5kaWNlcyA9IGNvbmNhdCgKICAgIGlvdGEoW0UsIEcvbnVtX2RldmljZXMsIEMsIDFdLCAxKSwgcGFydGl0aW9uZWRfc19pbmRpY2VzLCAzKQojIHBhcnRpdGlvbmVkX2RhdGEgaGFzIHNoYXBlIFtFLCBHL251bV9kZXZpY2VzLCBDLCBNXQpwYXJ0aXRpb25lZF9kYXRhID0gZ2F0aGVyKAogICAgcGFydGl0aW9uZWRfaW5wdXQsIHBhcnRpdGlvbmVkX2dzX2luZGljZXMpCgojIFN3aXRjaCBiYWNrIHRvIGF1dG8gcGFydGl0aW9uaW5nLgojIGRhdGEgaGFzIHNoYXBlIFtFLCBHLCBDLCBNXQolXEhpbGlnaHQlZGF0YSA9IG1hbnVhbF90b19hdXRvX3NwbWRfcGFydGl0aW9uKHBhcnRpdGlvbmVkX2RhdGEpCi4uLg==)
+```pseudocode
+# The input has shape [G, S, M]; split() does not change the logical shape
+input = split(input, 0, num_devices)
+# s_indices has shape [E, G, C, 1]; values are indices to S in the input
+s_indices = split(s_indices, 1, num_devices)
 
-- **The input has shape** \[G, S, M\]; \`split()\` does not change the logical shape.
-- \`input \= split(input, 0, num\_devices)\`.
-- **$s_{\mathrm{indices}}$ has shape** \[E, G, C, 1\]; values are indices to $S$ in the input.
-- \`s\_indices \= split(s\_indices, 1, num\_devices)\`.
-- **Begin manual partitioning.**
-- **The partitioned input has shape** \[G/num\_devices, S, M\].
-  - \`partitioned\_input \= auto\_to\_manual\_spmd\_partition(input)\`.
-- **The partitioned $s_{\mathrm{indices}}$ has shape** \[E, G/num\_devices, C, 1\].
-  - \`partitioned\_s\_indices \= auto\_to\_manual\_spmd\_partition(s\_indices)\`.
-- **Concat with $G$ indices in partitioned input: iota on the $G$ dimension.**
-  - \`partitioned\_gs\_indices \= concat(iota([E, G/num\_devices, C, 1], 1), partitioned\_s\_indices, 3)\`.
-- **The partitioned data has shape** \[E, G/num\_devices, C, M\].
-  - \`partitioned\_data \= gather(partitioned\_input, partitioned\_gs\_indices)\`.
-- **Switch back to auto partitioning.**
-- **The data has shape** \[E, G, C, M\].
-  - \`data \= manual\_to\_auto\_spmd\_partition(partitioned\_data)\`.
-- \`...\`
+# Begin manual partitioning
+# The partitioned input has shape [G/num_devices, S, M]
+partitioned_input = auto_to_manual_spmd_partition(input)
+# The partitioned s_indices has shape [E, G/num_devices, C, 1]
+partitioned_s_indices = auto_to_manual_spmd_partition(s_indices)
+# Concat with G indices in partitioned input: iota on the G dimension
+partitioned_gs_indices = concat(
+  iota([E, G/num_devices, C, 1], 1), partitioned_s_indices, 3)
+# The partitioned data has shape [E, G/num_devices, C, M]
+partitioned_data = gather(partitioned_input, partitioned_gs_indices)
+
+# Switch back to auto partitioning
+# The data has shape [E, G, C, M]
+data = manual_to_auto_spmd_partition(partitioned_data)
+...
+```
 
 ### 3.3 The XLA SPMD Partitioner for GShard
 
@@ -284,21 +261,13 @@ XLA models a computation as a dataflow graph where nodes are operators and edges
 
 Since the partitioner forces all the devices to run the same program, the communication patterns are also regular and XLA defines a set of collective operators that perform MPI-style communications [Septem09]. We list the common communication primitives we use in the SPMD partitioner below.
 
-##### CollectivePermute
+**CollectivePermute.** This operator specifies a list of source-destination pairs, and the input data of a source is sent to the corresponding destination. It is used in two places: changing a sharded tensor’s device order among partitions, and halo exchange as discussed later in this section.
 
-This operator specifies a list of source-destination pairs, and the input data of a source is sent to the corresponding destination. It is used in two places: changing a sharded tensor’s device order among partitions, and halo exchange as discussed later in this section.
+**AllGather.** This operator concatenates tensors from all participants following a specified order. It is used to change a sharded tensor to a replicated tensor.
 
-##### AllGather
+**AllReduce.** This operator performs elementwise reduction (e.g., summation) over the inputs from all participants. It is used to combine partially reduced intermediate tensors from different partitions. In a TPU device network, AllReduce has a constant cost when the number of partition grows (Section [5.2](#S5.SS2 "5.2 Runtime Efficiency and Scalability ‣ 5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")). It is also a commonly used primitive with efficient implementation in other types of network topology [Alto19].
 
-This operator concatenates tensors from all participants following a specified order. It is used to change a sharded tensor to a replicated tensor.
-
-##### AllReduce
-
-This operator performs elementwise reduction (e.g., summation) over the inputs from all participants. It is used to combine partially reduced intermediate tensors from different partitions. In a TPU device network, AllReduce has a constant cost when the number of partition grows (Section [5.2](#S5.SS2 "5.2 Runtime Efficiency and Scalability ‣ 5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")). It is also a commonly used primitive with efficient implementation in other types of network topology [Alto19].
-
-##### AllToAll
-
-This operator logically splits the input of each participant along one dimension, then sends each piece to a different participant. On receiving data pieces from others, each participant concatenates the pieces to produce its result. It is used to reshard a sharded tensor from one dimension to another dimension. AllToAll is an efficient way for such resharding in a TPU device network, where its cost increases sublinearly when the number of partitions grows (Section [5.2](#S5.SS2 "5.2 Runtime Efficiency and Scalability ‣ 5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")).
+**AllToAll.** This operator logically splits the input of each participant along one dimension, then sends each piece to a different participant. On receiving data pieces from others, each participant concatenates the pieces to produce its result. It is used to reshard a sharded tensor from one dimension to another dimension. AllToAll is an efficient way for such resharding in a TPU device network, where its cost increases sublinearly when the number of partitions grows (Section [5.2](#S5.SS2 "5.2 Runtime Efficiency and Scalability ‣ 5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")).
 
 #### 3.3.2 Per-Operator SPMD Partitioning
 
@@ -306,21 +275,13 @@ The core of the partitioner is the per-operator transformation from a full-sized
 
 There are a few important technical challenges in general cases, which we will cover in Section [3.3.3](#S3.SS3.SSS3 "3.3.3 Supporting a Complete Set of Operators ‣ 3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). To keep the discussion more relevant to the MoE model, this section focuses on Einsum partitioning to illustrate a few communication patterns. And to keep it simple for now, we assume that all tensors are evenly partitioned, which means the size of the dimension to partitition is a multiple of the partition count.
 
-##### Einsum Case Study
+**Einsum Case Study.** Einsum is the most critical operator in implementing the MoE model. They are represented as a Dot operation in XLA HLO, where each operand (LHS or RHS) consists of three types of dimensions:
 
-Einsum is the most critical operator in implementing the MoE model. They are represented as a Dot operation in XLA HLO, where each operand (LHS or RHS) consists of three types of dimensions:
+- Batch dimensions are the embarrassingly parallel dimensions. The same set of batch dimensions must exist in all of LHS, RHS and the output, and each element in the output only depends on the corresponding batch in LHS and RHS.
 
--   •
+- Contracting dimensions only exist in the operands. LHS and RHS must have the same set of contracting dimensions, and they are summed up and collapsed in the output.
 
-    Batch dimensions are the embarrassingly parallel dimensions. The same set of batch dimensions must exist in all of LHS, RHS and the output, and each element in the output only depends on the corresponding batch in LHS and RHS.
-
--   •
-
-    Contracting dimensions only exist in the operands. LHS and RHS must have the same set of contracting dimensions, and they are summed up and collapsed in the output.
-
--   •
-
-    Non-contracting dimensions are also parallel dimensions that exist in one of the operands and the output. Each of LHS and RHS has its own set of non-contracting dimensions, which are inherited by the output.
+- Non-contracting dimensions are also parallel dimensions that exist in one of the operands and the output. Each of LHS and RHS has its own set of non-contracting dimensions, which are inherited by the output.
 
 Sharding propagation prioritizes choosing the same sharding on batch dimensions of LHS, RHS and output, because that would avoid any cross-partition communication. However, that is not always possible, and we need cross-partition communication in the following three cases.
 
@@ -334,35 +295,23 @@ Sharding propagation prioritizes choosing the same sharding on batch dimensions 
 
 **Figure 4.** Examples of Einsum partitioning with cross-device communication.
 
--   •
+- Resharding. In the MoE model we built, the expert dispatching logic (Line 3 in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")) requires switching the partitioned dimension after an Einsum. Since resharding is efficient (Section [5.2](#S5.SS2 "5.2 Runtime Efficiency and Scalability ‣ 5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")) with AllToAll, we first execute the Einsum locally, then reshard it to the desired dimension, as shown in [Figure 4a](#figure-04).
 
-    Resharding. In the MoE model we built, the expert dispatching logic (Line 3 in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")) requires switching the partitioned dimension after an Einsum. Since resharding is efficient (Section [5.2](#S5.SS2 "5.2 Runtime Efficiency and Scalability ‣ 5 Performance and Memory Consumption ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")) with AllToAll, we first execute the Einsum locally, then reshard it to the desired dimension, as shown in [Figure 4a](#figure-04).
+- Accumulating partial results. If the inputs are partitioned along contracting dimensions, the local result is partial and we need to use an AllReduce to combine them and produce the final result, as shown in [Figure 4b](#figure-04).
 
--   •
-
-    Accumulating partial results. If the inputs are partitioned along contracting dimensions, the local result is partial and we need to use an AllReduce to combine them and produce the final result, as shown in [Figure 4b](#figure-04).
-
--   •
-
-    Slicing in a loop. For certain scenarios, we also implemented an algorithm similar to Cannon’s algorithm [USA69], in order to limit the size of tensors on each partition. For example, if both operands are partitioned on a non-contracting dimension, we cannot compute the local Einsum directly since operands have different non-contracting dimensions. Replicating one of the operands would not cause redundant computation, but it requires the replicated operand to fit in device memory. Therefore, if the size of the operand is too large, we instead keep both operands partitioned and use a loop to iterate over each slice of the result, and use CollectivePermute to communicate the input slices ([Figure 4c](#figure-04)).
+- Slicing in a loop. For certain scenarios, we also implemented an algorithm similar to Cannon’s algorithm [USA69], in order to limit the size of tensors on each partition. For example, if both operands are partitioned on a non-contracting dimension, we cannot compute the local Einsum directly since operands have different non-contracting dimensions. Replicating one of the operands would not cause redundant computation, but it requires the replicated operand to fit in device memory. Therefore, if the size of the operand is too large, we instead keep both operands partitioned and use a loop to iterate over each slice of the result, and use CollectivePermute to communicate the input slices ([Figure 4c](#figure-04)).
 
 #### 3.3.3 Supporting a Complete Set of Operators
 
 We solved several additional challenges to enable the SPMD partitioner to support a complete set of operators without extra constraints of tensor shapes or operator configurations. These challenges often involve asymmetric compute or communication patterns between partitions, which are particularly hard to express in SPMD, since the single program needs to be general enough for all partitions. We cannot simply create many branches in the single program based on the run-time device ID, because that would lead to an explosion in program size.
 
-##### Static shapes and uneven partitioning
-
-XLA requires tensor shapes to be static. [+5] However, when a computation is partitioned, it’s not always the case that all partitions have the same input/output shapes, because dimensions may not be evenly divisible by the number of partitions. In those cases, the size of the shape is rounded up to the next multiple of partition count, and the data in that padded region can be arbitrary.
+**Static shapes and uneven partitioning.** XLA requires tensor shapes to be static. [+5] However, when a computation is partitioned, it’s not always the case that all partitions have the same input/output shapes, because dimensions may not be evenly divisible by the number of partitions. In those cases, the size of the shape is rounded up to the next multiple of partition count, and the data in that padded region can be arbitrary.
 
 When computing an operator, we may need to fill in a known value to the padded region for correctness. For example, if we need to partition an Reduce-Add operator, the identity value of zero needs to be used. Consider an example where the partitioned dimension (15) cannot be divided into 2 (partition count), so Partition 1 has one more column than needed. We create an Iota operator of range \[0, 8), add the partition offset (calculated from $\mathrm{PartitionId}\times 8$), and compare with the full shape offset (15). Based on the predicate value, we select either from the operand or from zero, and the result is the masked operand.
 
-##### Static operator configurations
+**Static operator configurations.** XLA operators have static configurations, like the padding, stride, and dilation defined in Convolution. However, different partitions may not execute with the same operator configuration. E.g., for a Convolution, the left-most partition applies padding to its left while the right-most partition applies padding to its right. In such cases, the partitioner may choose configurations that make some partitions to produce slightly more data than needed, then slice out the the irrelevant parts. Appendix [A.4](#A1.SS4 "A.4 SPMD Partitioning for Convolution and Window-Based Operators ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") discusses examples for Convolution and similar operators.
 
-XLA operators have static configurations, like the padding, stride, and dilation defined in Convolution. However, different partitions may not execute with the same operator configuration. E.g., for a Convolution, the left-most partition applies padding to its left while the right-most partition applies padding to its right. In such cases, the partitioner may choose configurations that make some partitions to produce slightly more data than needed, then slice out the the irrelevant parts. Appendix [A.4](#A1.SS4 "A.4 SPMD Partitioning for Convolution and Window-Based Operators ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") discusses examples for Convolution and similar operators.
-
-##### Halo exchange
-
-Certain operators have a communication pattern which involves partial data exchange with neighboring partitions, which we call *halo exchange*. We use the CollectivePermute operator to exchange halo data between partitions.
+**Halo exchange.** Certain operators have a communication pattern which involves partial data exchange with neighboring partitions, which we call *halo exchange*. We use the CollectivePermute operator to exchange halo data between partitions.
 
 <span id="figure-05"></span>
 
@@ -380,9 +329,7 @@ Another use of halo exchange is for data formatting operators that change the si
 
 Other data formatting operators, although logically not changing the size of the shape, may also need halo exchange, specifically due to the static shape constraint and uneven partitioning. For example, the Reverse operator reverses the order of elements in a tensor, but if it is partitioned unevenly, we need to shift data across partitions to keep the padding logically to the right of the result tensor. Another example is Reshape. Consider reshaping a tensor from \[3, 2\] to \[6\], where the input is unevenly partitioned in 2 ways on the first dimension (partition shape \[2, 2\]), and the output is also partitioned in 2 ways (partition shape \[3\]). There is padding on the input due to uneven partitioning, but after Reshape, the output tensor no longer has padding; as a result, halo exchange is required in a similar way to Slice ([Figure 5c](#figure-05)).
 
-##### Compiler optimizations
-
-The SPMD partitioner creates various data formatting operators in order to perform slicing, padding, concatenation, masking and halo exchange. To address the issue, we leverage XLA’s fusion capabilities on TPU, as well as code motion optimizations for slicing and padding, to largely hide the overhead of data formatting. As a result, the run-time overhead is typically negligible, even for convolutional networks where masking and padding are heavily used.
+**Compiler optimizations.** The SPMD partitioner creates various data formatting operators in order to perform slicing, padding, concatenation, masking and halo exchange. To address the issue, we leverage XLA’s fusion capabilities on TPU, as well as code motion optimizations for slicing and padding, to largely hide the overhead of data formatting. As a result, the run-time overhead is typically negligible, even for convolutional networks where masking and padding are heavily used.
 
 ## 4 Massively Multilingual, Massive Machine Translation (M4)
 
@@ -408,9 +355,7 @@ Scaling Transformer architecture has been an exploratory research track recently
 
 We aim for practical training time and seek for architectures that warrant training efficiency. Our strategy has three pillars; increase the depth of the network by stacking more layers similar to GPipe [Systed19], increase the width of the network by introducing multiple replicas of the feed-forward networks (experts) as described in Section [2.2](#S2.SS2 "2.2 Position-wise Mixture-of-Experts Layer ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") and make use of learned routing modules to (sparsely) assign tokens to experts as described in Section [2.1](#S2.SS1 "2.1 Sparse scaling of the Transformer architecture ‣ 2 Model ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). With this three constituents, we obtain an easy to scale, efficient to train and highly expressive architecture, which we call Sparsely-Gated Mixture-of-Experts Transformer or MoE Transformer in short.
 
-##### Model Details
-
-To detail the model specifics, each expert is designed to have the same shape of a regular Transformer feed-forward network, and experts (MoE layers) are distributed once in every other Transformer layer. We tied the number of devices used for training to the number of experts per MoE layer for simplicity, although this is not a requirement. During training, we use float32 for both model weights and activations in order to ensure training stability. We ran additional scalability experiments with MoE(2048E, 60L) with bfloat16 [Tensor20] activations with total of 1 trillion model weights. Although trainable by careful and manual diagnostics, with deep 1 trillion model we encountered several trainability issues with numerical stability, hence did not include the results for the sake of reproducibility. For more model and training details, please see Appendix [A.2](#A1.SS2 "A.2 Machine Translation Experiments Details ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
+**Model Details.** To detail the model specifics, each expert is designed to have the same shape of a regular Transformer feed-forward network, and experts (MoE layers) are distributed once in every other Transformer layer. We tied the number of devices used for training to the number of experts per MoE layer for simplicity, although this is not a requirement. During training, we use float32 for both model weights and activations in order to ensure training stability. We ran additional scalability experiments with MoE(2048E, 60L) with bfloat16 [Tensor20] activations with total of 1 trillion model weights. Although trainable by careful and manual diagnostics, with deep 1 trillion model we encountered several trainability issues with numerical stability, hence did not include the results for the sake of reproducibility. For more model and training details, please see Appendix [A.2](#A1.SS2 "A.2 Machine Translation Experiments Details ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding").
 
 <span id="figure-06"></span>
 
@@ -432,27 +377,19 @@ Here we share a qualitative analysis for each experiment and discuss the implica
 
 **Table 1.** MoE Transformer model family. To achieve desired capacity we i) increased the depth by stacking more layers, ii) increased the width of the network by scaling the number of experts per MoE layer along with number of cores used for training.
 
-##### Deeper Models Bring Consistent Quality Gains Across the Board
-
-We first investigate the relationship between the model depth and the model quality for both high- and low-resource languages. Three different experiments are conducted in order to test the generalization performance, while keeping the number of experts per-layer fixed. With an increasing number of per-layer experts for each experiment (128, 512 and 2048), we tripled the depth of the network for each expert size, from 12 to 36. This resulted in three groups where experts per-layer fixed but three times the depth within each group:
+**Deeper Models Bring Consistent Quality Gains Across the Board.** We first investigate the relationship between the model depth and the model quality for both high- and low-resource languages. Three different experiments are conducted in order to test the generalization performance, while keeping the number of experts per-layer fixed. With an increasing number of per-layer experts for each experiment (128, 512 and 2048), we tripled the depth of the network for each expert size, from 12 to 36. This resulted in three groups where experts per-layer fixed but three times the depth within each group:
 
 For each configuration shown in [Fig. 6](#figure-06), we observed that increasing the depth (L) while keeping the experts per-layer (E) fixed, brings consistent gains for both low and high resourced languages (upwards $\Delta$ shift along the $y$-axis), almost with a constant additive factor every time we scale the depth from 12L to 36L (2-to-3 BLEU points on average as shown in the last column of [Table 3](#table-03)).
 
-##### Relaxing the Capacity Bottleneck Grants Pronounced Quality Gains
-
-Earlier in Section [4.1](#S4.SS1 "4.1 Multilingual translation ‣ 4 Massively Multilingual, Massive Machine Translation (M4) ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") we highlighted the influence of the capacity bottleneck on task interference, resulting in degraded quality especially for high resourced languages. Later we alleviated this complication by increasing the number of experts per-layer, which in return resulted in a dramatic increase in the number of parameters (weight) of the models studied. Here we investigate whether this so called capacity bottleneck is distinctly observable and explore the impact on model quality and efficiency once it is relaxed. To that end, we first consider three models with identical depths (12L), with increasing number of experts per-layer: 128, 512 and 2048. As we increase the number of experts per-layer from 128 to 512 by a factor of four, we notice a large jump in model quality, +3.3 average BLEU score across 100 languages. However again by four folds scaling of the number of experts per-layer, from 512 to 2048, yields only +1.3 average BLEU scores. Despite the significant quality improvement, this drop in gains hints the emergence of diminishing returns.
+**Relaxing the Capacity Bottleneck Grants Pronounced Quality Gains.** Earlier in Section [4.1](#S4.SS1 "4.1 Multilingual translation ‣ 4 Massively Multilingual, Massive Machine Translation (M4) ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding") we highlighted the influence of the capacity bottleneck on task interference, resulting in degraded quality especially for high resourced languages. Later we alleviated this complication by increasing the number of experts per-layer, which in return resulted in a dramatic increase in the number of parameters (weight) of the models studied. Here we investigate whether this so called capacity bottleneck is distinctly observable and explore the impact on model quality and efficiency once it is relaxed. To that end, we first consider three models with identical depths (12L), with increasing number of experts per-layer: 128, 512 and 2048. As we increase the number of experts per-layer from 128 to 512 by a factor of four, we notice a large jump in model quality, +3.3 average BLEU score across 100 languages. However again by four folds scaling of the number of experts per-layer, from 512 to 2048, yields only +1.3 average BLEU scores. Despite the significant quality improvement, this drop in gains hints the emergence of diminishing returns.
 
 Speculatively, the capacity bottleneck is expected to be residing between 128 to 512 experts, for the particular parametrization, number of languages and the amount of training data used in our experimental setup. Once the bottleneck is relaxed, models enjoy successive scaling of the depth, which can be seen by comparing 12 versus 36 layer models both with 128 experts. Interestingly increasing the depth does not help as much if the capacity bottleneck is not relaxed.
 
-##### Having More Experts Improve Quality Especially for High-Resourced Tasks
-
-Another dimension that could shed light on the quality gains of scaling in multi-task models is the contrast between high and low resource language improvements. As mentioned before, low resourced languages benefit from transfer while high resource languages seek for added capacity. Next we examine the effect of increasing the experts per-layer while fixing the depth.
+**Having More Experts Improve Quality Especially for High-Resourced Tasks.** Another dimension that could shed light on the quality gains of scaling in multi-task models is the contrast between high and low resource language improvements. As mentioned before, low resourced languages benefit from transfer while high resource languages seek for added capacity. Next we examine the effect of increasing the experts per-layer while fixing the depth.
 
 As can be seen in [Figure 6](#figure-06), for 12 layer models increase in the expert number yields larger gains for high resourced languages as opposed to earlier revealed diminishing returns for low-resourced languages. A similar pattern is observed also for 36 layer models. While adding more experts relaxes the capacity bottleneck, at the same time it reduces the amount of transfer due to a reduction of the shared sub-networks.
 
-##### Deep-Dense Models are Better at Positive Transfer towards Low-Resource Tasks
-
-Lastly we look into the impact of the depth on low-resourced tasks as a loose corollary to our previous experiment. In order to do so, we include a dense model with 96 layers T(96L) trained with GPipe on the same data into our analysis. We compare T(96L) with the shallow MoE(128E, 12L) model. While the gap between the two models measured to be almost constant for the majority of the high-to-mid resourced languages, the gap grows in favor of the dense-deep T(96L) model as we get into the low-resourced regime. Following our previous statement, as the proportion of the shared sub-networks across tasks increase, which is 100% for dense T(96L), the bandwidth for transfer gets maximized and results in a comparably better quality against its shallow counterpart. Also notice that, the same transfer quality to the low-resourced languages can be achieved with MoE(36E, 128L) which contains 37 billion parameters.
+**Deep-Dense Models are Better at Positive Transfer towards Low-Resource Tasks.** Lastly we look into the impact of the depth on low-resourced tasks as a loose corollary to our previous experiment. In order to do so, we include a dense model with 96 layers T(96L) trained with GPipe on the same data into our analysis. We compare T(96L) with the shallow MoE(128E, 12L) model. While the gap between the two models measured to be almost constant for the majority of the high-to-mid resourced languages, the gap grows in favor of the dense-deep T(96L) model as we get into the low-resourced regime. Following our previous statement, as the proportion of the shared sub-networks across tasks increase, which is 100% for dense T(96L), the bandwidth for transfer gets maximized and results in a comparably better quality against its shallow counterpart. Also notice that, the same transfer quality to the low-resourced languages can be achieved with MoE(36E, 128L) which contains 37 billion parameters.
 
 We conjecture that, increasing the depth might potentially increase the extent of transfer to low-resource tasks hence generalize better along that axis. But we also want to highlight that the models in comparison have a disproportionate training resource requirements. We again want to promote the importance of training efficiency, which is the very topic we studied next.
 
@@ -460,9 +397,7 @@ We conjecture that, increasing the depth might potentially increase the extent o
 
 In this section we focus on the training efficiency of MoE Transformer models. So far, we have seen empirical evidence how scaling the models along various axes bring dramatic quality gains, and studied the factors affecting the extent of the improvements. In order to measure the training efficiency, we first keep track of the number of tokens being processed to reach a certain training loss and second we keep track of the wall-clock time for a model to process certain number of tokens. Note that, we focus on the training time and training loss [+13] while varying other factors, as opposed to test error, which we analyzed in the previous section.
 
-##### Deeper models are more sample efficient, converge faster with fewer examples
-
-It has been shown that, deeper models are better at sample efficiency, reaching better training/test error given the same amount of training examples [Systed19, Xivb09], commonly attributed to the acceleration effect of over-parametrization [Xivk18]. We empirically test the hypothesis again using GShard with MoE Transformers and share trade-offs for models that are not only deep, but also sparsely activated.
+**Deeper models are more sample efficient, converge faster with fewer examples.** It has been shown that, deeper models are better at sample efficiency, reaching better training/test error given the same amount of training examples [Systed19, Xivb09], commonly attributed to the acceleration effect of over-parametrization [Xivk18]. We empirically test the hypothesis again using GShard with MoE Transformers and share trade-offs for models that are not only deep, but also sparsely activated.
 
 For this purpose, we compare number of tokens being processed by each model to reach a preset training loss. A general trend we observe from [Table 2](#table-02) is that, MoE Transformer models with 3 times the depth need 2 to 3 times fewer tokens to reach the preset training loss thresholds. For example MoE(128E, 12L) takes 3 times the number of tokens to reach 0.7 training cross-entropy compared to MoE(128E, 36L), (6) vs (5). We observe a similar trend for models with 512 and 2048 experts, (4) vs (3) and (2) vs (1).
 
@@ -474,9 +409,7 @@ For this purpose, we compare number of tokens being processed by each model to r
 
 Another intriguing observation from [Table 2](#table-02), is again related to the presence of capacity bottleneck. Comparing the models with same depth, (5), (3) and (1), we notice a significant drop in the number of tokens required to reach training loss of 0.7, as we transition from 128 to 512 number of experts. Practically that is where we observed the capacity bottleneck was residing, aligning with the hypothesis in Section [4.4](#S4.SS4.SSS0.Px2 "Relaxing the Capacity Bottleneck Grants Pronounced Quality Gains ‣ 4.4 Results ‣ 4 Massively Multilingual, Massive Machine Translation (M4) ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). After this phase shift, models with ample capacity tend to exhibit similar sample efficiency characteristics, as in models (3) and (1).
 
-##### Largest model (600B) can be trained under 4 days achieving the best quality
-
-Next we delve deeper into the interaction between model size and wall-clock time spent for training. We monitor number of TPU cores being used, training steps per-second, total number of tokens per batch, TPU core years [+14], and actual wall-clock time spent in days for training (see [Table 3](#table-03) columns respectively).
+**Largest model (600B) can be trained under 4 days achieving the best quality.** Next we delve deeper into the interaction between model size and wall-clock time spent for training. We monitor number of TPU cores being used, training steps per-second, total number of tokens per batch, TPU core years [+14], and actual wall-clock time spent in days for training (see [Table 3](#table-03) columns respectively).
 
 We start with investigating one of the largest models we trained, MoE(2048E, 36L) with 600 billion parameters, model with id (1). Having utilized 2048 TPU cores for 4 days, this model achieves the best translation quality in terms of average BLEU, but also takes a total of 22.4 TPU years to train. While we have not seen any signs that the quality improvements plateau as we scale up our models, we strive for finding cost-effective solutions for scaling.
 
@@ -498,17 +431,11 @@ This section discusses how well GShard achieves computation and memory efficienc
 
 In the GShard model, there are mainly three types of memory usage, all of which have constant per-device sizes after SPMD partitioning, when the number of experts increases.
 
--   •
+- Replicated weights (e.g. transformer feed-forward layers).
 
-    Replicated weights (e.g. transformer feed-forward layers).
+- Distributed weights (MoE feed-forward layers [+15]).
 
--   •
-
-    Distributed weights (MoE feed-forward layers [+15]).
-
--   •
-
-    Activations (output of each layer that is used in both forward and backward pass).
+- Activations (output of each layer that is used in both forward and backward pass).
 
 The $O(1)$ memory scaling is demonstrated in [Figure 7](#figure-07), which shows the per-device memory usage distribution for different models. With a fixed number of layers, both weight memory and activation memory stay constant when the number of experts increases.
 
@@ -532,13 +459,9 @@ On this other hand, weight memory and activation memory both scale linearly with
 
 Before analyzing performance scalability, we recall the size scaling of relevant tensor dimensions as discussed in Section [3.1](#S3.SS1 "3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). With $D$ devices, the number of experts $E$ and the group count $G$ are both set to $O(D)$. The fractional per-group expert capacity $C$ is set to $O(1/D)$. This setup cannot scale indefinitely, since $C$ needs to be at least 1, but it is good enough to scale to thousands of experts.
 
-##### Transformer layers and MoE feed-forward layer
+**Transformer layers and MoE feed-forward layer.** These are the dense parts of the model, which are designed to achieve peak TPU utilization. On each device, these computations also have a constant cost when we scale to more experts. Feed-forward layers and Transformer projections are mainly large matrix multiplications that utilize the TPU’s matrix unit well. These operations have achieved > 85% peak FLOPS in our experiment. The attention operations are composed of mainly batch matmuls, which are bounded by memory bandwidth when sequence lengths are small. As a result, in our experiments attention operations only achieved > 30% peak FLOPS.
 
-These are the dense parts of the model, which are designed to achieve peak TPU utilization. On each device, these computations also have a constant cost when we scale to more experts. Feed-forward layers and Transformer projections are mainly large matrix multiplications that utilize the TPU’s matrix unit well. These operations have achieved > 85% peak FLOPS in our experiment. The attention operations are composed of mainly batch matmuls, which are bounded by memory bandwidth when sequence lengths are small. As a result, in our experiments attention operations only achieved > 30% peak FLOPS.
-
-##### Gate computation
-
-In [Figure 8](#figure-08), “Gate Einsum” represents the first two and the last Einsums in Algorithm [2](#alg2 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). The first Einsum is the projection that calculates per-expert input to softmax. It has an $O(D)$ cost, but it is a very small part of the layer. The other two Einsums are dispatching tokens and combining expert results. They effectively implement Gather with one-hot matrices, which are more expensive, but with constant $O(\mathrm{GC})=O(1)$ cost that is independent from the number of experts. The execution time of these Einsums increases by around 2x when we scale from 128 to 2048 experts (16x).
+**Gate computation.** In [Figure 8](#figure-08), “Gate Einsum” represents the first two and the last Einsums in Algorithm [2](#algorithm-02 "In 3.1 Positions-wise Mixture-of-Expert Layer Expressed in Linear Algebra ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"). The first Einsum is the projection that calculates per-expert input to softmax. It has an $O(D)$ cost, but it is a very small part of the layer. The other two Einsums are dispatching tokens and combining expert results. They effectively implement Gather with one-hot matrices, which are more expensive, but with constant $O(\mathrm{GC})=O(1)$ cost that is independent from the number of experts. The execution time of these Einsums increases by around 2x when we scale from 128 to 2048 experts (16x).
 
 The remaining per-device gating computation involves many general-purpose computations like ArgMax and Cumsum, which are either memory-bound or even sequential in nature, thus not designed to utilize TPUs well. The majority of the time is spent on sequential Cumsum operations to invert one-hot matrices that represent selected experts for each token to one-hot matrices that represent selected tokens for each expert. The linear complexity of Cumsum is demonstrated in [Figure 8](#figure-08). This part of the gating computation also has an $O(D)$ cost, but fortunately, similar to the Einsum before softmax, it has a very small constant factor. It has negligible execution time with 128 experts, and takes less than 10% of the total time spent in the MoE and Transformer layers with 2048 experts.
 
@@ -548,9 +471,7 @@ The most significant part of gating is communication, shown as “MoE dispatch a
 
 In this section, we measure and analyze the performance scalability of the SPMD partitioner for basic operators, which can be used to guide use cases beyond the MoE model presented in this paper.
 
-##### Performance scaling of communication primitives
-
-Two critical collective communication operators in the MoE model are AllReduce and AllToAll. AllReduce is used in accumulating partial results, and AllToAll is used in resharding (Section [3.3.2](#S3.SS3.SSS2 "3.3.2 Per-Operator SPMD Partitioning ‣ 3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")). [Figure 9](#figure-09) shows their performance scalability from 16 to 2048 partitions. AllReduce on TPU has an execution time independent from the number of devices. The variance in [Figure 9](#figure-09) is due to specifics of each topology, e.g., whether it is a square or a rectangle, and whether it is a torus or a mesh.
+**Performance scaling of communication primitives.** Two critical collective communication operators in the MoE model are AllReduce and AllToAll. AllReduce is used in accumulating partial results, and AllToAll is used in resharding (Section [3.3.2](#S3.SS3.SSS2 "3.3.2 Per-Operator SPMD Partitioning ‣ 3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")). [Figure 9](#figure-09) shows their performance scalability from 16 to 2048 partitions. AllReduce on TPU has an execution time independent from the number of devices. The variance in [Figure 9](#figure-09) is due to specifics of each topology, e.g., whether it is a square or a rectangle, and whether it is a torus or a mesh.
 
 AllToAll, on the other hand, gets more expensive as the number of partitions grows, but in a sublinear manner. On our 2D TPU cluster, AllToAll cost is roughly $O(\sqrt{D})$, where $D$ is the number of partitions. This is because with a fixed amount of data each partition sends (8MB or 32MB in [Figure 9](#figure-09)), the total amount of data that all partitions send is $d=O(D)$. Meanwhile, each data piece needs to travel $h=O(\sqrt{D})$ hops on average, and there are overall $l=O(D)$ device-to-device links in the network. Therefore, if it is bandwidth-bound, the execution time of an AllToAll is
 
@@ -574,9 +495,7 @@ AllGather and CollectivePermute are easier to analyze. AllGather’s output is $
 
 **Table 4.** Scalability of partitioned operators. Abbreviation for communication primitives: AR: AllReduce, AG: AllGather, CP: CollectivePermute, AA: AllToAll. \*This is the dispatch Einsum in our model, where we set C to $O(1/D)$. \*\*I/O are the input/output feature dimensions, B is the batch dimension, X/Y are input spatial dimensions, and x/y are the kernal spatial dimensions.
 
-##### Partitioned operator scalability
-
-We summarize the performance scalability for common operators using GShard in [Table 4](#table-04). It contains the Einsum/Matmul examples in Section [3.3.2](#S3.SS3.SSS2 "3.3.2 Per-Operator SPMD Partitioning ‣ 3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"), and also other common operators like Convolution and Reduce. The table includes the local compute on each partition, as well as the required communication based on our analysis above.
+**Partitioned operator scalability.** We summarize the performance scalability for common operators using GShard in [Table 4](#table-04). It contains the Einsum/Matmul examples in Section [3.3.2](#S3.SS3.SSS2 "3.3.2 Per-Operator SPMD Partitioning ‣ 3.3 The XLA SPMD Partitioner for GShard ‣ 3 Highly Parallel Implementation using GShard ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding"), and also other common operators like Convolution and Reduce. The table includes the local compute on each partition, as well as the required communication based on our analysis above.
 
 Most operators in [Table 4](#table-04) have sublinear scalability in terms of both compute and communication, which is consistent with our performance measurement of the MoE model. The $O(1)$ scaling of spatially partitioned convolutions also demonstrates the efficiency of GShard for image partitioning (Appendix [A.4](#A1.SS4 "A.4 SPMD Partitioning for Convolution and Window-Based Operators ‣ Appendix A Appendix ‣ GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding")).
 
@@ -648,43 +567,29 @@ Since data movement across devices critically affects the parallel execution per
 
 GShard is able to partition spatial dimensions in convolutions, and general enough to support use cases like giant images [TPUs19]. To spatially shard a convolutional layer, we can use the sharding API in the following way.
 
-[⬇](data:text/plain;base64,ICAjIFBhcnRpdGlvbiBpbnB1dCBpbWFnZXMgW04sQyxILFddIGFsb25nIFcgc3BhdGlhbCBkaW1lbnNpb24KJVxIaWxpZ2h0JSBpbnB1dHMgPSBzcGxpdChpbnB1dHMsIDMsIEQpCiAgIyBSZXBsaWNhdGUgdGhlIGtlcm5lbAolXEhpbGlnaHQlIGtlcm5lbCA9IHJlcGxpY2F0ZShrZXJuZWwpCiAgY29udiA9IGNvbnYyZChpbnB1dHMsIGtlcm5lbCkKICAuLi4=)
 
-# Partition input images \[N,C,H,W\] along W spatial dimension
-
-  inputs \= split(inputs, 3, D)
-
+```pseudocode
+# Partition input images [N, C, H, W] along W spatial dimension
+inputs = split(inputs, 3, D)
 # Replicate the kernel
-
-  kernel \= replicate(kernel)
-
-conv \= conv2d(inputs, kernel)
-
+kernel = replicate(kernel)
+conv = conv2d(inputs, kernel)
 ...
+```
 
 GShard will then propagate the sharding on the spatial dimension to other layers and the backward pass. The rest of section discusses the specific complexity to partition Convolution and similar operators. There are several window-based operations (e.g., Convolution, ReduceWindow), and they all require some type of halo exchange since data may be shared between windows. We use the CollectivePermute operator to exchange halo data between partitions, but one complication is that the halo size may be different across partitions whereas CollectivePermute needs to be statically shaped.
 
 We first introduce the window configurations that the SPMD partitioner has to consider. Each spatial dimension in the convolution has the following set of configurations.
 
--   •
+- Stride is the distance (in number of elements) that the window moves to produce the next output element.
 
-    Stride is the distance (in number of elements) that the window moves to produce the next output element.
+- Low/high padding is the number of elements padded to the low/high end of the dimension in LHS (base).
 
--   •
+- Base dilation is the dilation factor of the LHS, i.e., one plus the number of elements padded between every element (excluding low/high padding). No base dilation means the value is set to 1.
 
-    Low/high padding is the number of elements padded to the low/high end of the dimension in LHS (base).
+- Window dilation is one plus the number of elements padded between every element in the RHS (window).
 
--   •
-
-    Base dilation is the dilation factor of the LHS, i.e., one plus the number of elements padded between every element (excluding low/high padding). No base dilation means the value is set to 1.
-
--   •
-
-    Window dilation is one plus the number of elements padded between every element in the RHS (window).
-
-##### Non-constant halo size.
-
-We demonstrate that non-constant halo size is common using a simple example, which does not have dilation. [Figure 11](#figure-11) shows a 4-way partitioned convolution, where the right halo sizes for the partitions are (1, 2, 3, 4) and can be expressed as a linear function of the partition ID: $\mathrm{partition}\_\mathrm{id}+1$. Partition 1 is in charge of generating 2 output elements (red cells), which means that the partition needs to get 0 elements from Partition 0, and 2 elements from Partition 2 (area covered by two dotted red windows).
+**Non-constant halo size.** We demonstrate that non-constant halo size is common using a simple example, which does not have dilation. [Figure 11](#figure-11) shows a 4-way partitioned convolution, where the right halo sizes for the partitions are (1, 2, 3, 4) and can be expressed as a linear function of the partition ID: $\mathrm{partition}\_\mathrm{id}+1$. Partition 1 is in charge of generating 2 output elements (red cells), which means that the partition needs to get 0 elements from Partition 0, and 2 elements from Partition 2 (area covered by two dotted red windows).
 
 <span id="figure-11"></span>
 
@@ -706,13 +611,9 @@ We demonstrate that non-constant halo size is common using a simple example, whi
 
 **Figure 13.** Partitioned convolution with base dilation.
 
-##### Base dilation.
+**Base dilation.** Base dilation adds additional complexities to halo exchange, since the offset of each partition may be positioned at the dilation holes, and also low/high padding is applied after dilation, which makes the edges have different behavior than the interior elements. We handle base dilation in 3 cases ([Figure 13](#figure-13)).
 
-Base dilation adds additional complexities to halo exchange, since the offset of each partition may be positioned at the dilation holes, and also low/high padding is applied after dilation, which makes the edges have different behavior than the interior elements. We handle base dilation in 3 cases ([Figure 13](#figure-13)).
-
--   •
-
-    $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is divisible by $\mathrm{dilation}$, where $\mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is the number of windows to be processed by each partition (i.e., the number of output elements for each partition). This condition guarantees that all partitions start with the same number of (interior or low) padding elements before the first data element in the LHS, so that we can use the same low padding. Halo exchange occurs on the non-dilated/non-padded base region, and the limit index of required data for Partition $i$ can be calculated as below.
+- $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is divisible by $\mathrm{dilation}$, where $\mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is the number of windows to be processed by each partition (i.e., the number of output elements for each partition). This condition guarantees that all partitions start with the same number of (interior or low) padding elements before the first data element in the LHS, so that we can use the same low padding. Halo exchange occurs on the non-dilated/non-padded base region, and the limit index of required data for Partition $i$ can be calculated as below.
 
     $$
     \frac{\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}\times i+\mathrm{window}\_\mathrm{size}-\mathrm{low}\_\mathrm{pad}+\mathrm{dilation}-1}{\mathrm{dilation}},
@@ -720,9 +621,7 @@ Base dilation adds additional complexities to halo exchange, since the offset of
 
     which determines the right halo size. Because $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is divisible by $\mathrm{dilation}$, it can be simplified as $a\times i+b$, where $a$ and $b$ are both constants.
 
--   •
-
-    $\mathrm{stride}==1$ but $\mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is not divisible by $\mathrm{dilation}$. In this case, the low padding on different partitions are different, but it is a static configuration in windowed operations, which can’t be specialized for each partition for SPMD execution. Using Pad and DynamicSlice on the operand also would not work, because those operators would be applied before dilation, so everything would be multiplied by the dilation factor. Fortunately, with $\mathrm{stride}==1$, all positions on the padded and dilated base region are valid window starts, and we can use the maximum low padding on all partitions to ensure that each partition calculates all required windows, then do a DynamicSlice on the output of the partitioned windowed operator to remove unnecessary data. The limit index of required data on the non-padded base region for Partition $i$ is same as before,
+- $\mathrm{stride}==1$ but $\mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is not divisible by $\mathrm{dilation}$. In this case, the low padding on different partitions are different, but it is a static configuration in windowed operations, which can’t be specialized for each partition for SPMD execution. Using Pad and DynamicSlice on the operand also would not work, because those operators would be applied before dilation, so everything would be multiplied by the dilation factor. Fortunately, with $\mathrm{stride}==1$, all positions on the padded and dilated base region are valid window starts, and we can use the maximum low padding on all partitions to ensure that each partition calculates all required windows, then do a DynamicSlice on the output of the partitioned windowed operator to remove unnecessary data. The limit index of required data on the non-padded base region for Partition $i$ is same as before,
 
     $$
     \frac{\mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}\times i+\mathrm{window}\_\mathrm{size}-\mathrm{low}\_\mathrm{pad}+\mathrm{dilation}-1}{\mathrm{dilation}},
@@ -730,13 +629,9 @@ Base dilation adds additional complexities to halo exchange, since the offset of
 
     but cannot be simplified to $a\times i+b$.
 
--   •
+- $\mathrm{stride}\neq 1$ and $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is not divisible by $\mathrm{dilation}$. If neither of the above conditions are true, different partitions could start with different number of padding elements, and not all offsets are valid window starts. Consider the last example in [Figure 13](#figure-13). Whatever low padding we chose, some partition will be invalid, because the valid windows could be skipped since $\mathrm{stride}\neq 1$. A solution to this problem is to pad the window in addition to padding the base area. We can use the maximum low padding required by the partitions on the base area, then increase the window size by that low padding amount. However, the low and high padding amounts on the window vary on different partitions, which can be implemented by a Pad followed by a DynamicSlice. The window padding is used to mask off the unaligned elements in the base area, so that the start of the non-padding window element will be aligned with the desired start in the base area for each partition.
 
-    $\mathrm{stride}\neq 1$ and $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is not divisible by $\mathrm{dilation}$. If neither of the above conditions are true, different partitions could start with different number of padding elements, and not all offsets are valid window starts. Consider the last example in [Figure 13](#figure-13). Whatever low padding we chose, some partition will be invalid, because the valid windows could be skipped since $\mathrm{stride}\neq 1$. A solution to this problem is to pad the window in addition to padding the base area. We can use the maximum low padding required by the partitions on the base area, then increase the window size by that low padding amount. However, the low and high padding amounts on the window vary on different partitions, which can be implemented by a Pad followed by a DynamicSlice. The window padding is used to mask off the unaligned elements in the base area, so that the start of the non-padding window element will be aligned with the desired start in the base area for each partition.
-
-##### Window dilation.
-
-If the RHS is replicated, window dilation only affects the effective window size when partitioning the operator based on its LHS. If the dilated RHS is also partitioned, which typically occurs in the gradient computation of strided convolutions, handling window dilation is still simpler than handling base dilation, because there is no low/high padding on the RHS. We skip the details of the implementation.
+**Window dilation.** If the RHS is replicated, window dilation only affects the effective window size when partitioning the operator based on its LHS. If the dilated RHS is also partitioned, which typically occurs in the gradient computation of strided convolutions, handling window dilation is still simpler than handling base dilation, because there is no low/high padding on the RHS. We skip the details of the implementation.
 
 [+1]: This is oftentimes necessary in practice to avoid overflowing device memory.
 

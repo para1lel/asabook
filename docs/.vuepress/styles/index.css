@@ -166,6 +166,18 @@ pre * {
   overflow: visible;
 }
 
+.paper-algorithm {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+}
+
+.paper-algorithm > ul {
+  min-width: max-content;
+  padding-inline-end: 1rem;
+}
+
 .tilesight-paper .katex-display .katex-mathml {
   contain: strict;
 }
