@@ -5,7 +5,7 @@ permalink: /en/gpupro/reference/
 pageClass: gpupro-page
 ---
 
-The main path runs through Parts I–IV. The Reference holds material you reach for while reading:
+The main text runs through Parts I–IV. The Reference section collects material you may want to consult while reading:
 
 | Need | Where |
 |------|-----|
@@ -16,5 +16,5 @@ The main path runs through Parts I–IV. The Reference holds material you reach 
 For the complete `tvm.tirx` Python API, see the
 [upstream TVM documentation](https://tvm.apache.org/docs/).
 
-The TIRx native level ([Introduction to TIRx](/en/gpupro/tirx-introduction/)) and the tensor layout model
-([TIRx Layout API](/en/gpupro/tirx-layout-api/)) are covered in Part II.
+Part II covers the TIRx programming model ([Introduction to TIRx](/en/gpupro/tirx-introduction/)) and the
+tensor layout model ([TIRx Layout API](/en/gpupro/tirx-layout-api/)).

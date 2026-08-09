@@ -15,8 +15,8 @@ Computations over the same values can differ in performance by an order of magni
 depending only on how those values are physically arranged in memory.
 
 A tensor's logical indices do not say where its bytes are actually stored. The hardware is highly
-sensitive to that placement. It determines whether loads from 32 lanes coalesce into one transaction
-or split across as many as 32, whether addresses land in different memory banks or collide and
+sensitive to that placement. Depending on the access pattern, it determines whether loads from 32
+lanes can be coalesced into one transaction or must be split across as many as 32, whether addresses land in different memory banks or collide and
 serialize, and whether a tile has a byte arrangement that a Tensor Core can read.
 
 Machine learning programs usually describe a tensor by its logical shape. A **data layout** supplies
@@ -66,10 +66,9 @@ columns are adjacent in storage. Many view-producing operations need only change
 ```python
 tt = t.permute(1, 0)               # or t.T
 tt.shape                           # torch.Size([4, 3])
-tt.stride()  # (1, 4)
-# Strides swapped; no data moved.
+tt.stride()                        # (1, 4)        ← strides swapped, no data moved
 tt.untyped_storage().data_ptr() == t.untyped_storage().data_ptr()
-                                   # True, still the same underlying storage
+                   # True, still the same underlying storage
 ```
 
 The transposed view uses `S[(4, 3) : (1, 4)]`, so the address offset of `tt[i, j]` is
@@ -430,10 +429,24 @@ Click any cell to see which devices hold the corresponding logical element.
 
 The final layout in this chapter addresses bank conflicts in shared memory.
 
-GPU shared memory is divided into memory banks. Each bank can be viewed as an independent channel
-that serves memory accesses. Accesses to different banks can proceed in parallel. If several lanes
-access different addresses in the same bank at the same time, however, the hardware must serve those
-accesses in separate batches, producing a **bank conflict**.
+Modern NVIDIA GPUs divide shared memory into 32 memory banks. Successive 32-bit words map to
+successive banks. For the bank width used in this chapter, the bank for a byte address `addr` is:
+
+```text
+bank = (addr // 4) % 32
+```
+
+If accesses in the same processing batch target different addresses in one bank, the hardware must
+serialize them. This is a bank conflict. If multiple lanes read the same address, the hardware can
+broadcast the word to those lanes without a conflict.
+
+A warp instruction may be split into several processing batches according to its access width.
+Nsight Compute calls each batch a **wavefront**. For a contiguous, aligned access, one wavefront can
+move at most 128 bytes: 4 bytes from each of the 32 banks. A 4-byte access per lane therefore places
+all 32 lanes in one wavefront; an 8-byte access uses groups of 16 lanes, and a 16-byte access uses
+groups of eight. Bank conflicts are evaluated only within a wavefront. For example, during an
+8-byte access, lanes 0 and 16 do not conflict with each other even if they access the same bank,
+because they belong to different wavefronts.
 
 Tensor programs often access the same tile in more than one direction. Matrix code may read a
 contiguous row at one point and extract a column at another. A simple layout usually favors only one
@@ -446,16 +459,25 @@ same bank. A column-major layout has the opposite tradeoff.
 the tile's logical shape. A common technique XORs part of the row index into the column index so
 that the target access pattern spreads more evenly across the banks.
 
-In the `8×8` example below, map logical coordinates `(row, logical_col)` as:
+The `8×8` interactive example below reduces the 32 physical banks to eight. In the plain row-major
+layout on the left, the eight elements in one column occupy different addresses in the same bank:
 
 ```text
-mapped_col    = logical_col XOR row
-physical_addr = row·8 + mapped_col
+bank = logical_col
 ```
 
-`XOR` is bitwise exclusive OR. When reading logical column `logical_col = 0`, rows `0…7` produce
-`mapped_col = 0 XOR row = 0…7`. Elements in one logical column therefore land in different physical
-columns and, in turn, different banks.
+Selecting column 3 therefore sends all eight accesses to bank 3, producing an 8-way bank conflict.
+
+The layout on the right applies an XOR swizzle:
+
+```text
+mapped_col = logical_col XOR row
+bank       = mapped_col
+```
+
+`XOR` is bitwise exclusive OR. It maps one logical column to different banks in different rows. For
+example, reading `logical_col = 0` maps rows `0…7` to banks `0…7`, so all eight accesses can proceed
+in parallel.
 
 <iframe src="/gpupro/demo/swizzle_8x8.html" title="8x8 XOR swizzle" loading="lazy"
         style="width:100%; height:640px; border:1px solid var(--vp-c-border); border-radius:6px;"></iframe>
@@ -482,8 +504,8 @@ For example, row 1 in our demo contains the logical column labels
 arrangement, producing `9, 8, 11, 10, 13, 12, 15, 14`.
 
 We call each 128-bit cell in the figure a 16 B **sector**. In `SWIZZLE_128B`, each row of an atom
-contains eight sectors, for a total width of 128 B. At the common 4-byte bank granularity, one sector
-spans four banks, so a full row covers all 32 banks. The swizzle uses the row coordinate to
+contains eight sectors, for a total width of 128 B. At the common 4-byte bank granularity, the four
+32-bit words in one sector map to four adjacent banks, so a full row covers all 32 banks. The swizzle uses the row coordinate to
 XOR-permute the eight sectors within that row.
 
 A `SWIZZLE_128B` atom contains eight rows, so its total size is `8 × 128 B = 1024 B`. Here,

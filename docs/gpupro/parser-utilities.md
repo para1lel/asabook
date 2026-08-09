@@ -7,17 +7,17 @@ pageClass: gpupro-page
 
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements. See the NOTICE file
+or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
-regarding copyright ownership. The ASF licenses this file
+regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at
+with the License.  You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an
 "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied. See the License for the
+KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
@@ -71,10 +71,10 @@ s.acc[0] = T.float32(0.0)     # use its fields like ordinary buffers
 # ... s.buf[i] ...
 ```
 
-这种写法适合组织 kernel 的 pipeline state, 例如 barrier, accumulator 和
+这种写法适合组织 kernel 的 pipeline state, 例如 barriers, accumulators 和
 临时 views, 避免在函数中传递大量分散的局部变量.
 
 ## `T.constexpr`
 
 `T.constexpr` 声明编译期 kernel parameter, 其值由 `@T.jit` 的
-`.specialize(...)` 固定. 具体用法见 [TIRx 简介](/gpupro/tirx-introduction/).
+`.specialize(...)` 固定. 具体用法见 [TIRx 入门](/gpupro/tirx-introduction/).

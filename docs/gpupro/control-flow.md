@@ -7,26 +7,26 @@ pageClass: gpupro-page
 
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements. See the NOTICE file
+or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
-regarding copyright ownership. The ASF licenses this file
+regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at
+with the License.  You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an
 "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied. See the License for the
+KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
 
-TIRx 的控制流包括 `if`, 多种 loop 和 `while`, 它们会生成对应的 CUDA
-控制流.
+TIRx 提供 `if`、多种 loop 和 `while`, 它们会直接映射到对应的 CUDA
+控制流结构.
 
 if
-- -
+--
 
 Python 的 `if` / `else` 会变成 CUDA 的 `if` / `else`. 可以根据
 thread 或 lane 条件限制一段工作, 也可以通过 `T.ptx.elect_sync()` 从一个
@@ -50,9 +50,9 @@ if (((int)threadIdx.x) < 128) {
 }
 ```
 
-如果只需要在表达式中选择值, 不需要控制流分支, 可以使用
-`T.if_then_else(cond, a, b)`. 它会 lowering 为三元表达式, 不会产生
-control-flow divergence:
+如果需要在表达式中选择值, 而不在 TIRx 中建立显式控制流分支, 可以使用
+`T.if_then_else(cond, a, b)`. 它会转换为三元表达式; 最终使用哪些机器
+指令实现这个表达式, 仍由 backend 决定:
 
 ```c++
 O_ptr[tx] = (A_ptr[tx] > 0.0f) ? A_ptr[tx] : 0.0f;
@@ -61,19 +61,20 @@ O_ptr[tx] = (A_ptr[tx] > 0.0f) ? A_ptr[tx] : 0.0f;
 ## Uniform 与 Divergent 控制流
 
 `if tx < 128` 这样的 per-thread guard 可以用于普通工作, 但
-**collective** 必须由其同步范围内的所有 thread 一致到达.
+**collective** 必须由其同步范围内的所有 threads 一致到达.
 
 例如, `T.cuda.cta_sync()` 对应 `__syncthreads()`, 要求 thread block 中
-的所有 thread 参与. 它不能放在 thread -divergent 或 warpgroup -divergent
-分支中: 如果放进 `if wg_id == 0:`, 其他 warpgroup 无法到达, kernel
-就会 deadlock. 只需要同步一个 warpgroup 时, 应使用 warpgroup -scoped
-`T.cuda.warpgroup_sync(id)`, 详见第三部分的 warp -specialized GEMM 和
+的所有 threads 参与. 它不能放在 thread-divergent 或 warpgroup-divergent
+分支中: 如果放进 `if wg_id == 0:`, 其他 warpgroups 无法到达, kernel
+就会 deadlock. 只需要同步一个 warpgroup 时, 应使用 warpgroup-scoped
+`T.cuda.warpgroup_sync(id)`, 详见第三部分的 warp-specialized GEMM 和
 [CUDA C++/PTX Intrinsic](/gpupro/cuda-ptx-intrinsics/).
 
-初始化 barrier 时也要注意参与范围. `mbarrier` 的 `.init()` 会 lowering
-为 single- thread guard (`if (threadIdx.x < 1)`). 如果再把它放进另一个
-divergent branch, barrier 可能没有被初始化, 进而导致 unspecified launch
-failure.
+初始化 barrier 时也要注意参与范围. 高层 `MBarrier.init()` wrapper 会生成
+single-thread guard (`if (threadIdx.x < 1)`). 如果再把它放进另一个
+divergent branch, barrier 可能没有初始化, 进而导致 unspecified launch
+failure. 原始的 `T.ptx.mbarrier.init` intrinsic 不会自动添加这个 guard;
+调用者必须自行选出负责初始化的 thread.
 
 ## loop
 
@@ -111,8 +112,8 @@ while i < 64:
   i += 1
 ```
 
-它会 lowering 为带有提前退出 `break` 的 `while (1)`. 其中计数器使用
-一个只有一个元素的寄存器 buffer:
+它会转换为带有提前退出 `break` 的 `while (1)`. 其中计数器使用
+一个只有一个元素的 register buffer:
 
 ```c++
 int i_ptr[1];

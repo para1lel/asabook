@@ -6,8 +6,8 @@ pageClass: gpupro-page
 ---
 
 ::: info 概览
-- TIRx 是用于编写 GPU kernel 的 Python DSL. 程序可以直接使用 thread, SMEM, TMEM, barrier 和 Tensor Core 等硬件概念, 同时保留结构化的中间表示.
-- TIRx 中的 tile 操作主要由三项信息决定: 哪些 thread 执行操作 (scope), 数据采用什么布局 (layout), 以及操作通过哪条硬件路径实现 (dispatch).
+- TIRx 是用于编写 GPU kernel 的 Python DSL. 程序可以直接使用 threads, SMEM, TMEM, barriers 和 Tensor Core 等硬件概念, 同时保留结构化的中间表示.
+- TIRx 中的 tile 操作主要由三项信息决定: 哪些 threads 执行操作 (scope), 数据采用什么布局 (layout), 以及操作通过哪条硬件路径实现 (dispatch).
 - 本章从一个可以运行的单 tile GEMM 出发, 依次介绍 TIRx kernel 的写法, 编译与验证方法, 以及 scope, layout 和 dispatch 如何共同决定 kernel 的行为.
 :::
 
@@ -29,19 +29,19 @@ python -c "import tvm, tvm.tirx; print(tvm.__version__)"
 
 第一部分介绍了现代 GPU 的执行模型, 数据布局, 以及 TMA, Tensor Core, TMEM 和异步同步等硬件机制. 接下来需要把这些机制组织成真正可以运行的 kernel.
 
-直接使用 CUDA 或 PTX 当然可以完成这项工作, 但一段底层程序往往会把几个关键决定分散在 intrinsic 参数, 地址计算和代码约定中: 某项操作由哪些 thread 执行, operand tile 存放在哪里, 以及最终使用哪条硬件指令. 这些信息虽然都写在程序里, 却很难作为一个整体被编译器检查和变换.
+直接使用 CUDA 或 PTX 当然可以完成这项工作, 但一段底层程序往往会把几个关键决定分散在 intrinsic 参数, 地址计算和代码约定中: 某项操作由哪些 threads 执行, operand tile 存放在哪里, 以及最终使用哪条硬件指令. 这些信息虽然都写在程序里, 却很难作为一个整体被编译器检查和变换.
 
-TIRx (tensor IR next) 是一种 Python DSL, 它将这三类决定显式写入结构化 IR:
+TIRx (Tensor IR next) 是一种 Python DSL, 它将这三类决定显式写入结构化 IR:
 
-- **scope**: 哪些 thread 执行一项操作;
-- **layout**: 逻辑 tile 如何映射到 memory, lane 或寄存器;
-- **dispatch**: 一项 tile 操作通过哪种硬件实现.
+- **Scope**: 哪些 threads 执行一项操作;
+- **Layout**: 逻辑 tile 如何映射到 memory, lanes 或 registers;
+- **Dispatch**: 一项 tile 操作通过哪种硬件实现.
 
-TIRx 仍然直接使用 thread, SMEM, TMEM, barrier 和 `tcgen05.mma` 等硬件概念. 区别在于, 这些信息现在具有明确的 IR 结构, 编译器可以据此检查程序并生成底层代码.
+TIRx 仍然直接使用 threads, SMEM, TMEM, barriers 和 `tcgen05.mma` 等硬件概念. 区别在于, 这些信息现在具有明确的 IR 结构, 编译器可以据此检查程序并生成底层代码.
 
 与其先单独罗列语法, 本章会从一个完整的 kernel 开始. 先运行一个最小的单 tile GEMM, 再回头分析其中的 scope, layout 和 dispatch, 最后查看它如何被编译.
 
-## 第一个 TIRx kernel
+## 第一个 TIRx Kernel
 
 下面的 kernel 计算:
 
@@ -49,7 +49,7 @@ TIRx 仍然直接使用 thread, SMEM, TMEM, barrier 和 `tcgen05.mma` 等硬件�
 D = A × B^T
 ```
 
-其中 `A` 和 `B` 的 shape 都是 `128×64`, 输出 `D` 的 shape 是 `128×128`. 这个示例只处理一个 `128×128` output tile, 因此 grid 也只有一个 CTA. kernel 的数据路径可以概括为:
+其中 `A` 和 `B` 的 shape 都是 `128×64`, 输出 `D` 的 shape 是 `128×128`. 这个示例只处理一个 `128×128` output tile, 因此 grid 也只有一个 CTA. Kernel 的数据路径可以概括为:
 
 ```text
 A/B: GMEM -> SMEM -> tcgen05.mma
@@ -63,9 +63,9 @@ D:   tcgen05.mma -> TMEM -> registers -> GMEM
 1. 申请 SMEM 和 TMEM;
 2. 将 A, B 从 GMEM 搬入 SMEM;
 3. 通过 `Tx.gemm_async` 发起 MMA;
-4. 将结果从 TMEM 读回寄存器, 再写入 GMEM.
+4. 将结果从 TMEM 读回 registers, 再写入 GMEM.
 
-其中最关键的三项 tile 操作是 `Tx.cta.copy`, `Tx.gemm_async` 和 `Tx.wg.copy_async`. 其余 PTX 调用用于申请和释放 TMEM, 初始化 barrier 并建立同步; 本章先把它们看作完成这几个阶段所需的底层步骤.
+其中最关键的三项 tile 操作是 `Tx.cta.copy`、`Tx.gemm_async` 和 `Tx.wg.copy_async`. 其余底层调用用于申请和释放 TMEM, 初始化 barrier 并建立同步; 本章先把它们看作完成这几个阶段所需的实现步骤.
 
 先导入这个 kernel 使用的模块:
 
@@ -73,10 +73,7 @@ D:   tcgen05.mma -> TMEM -> registers -> GMEM
 import tvm
 from tvm.script import tirx as T
 from tvm.script.tirx import tile as Tx
-from tvm.tirx.cuda.operator.tile_primitive.tma_utils import (
-  tma_shared_layout,
-  SwizzleMode,
-)
+from tvm.tirx.cuda.operator.tile_primitive.tma_utils import tma_shared_layout, SwizzleMode
 from tvm.tirx.layout import TileLayout, S, TLane, TCol, tid_in_wg
 ```
 
@@ -92,16 +89,8 @@ def hgemm_v1(M, N, K):
   acc_type = tvm.DataType("float32")
 
   BLK_M, BLK_N, BLK_K = 128, 128, 64
-  A_layout = tma_shared_layout(
-    a_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_M, BLK_K),
-  )
-  B_layout = tma_shared_layout(
-    b_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_N, BLK_K),
-  )
+  A_layout = tma_shared_layout(a_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_M, BLK_K))
+  B_layout = tma_shared_layout(b_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_N, BLK_K))
 
   @T.prim_func
   def kernel(
@@ -110,8 +99,8 @@ def hgemm_v1(M, N, K):
     D: T.Buffer((M, N), d_type),
   ):
     T.device_entry()
-    # 本章调用时 M=BLK_M, N=BLK_N,
-    # 所以 grid shape 为 1x1, m_st 和 n_st 都是 0.
+    # 本章调用时 M=BLK_M、N=BLK_N，
+    # 所以 grid shape 为 1x1，m_st 和 n_st 都是 0。
     bx, by = T.cta_id([M // BLK_M, N // BLK_N])
     wg_id = T.warpgroup_id([1])
     warp_id = T.warp_id_in_wg([4])
@@ -145,12 +134,12 @@ def hgemm_v1(M, N, K):
     n_st = T.meta_var(by * BLK_N)
     phase_mma: T.int32 = 0
 
-    # --- Load: 所有 threads 同步地将 A, B 从 GMEM 搬入 SMEM ---
+    # --- Load：所有 threads 同步地将 A、B 从 GMEM 搬入 SMEM ---
     Tx.cta.copy(Asmem[:, :], A[m_st:m_st + BLK_M, :])
     Tx.cta.copy(Bsmem[:, :], B[n_st:n_st + BLK_N, :])
     T.cuda.cta_sync()
 
-    # --- Compute: 由一个被选中的 thread 发出 MMA ---
+    # --- Compute：由一个被选中的 thread 发出 MMA ---
     if warp_id == 0:
       if T.ptx.elect_sync():
         Tx.gemm_async(
@@ -161,7 +150,7 @@ def hgemm_v1(M, N, K):
 
     T.ptx.mbarrier.try_wait(mma_bar.ptr_to([0]), phase_mma)
 
-    # --- Writeback: TMEM -> registers -> GMEM ---
+    # --- Writeback：TMEM -> registers -> GMEM ---
     Dreg = T.alloc_local((BLK_N,), acc_type)
     Dreg_f16 = T.alloc_local((BLK_N,), d_type)
     Dreg_wg = Dreg.view(128, BLK_N,
@@ -181,13 +170,13 @@ def hgemm_v1(M, N, K):
   return kernel
 ```
 
-后面的 GEMM 章节会以这个版本为起点, 逐步加入 K-loop, 更多 output tile, TMA 和 warp specialization.
+后面的 GEMM 章节会以这个版本为起点, 逐步加入 K-loop, 更多 output tiles, TMA 和 warp specialization.
 
 ## 编译并验证结果
 
 下面先编译 kernel, 再用 PyTorch 计算同样的矩阵乘法作为参考结果. 目标写成 `"cuda"` 即可; TVM 会从当前设备检测具体架构, 例如 `sm_100a`. 参数 `tir_pipeline="tirx"` 用来选择 TIRx lowering pipeline.
 
-编译后的 `ex.mod(...)` 可以直接接收 PyTorch tensor, 不需要手工转换数据:
+编译后的 `ex.mod(...)` 可以直接接收 PyTorch tensors, 不需要手工转换数据:
 
 ```python
 import torch
@@ -198,11 +187,7 @@ device = torch.device("cuda")
 M, N, K = 128, 128, 64
 kernel = hgemm_v1(M, N, K)
 with target:
-  ex = tvm.compile(
-    tvm.IRModule({"main": kernel}),
-    target=target,
-    tir_pipeline="tirx",
-  )
+  ex = tvm.compile(tvm.IRModule({"main": kernel}), target=target, tir_pipeline="tirx")
 
 torch.cuda.empty_cache()
 torch.cuda.synchronize()
@@ -221,23 +206,23 @@ print("PASS")
 
 如果最后输出 `PASS`, 说明编译后的 kernel 与 PyTorch 参考实现的结果在允许误差内一致.
 
-## scope, layout 与 dispatch
+## Scope, Layout 与 Dispatch
 
 现在回头看这段 kernel. TIRx 中的每项 tile 操作都需要回答三个问题: 由谁执行, 数据放在哪里, 以及使用哪种硬件实现. 对应的三个设计要素就是 scope, layout 和 dispatch.
 
-下面的交互图摘出了 kernel 中的关键代码. 点击 `Scope`, `Layout` 或 `Dispatch`, 可以高亮受该项信息控制的代码行.
+下面的交互图摘出了 kernel 中的关键代码. 点击 `Scope`、`Layout` 或 `Dispatch`, 可以高亮受该项信息控制的代码行.
 
 <div style="overflow-x:auto;">
-<iframe src="/gpupro/demo-zh/tirx_dispatch.html?v=intro-tirx-wheel-20260723" title="TIRx 中的 Scope, Layout 与 Dispatch" loading="lazy"
+<iframe src="/gpupro/demo-zh/tirx_dispatch.html?v=intro-tirx-wheel-20260723" title="TIRx 中的 Scope、Layout 与 Dispatch" loading="lazy"
         style="width:100%; min-width:960px; height:900px; border:1px solid var(--vp-c-border); border-radius:6px;"></iframe>
 </div>
 
 
-**scope 决定哪些 thread 执行操作.** `Tx.cta.copy(...)` 由整个 CTA 协作执行, 在这个 kernel 中共有 128 个 thread 参与 GMEM 到 SMEM 的 copy. `Tx.gemm_async(...)` 位于 `warp_id == 0` 和 `elect_sync()` 两层条件内, 最终只由一个被选中的 thread 发出. MMA 完成后, `mbarrier.try_wait` 等待计算完成; 随后, `Tx.wg.copy_async(...)` 由整个 warpgroup 协作, 将 TMEM accumulator 分配到 128 个 thread 的寄存器中.
+**Scope 决定哪些 threads 执行操作.** `Tx.cta.copy(...)` 由整个 CTA 协作执行, 在这个 kernel 中共有 128 个 threads 参与 GMEM 到 SMEM 的 copy.`Tx.gemm_async(...)` 位于 `warp_id == 0` 和 `elect_sync()` 两层条件内, 最终只由一个被选中的 thread 发出. MMA 完成后,`mbarrier.try_wait` 等待计算完成; 随后,`Tx.wg.copy_async(...)` 由整个 warpgroup 协作, 将 TMEM accumulator 分配到 128 个 threads 的 registers 中.
 
-**layout 决定 tile 如何映射到物理位置.** `A_layout` 和 `B_layout` 指定 A, B 在 SMEM 中采用 128-byte swizzle; `tmem` 的 `TileLayout` 将 accumulator 映射到 `TLane` 和 `TCol`; `Dreg_wg` 的 view 再通过 `tid_in_wg` 指定每个 thread 读取哪一行结果. MMA 和 copy 的两端必须采用彼此匹配的 layout, 硬件才能把同一批元素解释为正确的矩阵 tile.
+**Layout 决定 tile 如何映射到物理位置.** `A_layout` 和 `B_layout` 指定 A, B 在 SMEM 中采用 128-byte swizzle;`tmem` 的 `TileLayout` 将 accumulator 映射到 `TLane` 和 `TCol`;`Dreg_wg` 的 view 再通过 `tid_in_wg` 指定每个 thread 读取哪一行结果. MMA 和 copy 的两端必须采用彼此匹配的 layout, 硬件才能把同一批元素解释为正确的矩阵 tile.
 
-**dispatch 决定 tile 操作使用哪种硬件实现.** `Tx.gemm_async` 表示一个异步 tile GEMM, `dispatch="tcgen05"` 进一步要求编译器选择 Blackwell 的 `tcgen05.mma` 路径. 这个版本中的 GMEM 到 SMEM copy 由普通 thread 完成; 后面的版本会将同一类 tile copy 改为 TMA.
+**Dispatch 决定 tile 操作使用哪种硬件实现.** `Tx.gemm_async` 表示一个异步 tile GEMM,`dispatch="tcgen05"` 进一步要求编译器选择 Blackwell 的 `tcgen05.mma` 路径. 这个版本中的 GMEM 到 SMEM copy 由普通 threads 完成; 后面的版本会将同一类 tile copy 改为 TMA.
 
 编译器会结合 scope, layout 和 dispatch, 生成具体的 thread-level 控制流, 地址计算和硬件指令.
 
@@ -247,14 +232,10 @@ print("PASS")
 
 ```python
 target = tvm.target.Target("cuda")
-ex = tvm.compile(
-  tvm.IRModule({"main": kernel}),
-  target=target,
-  tir_pipeline="tirx",
-)
+ex = tvm.compile(tvm.IRModule({"main": kernel}), target=target, tir_pipeline="tirx")
 ```
 
-`PrimFunc` 首先被放入一个 `IRModule`, 随后交给 `tvm.compile`. `tir_pipeline="tirx"` 会启动 TIRx lowering pipeline. 其中的核心 pass `LowerTIRx` 根据每项 tile primitive 的 scope, layout 和 dispatch 选择具体实现, 将 `Tx.gemm_async`, `Tx.cta.copy` 等高层 tile 操作展开成更底层的 TIR.
+`PrimFunc` 首先被放入一个 `IRModule`, 随后交给 `tvm.compile`.`tir_pipeline="tirx"` 会启动 TIRx lowering pipeline. 其中的核心 pass `LowerTIRx` 根据每项 tile primitive 的 scope, layout 和 dispatch 选择具体实现, 将 `Tx.gemm_async`,`Tx.cta.copy` 等高层 tile 操作展开成更底层的 TIR.
 
 后续 passes 再完成 buffer flatten, host/device 拆分和设备代码生成, 最终得到可以直接调用的 `Executable`.
 

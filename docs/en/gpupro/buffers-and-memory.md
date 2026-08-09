@@ -67,8 +67,7 @@ The `scope` argument selects the memory space:
 ```python
 A = T.match_buffer(A_ptr, (M, K), "float16", align=16)   # parameter buffer
 As = T.alloc_shared((BM, BK), "float16")                 # new shared tile
-# Register accumulator.
-acc = T.alloc_local((4,), "float32")
+acc = T.alloc_local((4,), "float32")                     # register accumulator
 view = T.decl_buffer((BM, BK), "float16", data=As.data)  # a view over As
 ```
 
@@ -85,29 +84,10 @@ arithmetic depending purely on the buffer's metadata. Writing
 ```python
 from tvm.tirx.layout import TileLayout, S
 
-# Row-major.
-B = T.match_buffer(p, (4, 8), "float32")
-# Column-major.
-B = T.match_buffer(
-  p,
-  (4, 8),
-  "float32",
-  layout=TileLayout(S[(4, 8):(1, 4)]),
-)
-# Shifted view.
-B = T.match_buffer(
-  p,
-  (4, 8),
-  "float32",
-  elem_offset=64,
-)
-# Row stride 16.
-B = T.match_buffer(
-  p,
-  (4, 8),
-  "float32",
-  layout=TileLayout(S[(4, 8):(16, 1)]),
-)
+B = T.match_buffer(p, (4, 8), "float32")                                       # row-major
+B = T.match_buffer(p, (4, 8), "float32", layout=TileLayout(S[(4, 8):(1, 4)]))  # column-major
+B = T.match_buffer(p, (4, 8), "float32", elem_offset=64)                       # shifted view
+B = T.match_buffer(p, (4, 8), "float32", layout=TileLayout(S[(4, 8):(16, 1)])) # row stride 16
 ```
 
 each makes `B[i, j]` lower to a different index in the generated CUDA (the
@@ -167,23 +147,9 @@ each buffer as a view into it: `T.decl_buffer` with `data=` the arena pointer
 and an `elem_offset`:
 
 ```python
-# The single dynamic shared-memory arena.
-arena = T.alloc_buffer((128,), "float32", scope="shared.dyn")
-# View at offset 0.
-As = T.decl_buffer(
-  (64,),
-  "float32",
-  data=arena.data,
-  scope="shared.dyn",
-)
-# View at offset 64.
-Bs = T.decl_buffer(
-  (64,),
-  "float32",
-  data=arena.data,
-  elem_offset=64,
-  scope="shared.dyn",
-)
+arena = T.alloc_buffer((128,), "float32", scope="shared.dyn")   # the one arena
+As = T.decl_buffer((64,), "float32", data=arena.data, scope="shared.dyn")                 # offset 0
+Bs = T.decl_buffer((64,), "float32", data=arena.data, elem_offset=64, scope="shared.dyn") # offset 64
 As[tx] = A[tx]
 Bs[tx] = B[tx]
 T.cuda.cta_sync()
@@ -194,8 +160,7 @@ Both views share the single `extern __shared__` arena (generated CUDA,
 boilerplate elided; arena named `smem` for clarity):
 
 ```c++
-// The single dynamic-shared arena.
-extern __shared__ __align__(64) float smem[];
+extern __shared__ __align__(64) float smem[];   // the one dynamic-shared arena
 smem[tx]      = A_ptr[tx];                       // As — view at offset 0
 smem[tx + 64] = B_ptr[tx];                       // Bs — view at offset 64
 __syncthreads();
@@ -215,11 +180,7 @@ a `"tirx.use_dyn_shared_memory"` tag to the device kernel's
 passes them as the last launch argument:
 ```python
 # device kernel attribute:
-"tirx.kernel_launch_params": [
-  "blockIdx.x",
-  "threadIdx.x",
-  "tirx.use_dyn_shared_memory",
-]
+"tirx.kernel_launch_params": ["blockIdx.x", "threadIdx.x", "tirx.use_dyn_shared_memory"]
 # host-side launch call  (..., gridDim.x, blockDim.x, dyn_shared_bytes):
 T.call_packed("dyn_kernel", A.data, B.data, C.data, 1, 64, 512)
 ```
@@ -240,8 +201,7 @@ swizzle layout for you, and `move_base_to` to rewind the cursor and reuse space:
 pool = T.SMEMPool()                          # bump allocator over shared.dyn
 As = pool.alloc((BM, BK), "float16", align=128)   # carve a tile
 Bs = pool.alloc((BK, BN), "float16", align=128)
-# MMA-compatible, with an inferred swizzle.
-Cs = pool.alloc_mma((BM, BN), "float16")
+Cs = pool.alloc_mma((BM, BN), "float16")     # MMA-compatible, swizzle inferred
 pool.commit()                                 # finalize the pool's size
 # pool.move_base_to(offset) rewinds the cursor to reuse space
 ```
@@ -250,9 +210,10 @@ The TMEM pool ([Tensor memory](#tensor-memory), below) is layered on top of an `
 
 ## Registers
 
-Per-thread scratch lives in registers. Allocate it with ``T.alloc_local(shape,
-dtype)` (i.e. `scope="local"``): it is private to each thread and lowers to a
-local array kept in registers.
+Per-thread scratch uses `local` scope. Allocate it with ``T.alloc_local(shape,
+dtype)` (i.e. `scope="local"``): it is private to each thread. Statically indexed
+local arrays are normally scalarized into registers, while dynamically indexed
+arrays or values under high register pressure may use local memory.
 
 ```python
 r = T.alloc_local((4,), "float32")   # per-thread register array
@@ -304,10 +265,8 @@ while phase < 4:
   acc = acc + A[tx, phase]
   phase += 1
 
-# Explicit form; assign by name (s = ..., not s[0]).
-s = T.local_scalar("int32")
-# A type-annotated assignment also creates a scalar.
-acc: T.float32 = 0.0
+s = T.local_scalar("int32")        # explicit form; assign by name (s = ..., not s[0])
+acc: T.float32 = 0.0               # a type-annotated assignment also makes one
 ```
 
 The two are not just similar — they parse to **structurally identical TIRx**. The
@@ -376,17 +335,15 @@ By hand, one warp issues the allocation into a shared slot, you `decl` each
 tensor as a view at a column offset, and one warp frees it at the end:
 
 ```python
-# Slot for the allocated base.
-addr = T.alloc_shared((1,), "uint32")
-# tcgen05.alloc is warp-uniform.
-if warp_id == alloc_warp:
+addr = T.alloc_shared((1,), "uint32")             # slot for the allocated base
+if warp_id == alloc_warp:                         # tcgen05.alloc is warp-uniform
   T.ptx.tcgen05.alloc(T.address_of(addr), n_cols=512, cta_group=cta_group)
 acc = T.decl_buffer((CTA_M, 512), "float32", scope="tmem",
   allocated_addr=0, layout=tmem_layout)   # view at column 0
 # ... use acc as a gemm_async / copy_async operand ...
 if warp_id == alloc_warp:
   T.ptx.tcgen05.relinquish_alloc_permit(cta_group=cta_group)
-  T.ptx.tcgen05.dealloc(addr, n_cols=512, cta_group=cta_group)
+  T.ptx.tcgen05.dealloc(addr[0], n_cols=512, cta_group=cta_group)
 ```
 
 You manage the column offsets and the `tmem_layout` (a datapath D/F layout)
@@ -398,16 +355,13 @@ yourself. This is exactly the sequence the pool below emits.
 bump-allocation, and the datapath layout:
 
 ```python
-# The pool is the kernel's SMEM pool.
-tmem_addr = pool.alloc((1,), "uint32")
+tmem_addr = pool.alloc((1,), "uint32")          # pool = the kernel's smem pool
 tmem_pool = T.TMEMPool(pool, total_cols=512, cta_group=cta_group,
   tmem_addr=tmem_addr)
 acc = tmem_pool.alloc((CTA_M, 512), "float32")  # allocated_addr set for you
-# Emit tcgen05.alloc from one warp.
-tmem_pool.commit()
+tmem_pool.commit()                               # emits tcgen05.alloc (one warp)
 # ... use acc ...
-# Emit tcgen05.dealloc from one warp.
-tmem_pool.dealloc()
+tmem_pool.dealloc()                              # emits tcgen05.dealloc (one warp)
 ```
 
 See the Part III GEMM kernels for full examples.
@@ -432,17 +386,11 @@ or hand you a pointer — they emit no runtime op of their own. The common ones:
 to an intrinsic or inline function; `data` is the base pointer:
 
 ```python
-B[tx] = T.cuda.func_call(
-  "ld",
-  A.ptr_to([tx]),
-  source_code=SRC,
-  return_type="float32",
-)
+B[tx] = T.cuda.func_call("ld", A.ptr_to([tx]), source_code=SRC, return_type="float32")
 ```
 
 ```c++
-B_ptr[tx] = ld(&A_ptr[tx]);
-// ptr_to([tx]) -> &A_ptr[tx]; A.data -> A_ptr
+B_ptr[tx] = ld(&A_ptr[tx]);          // ptr_to([tx]) -> &A_ptr[tx];  A.data -> A_ptr
 ```
 
 **Vectorized access — `vload` / `vstore`.** Move several elements as one wide
@@ -461,12 +409,8 @@ data pointer is unchanged, only the index arithmetic differs. `A.view(64, 4)`
 sees the 256-element buffer as `64×4`; `A.permute(1, 0)` transposes the axes:
 
 ```python
-A2 = A.view(64, 4)
-y = A2[tx, 0] + A2[tx, 3]
-# A2[tx, j] -> A_ptr[tx * 4 + j]
-At = A.permute(1, 0)
-z = At[i, j]
-# At[i, j] -> A_ptr[j * 4 + i]
+A2 = A.view(64, 4);     y = A2[tx, 0] + A2[tx, 3]   # A2[tx, j] -> A_ptr[tx*4 + j]
+At = A.permute(1, 0);   z = At[i, j]                # At[i, j]  -> A_ptr[j*4 + i]
 ```
 
 ```c++
@@ -478,12 +422,7 @@ At_ptr[(j * 4) + i]                       // permute: swapped strides
 calling thread's flat register bundle (used pervasively by the tile primitives):
 
 ```python
-R = T.alloc_buffer(
-  (32, 8),
-  "float32",
-  scope="local",
-  layout=TileLayout(S[(32, 8) : (1 @ laneid, 1)]),
-)
+R  = T.alloc_buffer((32, 8), "float32", scope="local", layout=TileLayout(S[(32, 8) : (1 @ laneid, 1)]))
 Rl = R.local(8)          # this lane's 8 registers
 ```
 

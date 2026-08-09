@@ -6,12 +6,12 @@ pageClass: gpupro-page
 ---
 
 ::: info 概览
-- `TileLayout` 使用 `S[...]`, `R[...]` 和 offset 描述逻辑 tile 在命名轴上的放置方式.
+- `TileLayout` 使用 `S[...]`,`R[...]` 和 offset 描述逻辑 tile 在命名轴上的放置方式.
 - `TileLayout.apply()` 计算逻辑元素的基础物理坐标; replica 信息保存在 `layout.replica` 中, 由使用该 layout 的 tile 操作处理.
 - `SwizzleLayout` 描述 shared memory 中基于 XOR 的地址重排; 需要同时表达普通 tile layout 时, 可以使用 `ComposeLayout` 组合两者.
 :::
 
-[数据布局及其表示方法](/gpupro/data-layout/) 介绍了 tile shape, 带命名轴的 strides, replication dimension 和固定 offset. 本章接着说明如何在 TIRx 程序中构造, 使用和查询这些 layout.
+[数据布局及其记号](/gpupro/data-layout/) 介绍了 tile shape, 带命名轴的 strides, replication dimension 和固定 offset. 本章接着说明如何在 TIRx 程序中构造, 使用和查询这些 layout.
 
 例如, 下面的记号描述一个位于 TMEM 中的 `128×256` tile:
 
@@ -29,7 +29,7 @@ pool.alloc(shape, dtype, layout=layout)
 T.decl_buffer(shape, dtype, scope=scope, layout=layout)
 ```
 
-Buffer 由此记录自己的物理布局. 后续 tile 操作可以直接读取这项信息, 不必在每次访问时重新说明元素位于哪些 lane,寄存器或线性存储位置.
+Buffer 由此记录自己的物理布局. 后续 tile 操作可以直接读取这项信息, 不必在每次访问时重新说明元素位于哪些 lanes, registers 或线性存储位置.
 
 本章使用的 layout 对象和命名轴都位于 `tvm.tirx.layout`:
 
@@ -52,7 +52,7 @@ from tvm.tirx.layout import (
 )
 ```
 
-layout 的结果不一定是一个线性地址, 也可以是 `laneid`, `warpid`, `TLane` 和 `TCol` 等硬件坐标. 前面的 TMEM layout 将逻辑 row 映射到 `TLane`, 将逻辑 column 映射到 `TCol`. 再看一个同时使用 lane 和 warp 轴的寄存器 fragment:
+Layout 的结果不一定是一个线性地址, 也可以是 `laneid`,`warpid`,`TLane` 和 `TCol` 等硬件坐标. 前面的 TMEM layout 将逻辑 row 映射到 `TLane`, 将逻辑 column 映射到 `TCol`. 再看一个同时使用 lane 和 warp 轴的 register fragment:
 
 ```python
 frag = TileLayout(
@@ -62,13 +62,13 @@ frag = TileLayout(
 
 同一个物理轴可以出现多次. 这里, 第一个和第三个 iter 都会对 `laneid` 产生贡献. 最后一个 stride 没有显式 axis tag, 因此使用默认轴 `m`.
 
-[数据布局及其表示方法](/gpupro/data-layout/) 为了区分 lane 内的 fragment slots, 使用过 `@reg` 这个记号. 当前 TIRx API 没有单独注册 `reg` axis; 当 layout 绑定到寄存器-backed local buffer 时, 默认轴 `m` 表示该 thread 的局部线性位置. Buffer scope 决定数据实际位于寄存器中, 所以这里的 `m` 并不表示数据存放在 global memory 或 shared memory.
+[数据布局及其记号](/gpupro/data-layout/) 为了区分 lane 内的 fragment slots, 使用过 `@reg` 这个记号. 当前 TIRx API 没有单独注册 `reg` axis; 当 layout 绑定到 register-backed local buffer 时, 默认轴 `m` 表示该 thread 的局部线性位置. Buffer scope 决定数据实际位于 registers 中, 所以这里的 `m` 并不表示数据存放在 global memory 或 shared memory.
 
 对于 `m` 和 `TCol` 这类存储轴, stride 以 buffer element 为单位. 对于 32-bit TMEM buffer, 沿 `TCol` 前进一个元素就对应一个 32-bit hardware Col; 对于 8-bit 或 16-bit buffer, 多个相邻元素会打包进同一个 hardware Col. 后面的 scale-factor 示例会具体说明这一点.
 
 ## 交互图
 
-下面的交互图提供几种常用 layout preset. 可以修改逻辑 shape, `S[...]` 或 `R[...]`, 选择 data type 和 swizzle mode, 再点击一个逻辑元素, 查看它对应的物理坐标.
+下面的交互图提供几种常用 layout preset. 可以修改逻辑 shape,`S[...]` 或 `R[...]`, 选择 data type 和 swizzle mode, 再点击一个逻辑元素, 查看它对应的物理坐标.
 
 <p>
   <a class="reference external" href="/gpupro/tirx-layout-demo/index.html?lang=zh"
@@ -114,11 +114,11 @@ TileLayout(S[shape : strides] + R[replica_shape : replica_stride] + offset)
 (extent, stride, axis)
 ```
 
-`extent` 表示这个 iter 包含多少个位置, `stride` 表示每前进一步会移动多少, `axis` 则说明移动发生在哪个物理轴上.
+`extent` 表示这个 iter 包含多少个位置,`stride` 表示每前进一步会移动多少,`axis` 则说明移动发生在哪个物理轴上.
 
 ### Shard
 
-Shard 由 `S[...]` 构造. 它将逻辑索引拆分到一个或多个 iters 上, 并产生基础物理坐标. 前面的 `frag` 包含四个 shard iters, extents 分别为 `8`, `2`, `4` 和 `2`; 相应的 strides 将坐标映射到 `laneid`, `warpid`, 再次映射到 `laneid`, 以及默认线性轴 `m`.
+Shard 由 `S[...]` 构造. 它将逻辑索引拆分到一个或多个 iters 上, 并产生基础物理坐标. 前面的 `frag` 包含四个 shard iters, extents 分别为 `8`,`2`,`4` 和 `2`; 相应的 strides 将坐标映射到 `laneid`,`warpid`, 再次映射到 `laneid`, 以及默认线性轴 `m`.
 
 这仍然是普通 Shape-Stride 规则, 只是每个 stride 现在属于一个明确的命名轴, 而不再全部累加到同一个线性地址.
 
@@ -132,9 +132,9 @@ Replica 由 `R[...]` 构造, 用于描述同一个逻辑元素的额外物理副
 R[2 : 4@warpid]
 ```
 
-表示沿 `warpid` 轴放置 2 份副本, 两份之间相隔 4 个 warp.
+表示沿 `warpid` 轴放置 2 份副本, 两份之间相隔 4 个 warps.
 
-GPU 硬件经常需要将同一份数据广播到多个 warp, lane 或存储区域. Replica 直接将这种行为表示为“一项逻辑数据对应多个物理坐标”.
+Replica 表示同一个逻辑元素具有多个物理坐标. 它只记录这些副本应当位于哪里; 副本如何生成或使用, 由实际消费这个 layout 的 tile 操作决定.
 
 ### Offset
 
@@ -148,11 +148,11 @@ Offset 会加到所有映射结果上. 在下面的集合公式中将它记为 `
 
 表示整个 layout 沿 `warpid` 轴移动 5 个位置.
 
-Offset 可以用来指定 tile 的起始坐标, 也可以把多个 tile 放入同一硬件资源中的不同区域.
+Offset 可以用来指定 tile 的起始坐标, 也可以把多个 tiles 放入同一硬件资源中的不同区域.
 
 ### 组合三个部分
 
-对于逻辑坐标 `x`, 把 shard 产生的基础坐标记为 `D(x)`. `TileLayout` 再加上固定 offset, 并根据 replica iters 枚举额外位置:
+对于逻辑坐标 `x`, 把 shard 产生的基础坐标记为 `D(x)`.`TileLayout` 再加上固定 offset, 并根据 replica iters 枚举额外位置:
 
 ```text
 L(x) = { D(x) + r + O | r in R }
@@ -170,7 +170,7 @@ layout = TileLayout(
 )
 ```
 
-从左到右读取: `S[...]` 放置逻辑 tile, `R[...]` 在相隔 4 个 warp 的位置增加第二份副本, `5@warpid` 再将所有位置整体移动 5.
+从左到右读取:`S[...]` 放置逻辑 tile,`R[...]` 在相隔 4 个 warps 的位置增加第二份副本,`5@warpid` 再将所有位置整体移动 5.
 
 如果已经直接构造了 shard, replica 和 offset 对象, 也可以使用:
 
@@ -182,19 +182,19 @@ TileLayout.from_iters(shard, replica, offset)
 
 ## 命名轴
 
-layout 中的 axis 不是匿名维度, 每个名字都表示一种硬件坐标或编译器布局坐标. 下面列出本章会遇到的几组轴:
+Layout 中的 axis 不是匿名维度, 每个名字都表示一种硬件坐标或编译器布局坐标. 下面列出本章会遇到的几组轴:
 
 | Axis | 含义 |
 |---|---|
-| `bx`, `by`, `bz` | CTA 在 grid 中的坐标 |
-| `cbx`, `cby`, `cbz` | CTA 在 cluster 中的坐标 |
+| `bx`,`by`,`bz` | CTA 在 grid 中的坐标 |
+| `cbx`,`cby`,`cbz` | CTA 在 cluster 中的坐标 |
 | `tx` | thread 在 CTA 中的坐标 |
-| `warpid`, `laneid` | warp ID, 以及 thread 在 warp 中的 lane ID |
-| `wgid`, `tid_in_wg`, `wid_in_wg` | warpgroup ID, 以及 thread 或 warp 在 warpgroup 中的位置 |
+| `warpid`,`laneid` | warp ID, 以及 thread 在 warp 中的 lane ID |
+| `wgid`,`tid_in_wg`,`wid_in_wg` | warpgroup ID, 以及 thread 或 warp 在 warpgroup 中的位置 |
 | `m` | 默认的线性物理轴; 实际对应哪种存储由 buffer scope 决定 |
-| `TLane`, `TCol` | TMEM 的 lane 方向和 Col 方向 |
+| `TLane`,`TCol` | TMEM 的 Lane 方向和 Col 方向 |
 
-Axis 名称本身就是 layout 的一部分. 即使整数值相同, 位于不同 axis 上也表示不同的硬件位置. 例如, `1@tx` 与 `1@tid_in_wg` 的含义不同, `1@laneid` 也不是 `1@TLane`. `TCol` stride 仍以 buffer element 为单位; 只有在 element width 为 32 bits 时, 它才与 hardware Col 一一对应.
+Axis 名称本身就是 layout 的一部分. 即使整数值相同, 位于不同 axis 上也表示不同的硬件位置. 例如,`1@tx` 与 `1@tid_in_wg` 的含义不同,`1@laneid` 也不是 `1@TLane`.`TCol` stride 仍以 buffer element 为单位; 只有在 element width 为 32 bits 时, 它才与 hardware Col 一一对应.
 
 ## 正向映射
 
@@ -246,9 +246,9 @@ flat = x0 * S1 * S2 * ... * Sr-1
 ck * sk @ ak
 ```
 
-属于同一 axis 的贡献会相加, 最后再加入固定 offset. `apply()` 返回的 coordinate dictionary 就是这一步得到的结果.
+属于同一 axis 的贡献会相加, 最后再加入固定 offset.`apply()` 返回的 coordinate dictionary 就是这一步得到的结果.
 
-另外两种形式从中间开始计算. `layout.apply(linear_coord)` 直接接收已经 flatten 的索引; `layout.apply(*shard_coord)` 直接接收各个 shard iter 的坐标, 因此不再执行 flatten 和拆分. 使用 `shape=input_shape` 时, 逻辑 shape 的维数和分解方式不必与 shard extents 相同, 只要 flatten 后的索引没有超出 shard 表示的逻辑范围即可.
+另外两种形式从中间开始计算.`layout.apply(linear_coord)` 直接接收已经 flatten 的索引;`layout.apply(*shard_coord)` 直接接收各个 shard iter 的坐标, 因此不再执行 flatten 和拆分. 使用 `shape=input_shape` 时, 逻辑 shape 的维数和分解方式不必与 shard extents 相同, 只要 flatten 后的索引没有超出 shard 表示的逻辑范围即可.
 
 `apply()` 不枚举 replica. 完整 layout 中的 replica iters 会在基础坐标之外增加额外位置, 但这些信息保存在 `layout.replica` 中, 由实际使用该 layout 的 tile 操作处理.
 
@@ -260,15 +260,15 @@ layout.apply(1, 3, shape=[8, 16])
 # {"laneid": 5, "warpid": 5, "m": 1}
 ```
 
-这个结果可以分三步得到. 首先, `(1, 3)` 按 `(8, 16)` 的 row-major 顺序变成扁平索引 `19`. 随后, `19` 按 shard extents `(8, 2, 4, 2)` 拆成:
+这个结果可以分三步得到. 首先,`(1, 3)` 按 `(8, 16)` 的 row-major 顺序变成扁平索引 `19`. 随后,`19` 按 shard extents `(8, 2, 4, 2)` 拆成:
 
 ```text
 (c0, c1, c2, c3) = (1, 0, 1, 1)
 ```
 
-各分量乘以自己的 stride 后, 基础坐标为 `laneid=5`, `warpid=0`, `m=1`; 最后加入 `5@warpid`, 得到返回值中的 `warpid=5`.
+各分量乘以自己的 stride 后, 基础坐标为 `laneid=5`,`warpid=0`,`m=1`; 最后加入 `5@warpid`, 得到返回值中的 `warpid=5`.
 
-`apply()` 不枚举 replica, 所以返回值中只有这个基础位置. 当前 layout 的 `R[2: 4@warpid]` 还会让使用该 layout 的 tile 操作处理 `warpid=5` 和 `warpid=9` 两个物理位置.
+`apply()` 不枚举 replica, 所以返回值中只有这个基础位置. 当前 layout 的 `R[2 : 4@warpid]` 还会让使用该 layout 的 tile 操作处理 `warpid=5` 和 `warpid=9` 两个物理位置.
 
 对于整个 `(8, 16)` tile, 基础映射为:
 
@@ -278,11 +278,11 @@ warpid = floor(j / 8) + 5
 m      = j mod 2
 ```
 
-Replica 再给 `warpid` 加上 `0` 或 `4`. 因此, shard 和 offset 将 tile 放在 warp 5 和 6, replica 又在 warp 9 和 10 中放置一份副本.
+Replica 再给 `warpid` 加上 `0` 或 `4`. 因此, shard 和 offset 将 tile 放在 warps 5 和 6, replica 又在 warps 9 和 10 中放置一份副本.
 
 ## 示例: Blackwell Tensor Memory
 
-命名轴也可以表示存储坐标. TMEM 使用硬件 lane 和 Col 坐标, 在 TIRx layout 中分别写作 `TLane` 和 `TCol`.
+命名轴也可以表示存储坐标. TMEM 使用硬件 Lane 和 Col 坐标, 在 TIRx layout 中分别写作 `TLane` 和 `TCol`.
 
 考虑下面的 layout:
 
@@ -299,13 +299,13 @@ TLane = l
 TCol  = 112 * a + c
 ```
 
-Extent 为 128, stride 为 `1@TLane` 的 iter 填满 128 条 TMEM lane rows; 另外两个 `TCol` iters 共同覆盖 224 个 `TCol` 位置:
+Extent 为 128, stride 为 `1@TLane` 的 iter 填满 128 条 TMEM Lane rows; 另外两个 `TCol` iters 共同覆盖 224 个 `TCol` 位置:
 
 ```text
 TCol in [0, 224)
 ```
 
-TMEM layout 不要求各维大小为 2 的幂. 这里可以直接使用 extent 为 112 的 column iter; 两个这样的区域共覆盖 224 个 `TCol` 位置, 不需要把 extent 补齐到 128. 实际 kernel 也可能主动选择这样的大小: 例如, block-scaled FP8 GEMM 可以为两个 accumulator 阶段和 scale factors 共同分配 TMEM, 而不是让单个 accumulator tile 占满 256 个 columns.
+TMEM layout 不要求各维大小为 2 的幂. 这里可以直接使用 extent 为 112 的 column iter; 两个这样的区域共覆盖 224 个 `TCol` 位置, 不需要把 extent 补齐到 128. 实际 kernel 也可能主动选择这样的大小: 例如, block-scaled FP8 GEMM 可以为两个 accumulator stages 和 scale factors 共同分配 TMEM, 而不是让单个 accumulator tile 占满 256 个 columns.
 
 ## Scale Factor 布局
 
@@ -334,11 +334,11 @@ TLane = r + 32 * q, where q in {0, 1, 2, 3}
 TCol  = s
 ```
 
-因此, 这个 32-row group 会同时出现在 lane `0-31`, `32-63`, `64-95` 和 `96-127`. 每个 warp 对应的 32- lane TMEM window 都能访问同一组 scale factors. 完整布局还会加入 M 方向和 K-scale-block 方向的外层 iters; 这里的 atom 只负责描述一次 MMA 所读取的局部模式. 具体硬件数据路径可参考[Tensor Core 数据布局的演进](/gpupro/tensor-core-data-layouts/).
+因此, 这个 32-row group 会同时出现在 lanes `0-31`,`32-63`,`64-95` 和 `96-127`. 每个 warp 对应的 32-lane TMEM window 都能访问同一组 scale factors. 完整布局还会加入 M 方向和 K-scale-block 方向的外层 iters; 这里的 atom 只负责描述一次 MMA 所读取的局部模式. 具体硬件数据路径可参考[Tensor Core 数据布局的演进](/gpupro/tensor-core-data-layouts/).
 
-accumulator 和 scale factors 使用的仍是同一个 `TileLayout` 模型: 前者通常是 TMEM 中的一组基础坐标, 后者则在相同的 `TLane`, `TCol` 空间中加入 replication.
+Accumulator 和 scale factors 使用的仍是同一个 `TileLayout` 模型: 前者通常是 TMEM 中的一组基础坐标, 后者则在相同的 `TLane`,`TCol` 空间中加入 replication.
 
-## 常用 layout 构造函数
+## 常用 Layout 构造函数
 
 实际 kernel 通常不需要手写每一种硬件 layout. TIRx 为常见模式提供了构造函数.
 
@@ -346,29 +346,29 @@ accumulator 和 scale factors 使用的仍是同一个 `TileLayout` 模型: 前�
 tmem_datapath_layout(datapath, rows, cols)
 ```
 
-返回 `tcgen05.mma` 写入的 TMEM accumulator layout. `datapath` 选择行映射方式. 例如, `"D"` 对应 `M=128` 时按 row 直接映射的布局, `"F"` 对应 `M=64` 时分散到多个 lane 区域的布局.
+返回 `tcgen05.mma` 写入的 TMEM accumulator layout.`datapath` 选择行映射方式. 例如,`"D"` 对应 `M=128` 时按 row 直接映射的布局,`"F"` 对应 `M=64` 时分散到多个 Lane 区域的布局.
 
 ```python
 tcgen05_atom_layout(instr_shape, tensor_shape, dtype)
 ```
 
-返回与 `tcgen05.ld` 或 `tcgen05.st` data-movement shape 对应的寄存器 tile layout. `instr_shape` 可以是 `"32x32b"`, `"16x64b"`, `"16x128b"` 等字符串; `tensor_shape` 和 `dtype` 共同决定相应的 repeat factor.
+返回与 `tcgen05.ld` 或 `tcgen05.st` data-movement shape 对应的 register tile layout.`instr_shape` 可以是 `"32x32b"`,`"16x64b"`,`"16x128b"` 等字符串;`tensor_shape` 和 `dtype` 共同决定相应的 repeat factor.
 
-这个对象描述一个分布到 warpgroup 各 thread 寄存器中的 tile. 当它用于 TMEM 与 local fragment 之间的 `Tx.wg.copy_async` 时, lowering 可以据此选择匹配的 warp -collective `tcgen05.ld` 或 `tcgen05.st`; 每个 warp 处理自己的 32- lane TMEM partition.
+这个对象描述一个分布到 warpgroup 各 thread registers 中的 tile. 当它用于 TMEM 与 local fragment 之间的 `Tx.wg.copy_async` 时, lowering 可以据此选择匹配的 warp-collective `tcgen05.ld` 或 `tcgen05.st`; 每个 warp 处理自己的 32-lane TMEM partition.
 
 ```python
 wg_local_layout(cols, rows=128)
 ```
 
-返回 warpgroup -local 寄存器 tile. 它把逻辑 row 映射到 `tid_in_wg`, 把同一 row 中的 columns 映射到该 thread 的局部 `m` 轴; 使用默认的 `rows=128` 时, 每个 thread 持有一行.
+返回 warpgroup-local register tile. 它把逻辑 row 映射到 `tid_in_wg`, 把同一 row 中的 columns 映射到该 thread 的局部 `m` 轴; 使用默认的 `rows=128` 时, 每个 thread 持有一行.
 
 这些构造函数返回的仍是 `TileLayout`, 使用的也是相同的 iter 和命名轴模型; 构造函数只是替 kernel 生成了常见的硬件映射.
 
 ## SwizzleLayout 与 ComposeLayout
 
-`TileLayout` 是仿射布局, 可以描述命名轴上的 strides, replication 和 offsets, 适合表示寄存器 fragments, TMEM tile 和 scale-factor layout.
+`TileLayout` 是仿射布局, 可以描述命名轴上的 strides, replication 和 offsets, 适合表示 register fragments, TMEM tiles 和 scale-factor layouts.
 
-shared memory swizzle 不属于仿射变换. 它通过 XOR 重排线性 shared-memory address, 以改变元素落到各个 banks 的方式. 因此, TIRx 使用单独的对象表示它:
+Shared memory swizzle 不属于仿射变换. 它通过 XOR 重排线性 shared-memory address, 以改变元素落到各个 banks 的方式. 因此, TIRx 使用单独的对象表示它:
 
 ```python
 SwizzleLayout(...)
@@ -384,7 +384,7 @@ ComposeLayout(swizzle, tile)
 
 ## 为什么需要 Swizzle
 
-[数据布局及其表示方法](/gpupro/data-layout/) 已经介绍了 shared memory bank conflict 和 XOR swizzle. 这里关注它们在 API 中如何表示.
+[数据布局及其记号](/gpupro/data-layout/) 已经介绍了 shared memory bank conflict 和 XOR swizzle. 这里关注它们在 API 中如何表示.
 
 考虑一个 row-major 的 `(8, 64)` float16 tile:
 
@@ -398,7 +398,7 @@ TileLayout(S[(8, 64) : (64@m, 1@m)])
 m = 64 * i + j
 ```
 
-每行包含 64 个 float16, 也就是 128 bytes. 固定 `j` 并沿 column 读取时, 每换一行都会前进 128 bytes, 多个访问可能重复落到同一组 banks.
+每行包含 64 个 float16, 也就是 128 bytes. 如果一组 threads 从不同行读取同一个 column `j`, 相邻地址之间会相隔 128 bytes, 因此可能反复落到同一组 banks.
 
 Swizzle 让 address 的低位同时依赖较高的 row bits, 使原本落到同一个 bank 的 column access 分散到多个 banks.
 
@@ -414,7 +414,7 @@ atom_len    = S
 
 这三个参数都是 bit counts, 而不是 bytes. 下面的公式以线性 element address `m` 为输入.
 
-`M` 表示需要原样保留的低位数量, `B` 表示参与 XOR 的 bit-field 宽度, `S` 表示两个 bit fields 之间的距离. 首先保留 `m` 的低 `M` bits, 使一小组相邻元素继续保持 contiguous; 其余高位右移得到:
+`M` 表示需要原样保留的低位数量,`B` 表示参与 XOR 的 bit-field 宽度,`S` 表示两个 bit fields 之间的距离. 首先保留 `m` 的低 `M` bits, 使一小组相邻元素继续保持 contiguous; 其余高位右移得到:
 
 ```text
 x = m >> M
@@ -467,7 +467,7 @@ layout = ComposeLayout(swizzle, tile)
 
 最终绑定到 shared-memory buffer 上的是组合后的 `layout`. 下面用这个 layout 检查一次实际地址映射.
 
-## 示例: 对 `(8, 64)` float16 tile 应用 128B Swizzle
+## 示例: 对 `(8, 64)` float16 Tile 应用 128B Swizzle
 
 继续使用上面的 128-byte swizzle. 前面的 row-major tile 使用线性 element address:
 
@@ -488,13 +488,13 @@ r = j mod 8
 addr = 64 * i + 8 * (q xor i) + r
 ```
 
-以 column `j=0` 为例, 此时 `q=0`, `r=0`:
+以 column `j=0` 为例, 此时 `q=0`,`r=0`:
 
 ```text
 addr = 72 * i
 ```
 
-shared memory 包含 32 个 banks, 每个 bank word 为 4 bytes. 对于 float16:
+Shared memory 包含 32 个 banks, 每个 bank word 为 4 bytes. 对于 float16:
 
 ```text
 bank = floor(addr / 2) mod 32
@@ -523,4 +523,4 @@ bank = floor(64 * i / 2) mod 32 = 0
 
 上面的推导只说明这种 float16 按列访问会被分散到 8 个 banks. 其他访问是否无冲突, 还取决于 data type, 每次访问的宽度以及硬件指令采用的 access shape. 在本章开头的交互图中切换 data type 和 swizzle mode, 可以直接比较不同组合的地址映射.
 
-对于构造函数已经覆盖的 `tcgen05` 布局, 可以直接使用 `tmem_datapath_layout`, `tcgen05_atom_layout` 等 helper. 其他仿射布局仍然使用 `S[...]`, `R[...]` 和 offset 表示. 查询 `TileLayout` 时, `apply()` 只计算逻辑元素的基础物理坐标, 不会枚举 replica. Shared-memory swizzle 由 `SwizzleLayout` 表示; 需要将它叠加到只产生线性 `m` 地址的 tile layout 上时, 再使用 `ComposeLayout(swizzle, tile)`.
+对于构造函数已经覆盖的 `tcgen05` 布局, 可以直接使用 `tmem_datapath_layout`,`tcgen05_atom_layout` 等 helper. 其他仿射布局仍然使用 `S[...]`,`R[...]` 和 offset 表示. 查询 `TileLayout` 时,`apply()` 只计算逻辑元素的基础物理坐标, 不会枚举 replica. Shared-memory swizzle 由 `SwizzleLayout` 表示; 需要将它叠加到只产生线性 `m` 地址的 tile layout 上时, 再使用 `ComposeLayout(swizzle, tile)`.

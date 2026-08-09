@@ -44,8 +44,7 @@ def dtypes(A_ptr: T.handle, O_ptr: T.handle):
   u8   = T.alloc_local((1,), "uint8")
   b1   = T.alloc_local((1,), "bool")
   sm   = T.alloc_shared((64,), "float16")      # ... and a shared tile
-  # A vector-dtype register (float4).
-  v = T.alloc_local((1,), "float32x4")
+  v    = T.alloc_local((1,), "float32x4")      # a vector-dtype register (float4)
   v[0] = A.vload([tx * 4], dtype="float32x4")  # vectorized load
   O.vstore([tx * 4], v[0])                     # vectorized store
   # ... (use f16/bf16/i32/u8/b1/sm) ...
@@ -70,7 +69,7 @@ declares a `float4` register directly (you index it as `v[0]`), and a
 `float32x4` `vload` / `vstore` then moves it as one 16-byte access. The vector
 dtype is not tied to `vload` — any buffer or scalar can carry it.
 
-so the dtype → CUDA mapping is:
+The resulting dtype → CUDA mapping is:
 
 | dtype → CUDA | dtype → CUDA | dtype → CUDA |
 | --- | --- | --- |

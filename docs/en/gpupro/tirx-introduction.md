@@ -73,10 +73,7 @@ First import the modules used by the kernel:
 import tvm
 from tvm.script import tirx as T
 from tvm.script.tirx import tile as Tx
-from tvm.tirx.cuda.operator.tile_primitive.tma_utils import (
-  tma_shared_layout,
-  SwizzleMode,
-)
+from tvm.tirx.cuda.operator.tile_primitive.tma_utils import tma_shared_layout, SwizzleMode
 from tvm.tirx.layout import TileLayout, S, TLane, TCol, tid_in_wg
 ```
 
@@ -92,16 +89,8 @@ def hgemm_v1(M, N, K):
   acc_type = tvm.DataType("float32")
 
   BLK_M, BLK_N, BLK_K = 128, 128, 64
-  A_layout = tma_shared_layout(
-    a_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_M, BLK_K),
-  )
-  B_layout = tma_shared_layout(
-    b_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_N, BLK_K),
-  )
+  A_layout = tma_shared_layout(a_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_M, BLK_K))
+  B_layout = tma_shared_layout(b_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_N, BLK_K))
 
   @T.prim_func
   def kernel(
@@ -198,11 +187,7 @@ device = torch.device("cuda")
 M, N, K = 128, 128, 64
 kernel = hgemm_v1(M, N, K)
 with target:
-  ex = tvm.compile(
-    tvm.IRModule({"main": kernel}),
-    target=target,
-    tir_pipeline="tirx",
-  )
+  ex = tvm.compile(tvm.IRModule({"main": kernel}), target=target, tir_pipeline="tirx")
 
 torch.cuda.empty_cache()
 torch.cuda.synchronize()
@@ -247,11 +232,7 @@ We already compiled the kernel with these two lines:
 
 ```python
 target = tvm.target.Target("cuda")
-ex = tvm.compile(
-  tvm.IRModule({"main": kernel}),
-  target=target,
-  tir_pipeline="tirx",
-)
+ex = tvm.compile(tvm.IRModule({"main": kernel}), target=target, tir_pipeline="tirx")
 ```
 
 The `PrimFunc` is first placed in an `IRModule` and then passed to `tvm.compile`. Setting `tir_pipeline="tirx"` starts the TIRx lowering pipeline. Its central pass, `LowerTIRx`, uses the scope, layout, and dispatch of each tile primitive to select a concrete implementation and lower operations such as `Tx.gemm_async` and `Tx.cta.copy` into lower-level TIR.

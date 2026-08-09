@@ -456,7 +456,7 @@ function frontmatter(page) {
 
 function homeIntroduction(commit) {
   if (locale === 'zh') {
-    return `::: note 来源\n本地版本镜像自 [MLC Community 原书](https://mlc.ai/modern-gpu-programming-for-mlsys/)的[上游提交 \`${commit.slice(0, 12)}\`](https://github.com/mlc-ai/modern-gpu-programming-for-mlsys/tree/${commit}). Copyright 2026 MLC Community. 正文和资源采用上游中文稿, 仅调整了 VuePress 所需的格式、链接与本站标点规范. 上游仓库目前没有覆盖全仓库的许可证文件; TIRx 参考页面保留其 Apache License 2.0 声明.\n:::`
+    return `::: note 来源\n本地版本镜像自 [MLC Community 原书](https://mlc.ai/modern-gpu-programming-for-mlsys/)的[上游提交 \`${commit.slice(0, 12)}\`](https://github.com/mlc-ai/modern-gpu-programming-for-mlsys/tree/${commit}). Copyright 2026 MLC Community. 正文和资源以上游中文稿为基础, 本地版本调整了 VuePress 所需的格式和链接, 并校订中文表达. 上游仓库目前没有覆盖全仓库的许可证文件; TIRx 参考页面保留 Apache License 2.0 声明.\n:::`
   }
 
   return `::: note Source\nThis local edition mirrors the [MLC Community book](https://mlc.ai/modern-gpu-programming-for-mlsys/) from [upstream commit \`${commit.slice(0, 12)}\`](https://github.com/mlc-ai/modern-gpu-programming-for-mlsys/tree/${commit}). Copyright 2026 MLC Community. The text and assets are unchanged except for the formatting and links required by VuePress. The upstream repository currently has no repository-wide license file; the TIRx reference pages retain their Apache License 2.0 notices.\n:::`
@@ -572,8 +572,16 @@ async function copyInteractiveAssets() {
   await cp(demoSource, path.join(publicRoot, demoTarget), { recursive: true, force: true })
   await cp(path.join(checkoutRoot, 'static', 'tirx-layout-demo'), path.join(publicRoot, 'tirx-layout-demo'), { recursive: true, force: true })
 
-  for (const file of ['viz-base.css', 'viz-base.js', 'code-highlight.css', 'code-highlight.js']) {
+  for (const file of ['viz-base.css', 'viz-base.js']) {
     await cp(path.join(checkoutRoot, '_extra', file), path.join(publicRoot, file))
+  }
+
+  for (const file of ['code-highlight.css', 'code-highlight.js']) {
+    try {
+      await cp(path.join(checkoutRoot, '_extra', file), path.join(publicRoot, file))
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
   }
 
   const sourceFont = path.join(repoRoot, 'docs', '.vuepress', 'assets', 'fonts', 'LHANDW.TTF')

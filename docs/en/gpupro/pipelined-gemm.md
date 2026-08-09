@@ -6,35 +6,31 @@ pageClass: gpupro-page
 ---
 
 ::: info Overview
-- The basic GEMM wastes time taking turns (copy a tile, compute, copy the next) when the two could run at once.
-- Step 4 switches to TMA async loads, Step 5 double-buffers SMEM and prefetches (PIPE_DEPTH=2); full load/compute overlap arrives with warp specialization in Step 7, Step 6 makes the kernel persistent with a tile scheduler.
-- The goal is to load the next tile while the Tensor Cores chew through the current one.
+- Step 4 uses TMA to move tiles between GMEM and SMEM. Load completion is tracked with an mbarrier, while stores use async commit and wait groups.
+- Step 5 turns the A and B buffers into a double-buffered SMEM ring and introduces prefetching, stage reuse, and phase management, establishing the buffer structure needed to overlap TMA loads with MMA.
+- Step 6 adds a tile scheduler and turns the kernel into a persistent kernel, allowing a fixed number of CTAs to process multiple output tiles while improving L2 locality.
 :::
 
-The Tensor Cores are the most expensive unit on the chip, and the correct tiled GEMM from the previous chapter leaves them idle for most of the clock. The kernel takes turns: threads copy a tile into shared memory, the Tensor Cores chew through it, threads copy the next tile, and the Tensor Cores wait. Each stage stalls on the one before it, even though loading the next tile and computing on the current one use entirely separate hardware and could run at the same time. Closing that gap does not require a new data path; the tiles, the layouts, and the math are already right. What has to change is *when* the work happens and *by whom* it is scheduled. This chapter keeps the tile data path exactly as it was and attacks the idleness directly.
+The kernel from the previous chapter processes each K tile in a fixed order: threads copy A and B into shared memory and wait for every write to finish, then issue the MMA and wait for the computation to complete before loading the next tile. This sequence is easy to follow and produces the correct result, but data movement and Tensor Core computation cannot overlap.
 
-We get there in three incremental steps, and it helps to know the destination before we start. In Step 4 we hand the bulk GMEM <-> SMEM transfers to TMA, so that dedicated copy hardware moves the tiles instead of the threads. In Step 5 we add a two-stage software pipeline, giving the next K tile somewhere to land while the current one is still being multiplied. And in Step 6 we reshape the launch into a persistent kernel driven by a tile scheduler, which amortizes the per-tile setup and lets us pick a tile order that keeps operands hot. Throughout, the SMEM, TMEM, and register layouts stay exactly as we left them in the previous chapter. The only genuinely new idea is the asynchronous handoff between hardware units: letting one engine run ahead of another instead of marching them in lockstep.
+This chapter continues from the three kernels built so far. Step 4 replaces the thread-driven A and B copies with TMA. Step 5 provides two shared-memory stages for prefetching and later overlap. Step 6 adds a tile scheduler so that resident CTAs can process several output tiles in succession. By the end of the chapter, the kernel has asynchronous tile movement, reusable SMEM stages, and persistent scheduling. The next chapter assigns these stages to separate warp roles so that they can run concurrently.
 
 ## Step 4: TMA Async Load
 
-Our first move is to get the copy itself off the critical path. Think about what the CTA was doing in Steps 1-3: every one of its threads computes addresses and issues load instructions for no reason other than to shuttle tiles into SMEM. That is instruction bandwidth spent on plumbing rather than on math. Step 4 replaces the synchronous `Tx.copy` with TMA, where a single thread issues one command and the TMA engine carries out the whole tile transfer on its own. From here on the examples run at the full M=N=K=4096 size rather than the small sizes of Steps 1-3, and their end-to-end timings appear in the *End-to-End Result* table at the end of [Scaling GEMM with Warp Specialization and Clusters](/en/gpupro/warp-specialized-gemm/).
+Steps 1 through 3 use `Tx.cta.copy` to move A and B tiles: the CTA threads compute their addresses and execute the corresponding loads and stores. Step 4 switches to TMA. One thread issues the operation, and the TMA engine performs the remaining address generation and tile transfer. From this point onward, the examples use the full `M=N=K=4096` problem size.
 
-> **What this step changes: Dispatch**
+> **Step 4 execution structure**
 > - Scope: unchanged, one warpgroup.
 > - Layout: unchanged, same SMEM/TMEM/register tiles.
-> - Dispatch: GMEM → SMEM loads move from sync `Tx.copy` to the TMA engine.
+> - Dispatch: GMEM → SMEM loads move from synchronous `Tx.cta.copy` to the TMA engine.
 
-### TMA Issue Pattern
+### Issuing a TMA Load
 
-Step 4's one change is to replace the synchronous tile copy with a TMA load, so it pays to look closely at how that load is issued. The edit to the source is only a few lines, but the execution model behind those lines is different in kind. A synchronous `Tx.copy` is work that the CTA threads do themselves, with their own instructions; a TMA copy is a command that one thread issues, after which the TMA hardware does all the moving. It is worth seeing the two side by side.
+First compare the code in Steps 3 and 4.
 
 **Before (Step 3)**: all 128 threads participate in the copy, then `cta_sync` makes the shared-memory writes visible:
 ```python
-# All 128 threads participate.
-Tx.cta.copy(
-  Asmem[:, :],
-  A[m_st : m_st + BLK_M, i * BLK_K : (i + 1) * BLK_K],
-)
+Tx.cta.copy(Asmem[:, :], A[m_st:m_st+BLK_M, i*BLK_K:(i+1)*BLK_K])   # all 128 threads
 Tx.cta.copy(Bsmem[:, :], B[n_st:n_st+BLK_N, i*BLK_K:(i+1)*BLK_K])
 T.cuda.cta_sync()
 ```
@@ -45,39 +41,31 @@ tid = warp_id * 32 + lane_id                 # 0..127 within the warpgroup
 if tid == 0:  # exactly one thread starts TMA
   Tx.copy_async(Asmem, A[...], dispatch="tma")
   Tx.copy_async(Bsmem, B[...], dispatch="tma")
-  # Number of bytes expected from TMA.
-  T.ptx.mbarrier.arrive.expect_tx(tma_bar, byte_count)
-# Wait before MMA reads SMEM.
-T.ptx.mbarrier.try_wait(tma_bar, phase)
+  T.ptx.mbarrier.arrive.expect_tx(tma_bar, byte_count)  # bytes expected from TMA
+T.ptx.mbarrier.try_wait(tma_bar, phase)                  # wait before MMA reads SMEM
 ```
 
-Notice that the load is gated on `tid == 0`, not on `elect_sync()`, and the distinction matters more than it looks. `elect.sync` elects one active lane *per warp*, and a warpgroup has four warps, so `elect_sync()` would actually let four threads enter the load protocol. The trouble is that the protocol announces the expected byte count to the mbarrier, and it must announce it exactly once; four announcements would corrupt the count and the wait would never release correctly. Picking precisely one thread by its warpgroup-wide id is the clean way to avoid that.
+`tid` combines the warp ID and lane ID into a thread ID within the warpgroup, so `tid == 0` selects exactly one thread. If all four warps called `elect_sync()` directly, each warp would select one active lane and four threads would issue the TMA load. The code could instead guard on `warp_id == 0` before calling `elect_sync()`; using `tid == 0` is more direct here.
 
-It is important to be honest about where the speedup comes from. Step 4 still waits after every TMA load, so we are not yet overlapping the load with the compute; that is the work of Step 5. The win here comes purely from the change of data-movement path:
-
-- `Tx.copy` uses CTA threads to compute addresses and issue load/store instructions.
-- TMA uses one issued command to start a hardware tile transfer. Address generation, coalescing, and swizzling are described by the TMA descriptor and carried out by the TMA engine.
-
-So even though Step 4 still blocks on each load, it ends up faster anyway. TMA absorbs the bulk transfer, which frees the CTA threads from spending instruction bandwidth shuffling tiles around, and that saving alone is enough to move the needle.
+Step 4 still waits immediately after every TMA load, so load and compute do not yet overlap. The change at this stage is that address generation and tile movement move from the CTA threads to the TMA engine, reducing the number of copy instructions those threads execute. Step 5 adds a second SMEM stage for prefetching; full role-level overlap arrives in Step 7.
 
 ### TMA Load and Store Synchronization
 
-We have seen how a TMA copy is issued; the other half of the story is knowing when it has finished. Switching to TMA changes two things at once: who starts a copy, and how the code knows when it finished. The first is obvious from the code; the second is easy to overlook, and getting it wrong gives you a silent correctness bug rather than a crash. With `Tx.cta.copy`, the CTA threads do the copy together and a following `cta_sync()` is enough to know it is done. With TMA, one selected thread issues `Tx.copy_async(..., dispatch="tma")`, the engine performs the transfer on its own schedule, and it signals completion through an mbarrier.
+After a TMA load is issued, the transfer continues on the TMA engine. `cta_sync()` synchronizes only the CTA threads and cannot determine whether this asynchronous transfer has finished. Before MMA reads the SMEM tile, it must therefore wait for the TMA load through an mbarrier.
 
-This is exactly why `cta_sync()` is no longer sufficient. `cta_sync()` waits only for the CTA's own threads and orders only their shared-memory writes; it knows nothing about an in-flight TMA transfer, so it happily returns while the tile is still arriving. The fix is to make completion explicit: for a TMA load, the selected thread first tells the mbarrier how many bytes to expect, and the CTA then waits on *that* mbarrier before any MMA touches the SMEM tile. The figure below traces that handshake end to end.
+The figure below presents this handoff as a top-to-bottom timeline. Its four lifelines represent the issuing thread, the TMA engine, the mbarrier, and the MMA that consumes the data. The diagram uses a simplified example in which the A and B tiles are 2048 bytes each, for a total transfer of 4096 bytes.
 
 ![TMA Async Load: Synchronization Flow](../../gpupro/images/tma_sync_flow.svg)
 
-The figure above isolates the load-side handshake: one selected thread launches TMA, the mbarrier
-counts the expected bytes, and MMA waits on the release before reading SMEM. Where it says
-"Elected Thread" it means the selected thread that starts TMA, which in our code is the `tid == 0`
-thread, not an `elect_sync()` lane.
+Steps 1 and 2 in the figure occur on the issuing thread. It launches one `copy_async` for A and one for B, then executes `arrive.expect_tx(4096)`. This operation reports one thread arrival to the mbarrier and registers the 4096 bytes of asynchronous transfer that remain. The pending arrival count is now zero, but the pending byte count is still 4096, so the barrier is not complete.
 
-Putting the load path together, then: the selected thread issues both `copy_async` calls and follows them with `arrive.expect_tx(total_bytes)`, where the byte count is precisely how much data the mbarrier should hold out for. Once the engine has moved that many bytes, the matching `mbarrier.try_wait(phase)` releases, and only then is the SMEM tile safe to feed to MMA.
+Step 3 is performed by the TMA engine. As A and B arrive in SMEM, the hardware uses `complete_tx` to reduce the pending byte count. Once both transfers finish, the byte count reaches zero. The consumer's `try_wait(phase)` can then pass in Step 4, and the MMA starts reading the completed A and B tiles in Step 5.
 
-The store side travels over the same hardware but waits in a different way, so it pays to keep the two protocols clearly apart in your head: loads track completion with mbarriers and byte counts, while stores track it with commit groups and wait groups. After the threads write their fp16 results into `Dsmem` and synchronize, one selected thread starts `Tx.copy_async(D[...], Dsmem, dispatch="tma")`, and then `cp_async.bulk.commit_group()` followed by `cp_async.bulk.wait_group(0)` block until the store has drained. That wait is not optional: `Dsmem` cannot be reused for the next tile until the previous store is gone.
+The kernel uses the same protocol with larger tiles. A and B each contain `128×64` fp16 elements and occupy 16384 bytes, so `arrive.expect_tx` registers 32768 bytes in total.
 
-**Try with your agent**: Trace the Step 4 load and store synchronization for one K tile. Identify which thread starts each TMA command, which mbarrier or commit group tracks completion, which wait protects MMA reads of `Asmem` and `Bsmem`, and which wait protects reuse of `Dsmem`. Why would `elect_sync()` be the wrong thread selection for the TMA load protocol here?
+TMA stores use a different completion mechanism. After the threads write the result to `Dsmem`, a `fence.proxy_async` followed by `warpgroup_sync` ensures that the complete buffer is present and visible to the TMA engine.
+
+The `tid == 0` thread then starts the asynchronous copy from `Dsmem` to GMEM and calls `cp_async.bulk.commit_group()`, which collects its previously issued but uncommitted TMA stores into one bulk async group. The `0` in `cp_async.bulk.wait_group(0)` means that no previously committed group may remain pending, so the call returns only after all of those stores have completed. Until then, `Dsmem` cannot be overwritten or reused.
 
 ### Complete Kernel
 
@@ -88,10 +76,7 @@ import tvm
 from tvm.script import tirx as T
 from tvm.script.tirx import tile as Tx
 from tvm.tirx.layout import TileLayout, S, TLane, TCol, tid_in_wg
-from tvm.tirx.cuda.operator.tile_primitive.tma_utils import (
-  tma_shared_layout,
-  SwizzleMode,
-)
+from tvm.tirx.cuda.operator.tile_primitive.tma_utils import tma_shared_layout, SwizzleMode
 ```
 
 It is wrapped in `hgemm_v4(M, N, K)`, a pattern we follow throughout: the wrapper keeps the shape-dependent constants and layouts right next to the kernel that uses them.
@@ -107,21 +92,9 @@ def hgemm_v4(M, N, K):
   K_TILES = K // BLK_K
   F16_SIZE = 2
 
-  A_layout = tma_shared_layout(
-    a_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_M, BLK_K),
-  )
-  B_layout = tma_shared_layout(
-    b_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_N, BLK_K),
-  )
-  D_layout = tma_shared_layout(
-    d_type,
-    SwizzleMode.SWIZZLE_128B_ATOM,
-    (BLK_M, BLK_N),
-  )
+  A_layout = tma_shared_layout(a_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_M, BLK_K))
+  B_layout = tma_shared_layout(b_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_N, BLK_K))
+  D_layout = tma_shared_layout(d_type, SwizzleMode.SWIZZLE_128B_ATOM, (BLK_M, BLK_N))
 
   @T.prim_func
   def kernel(
@@ -221,8 +194,7 @@ def hgemm_v4(M, N, K):
     Dreg_wg = Dreg.view(128, BLK_N,
       layout=TileLayout(S[(128, BLK_N) : (1@tid_in_wg, 1)]))
 
-    # Read TMEM -> registers asynchronously. wait.ld and cta_sync
-    # ensure the read completes.
+    # Read TMEM -> registers (async; wait.ld then cta_sync to ensure read completes)
     Tx.wg.copy_async(Dreg_wg[:, :], tmem[:, :BLK_N])
     T.ptx.tcgen05.wait.ld()
     T.cuda.cta_sync()
@@ -232,7 +204,7 @@ def hgemm_v4(M, N, K):
     Tx.copy(Dsmem[warp_id * 32 + lane_id, 0:BLK_N], Dreg_f16[:])
     T.ptx.fence.proxy_async("shared::cta")
     T.cuda.warpgroup_sync(10)
-    # TMA store: Dsmem -> GMEM. One selected thread starts the
+    # TMA store: Dsmem -> GMEM. One selected thread starts the store and drains the
     # store group before Dsmem is reused.
     if tid == 0:
       Tx.copy_async(D[m_st : m_st + BLK_M, n_st : n_st + BLK_N],
@@ -252,7 +224,7 @@ def hgemm_v4(M, N, K):
 
 ### TMA Configuration in the Kernel
 
-Almost everything in that kernel is carried over from Step 3. Only five configuration points actually carry the TMA semantics, and it is worth knowing each by name:
+Most of this kernel comes directly from Step 3. The following five settings define the TMA behavior:
 
 - **TMA config**: `{"dispatch": "tma", "cta_group": 1, "mbar": tma_bar.ptr_to([0])}` tells `Tx.copy_async` to use TMA and to report load completion through `tma_bar`.
 
@@ -264,26 +236,24 @@ Almost everything in that kernel is carried over from Step 3. Only five configur
 
 - **TMA store synchronization**: The epilogue first writes fp16 rows into `Dsmem`. `fence.proxy_async` and `warpgroup_sync` make those thread-written SMEM values ready for the TMA store path. The store then uses `commit_group()` and `wait_group(0)` to wait for the SMEM-to-GMEM transfer to finish.
 
-At this point we have the right pieces but the wrong rhythm. Step 4 still finishes each load before starting the matching MMA, so the load and the multiply never actually run at the same time; the two engines we worked so hard to separate still take turns. The next step leaves the TMA load and store path exactly as it is and instead rearranges the schedule, so that loading one K tile can proceed while compute runs on another.
+The data-movement path is now correct, but the schedule remains sequential: each load completes before its MMA begins, so the two engines still take turns. The next step keeps the TMA load and store paths and introduces reusable SMEM stages for prefetching.
 
 ## Step 5: Software Pipeline (PIPE_DEPTH=2)
 
-Why couldn't Step 4 overlap the load with the compute, when the two engines are clearly independent? The obstacle turns out to be storage. With only one SMEM tile pair, the next load has nowhere to go: it cannot begin until the current MMA has finished reading that pair, since starting early would overwrite data still in use. Step 5 removes that storage conflict by double-buffering shared memory. The single-warpgroup loop still waits for each MMA before launching the next TMA load, but it now has distinct stages to prefetch into and reuse. We are still at the full M=N=K=4096 size.
+Step 4 cannot overlap load and compute because SMEM contains only one operand-tile pair. The next load has no independent destination; starting it early would overwrite data that the current MMA is still reading. Step 5 removes this storage conflict by double-buffering shared memory. The single-warpgroup loop still waits for each MMA before issuing the next TMA load, but it now has separate stages that can be prefetched and reused in a ring.
 
-> **What this step changes: Layout**
+> **Step 5 execution structure**
 > - Scope: unchanged, one warpgroup.
 > - Layout: the single SMEM tile pair becomes a `PIPE_DEPTH`-stage ring buffer.
 > - Dispatch: unchanged, TMA load and `tcgen05` MMA; this step adds prefetch and stage reuse, while full load/compute overlap arrives in Step 7.
 
 ### Pipeline Walkthrough
 
-With `PIPE_DEPTH=2`, the kernel allocates two SMEM stages, giving the load path and the MMA path separate slots to work on.
+With `PIPE_DEPTH=2`, the kernel allocates two SMEM stages, giving the load and MMA paths different slots. This separation is required before data movement and computation can overlap, but the current single-warpgroup kernel still waits for the MMA before issuing the next TMA load. The figure shows the target schedule supported by the double buffer. Step 7 reaches this schedule after assigning TMA and MMA to separate roles.
 
-Read the figure below as the pipeline structure that the two-stage buffer is meant to enable, not as an exact execution trace of this single-warpgroup kernel. Step 5 builds the ring buffer and prefetches later stages, but the main loop still waits for the current MMA before it issues the next TMA load. Full load/compute overlap arrives in Step 7, when warp specialization gives TMA and MMA separate roles.
+![*Target schedule with `PIPE_DEPTH=2`*](../../gpupro/images/pipe_depth2.png)
 
-![*Pipeline PIPE_DEPTH=2, the target schedule; this single-warpgroup step only prefetches, full overlap arrives with warp specialization in Step 7*](../../gpupro/images/pipe_depth2.png)
-
-Once it is primed, the loop alternates through the two stages. Two TMA loads fill both stages up front; after that, the loop waits for the current stage, runs MMA on it, waits for that MMA to finish reading the stage, and then launches the load for `k + PIPE_DEPTH` into the stage that just became reusable. This is not yet a concurrent TMA/MMA schedule, but it establishes the ring-buffer structure that Step 7 will split across producer and consumer roles.
+At startup, two TMA loads fill both stages. The loop then waits for the current stage, runs MMA on it, and loads tile `k + PIPE_DEPTH` into the stage that has just become reusable. This establishes the ring buffer and prefetches the first two tiles.
 
 Concretely, the code differs from Step 4 in four places:
 
@@ -294,13 +264,13 @@ Concretely, the code differs from Step 4 in four places:
 
 ### Pipeline Mechanics
 
-**1. Prefetch**: before the main loop ever runs, we load the first `PIPE_DEPTH` stages, so that the loop always finds data waiting for it on the very first iteration:
+**1. Prefetch**: before the main loop begins, load the first `PIPE_DEPTH` stages so that data is ready for the first iteration:
 ```python
 for s in range(min(PIPE_DEPTH, K_TILES)):
   tma_load(s, s * BLK_K)
 ```
 
-**2. Main loop**: for each K tile we wait for its stage to be ready, run MMA on it, and then immediately put that now-free stage back to work by launching the load for the tile `PIPE_DEPTH` ahead:
+**2. Main loop**: for each K tile, wait for its stage, run MMA, then reuse the released stage to load the tile `PIPE_DEPTH` positions ahead:
 ```python
 stage = k % PIPE_DEPTH
 wait(tma_bar[stage], phase_tma)
@@ -310,27 +280,26 @@ phase_mma ^= 1
 tma_load(stage, next_k * BLK_K)
 ```
 
-**3. Phase management**: this is the part that trips people up, but the rule is simpler than it first appears. The phase-flip rule for each barrier follows directly from how many slots that barrier has, which is why the two barriers flip on different cadences. The MMA accumulator lives in one TMEM slot, so `mma_bar` is a single barrier (`mma_bar.ptr_to([0])`) that every iteration revisits, and a barrier you revisit every iteration must have its phase flipped every iteration. The TMA barriers tell a different story: they form a `PIPE_DEPTH`-element array with one barrier per stage, and any given stage's barrier only comes back around once per trip through the ring. So `phase_tma` flips only when the stage index wraps back to 0:
+**3. Phase management**: as described in the asynchronous synchronization chapter, an mbarrier changes phase after each completed round. The two local phase variables advance at different rates because one tracks a single MMA accumulator while the other tracks several SMEM stages.
+
+All K iterations use `mma_bar.ptr_to([0])` to track the same TMEM accumulator, so `phase_mma` flips on every iteration. TMA assigns one barrier to each SMEM stage. A stage's barrier begins a new round only when the ring returns to that stage, so `phase_tma` flips after the stage index reaches the end of the ring:
 ```python
 if stage == PIPE_DEPTH - 1:
   phase_tma ^= 1
 ```
 
-**Try with your agent**: With `PIPE_DEPTH=2` and `K_TILES=5`, ask it to trace the main loop. For each `k`, list `stage`, the `phase_tma` and `phase_mma` values passed to the waits, and whether a new prefetch is issued. Where exactly does `phase_tma` flip, and why is there no prefetch for the last two iterations?
+**Trace the pipeline**: for `PIPE_DEPTH=2` and `K_TILES=5`, trace the main loop. For each `k`, record `stage`, the `phase_tma` and `phase_mma` values passed to the waits, and whether the iteration issues another prefetch. Where does `phase_tma` flip, and why do the final two iterations issue no prefetch?
 
 ### Complete Kernel
 
-The complete kernel keeps the Step 4 TMA load and store path verbatim, then wraps it in the staged buffers and phase logic we just described. The imports are unchanged:
+The complete kernel retains the Step 4 TMA load and store path, then adds the staged buffers and phase logic described above. The imports are unchanged:
 
 ```python
 import tvm
 from tvm.script import tirx as T
 from tvm.script.tirx import tile as Tx
 from tvm.tirx.layout import TileLayout, S, TLane, TCol, tid_in_wg
-from tvm.tirx.cuda.operator.tile_primitive.tma_utils import (
-  tma_shared_layout,
-  SwizzleMode,
-)
+from tvm.tirx.cuda.operator.tile_primitive.tma_utils import tma_shared_layout, SwizzleMode
 ```
 
 It is wrapped in `hgemm_v5(M, N, K)`. The `PIPE_DEPTH=2` constant sets the number of pipeline stages (two of them here, which is exactly double buffering):
@@ -485,41 +454,41 @@ def hgemm_v5(M, N, K):
 
 ## Step 6: Persistent Kernel + Tile Scheduler
 
-Everything up to now has optimized the work inside a single tile. Step 6 changes the scale of the question and optimizes across tiles.
+The preceding steps optimize execution within one output tile. Step 6 turns to scheduling across tiles.
 
-Step 5 launches one CTA per 128 x 128 output tile. For a 4096 x 4096 output, that means 1024 separate CTAs, each paying its own setup cost and then vanishing the moment its tile is done.
+Step 5 launches one CTA per $128\times128$ output tile. A $4096\times4096$ output therefore requires 1024 CTAs. Each CTA performs its own initialization and exits after computing one tile.
 
-Step 6 launches a fixed pool of CTAs instead, then asks each CTA to process many tiles in turn. This buys us two things: setup work is amortized across several tiles, and tile assignment moves inside the kernel, where the scheduler can choose an order that reuses operands. We remain at the full M=N=K=4096 size.
+A persistent kernel instead launches a fixed number of CTAs and lets each one process several tiles in sequence. This amortizes initialization across multiple tiles and moves tile assignment into the kernel, where the scheduler can choose an order that improves operand locality.
 
-> **What this step changes: Scope**
+> **Step 6 execution structure**
 > - Scope: a fixed pool of persistent CTAs, each looping over many output tiles via the scheduler.
 > - Layout: unchanged, the same per-tile SMEM/TMEM/register path.
 > - Dispatch: unchanged.
 
 ### Persistent Scheduling
 
-The defining idea of a persistent kernel is that it sizes its grid to the hardware rather than to the problem. It launches `SM_COUNT` CTAs, roughly one per SM, no matter how many output tiles there happen to be, with the aim of keeping each SM continuously occupied. We say "roughly" deliberately: exact 1:1 residency is not guaranteed, since it depends on occupancy and on how the hardware chooses to schedule CTAs.
+A persistent kernel uses a smaller one-dimensional grid. This example sets `SM_COUNT=148` and launches 148 persistent CTAs. Each CTA obtains an output tile from the scheduler, computes it, and requests another until no tiles remain. `SM_COUNT` determines how many persistent CTAs the kernel launches. Occupancy and hardware scheduling determine how many can be resident at once and which SMs execute them; no CTA is permanently bound to a particular SM.
 
-On the B200 we are targeting here, `SM_COUNT=148`. Each of those 148 CTAs loops over the tiles handed to it by `ClusterPersistentScheduler2D`.
+Because one CTA processes several tiles, it allocates TMEM, initializes its barriers, and creates scheduler state only once. Those resources remain in place until the CTA finishes all of its assigned work.
 
-The first payoff is amortization. TMEM allocation, barrier initialization, and scheduler state now happen once per CTA and are reused across the roughly 7 tiles that CTA handles, rather than being repeated 1024 times across throwaway CTAs.
-
-The second payoff comes from the order the scheduler picks. Setting `l2_group_size=8` groups nearby tiles together, so tiles sharing a row band reuse the same A row-tiles, and tiles sharing a column band reuse the same B tiles. Running those tiles back-to-back keeps the operands hot in L2 instead of re-fetching them from HBM. This is exactly the reuse that Step 3 left on the table.
+The scheduler also changes the logical tile order. `l2_group_size=8` groups eight consecutive output-tile rows along M. Within each group, tile IDs run down those eight rows for one N tile column before advancing to the next column. This places work that shares a B tile close together in the schedule and revisits the same group of A tiles over a short span. The CTAs still move their data independently, and the hardware may execute them in a different order, but this numbering makes L2 reuse more likely.
 
 ```python
-bx = T.cta_id([SM_COUNT])  # 1D grid, one CTA per SM
+bx = T.cta_id([SM_COUNT])  # 1D persistent grid
 
 tile_scheduler = ClusterPersistentScheduler2D(
   "ts",
   num_m_tiles=M // BLK_M,
   num_n_tiles=N // BLK_N,
-  l2_group_size=8,       # Group 8 nearby tiles together
+  l2_group_size=8,
   num_clusters=SM_COUNT
 )
 tile_scheduler.init(bx)
 ```
 
-Looping over tiles brings one correctness consequence that is easy to miss. Each tile runs its own fresh K-loop, which means its barrier phases have to start from a known state. In Step 5 a CTA handled exactly one tile, so initializing `phase_tma` and `phase_mma` a single time was perfectly fine. In Step 6 those initializers must move *inside* the `while tile_scheduler.valid()` loop, so that each tile begins with phase state matched to its own TMA and MMA work, rather than inheriting whatever the previous tile happened to leave behind:
+When a CTA starts its next output tile, it reuses the same TMA and MMA barriers. The locally stored phase parity must therefore match each barrier's current state.
+
+With the current parameters, each output tile contains 64 K iterations. `mma_bar` is used 64 times, while each of the two TMA stage barriers is used 32 times. Because all of these counts are even, every barrier returns to its initial parity at the end of a tile, and the next tile may start its local phase values at zero:
 
 ```python
 while tile_scheduler.valid():
@@ -528,23 +497,22 @@ while tile_scheduler.valid():
   ...
 ```
 
+If changing `K`, `BLK_K`, or `PIPE_DEPTH` makes any barrier run an odd number of rounds per output tile, its phase parity cannot simply be reset to zero. The wrapper below uses an assertion to restrict the parameter combinations supported by this implementation.
+
 ### Complete Kernel
 
-Structurally, the kernel is nothing more than Step 5's pipeline wrapped in a tile-level outer loop. The only new dependency is the scheduler itself, which we import alongside the rest:
+Step 6 keeps the staged K-loop from Step 5 and places it inside an outer loop over output tiles. The only new dependency is the scheduler:
 
 ```python
 import tvm
 from tvm.script import tirx as T
 from tvm.script.tirx import tile as Tx
 from tvm.tirx.layout import TileLayout, S, TLane, TCol, tid_in_wg
-from tvm.tirx.cuda.operator.tile_primitive.tma_utils import (
-  tma_shared_layout,
-  SwizzleMode,
-)
+from tvm.tirx.cuda.operator.tile_primitive.tma_utils import tma_shared_layout, SwizzleMode
 from tvm.tirx.lang.tile_scheduler import ClusterPersistentScheduler2D
 ```
 
-The grid dimension is now simply `SM_COUNT` rather than `(M//BLK_M, N//BLK_N)`, and a `ClusterPersistentScheduler2D` takes over the job of handing each CTA its tiles:
+The launch grid now has `SM_COUNT` CTAs rather than one CTA for every `(M, N)` output tile. A `ClusterPersistentScheduler2D` assigns tiles to those persistent CTAs:
 
 ```python
 SM_COUNT = 148  # Number of SMs on NVIDIA B200 GPU
@@ -557,7 +525,11 @@ def hgemm_v6(M, N, K):
   acc_type = tvm.DataType("float32")
   F16_SIZE = 2
   BLK_M, BLK_N, BLK_K = 128, 128, 64
+  assert K % BLK_K == 0, "K must be divisible by BLK_K"
   K_TILES = K // BLK_K
+  assert K_TILES % (2 * PIPE_DEPTH) == 0, (
+    "K_TILES must be divisible by 2 * PIPE_DEPTH"
+  )
 
   A_layout = tma_shared_layout(a_type, SwizzleMode.SWIZZLE_128B_ATOM,
     (PIPE_DEPTH, BLK_M, BLK_K))
@@ -673,13 +645,8 @@ def hgemm_v6(M, N, K):
       # === TMA Store Writeback: TMEM -> RF -> Dsmem -> TMA -> GMEM ===
       Dreg = T.alloc_local((BLK_N,), acc_type)
       Dreg_f16 = T.alloc_local((BLK_N,), d_type)
-      Dreg_wg = Dreg.view(
-        128,
-        BLK_N,
-        layout=TileLayout(
-          S[(128, BLK_N) : (1@tid_in_wg, 1)]
-        ),
-      )
+      Dreg_wg = Dreg.view(128, BLK_N,
+        layout=TileLayout(S[(128, BLK_N) : (1@tid_in_wg, 1)]))
       Tx.wg.copy_async(Dreg_wg[:, :], tmem[:, :BLK_N])
       T.ptx.tcgen05.wait.ld()
       T.cuda.cta_sync()

@@ -22,11 +22,11 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-`tvm.compile(mod, target, tir_pipeline="tirx")` runs an authored TIRx module
-through the **tirx pipeline** — an ordered sequence of TIR passes that turns the
-high-level constructs you write (tile primitives, `TileLayout`-typed buffers,
-execution-scope ids) into split **host** + **device** functions, which the CUDA
-backend then renders to source. The pipeline is defined in
+`tvm.compile(mod, target, tir_pipeline="tirx")` passes a TIRx module through the
+**tirx pipeline**, an ordered sequence of TIR passes. These passes lower the
+high-level constructs in the source—tile primitives, `TileLayout`-typed buffers,
+and execution-scope IDs—and split the module into **host** and **device** functions.
+The CUDA backend then generates source for the device functions. The pipeline is defined in
 `python/tvm/tirx/compilation_pipeline.py` (`tirx_pipeline`); this page walks the
 passes in order.
 
@@ -38,11 +38,9 @@ device functions, and finally hands each device function to the CUDA code
 generator:
 
 ```text
-authored TIRx
-  │
-  └─BindTarget─▶ tirx_pipeline
-                   ├─▶ host func ──host finalize──▶ C/LLVM
-                   └─▶ device func ─device finalize─▶ CUDA
+authored TIRx  ──BindTarget──▶  tirx_pipeline  ──▶  host func  ──host finalize──▶  C/LLVM
+                                      │
+                                      └──────────▶  device func ──device finalize──▶  CUDA
 ```
 
 ## The passes
@@ -86,9 +84,9 @@ The `tirx_pipeline` module pass applies this exact sequence (a few are gated by
 LowerTIRx = Sequential([ TilePrimitiveDispatch, LowerTIRxCleanup ])
 ```
 
-- **`TilePrimitiveDispatch`** replaces every `TilePrimitiveCall` (`copy`,
-  `gemm`, `reduction`, …) with the body emitted by its selected backend
-  dispatch — its variant-selection and codegen.
+- **`TilePrimitiveDispatch`** selects a backend variant for every
+  `TilePrimitiveCall` (`copy`, `gemm`, `reduction`, …) and replaces the
+  call with the implementation emitted by that variant.
 - **`LowerTIRxCleanup`** runs the `LayoutApplier`: it resolves every
   `TileLayout`-typed buffer access into concrete physical address arithmetic
   (`addr = data + elem_offset + layout.apply(coord)`), flattens the buffers, and
@@ -128,8 +126,7 @@ a host launcher and a device kernel:
 ```python
 @I.ir_module
 class Module:
-  # Host packed-API launcher: computes the grid/block and launches.
-  def main(...):
+  def main(...):          # host: packed-API launcher (computes the grid/block, launches)
     ...
   def scale_kernel(...):  # device: the __global__ body, run on the GPU
 ```
@@ -147,18 +144,13 @@ from tvm.tirx import transform as TT
 
 target = tvm.target.Target("cuda")
 mod = TT.BindTarget(target.with_host("llvm"))(tvm.IRModule({"main": scale}))
-# Dispatch tile primitives and apply layouts.
-mod = TT.LowerTIRx()(mod)
+mod = TT.LowerTIRx()(mod)         # tile primitives dispatched, layouts applied
 print(mod.script())               # inspect the lowered TIRx IR
 ```
 
 Or compile the whole module and read the generated CUDA:
 
 ```python
-exe = tvm.compile(
-  tvm.IRModule({"main": scale}),
-  target=target,
-  tir_pipeline="tirx",
-)
+exe = tvm.compile(tvm.IRModule({"main": scale}), target=target, tir_pipeline="tirx")
 print(exe.mod.imports[0].inspect_source())
 ```

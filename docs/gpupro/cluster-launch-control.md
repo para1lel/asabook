@@ -6,24 +6,24 @@ pageClass: gpupro-page
 ---
 
 ::: info 概览
-- Persistent kernel 让已经驻留的 CTA 或 CTA cluster 连续计算多个 output tile, 从而减少 CTA 启动和公共准备工作的开销.
-- cluster Launch Control (CLC) 允许正在运行的 CTA 或 cluster 取消一个尚未开始的 launch, 并接管它的 grid coordinate.
-- CLC 请求异步完成, 结果通过 shared memory 和 `mbarrier` 交给 worker. 先完成当前 tile 的 worker 可以继续领取 pending work, 减少工作负载不均匀造成的空闲时间.
+- Persistent kernel 让已经驻留的 CTA 或 CTA cluster 连续计算多个 output tiles, 从而减少 CTA 启动和公共准备工作的开销.
+- Cluster Launch Control (CLC) 允许正在运行的 CTA 或 cluster 取消一个尚未开始的 launch, 并接管它的 grid coordinate.
+- CLC 请求异步完成, 结果通过 shared memory 和 `mbarrier` 交给 worker. 先完成当前 tile 的 worker 可以继续领取 pending work, 减少工作量不均匀造成的空闲时间.
 :::
 
-前面几章关注的是一块 tile 如何完成计算: A, B 如何搬入 SMEM, Tensor Core 如何执行 MMA, 以及异步操作之间如何通过 `mbarrier` 交接数据. 当一个矩阵被划分成许多 output tile 后, kernel 还需要解决另一个问题: 这些 tile 应该按照什么顺序分配给 CTAs 或 CTA cluster?
+前面几章关注的是一块 tile 如何完成计算: A, B 如何搬入 SMEM, Tensor Core 如何执行 MMA, 以及异步操作之间如何通过 `mbarrier` 交接数据. 当一个矩阵被划分成许多 output tiles 后, kernel 还需要解决另一个问题: 这些 tiles 应该按照什么顺序分配给 CTAs 或 CTA clusters?
 
-假设输出矩阵被划分成 100 个 tile. 最直接的做法是启动 100 个 CTAs, 让第 0 个 CTA 计算 tile 0, 第 1 个 CTA 计算 tile 1, 以此类推. GPU 通常无法同时运行全部 100 个 CTAs, 因此会先运行其中一部分; 某个 CTA 结束并释放资源后, 硬件再启动后续 CTA, 直到所有 tile 都处理完毕.
+假设输出矩阵被划分成 100 个 tiles. 最直接的做法是启动 100 个 CTAs, 让第 0 个 CTA 计算 tile 0, 第 1 个 CTA 计算 tile 1, 以此类推. GPU 通常无法同时运行全部 100 个 CTAs, 因此会先运行其中一部分; 某个 CTA 结束并释放资源后, 硬件再启动后续 CTA, 直到所有 tiles 都处理完毕.
 
-传统的 fixed-number persistent kernel 使用另一种方式: 它只启动一组长期运行的 CTAs 或 cluster, 让每个 worker 在循环中连续计算多个 tile. 这样可以减少 CTA 启动和重复准备工作的开销, 但也带来了新的调度问题: 一个 worker 完成当前 tile 后, 下一块 tile 从哪里来?
+传统的 persistent kernel 使用另一种方式: 它只启动固定数量的长期运行 CTAs 或 clusters, 让每个 worker 在循环中连续计算多个 tiles. 这样可以减少 CTA 启动和重复准备工作的开销, 但也带来了新的调度问题: 一个 worker 完成当前 tile 后, 下一块 tile 从哪里来?
 
-本章介绍 Blackwell 提供的 cluster Launch Control (CLC). CLC kernel 的 launch grid 仍然覆盖全部 output tile, 但运行中的 worker 可以取消尚未开始的 CTA 或 cluster launch, 并接管它的 coordinate. 这样既保留了完整 grid 的任务编号, 又能让已经驻留的 workers 根据实际完成情况动态领取工作.
+本章介绍 Blackwell 提供的 Cluster Launch Control (CLC). CLC kernel 的 launch grid 仍然覆盖全部 output tiles, 但运行中的 worker 可以取消尚未开始的 CTA 或 cluster launch, 并接管它的 coordinate. 这样既保留了完整 grid 的任务编号, 又能让已经驻留的 workers 根据实际完成情况动态领取工作.
 
 ## 静态 persistent scheduler 的局限
 
 下面把这种已经开始运行, 可以反复取任务的 CTA 或 cluster 统称为 worker.
 
-最简单的调度方法是提前算好每个 worker 要处理哪些 tile. 例如, 现在有 12 个 tile 和 4 个 workers, 使用 grid -stride 分配后, 结果可能是:
+最简单的调度方法是提前算好每个 worker 要处理哪些 tiles. 例如, 现在有 12 个 tiles 和 4 个 workers, 使用 grid-stride 分配后, 结果可能是:
 
 ```text
 worker 0: tile 0, 4, 8
@@ -32,11 +32,11 @@ worker 2: tile 2, 6, 10
 worker 3: tile 3, 7, 11
 ```
 
-如果四个 workers 能够同时运行, 而且每块 tile 的计算量接近, 这种静态分配没有问题. 但 kernel 实际能够使用多少个 SM, 并不总能在启动前准确知道. 例如, 其他 kernel 可能正在占用一部分 SM. 假设上面的 worker 3 迟迟无法启动, 那么 workers 0, 1, 2 完成各自的三块 tile 后, worker 3 才开始处理剩下的 `3, 7, 11`. 这时, 这个 kernel 的大部分 workers 都已经退出, 只剩一个 worker 继续执行, 形成很长的 launch tail.
+如果四个 workers 能够同时运行, 而且每块 tile 的计算量接近, 这种静态分配没有问题. 但 kernel 实际能够使用多少个 SM, 并不总能在启动前准确知道. 例如, 其他 kernel 可能正在占用一部分 SM. 假设上面的 worker 3 迟迟无法启动, 那么 workers 0,1,2 完成各自的三块 tile 后, worker 3 才开始处理剩下的 `3、7、11`. 这时, 这个 kernel 的大部分 workers 都已经退出, 只剩一个 worker 继续执行, 形成很长的 launch tail.
 
-不同 tile 的计算量也可能不一样. 边界处理, mask, 稀疏计算或融合在 GEMM 周围的其他操作, 都可能让某些 tile 更慢. 静态 scheduler 在工作真正开始前就已经确定了分工, 无法根据实际完成时间重新分配任务.
+不同 tiles 的计算量也可能不一样. 边界处理, mask, 稀疏计算或融合在 GEMM 周围的其他操作, 都可能让某些 tiles 更慢. 静态 scheduler 在工作真正开始前就已经确定了分工, 无法根据实际完成时间重新分配任务.
 
-CLC 会换一种方式组织这 12 个 tile. 它的 launch grid 包含 12 个 CTAs, 它们的 `blockIdx.x` 分别是 0 到 11, 并约定 `blockIdx.x = i` 的 CTA 负责 tile `i`. 假设当前只能容纳三个 CTAs, 并且 scheduler 首先启动了 CTA 0,1,2, 那么 CTA 3 到 CTA 11 会暂时留在 launch queue 中, 等待资源空闲.
+CLC 会换一种方式组织这 12 个 tiles. 它的 launch grid 包含 12 个 CTAs, 它们的 `blockIdx.x` 分别是 0 到 11, 并约定 `blockIdx.x = i` 的 CTA 负责 tile `i`. 假设当前只能容纳三个 CTAs, 并且 scheduler 首先启动了 CTA 0,1,2, 那么 CTA 3 到 CTA 11 会暂时留在 launch queue 中, 等待资源空闲.
 
 假设 CTA 0 已经算完 tile 0. 它可以先不退出, 而是向硬件请求一份尚未开始的工作. 如果硬件选择了 CTA 3, 就会取消 CTA 3 的启动, 并把 CTA 3 原本应当使用的 `blockIdx` coordinate 返回给 CTA 0. CTA 0 根据这个 coordinate 找到 tile 3, 接着完成 tile 3, 然后再次请求下一份工作.
 
@@ -44,7 +44,7 @@ CLC 会换一种方式组织这 12 个 tile. 它的 launch grid 包含 12 个 CT
 
 所以, 每个 coordinate 都只会被处理一次: 它可能正常启动自己的 CTA, 也可能在启动前被取消, 再交给一个已经运行的 worker. 只要 launch queue 中还有可以取消的 coordinate, 空闲下来的 worker 就能继续计算, 而不必等待某个预先指定的 CTA 启动.
 
-上面的例子把一个 CTA 当作调度单位. 如果 kernel 使用 thread block cluster, CLC 每次会取消一个尚未启动的 cluster launch, 并把它的 coordinate 交给一个已经运行的 cluster. thread block cluster 是从 Hopper 开始提供的执行层级, 一组 CTAs 会被共同调度, 可以进行 cluster 范围的同步, 也可以访问 cluster 内其他 CTA 的 distributed shared memory; Blackwell 的 CLC 则负责动态调度这些 CTA 或 cluster coordinates.
+上面的例子把一个 CTA 当作调度单位. 如果 kernel 使用 thread block cluster, CLC 每次会取消一个尚未启动的 cluster launch, 并把它的 coordinate 交给一个已经运行的 cluster. Thread block cluster 是从 Hopper 开始提供的执行层级, 一组 CTAs 会被共同调度, 可以进行 cluster 范围的同步, 也可以访问 cluster 内其他 CTA 的 distributed shared memory; Blackwell 的 CLC 则负责动态调度这些 CTA 或 cluster coordinates; 它与 cluster 执行模型本身是相互独立的.
 
 ## 一次 CLC 请求
 
@@ -54,7 +54,7 @@ CLC 会换一种方式组织这 12 个 tile. 它的 launch grid 包含 12 个 CT
 clusterlaunchcontrol.try_cancel.async
 ```
 
-`try_cancel` 会让 grid scheduler 尝试取消一个尚未启动的 CTA 或 cluster. 硬件把结果编码为一条 16-byte 记录, 并写入 shared memory. 通常只选择一个 thread 提交请求; 如果多个 thread 同时执行, 就会产生多个取消请求, 还必须分别准备结果位置, 并在 barrier 的 arrival count 和 tx-count 中计入每个请求.
+`try_cancel` 会让 grid scheduler 尝试取消一个尚未启动的 CTA 或 cluster. 硬件把结果编码为一条 16-byte 记录, 并写入 shared memory. 通常只选择一个 thread 提交请求; 如果多个 threads 同时执行, 就会产生多个取消请求, 还必须分别准备结果位置, 并在 barrier 的 arrival count 和 tx-count 中计入每个请求.
 
 这个请求是异步的. 指令发出后, worker 可以继续计算当前 tile; 此时不能立即读取 shared memory 中的结果. CLC 会通过 `mbarrier` 报告这 16 bytes 何时写入完成. 具体做法与上一章的 TMA load 相同: 发起请求的 thread 报告一次 arrival, 并把 16 bytes 登记到 tx-count; worker 等到对应的 barrier phase 完成后, 才能查询结果.
 
@@ -94,33 +94,33 @@ worker 先用自己的 `blockIdx` 确定第一个 tile. 此后, 循环中的每�
 tile = decode(blockIdx)
 
 while true:
-  async_try_cancel(result, barrier)
-  compute(tile)
-  wait(barrier)
+    async_try_cancel(result, barrier)
+    compute(tile)
+    wait(barrier)
 
-  if not is_canceled(result):
-    break
+    if not is_canceled(result):
+        break
 
-  tile = decode(get_first_ctaid(result))
+    tile = decode(get_first_ctaid(result))
 ```
 
 为什么要在计算当前 tile 之前请求下一块工作? 因为 grid scheduler 处理请求需要时间. 如果等当前 tile 算完才提交请求, 这段延迟会直接落在两块 tile 之间, worker 只能停下来等待.
 
-提前提交后, scheduler 处理请求和当前 tile 的计算可以同时进行. 等当前 tile 完成时, 下一块工作的 coordinate 往往已经写入 shared memory. TMA 用计算覆盖数据搬运延迟, CLC 则用当前 tile 的计算覆盖调度请求延迟, 两者采用的是同一种异步流水思路.
+提前提交后, scheduler 可以在当前 tile 计算期间处理请求. 等当前 tile 完成时, 下一块工作的 coordinate 往往已经写入 shared memory. TMA 将数据搬运延迟隐藏在计算之后, CLC 则用同样的异步流水思路隐藏调度请求的延迟.
 
-CLC 通过 async proxy 把 response 写入 shared memory, 普通 thread 则通过 generic proxy 查询这份结果. `mbarrier` wait 用来确认异步 response 已经写完; 实际代码在提交新请求前和读完 response 后, 还必须按照 PTX 要求执行相应的 proxy fence, 建立 async proxy 与 generic proxy 之间的访问顺序, 防止下一轮异步写入与尚未结束的读取发生冲突. 此外, kernel 还需要正确处理 barrier phase, 以及 CTA 或 cluster 范围的 thread synchronization.
+CLC 通过 async proxy 把 response 写入 shared memory, 普通 thread 则通过 generic proxy 查询这份结果. `mbarrier` wait 用来确认异步 response 已经写完; 实际代码在提交新请求前和读完 response 后, 还必须按照 PTX 要求执行相应的 proxy fence, 建立 async proxy 与 generic proxy 之间的访问顺序, 防止下一轮异步写入与尚未结束的读取发生冲突. Kernel 还需要正确处理 barrier phase, 以及 CTA 或 cluster 范围的 thread synchronization.
 
 ## 什么时候使用 CLC
 
 静态 scheduler 与 CLC 可以共用同一个 tile 计算主体. 它们只在“下一块 tile 从哪里来”这个问题上有所不同:
 
 ```text
-静态调度: 根据 worker ID 和迭代次数算出下一个 coordinate
-CLC 调度: 由硬件返回一个尚未启动的 CTA 或 cluster coordinate
+静态调度：根据 worker ID 和迭代次数算出下一个 coordinate
+CLC 调度：由硬件返回一个尚未启动的 CTA 或 cluster coordinate
 ```
 
-静态调度几乎没有取任务开销. 当可用 SM 数量稳定, 各个 tile 的成本接近时, 静态公式通常已经足够.
+静态调度几乎没有取任务开销. 当可用 SM 数量稳定, 各个 tiles 的成本接近时, 静态公式通常已经足够.
 
-CLC 更适合运行资源或 tile 成本难以提前确定的情况. 如果部分 SM 被其他 kernel 占用, 或者不同 tile 的运行时间差异较大, 先完成任务的 workers 可以继续接管 pending coordinates, 从而减少只有少数 workers 留在 launch tail 中工作的时间.
+CLC 更适合运行资源或 tile 成本难以提前确定的情况. 如果部分 SM 被其他 kernel 占用, 或者不同 tiles 的运行时间差异较大, 先完成任务的 workers 可以继续接管 pending coordinates, 从而减少只有少数 workers 留在 launch tail 中工作的时间.
 
 在 TIRx 中, 可以把 CLC 封装成动态 tile scheduler. GEMM mainloop 和 epilogue 只接收当前 tile coordinate, 不需要知道它是由静态公式算出, 还是由 CLC 返回. 这样, kernel 的计算代码保持不变, 只替换负责提供下一个 coordinate 的 scheduler.

@@ -8,17 +8,17 @@ pageClass: gpupro-page
 ::: info 概览
 - TMA 负责在 global memory 和 shared memory 之间异步搬运 tile. 一个 warp 中只需一个 thread 发起操作, 后续的地址计算和数据传输由硬件完成.
 - tensor map descriptor 说明 global tensor 如何组织, 包括 shape, strides, tile shape 和 swizzle mode; TMA 指令再给出当前 tile 的坐标和 shared-memory 地址. 执行 load 时, TMA 可以在写入 shared memory 的同时应用 swizzle, 使 tile 直接采用后续 MMA 所需的布局.
-- TMA load 和 store 使用不同的完成通知. Load 通过 `mbarrier` 按已传输的字节数判断数据是否就绪; store 通过 commit group 和 wait group 确认 source buffer 可以复用.
+- TMA load 和 store 使用不同的完成通知. Load 通过 `mbarrier` 登记待传输的字节数, 并在该计数归零后确认数据已经就绪; store 通过 commit group 和 wait group 确认 source buffer 可以复用.
 :::
 
-先看 GEMM mainloop 中最常见的场景. Tensor Core 正在计算第 $k$ 个 tile 时, 下一组 A, B tile 必须在当前计算结束前搬入 shared memory. 数据如果没有按时到达, Tensor Core 就只能停下来等待, pipeline 中也会出现气泡 (pipeline bubble), 也就是计算单元因等待数据而空闲的周期.
+先看 GEMM mainloop 中最常见的场景. Tensor Core 正在计算第 $k$ 个 tile 时, 下一组 A, B tiles 必须在当前计算结束前搬入 shared memory. 数据如果没有按时到达, Tensor Core 就只能停下来等待, pipeline 中也会出现气泡 (pipeline bubble), 也就是计算单元因等待数据而空闲的周期.
 
-一种搬运方法是让多个 thread 合作: 每个 thread 计算自己负责的 global memory 和 shared memory 地址, 再执行 load 和 store. Tensor Memory Accelerator, 也就是 TMA, 提供了另一种方法. 一个 thread 只负责提交 tile copy, 后续的地址计算和数据传输由专用的 TMA engine 完成.
+一种搬运方法是让多个 threads 合作: 每个 thread 计算自己负责的 global memory 和 shared memory 地址, 再执行 load 和 store. Tensor Memory Accelerator, 也就是 TMA, 提供了另一种方法. 一个 thread 只负责提交 tile copy, 后续的地址计算和数据传输由专用的 TMA engine 完成.
 
 TMA 在写入 shared memory 时还可以应用 swizzle, 让 tile 直接采用后续 MMA 所需的物理排列. 下面的交互图展示了这条路径. 左侧的 global tensor 包含 `16×128` 个 `fp16` 元素, 蓝色方框选中一个 `8×64` tile; 右侧显示这个 tile 写入 shared memory 后的排列. 图中每个 cell 表示连续的 8 个 `fp16`, 也就是 16 bytes. 切换 swizzle mode, 可以比较 linear layout 和 128-byte swizzled layout.
 
 <div style="overflow-x:auto;">
-<iframe src="/gpupro/demo-zh/tma_intro.html?v=tutorial-review-20260713" title="TMA: Tensor Memory Accelerator" loading="lazy"
+<iframe src="/gpupro/demo-zh/tma_intro.html?v=tutorial-review-20260713" title="TMA：Tensor Memory Accelerator" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--vp-c-border); border-radius:6px;"></iframe>
 </div>
 
@@ -32,11 +32,11 @@ TMA 在写入 shared memory 时还可以应用 swizzle, 让 tile 直接采用后
 
 第二类是本次 copy 的参数, 包括 tile 在 global tensor 中的起始坐标, 以及 shared memory 中的目标地址. 可以把两者的分工理解为: descriptor 说明“整个 tensor 怎样组织”, 指令参数说明“这一次从哪里开始搬, 搬到哪里”.
 
-发出 TMA 指令时, warp 仍然按照 SIMT 模型执行, 只有被选中的 thread 参与这条指令, 同一 warp 中的其他 thread 会被屏蔽. 这个状态只持续到请求提交完成. 随后, TMA engine 异步搬运数据, 发起操作的 warp 和 CTA 中的其他 warp 都可以继续执行; 真正使用这块数据前, 再等待搬运完成.
+发出 TMA 指令时, warp 仍然按照 SIMT 模型执行, 只有被选中的 thread 参与这条指令, 同一 warp 中的其他 threads 会被屏蔽. 这个状态只持续到请求提交完成. 随后, TMA engine 异步完成数据搬运, 发起操作的 warp 和 CTA 中的其他 warps 可以继续执行其他工作. Consumer 读取目标数据前, 必须等待搬运完成.
 
 ## TMA 如何写入 swizzled layout
 
-回到上面的交互图, 先选择 `None`. 此时 tile 的每一行都按原来的顺序写入 shared memory, 逻辑 sector `c` 仍然落在物理 sector `c`.
+回到上面的交互图, 先选择 **无**. 此时 tile 的每一行都按原来的顺序写入 shared memory, 逻辑 sector `c` 仍然落在物理 sector `c`.
 
 再切换到 `128B`. 图中一行包含 8 个 16-byte sectors, 正好是 128 bytes. 对于这个简化且对齐的例子, 第 `row` 行的逻辑 sector `col` 会写到:
 
@@ -46,7 +46,7 @@ physical_sector = col XOR row
 
 这样, 同一逻辑列在不同行中的 sectors 会落到不同的物理位置, 跨行访问也就不容易集中到同一组 shared-memory banks. 这个地址重排由 TMA engine 在写入时完成, 发起 copy 的 thread 不需要逐个计算 swizzled address.
 
-Swizzle 只改变 tile 的物理排列, 不改变它的逻辑内容. TMA descriptor, shared-memory tile layout 和后续 MMA 指令必须描述同一种物理排列 ([数据布局及其表示方法](/gpupro/data-layout/)). 如果 TMA 按 128-byte swizzle 写入, 而 MMA 按 linear layout 读取, 数据虽然已经到达 shared memory, Tensor Core 仍会把这些字节解释成错误的矩阵元素.
+Swizzle 只改变 tile 的物理排列, 不改变它的逻辑内容. TMA descriptor, shared-memory tile layout 和后续 MMA 指令必须描述同一种物理排列 ([数据布局及其记号](/gpupro/data-layout/)). 如果 TMA 按 128-byte swizzle 写入, 而 MMA 按 linear layout 读取, 数据虽然已经到达 shared memory, Tensor Core 仍会把这些字节解释成错误的矩阵元素.
 
 ## 用 3D TMA 搬运多个 swizzle atoms
 
@@ -81,41 +81,39 @@ global[row, j] = global3[group, row, col]
 
 *切换 `Col offset` 可以选择原矩阵的前 128 列或后 128 列; 将鼠标悬停在蓝色区域的任意 cell 上, 可以查看对应的 16-byte sector 写入 shared memory 后的位置.*
 
-### 128-byte swizzle 的分组要求
+### 128-byte swizzle 与 row layout
 
-为什么要把 256-byte 的一行拆成两个 128-byte groups? 除了满足 TMA box 的宽度限制, 分组还会改变跨行访问落到哪些 shared-memory banks.
+`SWIZZLE_128B` 始终以连续的 128 bytes 为宽度进行重排. 图中每个 sector 是 16 bytes, 因此一个 swizzle span 固定包含 8 个 sectors; 即使逻辑行有 16 个 sectors, 硬件也不会把整行作为一个 256-byte swizzle 单元. 这里需要比较的不是 swizzle 是否按 8 个 sectors 分组, 而是这两个 128-byte spans 在内存中如何排列.
 
-考虑一个 `16×16` sector grid. 每个 sector 是 16 bytes, 因此一行共 256 bytes. 现在从连续 8 行中各读取同一个 sector column, 一共会发出 8 次并行的 16-byte 访问.
+考虑一个 `16×16` sector grid. 每行包含 16 个 sectors, 共 256 bytes. 现在从连续 8 行中各读取同一个 sector column, 一共会发出 8 次并行的 16-byte 访问. 一次访问覆盖 4 个相邻的 shared-memory banks; 为了便于观察, 下面把 32 个 banks 分成 8 个 bank sectors, 记为 `S0` 到 `S7`.
 
-一次 16-byte 访问会覆盖 4 个相邻的 shared-memory banks. 为了便于观察, 下面把 32 个 banks 按每 4 个相邻 banks 分成 8 个 bank sectors, 记为 `S0` 到 `S7`. 不同访问如果落到同一个 bank sector, 就会争用同一组 banks.
+如果保留普通的 256-byte row stride, 相邻逻辑行的起点相隔两个 128-byte spans. 设 `span = col // 8`, `local_col = col % 8`, 那么对应的 bank sector 为:
 
-先把每行拆成两个 128-byte groups. 设完整 grid 中的列号为 `col`, 那么 `col // 8` 选择左, 右两个 groups, `local_col = col % 8` 表示组内列号. 对于 rows 0–7, swizzle 后的 bank sector 是:
+```text
+bank_sector = local_col XOR ((2·row + span) % 8)
+```
+
+连续 8 行只会得到 4 个不同的 bank sectors, 每个 sector 被访问两次, 因此形成 2-way conflict. 这个 layout 只是用来说明 row stride 的影响; 由于其最内层维度为 256 bytes, 不能作为一个 `SWIZZLE_128B` TMA box.
+
+将逻辑坐标改写为 `(group, row, local_col)` 后, 每个 group 都包含 8 个 sectors, 组内相邻行的 stride 为 128 bytes. 此时 bank sector 为:
 
 ```text
 bank_sector = local_col XOR (row % 8)
 ```
 
-连续 8 行会得到 8 个不同的结果, 因此这些访问可以并行完成.
+连续 8 行会落到 8 个不同的 bank sectors, 可以并行完成访问.
 
-如果不分组, 仍然保留 256-byte row stride, 那么每跨过一行就相当于跨过两个 128-byte 单元. 用于 XOR 的编号也会每行前进 2:
-
-```text
-bank_sector = local_col XOR ((2·row + col // 8) % 8)
-```
-
-这时只有 4 个不同的结果, 每个 bank sector 被访问两次, 形成 2-way conflict. 这里的未分组状态只是一个对照, 它并不是合法的 `SWIZZLE_128B` TMA box.
-
-下面的交互图展示了这两种情况. 左侧选择原始 grid 中的一个 `Column` 和连续 8 行, 右侧带黑色边框的 cells 显示这些访问在 swizzled layout 中的位置. `Tiling` 选择“是”时, 每行先拆成 `g0` 和 `g1` 两个 128-byte groups; 选择“否”时, 则保留 256-byte row stride 作为对照. 底部的 `S0` 到 `S7` 汇总各次访问使用的 bank sectors. `dtype` 只改变一个 sector 中包含多少个元素, 不影响这里的地址映射.
+下面的交互图展示这两种 row layouts. 选择 `128B groups` 时, 两个 spans 被显式排列为 `g0` 和 `g1`; 选择 `256B stride` 时, swizzle 仍然只在各个 128-byte span 内重排, 但逻辑行保留原来的 256-byte stride. 右侧带黑色边框的 cells 表示当前选中的 column 在 swizzled layout 中的位置, 底部则汇总它们使用的 bank sectors.`dtype` 只改变一个 sector 中包含多少个元素, 不影响地址映射.
 
 <div style="overflow-x:auto;">
-<iframe class="demo-tma3d" src="/gpupro/demo-zh/tiling_constraint.html?v=tutorial-review-20260713" title="128-byte 分组对 bank conflict 的影响" loading="lazy"
+<iframe class="demo-tma3d" src="/gpupro/demo-zh/tiling_constraint.html?v=row-layout-20260805" title="128-byte 分组对 bank conflict 的影响" loading="lazy"
         style="width:100%; min-width:1320px; height:640px; border:1px solid var(--vp-c-border); border-radius:6px;"></iframe>
 </div>
 
 
-*切换是否进行 tiling, 再选择 column 和连续的 8 行, 可以比较分组前后两种 layout 的 bank-sector 使用情况.*
+*切换 row layout, 再选择 column 和连续的 8 行, 可以比较 128-byte groups 与 256-byte row stride 的 bank-sector 使用情况.*
 
-在 tile 尺寸和目标访问模式允许时, 通常选择能够容纳的最宽 swizzle, 使访问分散到更多 banks. 宽度为 `N` bytes 的 swizzle atom 要求连续维度至少能够容纳 `N` bytes; 如果放不下 128-byte atom, 就要改用 64-byte 或 32-byte swizzle ([数据布局及其表示方法](/gpupro/data-layout/)).
+选择 swizzle mode 时, TMA box 的最内层连续维度不能超过对应的 swizzle width; 例如,`SWIZZLE_128B` 要求该维度不超过 128 bytes. 如果实际数据宽度小于 swizzle width, shared-memory allocation 仍需为完整宽度预留空间. 实际 kernel 应根据 tile 宽度和访问方式, 在 128-byte, 64-byte 和 32-byte swizzle 中选择合适的模式 ([数据布局及其记号](/gpupro/data-layout/)).
 
 ## 如何等待 TMA load 完成
 
@@ -123,7 +121,7 @@ TMA load 是异步操作. 发出指令只表示搬运已经开始, consumer 还�
 
 `mbarrier` 的一个 phase 同时记录 arrival count 和 pending transaction bytes. 只有 arrival count 与 pending bytes 都归零, 这个 phase 才算完成.
 
-具体看一个例子. 假设 kernel 同时加载 A, B 两个 operand tile, 每块 `2048 bytes`, 并让它们通过同一个 `mbarrier` 通知完成, 那么本轮一共要等待:
+具体看一个例子. 假设 kernel 同时加载 A, B 两个 operand tiles, 每块 `2048 bytes`, 并让它们通过同一个 `mbarrier` 通知完成, 那么本轮一共要等待:
 
 ```text
 2048 + 2048 = 4096 bytes
@@ -136,7 +134,7 @@ TMA load 是异步操作. 发出指令只表示搬运已经开始, consumer 还�
 TMA 完成搬运后:   arrival count = 0, pending bytes = 0
 ```
 
-此后, 每次 TMA copy 完成时, engine 都会通过 complete-tx 扣减相应的 byte count. consumer 使用 `try_wait(phase)` 等待; 两次 copy 共完成 4096 bytes 后, pending bytes 才会归零, consumer 也才能安全读取 A, B tile. 下图按时间顺序画出了这次交接.
+此后, 每次 TMA copy 完成时, engine 都会通过 complete-tx 扣减相应的 byte count. consumer 使用 `try_wait(phase)` 等待; 两次 copy 共完成 4096 bytes 后, pending bytes 才会归零, consumer 也才能安全读取 A, B tiles. 下图按时间顺序画出了这次交接.
 
 ![TMA load 的同步流程: thread 发起 copy 并登记 byte count, TMA engine 完成搬运后更新 mbarrier, consumer 等待 phase 完成](./images/tma_sync_flow_zh.svg)
 
@@ -164,13 +162,13 @@ TMA store: producer 通过 commit group 和 wait group 等待 source 可复用
 
 ## 把 TMA 放进 pipeline
 
-TMA 可以减少 copy 指令, 更重要的是让数据搬运与计算重叠. 以两个 shared-memory 阶段为例:
+TMA 可以减少 copy 指令, 更重要的是让数据搬运与计算重叠. 以两个 shared-memory stages 为例:
 
 ```text
 时间 t:    MMA 读取 stage 0    TMA 填充 stage 1
 时间 t+1:  MMA 读取 stage 1    TMA 填充 stage 0
 ```
 
-Tensor Core 读取阶段 0 时, TMA 把下一块 tile 写入阶段 1; 下一轮再交换两个阶段的角色. MMA 读取一个阶段前, 要等待对应的 TMA load 完成; TMA 覆盖一个阶段前, 也要确认上一轮计算已经不再使用其中的数据.
+Tensor Core 读取 stage 0 时, TMA 把下一块 tile 写入 stage 1; 下一轮再交换两个 stages 的角色. MMA 读取一个 stage 前, 要等待对应的 TMA load 完成; TMA 覆盖一个 stage 前, 也要确认上一轮计算已经不再使用其中的数据.
 
-因此, TMA 负责异步搬运, barrier 负责在 producer 和 consumer 之间交接每个阶段. 两者配合后, 等待数据的时间才有机会被当前 tile 的计算隐藏起来.
+因此, TMA 负责异步搬运, barrier 负责在 producer 和 consumer 之间交接每个 stage. 两者配合后, 等待数据的时间才有机会被当前 tile 的计算隐藏起来.

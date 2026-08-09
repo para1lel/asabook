@@ -7,26 +7,26 @@ pageClass: gpupro-page
 
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
-or more contributor license agreements. See the NOTICE file
+or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
-regarding copyright ownership. The ASF licenses this file
+regarding copyright ownership.  The ASF licenses this file
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
-with the License. You may obtain a copy of the License at
+with the License.  You may obtain a copy of the License at
 http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an
 "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, either express or implied. See the License for the
+KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
 
 调用 `tvm.compile(mod, target, tir_pipeline="tirx")` 时, 编译器会将输入的
 TIRx module 依次送入一组 TIR passes, 这组 passes 称为 **tirx pipeline**.
-它负责把 tile primitives, 使用 `TileLayout` 的 buffers 和 execution- scope
-ids 等高层结构, 逐步 lowering 为彼此分离的 **host** 与 **device** functions,
-最后再由 CUDA backend 生成源码.
+它负责把 tile primitives, 使用 `TileLayout` 的 buffers 和 execution-scope
+ids 等高层结构逐步转换为彼此分离的 **host** 与 **device** functions, 最后再
+由 CUDA backend 生成源码.
 
 Pipeline 定义在 `python/tvm/tirx/compilation_pipeline.py` 的
 `tirx_pipeline` 中. 下面按执行顺序介绍其中的 passes.
@@ -38,11 +38,9 @@ pipeline**. 随后, host 和 device functions 分别经过 finalization passes,
 device function 最终交给 CUDA code generator:
 
 ```text
-authored TIRx
-  │
-  └─BindTarget─▶ tirx_pipeline
-                   ├─▶ host func ──host finalize──▶ C/LLVM
-                   └─▶ device func ─device finalize─▶ CUDA
+authored TIRx  ──BindTarget──▶  tirx_pipeline  ──▶  host func  ──host finalize──▶  C/LLVM
+                                      │
+                                      └──────────▶  device func ──device finalize──▶  CUDA
 ```
 
 ## Pass 执行顺序
@@ -52,10 +50,10 @@ authored TIRx
 
 | # | Pass | 作用 |
 | --- | --- | --- |
-| 1 | `LowerTIRx` | 完成 TIRx 的核心 lowering, 详见下方 [LowerTIRx 内部做了什么](#lowertirx-内部做了什么) |
-| 2 | `UnifyThreadBinding` | 合并等价的 thread -axis bindings, 使每个 `threadIdx` / `blockIdx` axis 只声明一次 |
+| 1 | `LowerTIRx` | 完成 TIRx 的核心转换, 详见下方 [LowerTIRx 内部做了什么](#lowertirx-内部做了什么) |
+| 2 | `UnifyThreadBinding` | 合并等价的 thread-axis bindings, 使每个 `threadIdx` / `blockIdx` axis 只声明一次 |
 | 3 | `StmtSimplify` | 使用 arithmetic analyzer 简化 statement 中的算术表达式 |
-| 4 | `LowerTIRxOpaque` | 将剩余的 opaque TIRx constructs lowering 为普通 TIR |
+| 4 | `LowerTIRxOpaque` | 将剩余的 opaque TIRx constructs 转换为普通 TIR |
 | 5 | `FlattenBuffer` | 将多维 `BufferLoad` / `BufferStore` 展平为一维访问 |
 | 6 | `BF16ComputeLegalize` | 将 `bfloat16` 计算改写为合法形式, 其中计算会提升到 f32 |
 | 7 | `NarrowDataType(32)` | 在能够证明安全时, 将 index 和 loop 的 `PrimExpr` dtype 缩窄为 32 bits |
@@ -73,10 +71,10 @@ authored TIRx
 
 之后, 编译器会根据 function 类型分别执行 **finalization**:
 
-- **host**: `LowerTVMBuiltin` lowering `tvm_*` builtins,
- `LowerIntrin` lowering target-specific intrinsics.
-- **device**: `LowerWarpMemory` 将 warp -scoped buffers lowering 为
- shuffles, 随后执行 `StmtSimplify` 和 `LowerIntrin`.
+- **host**:`LowerTVMBuiltin` 处理 `tvm_*` builtins,`LowerIntrin`
+  处理 target-specific intrinsics.
+- **device**:`LowerWarpMemory` 将 warp-scoped buffers 转换为
+  shuffles, 随后执行 `StmtSimplify` 和 `LowerIntrin`.
 
 ## LowerTIRx 内部做了什么
 
@@ -88,14 +86,14 @@ LowerTIRx = Sequential([ TilePrimitiveDispatch, LowerTIRxCleanup ])
 ```
 
 - **`TilePrimitiveDispatch`** 根据选中的 backend dispatch, 将每个
- `TilePrimitiveCall` (`copy`, `gemm`, `reduction` 等) 替换为对应
- 的实现.
+  `TilePrimitiveCall`(`copy`,`gemm`,`reduction` 等) 替换为对应
+  的实现.
 - **`LowerTIRxCleanup`** 运行 `LayoutApplier`, 将使用
- `TileLayout` 的 buffer access 变成具体的物理地址计算
- (`addr = data + elem_offset + layout.apply(coord)`), 再展平 buffers,
- 并将 execution- scope ids lowering 为 thread axes, 例如
- `T.cta_id` / `T.thread_id` 通过 `launch_thread` 变为
- `blockIdx` / `threadIdx`.
+  `TileLayout` 的 buffer access 变成具体的物理地址计算
+  (`addr = data + elem_offset + layout.apply(coord)`), 再展平 buffers,
+  并将 execution-scope ids 转换为 thread axes, 例如
+  `T.cta_id` / `T.thread_id` 通过 `launch_thread` 变为
+  `blockIdx` / `threadIdx`.
 
 完成 `LowerTIRx` 后, module 中只剩普通 TIR: tile primitives 已经展开,
 `TileLayout` 间接层已经消失, scope ids 也已经解析为 thread axes.
@@ -130,8 +128,7 @@ launcher 和 device kernel:
 ```python
 @I.ir_module
 class Module:
-  # Host packed-API launcher: computes the grid/block and launches.
-  def main(...):
+  def main(...):          # host: packed-API launcher (computes the grid/block, launches)
     ...
   def scale_kernel(...):  # device: the __global__ body, run on the GPU
 ```
@@ -149,18 +146,13 @@ from tvm.tirx import transform as TT
 
 target = tvm.target.Target("cuda")
 mod = TT.BindTarget(target.with_host("llvm"))(tvm.IRModule({"main": scale}))
-# Dispatch tile primitives and apply layouts.
-mod = TT.LowerTIRx()(mod)
+mod = TT.LowerTIRx()(mod)         # tile primitives dispatched, layouts applied
 print(mod.script())               # inspect the lowered TIRx IR
 ```
 
 也可以编译完整 module, 再查看生成的 CUDA:
 
 ```python
-exe = tvm.compile(
-  tvm.IRModule({"main": scale}),
-  target=target,
-  tir_pipeline="tirx",
-)
+exe = tvm.compile(tvm.IRModule({"main": scale}), target=target, tir_pipeline="tirx")
 print(exe.mod.imports[0].inspect_source())
 ```
