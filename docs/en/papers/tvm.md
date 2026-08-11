@@ -34,23 +34,12 @@ By combining these three modules, TVM can take model descriptions from existing 
 
 This paper makes the following contributions:
 
--   $\bullet$
+- We identify the major optimization challenges in providing performance portability to deep learning workloads across diverse hardware back-ends.
+- We introduce novel schedule primitives that take advantage of cross-thread memory reuse, novel hardware intrinsics, and latency hiding.
+- We propose and implement a machine learning based optimization system to automatically explore and search for optimized tensor operators.
+- We build an end-to-end compilation and optimization stack that allows the deployment of deep learning workloads specified in high-level frameworks (including TensorFlow, MXNet, PyTorch, Keras, CNTK) to diverse hardware back-ends (including CPUs, server GPUs, mobile GPUs, and FPGA-based accelerators). The open-sourced TVM is in production use inside several major companies.
 
-    We identify the major optimization challenges in providing performance portability to deep learning workloads across diverse hardware back-ends.
-
--   $\bullet$
-
-    We introduce novel schedule primitives that take advantage of cross-thread memory reuse, novel hardware intrinsics, and latency hiding.
-
--   $\bullet$
-
-    We propose and implement a machine learning based optimization system to automatically explore and search for optimized tensor operators.
-
--   $\bullet$
-
-    We build an end-to-end compilation and optimization stack that allows the deployment of deep learning workloads specified in high-level frameworks (including TensorFlow, MXNet, PyTorch, Keras, CNTK) to diverse hardware back-ends (including CPUs, server GPUs, mobile GPUs, and FPGA-based accelerators). The open-sourced TVM is in production use inside several major companies.
-
-    We evaluated TVM using real world workloads on a server-class GPU, an embedded GPU, an embedded CPU, and a custom generic FPGA-based accelerator. Experimental results show that TVM offers portable performance across back-ends and achieves speedups ranging from 1.2$\times$ to 3.8$\times$ over existing frameworks backed by hand-optimized libraries.
+  We evaluated TVM using real world workloads on a server-class GPU, an embedded GPU, an embedded CPU, and a custom generic FPGA-based accelerator. Experimental results show that TVM offers portable performance across back-ends and achieves speedups ranging from 1.2$\times$ to 3.8$\times$ over existing frameworks backed by hand-optimized libraries.
 
 ## 2 Overview
 
