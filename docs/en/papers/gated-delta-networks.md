@@ -2,6 +2,7 @@
 title: 'Gated Delta Networks'
 createTime: 2026/08/04 23:48:22
 permalink: /en/papers/gated-delta-networks/
+pageClass: paper-reading
 ---
 
 > [Songlin Yang](https://sustcsonglin.github.io/) [+author-note], [Jan Kautz](https://www.jankautz.com/), and [Ali Hatamizadeh](https://ahatamiz.github.io/). First submitted to arXiv on December 9, 2024; current version v3. Published at [ICLR 2025](https://openreview.net/forum?id=r8H7xhYPwz). [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464). [Original PDF](/paper/gated-delta-networks.pdf). [DOI](https://doi.org/10.48550/arXiv.2412.06464). [TeX source](https://export.arxiv.org/e-print/2412.06464v3). The original PDF remains authoritative for the exact print layout and bibliography.
@@ -50,16 +51,16 @@ where $L$ is the sequence length, and ${\mathbf{M}}\in\mathbb{R}^{L\times L}$ is
 However, this vanilla linear attention underperforms Transformers in language modeling by a large margin. To address this, it is common to add a decay term to forget historical information. Here we take Mamba2 [Daoa24] as an example, which can be represented by the following linear recurrence (up to specific parameterization):
 
 $$
-{\mathbf{S}}_t={\color[\mathrm{rgb}]{0,0,1}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
+{\mathbf{S}}_t={\color{#000099}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
 $$
 
-where ${\color[\mathrm{rgb}]{0,0,1}\alpha_t\in(0,1)}$ is a data-dependent scalar-valued decay term that varies with $t$. Define the cumulative decay product ${\color[\mathrm{rgb}]{0,0,1}\gamma_j=\prod_{i=1}^j\alpha_i}$, and by expanding the recurrence, we can express the result in both a vector form (left) and a matrix parallel form (right):
+where ${\color{#000099}\alpha_t\in(0,1)}$ is a data-dependent scalar-valued decay term that varies with $t$. Define the cumulative decay product ${\color{#000099}\gamma_j=\prod_{i=1}^j\alpha_i}$, and by expanding the recurrence, we can express the result in both a vector form (left) and a matrix parallel form (right):
 
 $$
-{\bm{o}}_t=\sum_{i=1}^t\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma}\right){\mathbf{V}}
+{\bm{o}}_t=\sum_{i=1}^t\left({\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color{#000099}\Gamma}\right){\mathbf{V}}
 $$
 
-Here, ${\color[\mathrm{rgb}]{0,0,1}\Gamma\in\mathbb{R}^{L\times L}}$ is a decay-aware causal mask where ${\color[\mathrm{rgb}]{0,0,1}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$ if $i\geq j$ and ${\color[\mathrm{rgb}]{0,0,1}\Gamma_{ij}=0}$ otherwise. The equivalence between these parallel and recurrent forms is also referred to as the state space duality (SSD) described in [Daoa24]. This recurrence structure appears in several other architectures including Gated RFA [ICLRa21], xLSTM [Beck24], and Gated RetNet [Sunb24]. When $\gamma_t$ is data-independent, the formulation reduces to RetNet [Suna23] and Lightning-Attention [Lightn24]. Furthermore, if $\gamma_t$ is extended to be matrix-valued rather than scalar-valued, efficient training algorithms remain possible when parameterized with an outer-product structure, as demonstrated by [PMLRa24] and used by [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25].
+Here, ${\color{#000099}\Gamma\in\mathbb{R}^{L\times L}}$ is a decay-aware causal mask where ${\color{#000099}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$ if $i\geq j$ and ${\color{#000099}\Gamma_{ij}=0}$ otherwise. The equivalence between these parallel and recurrent forms is also referred to as the state space duality (SSD) described in [Daoa24]. This recurrence structure appears in several other architectures including Gated RFA [ICLRa21], xLSTM [Beck24], and Gated RetNet [Sunb24]. When $\gamma_t$ is data-independent, the formulation reduces to RetNet [Suna23] and Lightning-Attention [Lightn24]. Furthermore, if $\gamma_t$ is extended to be matrix-valued rather than scalar-valued, efficient training algorithms remain possible when parameterized with an outer-product structure, as demonstrated by [PMLRa24] and used by [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25].
 
 **Chunkwise training.** However, both the recurrent and parallel forms are not ideal for efficient training [Huaa22, PMLRa24], which motivates the use of the chunkwise parallel form [Huaa22, Suna23] for hardware-efficient, linear-time training, as introduced below. To summarize, the chunkwise parallel form splits inputs and outputs into several chunks of size $C$, and computes outputs for each chunk based on the final state of the previous chunk and the query/key/value blocks of the current chunk. Following the notation of [Suna23, PMLRa24, NeurIP24], we take the query block, ${\bm{q}}$, as an example. We denote ${\mathbf{Q}}_{[t]}:={\bm{q}}_{tC+1:(t+1)C+1}$ as the query block for chunk $t$, and ${\bm{q}}_{[t]}^r:={\bm{q}}_{tC+r}$ as the $r$-th query within chunk $t$. The initial state of chunk $t$ is defined as ${\mathbf{S}}_{[t]}:={\mathbf{S}}_{[t]}^0={\mathbf{S}}_{[t-1]}^C$. By partially expanding the recurrence, we have
 
@@ -78,28 +79,28 @@ where ${\mathbf{M}}\in\mathbb{R}^{C\times C}$ is the causal mask. The above equa
 <span id="equation-01"></span>
 
 $$
-{\mathbf{S}}_{[t+1]}={\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+{\mathbf{S}}_{[t+1]}={\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#000099}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#000099}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#000099}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 \tag{1}
 $$
 
-where ${\color[\mathrm{rgb}]{0,0,1}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$. [+1] Here we use the left arrow ($\overleftarrow{\cdot}$) or the right arrow ($\overrightarrow{\cdot}$) to denote a variable decaying to the first position and the last position of each chunk, respectively,
+where ${\color{#000099}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$. [+1] Here we use the left arrow ($\overleftarrow{\cdot}$) or the right arrow ($\overrightarrow{\cdot}$) to denote a variable decaying to the first position and the last position of each chunk, respectively,
 
 <span id="equation-02"></span>
 
 $$
-{\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
+{\color{#000099}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color{#000099}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
 $$
 
 $$
-{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
+{\color{#000099}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color{#000099}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
 $$
 
 $$
-{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
+{\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#000099}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
 \tag{2}
 $$
 
-and likewise for other variables (e.g., ${\color[\mathrm{rgb}]{0,0,1}\overrightarrow{\bm{v}}}$). The SSD decomposition algorithm introduced in Mamba2 is largely equivalent to this chunkwise algorithm. For a more generalized approach, [PMLRa24] proposed an extended chunkwise algorithm for linear attention that incorporates fine-grained decay mechanisms.
+and likewise for other variables (e.g., ${\color{#000099}\overrightarrow{\bm{v}}}$). The SSD decomposition algorithm introduced in Mamba2 is largely equivalent to this chunkwise algorithm. For a more generalized approach, [PMLRa24] proposed an extended chunkwise algorithm for linear attention that incorporates fine-grained decay mechanisms.
 
 ### 2.2 Delta Networks: Linear Attention with Delta Rule
 
@@ -179,11 +180,11 @@ The proposed gated delta rule is simple yet effective:
 <span id="equation-10"></span>
 
 $$
-{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color[\mathrm{rgb}]{0,0,1}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
+{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#000099}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
 \tag{10}
 $$
 
-where the data-dependent gating term ${\color[\mathrm{rgb}]{0,0,1}\alpha_t}\in(0,1)$ controls state decay. This formulation unifies the advantages of both gating mechanisms and the delta rule: the gating term enables adaptive memory management, while the delta update structure facilitates effective key-value association learning.
+where the data-dependent gating term ${\color{#000099}\alpha_t}\in(0,1)$ controls state decay. This formulation unifies the advantages of both gating mechanisms and the delta rule: the gating term enables adaptive memory management, while the delta update structure facilitates effective key-value association learning.
 
 We present a formal analysis of the gated delta rule through the lens of the online learning framework introduced by [Liua24]. In this framework, recurrent state updates emerge as *closed-form* solutions to an online learning problem, as shown in [Table 1](#table-01). Recent linear RNN architectures typically incorporate a regularization term in their online learning objective to prevent state divergence from previous values, thereby enabling memory retention. However, this retention mechanism becomes problematic when the state becomes saturated with information. In such cases, each state would encode a superposition of multiple information pieces, making precise retrieval challenging. To address this limitation, Mamba2 and Gated DeltaNet introduce an adaptive scaling factor $\alpha_t$ that relaxes the regularization term, allowing controlled deviations between ${\mathbf{S}}_t$ and ${\mathbf{S}}_{t-1}$. This modification enables dynamic memory management through selective forgetting, which could be useful in filtering out irrelevant information (see [§ 3.2](#32-case-study-single-needle-in-a-haystack-s-niah)).
 
@@ -224,32 +225,32 @@ To better understand the complementary strength between the delta rule and the g
 In this subsection, we derive a hardware-efficient chunkwise algorithm for training Gated DeltaNet. By partially expanding the recurrence in [Eq. 10](#equation-10), we have
 
 $$
-{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color[\mathrm{rgb}]{0,0,1}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color[\mathrm{rgb}]{0,0,1}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
+{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color{#000099}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color{#000099}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
 $$
 
-It is easy to see that ${\mathbf{F}}_{[t]}^r={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$. As for ${\mathbf{G}}_{[t]}^r$, we adapt [Eq. 5](#equation-05) as follows,
+It is easy to see that ${\mathbf{F}}_{[t]}^r={\color{#000099}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color{#000099}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$. As for ${\mathbf{G}}_{[t]}^r$, we adapt [Eq. 5](#equation-05) as follows,
 
 $$
-{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
+{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color{#000099}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color{#000099}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
 $$
 
 (see [§ A](#appendix-a-extended-wy-representation-for-gated-delta-rule) for a proof). By UT transform, we have the matrix form:
 
 $$
-\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color{#000099}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 $$
 
 Similar to how Mamba2 extends linear attention ([Eq. 1](#equation-01)), we can adapt DeltaNet's chunkwise algorithm ([Eq. 8](#equation-08)-[9](#equation-09)) for Gated DeltaNet to enable hardware-efficient training as follows:
 
 $$
-{\mathbf{S}}_{[t+1]}={\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
+{\mathbf{S}}_{[t+1]}={\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#000099}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color{#000099}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
 $$
 
 $$
-{\mathbf{O}}_{[t]}={\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
+{\mathbf{O}}_{[t]}={\color{#000099}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#000099}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
 $$
 
-where ${\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$, ${\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$, ${\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}}{\bm{k}}_{[t]}^r$, and ${\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$ like we defined in [Eq. 2](#equation-02).
+where ${\color{#000099}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$, ${\color{#000099}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$, ${\color{#000099}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r$, and ${\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$ like we defined in [Eq. 2](#equation-02).
 
 ### 3.4 Gated Delta Networks and Hybrid Models
 
@@ -340,7 +341,7 @@ To reduce notation clutter, we only consider the first chunk here.
 For ${\mathbf{S}}_t$, the extended WY representation is
 
 $$
-{\mathbf{S}}_t=\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
+{\mathbf{S}}_t=\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
 $$
 
 We proof this by mathmetical induction.
@@ -348,23 +349,23 @@ We proof this by mathmetical induction.
 **Proof.**
 
 $$
-{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
+{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color{#000099}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-={\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\left(\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
+={\color{#000099}\alpha_{t+1}}\left(\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color{#000099}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
+=\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
+=\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color{#000099}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^{t+1}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
+=\sum_{i=1}^{t+1}{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
 $$
 
 ∎
