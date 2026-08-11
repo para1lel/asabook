@@ -178,6 +178,16 @@ pre * {
   padding-inline-end: 1rem;
 }
 
+.vp-doc ol:has(> li > .paper-alpha-label),
+.vp-doc ol:has(> li > p > .paper-alpha-label) {
+  list-style: none;
+}
+
+.paper-alpha-label {
+  display: inline-block;
+  min-width: 2rem;
+}
+
 .tilesight-paper .katex-display .katex-mathml {
   contain: strict;
 }

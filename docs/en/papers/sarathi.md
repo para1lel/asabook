@@ -38,21 +38,10 @@ We evaluate Sarathi across different models and hardware — LLaMA-13B on A6000 
 
 The main contributions of our paper include:
 
-1.  1.
-
-    Chunked-prefills which allows the construction of work units that are compute saturating and uniform.
-
-2.  2.
-
-    Decode-maximal batching which allows inefficient decodes to ‘piggyback’ with efficient prefills.
-
-3.  3.
-
-    Application of chunked-prefills and decode-maximal batching to pipeline parallelism to significantly reduce pipeline bubbles.
-
-4.  4.
-
-    Extensive evaluation over multiple models, hardware, and parallelism strategies demonstrating up to 1.91$\times$ improvement in throughput.
+1. Chunked-prefills which allows the construction of work units that are compute saturating and uniform.
+2. Decode-maximal batching which allows inefficient decodes to ‘piggyback’ with efficient prefills.
+3. Application of chunked-prefills and decode-maximal batching to pipeline parallelism to significantly reduce pipeline bubbles.
+4. Extensive evaluation over multiple models, hardware, and parallelism strategies demonstrating up to 1.91$\times$ improvement in throughput.
 
 ## 2 Background
 
@@ -242,21 +231,10 @@ We support different model configurations in our codebase to evaluate Sarathi ov
 
 We evaluate Sarathi on a variety of models and GPUs using physical deployments for single GPU experiments and profile-driven simulations for large-scale experiments as shown in [Table 3](#table-03). Our evaluation seeks to answer the following questions:
 
-1.  1.
-
-    What is the impact of Sarathi on the throughput of decodes as well as the end-to-end throughput of LLMs? In addition, what is the impact of varying sequence lengths, batch sizes, and P:D ratios ([§5.1](#S5.SS1 "5.1 Evaluation on a Single GPU ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
-
-2.  2.
-
-    How does Sarathi compare to existing iteration-level scheduling mechanisms like Orca ([§5.2](#S5.SS2 "5.2 Comparison to Iteration-level Scheduling ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
-
-3.  3.
-
-    What is the impact of our techniques on GPU bubbles and the throughput of pipeline-parallel models ([§5.3](#S5.SS3 "5.3 Pipeline Parallelism with Sarathi ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
-
-4.  4.
-
-    What are the overheads of chunked-prefills ([§5.4](#S5.SS4 "5.4 Ablation Study of Chunked-prefills ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
+1. What is the impact of Sarathi on the throughput of decodes as well as the end-to-end throughput of LLMs? In addition, what is the impact of varying sequence lengths, batch sizes, and P:D ratios ([§5.1](#S5.SS1 "5.1 Evaluation on a Single GPU ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
+2. How does Sarathi compare to existing iteration-level scheduling mechanisms like Orca ([§5.2](#S5.SS2 "5.2 Comparison to Iteration-level Scheduling ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
+3. What is the impact of our techniques on GPU bubbles and the throughput of pipeline-parallel models ([§5.3](#S5.SS3 "5.3 Pipeline Parallelism with Sarathi ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
+4. What are the overheads of chunked-prefills ([§5.4](#S5.SS4 "5.4 Ablation Study of Chunked-prefills ‣ 5 Evaluation ‣ Sarathi: Efficient LLM Inference by Piggybacking Decodes with Chunked Prefills"))?
 
 ### 5.1 Evaluation on a Single GPU
 

@@ -330,17 +330,9 @@ As desired. $\square$
 
 Rejection sampling is the following iterative sampling procedure that looks superficially similar to ours:
 
-1.  1.
-
-    Sample $x\sim q(x)$ and $r\sim U(0,1)$.
-
-2.  2.
-
-    If $r<\frac{p(x)}{\mathrm{Mq}(x)}$ return $x$.
-
-3.  3.
-
-    Go to 1.
+1. Sample $x\sim q(x)$ and $r\sim U(0,1)$.
+2. If $r<\frac{p(x)}{\mathrm{Mq}(x)}$ return $x$.
+3. Go to 1.
 
 Where $M=\max_{x}\frac{p(x)}{q(x)}$. We could employ a non-iterative version of rejection sampling instead of speculative sampling - specifically go through steps 1 and 2 above, and otherwise sample from an *unmodified* $p(x)$ directly. That would be much less efficient than our method though. Specifically, the expected accept probability here is $E_{x\sim q(x)}\frac{p(x)}{\mathrm{Mq}(x)}=\sum_{x}p(x)\min_{x^{\prime}}\frac{q(x^{\prime})}{p(x^{\prime})}\leq\sum_{x}p(x)\min(1,\frac{q(x)}{p(x)})=\sum_{x}\min(p(x),q(x))=\alpha$ is (potentially much) lower than the expected accept probability in our method $\alpha$.
 

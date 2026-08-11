@@ -22,25 +22,11 @@ In this paper, we introduce DeepSpeed-Ulysses (or Ulysses, a very long novel), a
 
 In this work, we put forward the following contributions of DeepSpeed-Ulysses to advance state of the art in long sequence parallelism:
 
--   •
-
-    DeepSpeed-Ulysses trains Transformer models 4x larger sequence lengths than existing systems, while enabling training with sequences with over a million tokens.
-
--   •
-
-    Communication reduction of over 10x compared to existing systems, resulting in throughput improvements of up to 2.5x, and sustained throughput of over 175 TFlops/GPU (over 54% of hardware peak).
-
--   •
-
-    Fully general and implementation agnostic attention: DeepSpeed sequence parallelism (Ulysses) supports dense as well as sparse attention, and it works with efficient attention implementations such as FlashAttention v2  [Daoa23].
-
--   •
-
-    Support for massive model training: DeepSpeed sequence parallelism works together with ZeRO-3 to not only support large sequence lengths but also massive model sizes.
-
--   •
-
-    Easy-to-use and portable, requiring minimal code changes to the existing training frameworks.
+- DeepSpeed-Ulysses trains Transformer models 4x larger sequence lengths than existing systems, while enabling training with sequences with over a million tokens.
+- Communication reduction of over 10x compared to existing systems, resulting in throughput improvements of up to 2.5x, and sustained throughput of over 175 TFlops/GPU (over 54% of hardware peak).
+- Fully general and implementation agnostic attention: DeepSpeed sequence parallelism (Ulysses) supports dense as well as sparse attention, and it works with efficient attention implementations such as FlashAttention v2  [Daoa23].
+- Support for massive model training: DeepSpeed sequence parallelism works together with ZeRO-3 to not only support large sequence lengths but also massive model sizes.
+- Easy-to-use and portable, requiring minimal code changes to the existing training frameworks.
 
 In subsequent sections, we provide background and related work, a detailed discussion of DeepSpeed sequence parallelism core design, communication complexity analysis, experimental evaluation and comparison with existing work.
 

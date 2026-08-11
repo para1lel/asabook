@@ -243,111 +243,44 @@ We thank Ofir Press, Gabriel Ilharco, Daniel Jiang, Mitchell Wortsman, Ari Holtz
 
 The checklist follows the references. Please read the checklist guidelines carefully for information on how to answer these questions. For each question, change the default \[TODO\] to \[Yes\] , \[No\] , or \[N/A\] . You are strongly encouraged to include a justification to your answer, either by referencing the appropriate section of your paper or providing a brief inline description. For example:
 
--   •
-
-    Did you include the license to the code and datasets? \[Yes\] See Section LABEL:gen\_inst.
-
--   •
-
-    Did you include the license to the code and datasets? \[No\] The code and the data are proprietary.
-
--   •
-
-    Did you include the license to the code and datasets? \[N/A\]
+- Did you include the license to the code and datasets? \[Yes\] See Section LABEL:gen\_inst.
+- Did you include the license to the code and datasets? \[No\] The code and the data are proprietary.
+- Did you include the license to the code and datasets? \[N/A\]
 
 Please do not modify the questions and only use the provided macros for your answers. Note that the Checklist section does not count towards the page limit. In your paper, please delete this instructions block and only keep the Checklist section heading above along with the questions/answers below.
 
-1.  1.
+1. For all authors…
 
-    For all authors…
+    1. <span class="paper-alpha-label">(a)</span> Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? \[Yes\]
+    1. <span class="paper-alpha-label">(b)</span> Did you describe the limitations of your work? \[Yes\] See the limitation section
+    1. <span class="paper-alpha-label">(c)</span> Did you discuss any potential negative societal impacts of your work?\[Yes\] See the Broader Impacts section
+    1. <span class="paper-alpha-label">(d)</span> Have you read the ethics review guidelines and ensured that your paper conforms to them?\[Yes\] Yes, we believe our work conforms to these guidelines.
 
-    1.  (a)
+2. If you are including theoretical results…
 
-        Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? \[Yes\]
+    1. <span class="paper-alpha-label">(a)</span> Did you state the full set of assumptions of all theoretical results? \[N/A\]
+    1. <span class="paper-alpha-label">(b)</span> Did you include complete proofs of all theoretical results? \[N/A\]
 
-    2.  (b)
+3. If you ran experiments…
 
-        Did you describe the limitations of your work? \[Yes\] See the limitation section
+    1. <span class="paper-alpha-label">(a)</span> Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)? \[Yes\] We will include our code in the supplemental material.
+    1. <span class="paper-alpha-label">(b)</span> Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?\[Yes\] See the experimental setup section
+    1. <span class="paper-alpha-label">(c)</span> Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)? \[No\] Our experiments are deterministic for each model. Instead of running the same model multiple times, we run multiple models at different scales. We are unable to compute error bars for these experiments.
+    1. <span class="paper-alpha-label">(d)</span> Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)? \[Yes\] See the exper2imental setup section
 
-    3.  (c)
+4. If you are using existing assets (e.g., code, data, models) or curating/releasing new assets…
 
-        Did you discuss any potential negative societal impacts of your work?\[Yes\] See the Broader Impacts section
+    1. <span class="paper-alpha-label">(a)</span> If your work uses existing assets, did you cite the creators? \[Yes\] See experimental setup section
+    1. <span class="paper-alpha-label">(b)</span> Did you mention the license of the assets? \[No\] The license is permissible for all the assets that we use. The individual licenses can easily be looked up.
+    1. <span class="paper-alpha-label">(c)</span> Did you include any new assets either in the supplemental material or as a URL? \[N/A\] We only use existing datasets.
+    1. <span class="paper-alpha-label">(d)</span> Did you discuss whether and how consent was obtained from people whose data you’re using/curating? \[N/A\]
+    1. <span class="paper-alpha-label">(e)</span> Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content? \[N/A\]
 
-    4.  (d)
+5. If you used crowdsourcing or conducted research with human subjects…
 
-        Have you read the ethics review guidelines and ensured that your paper conforms to them?\[Yes\] Yes, we believe our work conforms to these guidelines.
-
-2.  2.
-
-    If you are including theoretical results…
-
-    1.  (a)
-
-        Did you state the full set of assumptions of all theoretical results? \[N/A\]
-
-    2.  (b)
-
-        Did you include complete proofs of all theoretical results? \[N/A\]
-
-3.  3.
-
-    If you ran experiments…
-
-    1.  (a)
-
-        Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)? \[Yes\] We will include our code in the supplemental material.
-
-    2.  (b)
-
-        Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?\[Yes\] See the experimental setup section
-
-    3.  (c)
-
-        Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)? \[No\] Our experiments are deterministic for each model. Instead of running the same model multiple times, we run multiple models at different scales. We are unable to compute error bars for these experiments.
-
-    4.  (d)
-
-        Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)? \[Yes\] See the exper2imental setup section
-
-4.  4.
-
-    If you are using existing assets (e.g., code, data, models) or curating/releasing new assets…
-
-    1.  (a)
-
-        If your work uses existing assets, did you cite the creators? \[Yes\] See experimental setup section
-
-    2.  (b)
-
-        Did you mention the license of the assets? \[No\] The license is permissible for all the assets that we use. The individual licenses can easily be looked up.
-
-    3.  (c)
-
-        Did you include any new assets either in the supplemental material or as a URL? \[N/A\] We only use existing datasets.
-
-    4.  (d)
-
-        Did you discuss whether and how consent was obtained from people whose data you’re using/curating? \[N/A\]
-
-    5.  (e)
-
-        Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content? \[N/A\]
-
-5.  5.
-
-    If you used crowdsourcing or conducted research with human subjects…
-
-    1.  (a)
-
-        Did you include the full text of instructions given to participants and screenshots, if applicable? \[N/A\]
-
-    2.  (b)
-
-        Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable? \[N/A\]
-
-    3.  (c)
-
-        Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation? \[N/A\]
+    1. <span class="paper-alpha-label">(a)</span> Did you include the full text of instructions given to participants and screenshots, if applicable? \[N/A\]
+    1. <span class="paper-alpha-label">(b)</span> Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable? \[N/A\]
+    1. <span class="paper-alpha-label">(c)</span> Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation? \[N/A\]
 
 ## Appendix A Memory usage compared to 16-bit precision
 

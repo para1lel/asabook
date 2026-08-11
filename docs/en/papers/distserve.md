@@ -38,17 +38,9 @@ Based on the above insights, in this work, we build DistServe, a goodput-optimiz
 
 We implement DistServe as an orchestration layer on top of the LLM inference engine. We evaluate DistServe on various LLMs, varying the workloads based on three important real-world LLM applications: chatbots, programming assistant, and document summary. Compared to state-of-the-art solutions, DistServe can serve up to $4.48\times$ more requests under latency constraints. Our contributions are:
 
--   •
-
-    Identify the problems of prefill-decoding interference and resource coupling in existing LLM serving systems and propose to disaggregate the prefill and decoding phases.
-
--   •
-
-    Design a novel placement algorithm to automatically choose the goodput-optimal schema for prefill and decoding instances.
-
--   •
-
-    Conduct a comprehensive evaluation of DistServe with realistic workloads.
+- Identify the problems of prefill-decoding interference and resource coupling in existing LLM serving systems and propose to disaggregate the prefill and decoding phases.
+- Design a novel placement algorithm to automatically choose the goodput-optimal schema for prefill and decoding instances.
+- Conduct a comprehensive evaluation of DistServe with realistic workloads.
 
 ## 2 Background and Motivation
 
@@ -287,17 +279,9 @@ Cluster testbed. We deploy DistServe on a cluster with 4 nodes and 32 GPUs. Each
 
 Model and workloads setup. Similar to prior work on LLM serving [Efficc23], we choose the OPT [Open22] series, which is a representative LLM family widely used in academia and industry. We use FP16 precision in all experiments. For workloads, as shown in [Table 1](#table-01), We choose three typical LLM applications and set the SLOs empirically based on their service target because there exists no available SLO settings for these applications as far as we know. For each application, we select a suitable dataset and sample requests from it for evaluation. Since all the datasets do not include timestamps, we generate request arrival times using Poisson distribution with different request rates. Due to the space limit, we test the chatbot workload on all three OPT models and the other two workloads on OPT-66B, which matches the largest size in the recent open-source LLM series [Openb23].
 
--   •
-
-    Chatbot [Blog22]: We use the ShareGPT dataset [Sharea23] for the chatbot application, which is a collection of user-shared conversations with ChatGPT. For OPT-13B, the TTFT SLO is set to 0.2s for responsiveness and the TPOT SLO is set to 0.1s which is higher than the normal human read speed. For OPT-66B and OPT-175B, we slightly relax the two SLOs due to the increase of model execution latency.
-
--   •
-
-    Code completion [Evalua21]: We use the HumanEval [Evalua21] dataset for the code completion task. It includes 164 programming problems with a function signature or docstring which is commonly used in academia to evaluate code completion models. Since the code completion tool is used as a personal real-time coding assistant, we set both SLOs to be stringent.
-
--   •
-
-    Summarization [Summaa23]: It is a popular LLM task to generate a concise summary for a long article, essay, or even an academic paper. We use LongBench [Longba23] dataset which contains the summarization task. As shown in [Figure 7](#figure-07), LongBench has much longer input lengths than the other two datasets. So we set a loose TTFT SLO but require a stringent TPOT.
+- Chatbot [Blog22]: We use the ShareGPT dataset [Sharea23] for the chatbot application, which is a collection of user-shared conversations with ChatGPT. For OPT-13B, the TTFT SLO is set to 0.2s for responsiveness and the TPOT SLO is set to 0.1s which is higher than the normal human read speed. For OPT-66B and OPT-175B, we slightly relax the two SLOs due to the increase of model execution latency.
+- Code completion [Evalua21]: We use the HumanEval [Evalua21] dataset for the code completion task. It includes 164 programming problems with a function signature or docstring which is commonly used in academia to evaluate code completion models. Since the code completion tool is used as a personal real-time coding assistant, we set both SLOs to be stringent.
+- Summarization [Summaa23]: It is a popular LLM task to generate a concise summary for a long article, essay, or even an academic paper. We use LongBench [Longba23] dataset which contains the summarization task. As shown in [Figure 7](#figure-07), LongBench has much longer input lengths than the other two datasets. So we set a loose TTFT SLO but require a stringent TPOT.
 
 Metrics. We use SLO attainment as the major evaluation metric. Under a specific SLO attainment goal (say, 90%), we are concerned with two things: the maximum per-GPU goodput and the minimal SLO the system can handle. We are particularly interested in an SLO attainment of 90% (indicated by the vertical lines in all curve plots), but will also vary the rate and latency requirements to observe how the SLO attainment changes. To accurately understand the respective impacts of the two latency requirements on the system, we also present the proportion of requests that only meet one of these SLOs.
 
@@ -391,45 +375,20 @@ In modern LLM serving systems [Fastea19, Efficc23, Xivac23], memory-bound operat
 
 Here are symbols related to the architecture of the model:
 
--   •
-
-    $h$: hidden size
-
--   •
-
-    $n$: number of heads
-
--   •
-
-    $s$: head size ($h=n\cdot s$)
-
--   •
-
-    $m$: FFN intermediate size
+- $h$: hidden size
+- $n$: number of heads
+- $s$: head size ($h=n\cdot s$)
+- $m$: FFN intermediate size
 
 Note: If tensor parallelism is used, $h$, $n$, and $m$ should be divided by the tensor parallelism size.
 
 Below are symbols that characterize the batch to be executed:
 
--   •
-
-    $B$: batch size
-
--   •
-
-    $l_{0},l_{1},\dots,l_{B-1}$: input length of each request within the batch
-
--   •
-
-    $t$: number of tokens in the batch, ($t=\sum_{i=0}^{B-1}l_{i}$)
-
--   •
-
-    $t_{2}$: squared sum of the input lengths ($t_{2}=\sum_{i=0}^{B-1}l_{i}^{2}$)
-
--   •
-
-    $b$: block size in the attention kernel. This parameter is used in FlashAttention [Daod22], a common kernel optimization technique adopted by current LLM serving systems.
+- $B$: batch size
+- $l_{0},l_{1},\dots,l_{B-1}$: input length of each request within the batch
+- $t$: number of tokens in the batch, ($t=\sum_{i=0}^{B-1}l_{i}$)
+- $t_{2}$: squared sum of the input lengths ($t_{2}=\sum_{i=0}^{B-1}l_{i}^{2}$)
+- $b$: block size in the attention kernel. This parameter is used in FlashAttention [Daod22], a common kernel optimization technique adopted by current LLM serving systems.
 
 ### A.2 Prefill Phase Latency Modeling
 

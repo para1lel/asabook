@@ -308,21 +308,10 @@ In this work, we study W8A8 quantization so that we can utilize INT8 GEMM kernel
 
 We mainly compare our method with existing work on weight-activation quantization (i.e., W8A8) like [Dettma22, Yao22, Weib22] since they are under the same setting. Here we would like to give a short discussion about the weight-only quantization methods in LLM settings:
 
-1.  1.
-
-    Firstly, we were trying to compare our method with GPTQ [Franta22] but found it difficult due to different implementations. GPTQ’s low-bit kenerl [+5] only supports the generation stage with batch size 1 (i.e., only processing a single token at a time), and cannot support the context stage (widely used in different downstream tasks and chatbot) or batch-based setting. Furthermore, its low-bit kernel optimization only targets the OPT-175B model (as stated in the README). At the same time, our work utilizes FasterTransformer for serving large models, which may lead to an unfair advantage if we make a direct comparison.
-
-2.  2.
-
-    GPTQ may perform better at handling a small number of input tokens (1 in its experiments) since the process is highly memory-bounded. In contrast, SmoothQuant may serve better with a batching setting or for the context stage (i.e., when the number of processed tokens is more significant). Nonetheless, some work shows that in production, we can improve the throughput of serving GPT models by 37$\times$ at similar latency with advanced batching [OSDI22]. We believe in production, batching will be the future standard, and SmoothQuant will bring further improvement, even for the generation stage.
-
-3.  3.
-
-    Applications like chatbots need to handle a long context length and potentially run under a batch setting. Due to the two factors, the memory size of the KV cache can no longer be ignored (as shown in [Pope22], the KV cache totals 3TB given batch size 512 and context length 2048, which is 3$\times$ larger than the model weights). In this case, quantization of activation can also help reduce the memory cost from storing the KV cache.
-
-4.  4.
-
-    Finally, we think the two settings are somewhat orthogonal. We believe we can integrate GPTQ’s method for a better weight quantization and potentially achieve W4A4 quantization, which will lead to even better hardware efficiency (INT4 instructions are supported on NVIDIA’s Hopper GPU architecture). We leave this exploration to future work.
+1. Firstly, we were trying to compare our method with GPTQ [Franta22] but found it difficult due to different implementations. GPTQ’s low-bit kenerl [+5] only supports the generation stage with batch size 1 (i.e., only processing a single token at a time), and cannot support the context stage (widely used in different downstream tasks and chatbot) or batch-based setting. Furthermore, its low-bit kernel optimization only targets the OPT-175B model (as stated in the README). At the same time, our work utilizes FasterTransformer for serving large models, which may lead to an unfair advantage if we make a direct comparison.
+2. GPTQ may perform better at handling a small number of input tokens (1 in its experiments) since the process is highly memory-bounded. In contrast, SmoothQuant may serve better with a batching setting or for the context stage (i.e., when the number of processed tokens is more significant). Nonetheless, some work shows that in production, we can improve the throughput of serving GPT models by 37$\times$ at similar latency with advanced batching [OSDI22]. We believe in production, batching will be the future standard, and SmoothQuant will bring further improvement, even for the generation stage.
+3. Applications like chatbots need to handle a long context length and potentially run under a batch setting. Due to the two factors, the memory size of the KV cache can no longer be ignored (as shown in [Pope22], the KV cache totals 3TB given batch size 512 and context length 2048, which is 3$\times$ larger than the model weights). In this case, quantization of activation can also help reduce the memory cost from storing the KV cache.
+4. Finally, we think the two settings are somewhat orthogonal. We believe we can integrate GPTQ’s method for a better weight quantization and potentially achieve W4A4 quantization, which will lead to even better hardware efficiency (INT4 instructions are supported on NVIDIA’s Hopper GPU architecture). We leave this exploration to future work.
 
 [+1]: \*\*[https://github.com/EleutherAI/lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness)
 

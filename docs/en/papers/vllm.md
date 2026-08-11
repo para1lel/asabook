@@ -46,21 +46,10 @@ To address the above limitations, we propose *PagedAttention*, an attention algo
 
 In this work, we build *vLLM*, a high-throughput distributed LLM serving engine on top of PagedAttention that achieves near-zero waste in KV cache memory. vLLM uses block-level memory management and preemptive request scheduling that are co-designed with PagedAttention. vLLM supports popular LLMs such as GPT [Browne20], OPT [Zhangb22], and LLaMA [Touvra23] with varying sizes, including the ones exceeding the memory capacity of a single GPU. Our evaluations on various models and workloads show that vLLM improves the LLM serving throughput by 2-4$\times$ compared to the state-of-the-art systems [Refd22, Fastea00], without affecting the model accuracy at all. The improvements are more pronounced with longer sequences, larger models, and more complex decoding algorithms (§[4.3](#S4.SS3 "4.3. Decoding with PagedAttention and vLLM ‣ 4. Method ‣ Efficient Memory Management for Large Language Model Serving with PagedAttention")). In summary, we make the following contributions:
 
--   •
-
-    We identify the challenges in memory allocation in serving LLMs and quantify their impact on serving performance.
-
--   •
-
-    We propose PagedAttention, an attention algorithm that operates on KV cache stored in non-contiguous paged memory, which is inspired by the virtual memory and paging in OS.
-
--   •
-
-    We design and implement vLLM, a distributed LLM serving engine built on top of PagedAttention.
-
--   •
-
-    We evaluate vLLM on various scenarios and demonstrate that it substantially outperforms the previous state-of-the-art solutions such as FasterTransformer [Fastea00] and Orca [Refd22].
+- We identify the challenges in memory allocation in serving LLMs and quantify their impact on serving performance.
+- We propose PagedAttention, an attention algorithm that operates on KV cache stored in non-contiguous paged memory, which is inspired by the virtual memory and paging in OS.
+- We design and implement vLLM, a distributed LLM serving engine built on top of PagedAttention.
+- We evaluate vLLM on various scenarios and demonstrate that it substantially outperforms the previous state-of-the-art solutions such as FasterTransformer [Fastea00] and Orca [Refd22].
 
 ## 2\. Background
 
@@ -312,17 +301,9 @@ Baseline 1: FasterTransformer. FasterTransformer [Fastea00] is a distributed inf
 
 Baseline 2: Orca. Orca [Refd22] is a state-of-the-art LLM serving system optimized for throughput. Since Orca is not publicly available for use, we implement our own version of Orca. We assume Orca uses the buddy allocation algorithm to determine the memory address to store KV cache. We implement three versions of Orca based on how much it over-reserves the space for request outputs:
 
--   •
-
-    Orca (Oracle). We assume the system has the knowledge of the lengths of the outputs that will be actually generated for the requests. This shows the upper-bound performance of Orca, which is infeasible to achieve in practice.
-
--   •
-
-    Orca (Pow2). We assume the system over-reserves the space for outputs by at most 2$\times$. For example, if the true output length is 25, it reserves 32 positions for outputs.
-
--   •
-
-    Orca (Max). We assume the system always reserves the space up to the maximum sequence length of the model, i.e., 2048 tokens.
+- Orca (Oracle). We assume the system has the knowledge of the lengths of the outputs that will be actually generated for the requests. This shows the upper-bound performance of Orca, which is infeasible to achieve in practice.
+- Orca (Pow2). We assume the system over-reserves the space for outputs by at most 2$\times$. For example, if the true output length is 25, it reserves 32 positions for outputs.
+- Orca (Max). We assume the system always reserves the space up to the maximum sequence length of the model, i.e., 2048 tokens.
 
 Key metrics. We focus on serving throughput. Specifically, using the workloads with different request rates, we measure normalized latency of the systems, the mean of every request’s end-to-end latency divided by its output length, as in Orca [Refd22]. A high-throughput serving system should retain low normalized latency against high request rates. For most experiments, we evaluate the systems with 1-hour traces. As an exception, we use 15-minute traces for the OPT-175B model due to the cost limit.
 

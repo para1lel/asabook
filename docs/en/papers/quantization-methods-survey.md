@@ -230,13 +230,8 @@ Summary (PTQ). In PTQ, all the weights and activations quantization parameters a
 
 As discussed so far, in order to achieve minimal accuracy degradation after quantization, we need access to the entire of a fraction of training data. First, we need to know the range of activations so that we can clip the values and determine the proper scaling factors (which is usually referred to as calibration in the literature). Second, quantized models often require fine-tuning to adjust the model parameters and recover the accuracy degradation. In many cases, however, access to the original training data is not possible during the quantization procedure. This is because the training dataset is either too large to be distributed, proprietary (e.g., Google’s JFT-300M), or sensitive due to security or privacy concerns (e.g., medical data). Several different methods have been proposed to address this challenge, which we refer to as zero-shot quantization (ZSQ). Inspired by  [Visiod19], here we first describe two different levels of zero-shot quantization:
 
--   •
-
-    Level 1: No data and no finetuning (ZSQ + PTQ).
-
--   •
-
-    Level 2: No data but requires finetuning (ZSQ + QAT).
+- Level 1: No data and no finetuning (ZSQ + PTQ).
+- Level 2: No data but requires finetuning (ZSQ + QAT).
 
 Level 1 allows faster and easier quantization without any finetuning. Finetuning is in general time-consuming and often requires additional hyperparamenter search. However, Level 2 usually results in higher accuracy, as finetuning helps the quantized model to recover the accuracy degradation, particularly in ultra-low bit precision settings [Recoga20]. The work of [Visiod19] uses a Level 1 approach that relies on equalizing the weight ranges and correcting bias errors to make a given NN model more amenable to quantization without any data or finetuning. However, as this method is based on the scale-equivariance property of (piece-wise) linear activation functions, it can be sub-optimal for NNs with non-linear activations, such as BERT [Xiv18] with GELU [Xivag16] activation or MobileNetV3 [Visioc19] with swish activation [Xivaa17].
 

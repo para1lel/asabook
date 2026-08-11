@@ -30,21 +30,10 @@ We evaluate Ansor on both standard deep learning benchmarks and emerging new wor
 
 In summary, this paper makes the following contributions:
 
--   •
-
-    A mechanism to generate a large hierarchical search space of tensor programs for a computational graph.
-
--   •
-
-    An evolutionary strategy with a learned cost model to fine-tune the performance of tensor programs.
-
--   •
-
-    A scheduling algorithm based on gradient descent to prioritize important subgraphs when optimizing the end-to-end performance of DNNs.
-
--   •
-
-    An implementation and comprehensive evaluation of the Ansor system demonstrating that the above techniques outperform state-of-the-art systems on a variety of DNNs and hardware platforms.
+- A mechanism to generate a large hierarchical search space of tensor programs for a computational graph.
+- An evolutionary strategy with a learned cost model to fine-tune the performance of tensor programs.
+- A scheduling algorithm based on gradient descent to prioritize important subgraphs when optimizing the end-to-end performance of DNNs.
+- An implementation and comprehensive evaluation of the Ansor system demonstrating that the above techniques outperform state-of-the-art systems on a variety of DNNs and hardware platforms.
 
 ## 2 Background
 
@@ -420,327 +409,89 @@ where $N(i)$ is the set of similar tasks of $i$, $C_{i}$ is the number of floati
 
 We extract the following features for one innermost non-loop statement in the context of a full tensor program. The features include categorical features and numerical features. We use one-hot encoding to encode category features. The length of a feature vector including all the listed features for one statement is $164$. We use the same set of features for both CPU and GPU.
 
--   •
-
-    Numbers of float operations. The numbers of addition, subtraction, division, modulo operation, comparison, intrinsic math function call (e.g,. exp, sqrt) and other math function call respectively, with floating point operands.
-
--   •
-
-    Number of integer operations. Similar to the above one, but for operations with integer operands.
-
--   •
-
-    Vectorization related features. The length of the innermost vectorized loop. The type of vectorization position (InnerSpatial, MiddleSpatial, OuterSpatial, InnerReduce, MiddleReduce, OuterReduce, Mixed, None). The product of the lengths of all vectorized loops. The number of vectorized loops.
-
--   •
-
-    Unrolling related features. Similar to the vectorization related features, but for unrolling.
-
--   •
-
-    Parallelization related features. Similar to the vectorization related features, but for parallelization.
-
--   •
-
-    GPU thread binding related features. The lengths of blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z and virtual threads [OSDI18].
-
--   •
-
-    Arithmetic intensity curve. Arithmetic intensity is defined as $\frac{\mathrm{The\,number\,of\,floating\,point\,operations}}{\mathrm{The\,number\,of\,bytes\,accessed}}$. We compute the arithmetic intensity for each loop level and draw a curve with linear interpolation. Then we sample 10 points from this curve.
-
--   •
-
-    Buffer Access Feature. For each buffer this statement accesses, we extract features for it. While different statements can access different numbers of buffers, we perform feature extraction for at most five buffers. We pad zeros if a statement accesses less than five buffers and remove small buffers if a statement accesses more than five buffers.
-
-    -   –
-
-        Access type. The type of access (read, write, read + write).
-
-    -   –
-
-        Bytes. The total number of bytes accessed by this statement.
-
-    -   –
-
-        Unique bytes. The total number of unique bytes accessed by this statement.
-
-    -   –
-
-        Lines. The total number of cache lines accessed by this statement.
-
-    -   –
-
-        Unique lines. The total number of unique cache lines accessed by this statement.
-
-    -   –
-
-        Reuse type. The type of data reuse (LoopMultipleRead, SerialMultipleRead, NoReuse).
-
-    -   –
-
-        Reuse distance. The distance between data reuse in terms of number of for loop iterations and total accessed bytes.
-
-    -   –
-
-        Reuse counter. The number of happening of data reuse.
-
-    -   –
-
-        Stride. The stride of access.
-
-    -   –
-
-        Accessed bytes divided by reuse. We compute the following values: $\frac{\mathrm{Bytes}}{\mathrm{Reuse\,counter}}$, $\frac{\mathrm{Unique\,bytes}}{\mathrm{Reuse\,counter}}$, $\frac{\mathrm{Lines}}{\mathrm{Reuse\,counter}}$, $\frac{\mathrm{Unique\,lines}}{\mathrm{Reuse\,counter}}$.
-
--   •
-
-    Allocation related features. The size of the allocated buffer for the output buffer of this statement. The number of allocations.
-
--   •
-
-    Other features. The number of outer loops. The product of the lengths of outer loops. The value of the “auto\_unroll\_max\_step”’ specified by the pragma in outer loops.
+- Numbers of float operations. The numbers of addition, subtraction, division, modulo operation, comparison, intrinsic math function call (e.g,. exp, sqrt) and other math function call respectively, with floating point operands.
+- Number of integer operations. Similar to the above one, but for operations with integer operands.
+- Vectorization related features. The length of the innermost vectorized loop. The type of vectorization position (InnerSpatial, MiddleSpatial, OuterSpatial, InnerReduce, MiddleReduce, OuterReduce, Mixed, None). The product of the lengths of all vectorized loops. The number of vectorized loops.
+- Unrolling related features. Similar to the vectorization related features, but for unrolling.
+- Parallelization related features. Similar to the vectorization related features, but for parallelization.
+- GPU thread binding related features. The lengths of blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, threadIdx.z and virtual threads [OSDI18].
+- Arithmetic intensity curve. Arithmetic intensity is defined as $\frac{\mathrm{The\,number\,of\,floating\,point\,operations}}{\mathrm{The\,number\,of\,bytes\,accessed}}$. We compute the arithmetic intensity for each loop level and draw a curve with linear interpolation. Then we sample 10 points from this curve.
+- Buffer Access Feature. For each buffer this statement accesses, we extract features for it. While different statements can access different numbers of buffers, we perform feature extraction for at most five buffers. We pad zeros if a statement accesses less than five buffers and remove small buffers if a statement accesses more than five buffers.
+    - Access type. The type of access (read, write, read + write).
+    - Bytes. The total number of bytes accessed by this statement.
+    - Unique bytes. The total number of unique bytes accessed by this statement.
+    - Lines. The total number of cache lines accessed by this statement.
+    - Unique lines. The total number of unique cache lines accessed by this statement.
+    - Reuse type. The type of data reuse (LoopMultipleRead, SerialMultipleRead, NoReuse).
+    - Reuse distance. The distance between data reuse in terms of number of for loop iterations and total accessed bytes.
+    - Reuse counter. The number of happening of data reuse.
+    - Stride. The stride of access.
+    - Accessed bytes divided by reuse. We compute the following values: $\frac{\mathrm{Bytes}}{\mathrm{Reuse\,counter}}$, $\frac{\mathrm{Unique\,bytes}}{\mathrm{Reuse\,counter}}$, $\frac{\mathrm{Lines}}{\mathrm{Reuse\,counter}}$, $\frac{\mathrm{Unique\,lines}}{\mathrm{Reuse\,counter}}$.
+- Allocation related features. The size of the allocated buffer for the output buffer of this statement. The number of allocations.
+- Other features. The number of outer loops. The product of the lengths of outer loops. The value of the “auto\_unroll\_max\_step”’ specified by the pragma in outer loops.
 
 ## Appendix C Shape Configurations in the Evaluation
 
--   •
-
-    C1D (1D Convolution). Format = (length, input channel, output channel, kernel size, stride, padding)
-
-    -   –
-
-        (256, 64, 128, 3, 2, 1)
-
-    -   –
-
-        (128, 128, 256, 1, 2, 0)
-
-    -   –
-
-        (64, 256, 256, 5, 1, 2)
-
-    -   –
-
-        (32, 512, 512, 3, 1, 1)
-
--   •
-
-    C2D (2D Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding)
-
-    -   –
-
-        (224, 224, 3, 64, 7, 2, 3)
-
-    -   –
-
-        (56, 56, 64, 64, 1, 1, 0)
-
-    -   –
-
-        (14, 14, 256, 256, 3, 1, 1)
-
-    -   –
-
-        (7, 7, 512, 512, 3, 1, 1)
-
--   •
-
-    C3D (3D Convolution). Format = (depth, height, width, input channel, output channel, kernel size, stride, padding)
-
-    -   –
-
-        (16, 224, 224, 3, 64, 7, 2, 3)
-
-    -   –
-
-        (16, 56, 56, 64, 64, 1, 1, 0)
-
-    -   –
-
-        (16, 14, 14, 256, 256, 3, 1, 1)
-
-    -   –
-
-        (16, 7, 7, 512, 512, 3, 1, 1)
-
--   •
-
-    GMM (Matrix Multiply). Format = (N, M, K)
-
-    -   –
-
-        (128, 128, 128)
-
-    -   –
-
-        (512, 32, 512)
-
-    -   –
-
-        (512, 512, 512)
-
-    -   –
-
-        (1024, 1024, 1024)
-
--   •
-
-    GRD (Group Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding, groups)
-
-    -   –
-
-        (224, 224, 3, 64, 7, 2, 3, 4)
-
-    -   –
-
-        (56, 56, 64, 64, 1, 1, 0, 4)
-
-    -   –
-
-        (14, 14, 256, 256, 3, 1, 1, 4)
-
-    -   –
-
-        (7, 7, 512, 512, 3, 1, 1, 4)
-
--   •
-
-    DIL (Dilated Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding, dilation)
-
-    -   –
-
-        (224, 224, 3, 64, 7, 2, 3, 2)
-
-    -   –
-
-        (56, 56, 64, 64, 1, 1, 0, 2)
-
-    -   –
-
-        (14, 14, 256, 256, 3, 1, 1, 2)
-
-    -   –
-
-        (7, 7, 512, 512, 3, 1, 1, 2)
-
--   •
-
-    DEP (Depthwise Convolution). Format = (height, width, channel, kernel size, stride, padding)
-
-    -   –
-
-        (112, 112, 32, 3, 1, 1)
-
-    -   –
-
-        (112, 112, 64, 3, 2, 1)
-
-    -   –
-
-        (14, 14, 512, 3, 2, 1)
-
-    -   –
-
-        (7, 7, 1024, 3, 1, 1)
-
--   •
-
-    T2D (Transposed 2D Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding)
-
-    -   –
-
-        (4, 4, 512, 256, 4, 2, 1)
-
-    -   –
-
-        (8, 8, 256, 128, 4, 2, 1)
-
-    -   –
-
-        (16, 16, 128, 64, 4, 2, 1)
-
-    -   –
-
-        (32, 32, 64, 3, 4, 2, 1)
-
--   •
-
-    CAP (Capsule 2D Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding, capsule size)
-
-    -   –
-
-        (16, 16, 32, 32, 3, 2, 1, 4)
-
-    -   –
-
-        (8, 8, 32, 32, 3, 1, 1, 4)
-
-    -   –
-
-        (16, 16, 8, 16, 3, 2, 1, 4)
-
-    -   –
-
-        (8, 8, 16, 16, 3, 1, 1, 4)
-
--   •
-
-    NRM (Matrix 2-Norm). Format = (N, M)
-
-    -   –
-
-        (256, 256)
-
-    -   –
-
-        (512, 512)
-
-    -   –
-
-        (1024, 1024)
-
-    -   –
-
-        (4096, 4096)
-
--   •
-
-    ConvLayer (Convolution Layer). Format = (height, width, input channel, output channel, kernel size, stride, padding)
-
-    -   –
-
-        (224, 224, 3, 64, 7, 2, 3)
-
-    -   –
-
-        (56, 56, 64, 64, 3, 2, 1)
-
-    -   –
-
-        (28, 28, 128, 256, 1, 2, 0)
-
-    -   –
-
-        (7, 7, 512, 512, 3, 1, 1)
-
--   •
-
-    TBS (Transposed + BatchMatmul + Softmax in the multi-head attention). Format = (sequence length, number of heads, hidden dimension))
-
-    -   –
-
-        (128, 12, 64)
-
-    -   –
-
-        (128, 16, 64)
-
-    -   –
-
-        (64, 12, 128)
-
-    -   –
-
-        (128, 12, 128)
+- C1D (1D Convolution). Format = (length, input channel, output channel, kernel size, stride, padding)
+    - (256, 64, 128, 3, 2, 1)
+    - (128, 128, 256, 1, 2, 0)
+    - (64, 256, 256, 5, 1, 2)
+    - (32, 512, 512, 3, 1, 1)
+- C2D (2D Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding)
+    - (224, 224, 3, 64, 7, 2, 3)
+    - (56, 56, 64, 64, 1, 1, 0)
+    - (14, 14, 256, 256, 3, 1, 1)
+    - (7, 7, 512, 512, 3, 1, 1)
+- C3D (3D Convolution). Format = (depth, height, width, input channel, output channel, kernel size, stride, padding)
+    - (16, 224, 224, 3, 64, 7, 2, 3)
+    - (16, 56, 56, 64, 64, 1, 1, 0)
+    - (16, 14, 14, 256, 256, 3, 1, 1)
+    - (16, 7, 7, 512, 512, 3, 1, 1)
+- GMM (Matrix Multiply). Format = (N, M, K)
+    - (128, 128, 128)
+    - (512, 32, 512)
+    - (512, 512, 512)
+    - (1024, 1024, 1024)
+- GRD (Group Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding, groups)
+    - (224, 224, 3, 64, 7, 2, 3, 4)
+    - (56, 56, 64, 64, 1, 1, 0, 4)
+    - (14, 14, 256, 256, 3, 1, 1, 4)
+    - (7, 7, 512, 512, 3, 1, 1, 4)
+- DIL (Dilated Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding, dilation)
+    - (224, 224, 3, 64, 7, 2, 3, 2)
+    - (56, 56, 64, 64, 1, 1, 0, 2)
+    - (14, 14, 256, 256, 3, 1, 1, 2)
+    - (7, 7, 512, 512, 3, 1, 1, 2)
+- DEP (Depthwise Convolution). Format = (height, width, channel, kernel size, stride, padding)
+    - (112, 112, 32, 3, 1, 1)
+    - (112, 112, 64, 3, 2, 1)
+    - (14, 14, 512, 3, 2, 1)
+    - (7, 7, 1024, 3, 1, 1)
+- T2D (Transposed 2D Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding)
+    - (4, 4, 512, 256, 4, 2, 1)
+    - (8, 8, 256, 128, 4, 2, 1)
+    - (16, 16, 128, 64, 4, 2, 1)
+    - (32, 32, 64, 3, 4, 2, 1)
+- CAP (Capsule 2D Convolution). Format = (height, width, input channel, output channel, kernel size, stride, padding, capsule size)
+    - (16, 16, 32, 32, 3, 2, 1, 4)
+    - (8, 8, 32, 32, 3, 1, 1, 4)
+    - (16, 16, 8, 16, 3, 2, 1, 4)
+    - (8, 8, 16, 16, 3, 1, 1, 4)
+- NRM (Matrix 2-Norm). Format = (N, M)
+    - (256, 256)
+    - (512, 512)
+    - (1024, 1024)
+    - (4096, 4096)
+- ConvLayer (Convolution Layer). Format = (height, width, input channel, output channel, kernel size, stride, padding)
+    - (224, 224, 3, 64, 7, 2, 3)
+    - (56, 56, 64, 64, 3, 2, 1)
+    - (28, 28, 128, 256, 1, 2, 0)
+    - (7, 7, 512, 512, 3, 1, 1)
+- TBS (Transposed + BatchMatmul + Softmax in the multi-head attention). Format = (sequence length, number of heads, hidden dimension))
+    - (128, 12, 64)
+    - (128, 16, 64)
+    - (64, 12, 128)
+    - (128, 12, 128)
 
 [+1]: recall@$k$ of top-$k$ = $\frac{|G\cap P|}{k}$, where $G$ is the set of top-$k$ programs according to the ground truth and $P$ is the set of top-$k$ programs predicted by the model.
 

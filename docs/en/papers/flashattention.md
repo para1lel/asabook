@@ -32,17 +32,9 @@ We also show that FlashAttention can serve as a useful primitive for realizing t
 
 We empirically validate that FlashAttention speeds up model training and improves model quality by modeling longer context. We also benchmark the runtime and memory footprint of FlashAttention and block-sparse FlashAttention compared to prior attention implementations.
 
--   •
-
-    Faster Model Training. FlashAttention trains Transformer models faster in wall-clock time. We train BERT-large (seq. length 512) 15% faster than the training speed record in MLPerf 1.1 [Mattso20], GPT2 (seq. length 1K) 3$\times$ faster than baseline implementations from HuggingFace [Stateo20] and Megatron-LM [Shoeyb19], and long-range arena (seq. length 1K-4K) 2.4$\times$ faster than baselines.
-
--   •
-
-    Higher Quality Models. FlashAttention scales Transformers to longer sequences, which improves their quality and enables new capabilities. We observe a 0.7 improvement in perplexity on GPT-2 and 6.4 points of lift from modeling longer sequences on long-document classification [Dai22]. FlashAttention enables the first Transformer that can achieve better-than-chance performance on the Path-X [Repree20] challenge, solely from using a longer sequence length (16K). Block-sparse FlashAttention enables a Transformer to scale to even longer sequences (64K), resulting in the first model that can achieve better-than-chance performance on Path-256.
-
--   •
-
-    Benchmarking Attention. FlashAttention is up to 3$\times$ faster than the standard attention implementation across common sequence lengths from 128 to 2K and scales up to 64K. Up to sequence length of 512, FlashAttention is both faster and more memory-efficient than any existing attention method, whereas for sequence length beyond 1K, some approximate attention methods (e.g., Linformer) start to become faster. On the other hand, block-sparse FlashAttention is faster than all existing approximate attention methods that we know of.
+- Faster Model Training. FlashAttention trains Transformer models faster in wall-clock time. We train BERT-large (seq. length 512) 15% faster than the training speed record in MLPerf 1.1 [Mattso20], GPT2 (seq. length 1K) 3$\times$ faster than baseline implementations from HuggingFace [Stateo20] and Megatron-LM [Shoeyb19], and long-range arena (seq. length 1K-4K) 2.4$\times$ faster than baselines.
+- Higher Quality Models. FlashAttention scales Transformers to longer sequences, which improves their quality and enables new capabilities. We observe a 0.7 improvement in perplexity on GPT-2 and 6.4 points of lift from modeling longer sequences on long-document classification [Dai22]. FlashAttention enables the first Transformer that can achieve better-than-chance performance on the Path-X [Repree20] challenge, solely from using a longer sequence length (16K). Block-sparse FlashAttention enables a Transformer to scale to even longer sequences (64K), resulting in the first model that can achieve better-than-chance performance on Path-256.
+- Benchmarking Attention. FlashAttention is up to 3$\times$ faster than the standard attention implementation across common sequence lengths from 128 to 2K and scales up to 64K. Up to sequence length of 512, FlashAttention is both faster and more memory-efficient than any existing attention method, whereas for sequence length beyond 1K, some approximate attention methods (e.g., Linformer) start to become faster. On the other hand, block-sparse FlashAttention is faster than all existing approximate attention methods that we know of.
 
 ## 2 Background
 
@@ -58,13 +50,8 @@ Execution Model. GPUs have a massive number of threads to execute an operation (
 
 Performance characteristics. Depending on the balance of computation and memory accesses, operations can be classified as either compute-bound or memory-bound. This is commonly measured by the *arithmetic intensity* [Willia09], which is the number of arithmetic operations per byte of memory access.
 
-1.  1.
-
-    Compute-bound: the time taken by the operation is determined by how many arithmetic operations there are, while time accessing HBM is much smaller. Typical examples are matrix multiply with large inner dimension, and convolution with large number of channels.
-
-2.  2.
-
-    Memory-bound: the time taken by the operation is determined by the number of memory accesses, while time spent in computation is much smaller. Examples include most other operations: elementwise (e.g., activation, dropout), and reduction (e.g., sum, softmax, batch norm, layer norm).
+1. Compute-bound: the time taken by the operation is determined by how many arithmetic operations there are, while time accessing HBM is much smaller. Typical examples are matrix multiply with large inner dimension, and convolution with large number of channels.
+2. Memory-bound: the time taken by the operation is determined by the number of memory accesses, while time spent in computation is much smaller. Examples include most other operations: elementwise (e.g., activation, dropout), and reduction (e.g., sum, softmax, batch norm, layer norm).
 
 Kernel fusion. The most common approach to accelerate memory-bound operations is kernel fusion: if there are multiple operations applied to the same input, the input can be loaded once from HBM, instead of multiple times for each operation. Compilers can automatically fuse many elementwise operations [Refa20, Advane19, Compil20]. However, in the context of model training, the intermediate values still need to be written to HBM to save for the backward pass, reducing the effectiveness of naive kernel fusion.
 
@@ -210,17 +197,9 @@ In [Fig. 2](#figure-02) (right), we validate that as the sparsity increases, the
 
 We evaluate the impact of using FlashAttention to train Transformer models. We validate two claims about training time and model accuracy, and report attention runtime and memory benchmarks.
 
--   •
-
-    Training Speed. FlashAttention outperforms the MLPerf 1.1 [Mattso20] speed record for BERT by 15%, and speeds up GPT-2 up to 3$\times$ over HuggingFace [Stateo20] and $1.8\times$ over Megatron [Shoeyb19] over standard Transformers. FlashAttention speeds up the long-range arena (LRA) benchmark 2.4$\times$.
-
--   •
-
-    Quality. FlashAttention scales Transformers to longer sequences, yielding higher quality. FlashAttention trains GPT-2 with context length 4K faster than Megatron trains GPT-2 with context length 1K, while achieving 0.7 better perplexity. Modeling longer sequences yields 6.4 points of lift on two long-document classification tasks. Finally, FlashAttention yields the first Transformer that can achieve better-than-random performance on the challenging Path-X task (sequence length 16K), and block-sparse FlashAttention yields the first sequence model that we know of that can achieve better-than-random performance on Path-256 (sequence length 64K).
-
--   •
-
-    Benchmarking Attention. We measure the runtime and memory performance of FlashAttention and block-sparse FlashAttention based on sequence length. We confirm that the memory footprint of FlashAttention scales linearly with seq. length and is up to 3$\times$ faster than standard attention for common seq. lengths (up to 2K). We confirm that runtime of block-sparse FlashAttention scales linearly in seq. length and is faster than all existing approximate attention baselines.
+- Training Speed. FlashAttention outperforms the MLPerf 1.1 [Mattso20] speed record for BERT by 15%, and speeds up GPT-2 up to 3$\times$ over HuggingFace [Stateo20] and $1.8\times$ over Megatron [Shoeyb19] over standard Transformers. FlashAttention speeds up the long-range arena (LRA) benchmark 2.4$\times$.
+- Quality. FlashAttention scales Transformers to longer sequences, yielding higher quality. FlashAttention trains GPT-2 with context length 4K faster than Megatron trains GPT-2 with context length 1K, while achieving 0.7 better perplexity. Modeling longer sequences yields 6.4 points of lift on two long-document classification tasks. Finally, FlashAttention yields the first Transformer that can achieve better-than-random performance on the challenging Path-X task (sequence length 16K), and block-sparse FlashAttention yields the first sequence model that we know of that can achieve better-than-random performance on Path-256 (sequence length 64K).
+- Benchmarking Attention. We measure the runtime and memory performance of FlashAttention and block-sparse FlashAttention based on sequence length. We confirm that the memory footprint of FlashAttention scales linearly with seq. length and is up to 3$\times$ faster than standard attention for common seq. lengths (up to 2K). We confirm that runtime of block-sparse FlashAttention scales linearly in seq. length and is faster than all existing approximate attention baselines.
 
 Additional experiment details are in [Appendix E](#A5 "Appendix E Full Experimental Results ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness").
 
@@ -366,13 +345,8 @@ $$
 
 We see that once $L_{i}$ is computed, we can compute $o_{i}$ without extra memory by repeatedly summing $\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}$. Therefore the forward pass can be computed with $O(n)$ extra memory:
 
-1.  1.
-
-    Compute $L_{i}$ for all $i$ according to [Eq. 1](#A2.E1 "In B.1 Memory-efficient forward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(n)$ extra memory.
-
-2.  2.
-
-    Compute $o_{i}$ for all $i$ according to [Eq. 2](#A2.E2 "In B.1 Memory-efficient forward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+1. Compute $L_{i}$ for all $i$ according to [Eq. 1](#A2.E1 "In B.1 Memory-efficient forward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(n)$ extra memory.
+2. Compute $o_{i}$ for all $i$ according to [Eq. 2](#A2.E2 "In B.1 Memory-efficient forward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
 
 ### B.2 Memory-efficient backward pass
 
@@ -434,21 +408,10 @@ $$
 
 Therefore the backward pass can also be computed with $O(n)$ extra memory:
 
-1.  1.
-
-    Compute $\mathrm{dv}_{j}$ for all $j$ according to [Eq. 3](#A2.E3 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
-
-2.  2.
-
-    Compute $D_{i}$ for all $i$ according to [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(n)$ extra memory.
-
-3.  3.
-
-    Compute $\mathrm{dq}_{i}$ for all $i$ according to [Eq. 5](#A2.E5 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
-
-4.  4.
-
-    Compute $\mathrm{dk}_{j}$ for all $j$ according to [Eq. 6](#A2.E6 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+1. Compute $\mathrm{dv}_{j}$ for all $j$ according to [Eq. 3](#A2.E3 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+2. Compute $D_{i}$ for all $i$ according to [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(n)$ extra memory.
+3. Compute $\mathrm{dq}_{i}$ for all $i$ according to [Eq. 5](#A2.E5 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+4. Compute $\mathrm{dk}_{j}$ for all $j$ according to [Eq. 6](#A2.E6 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
 
 ### B.3 FlashAttention: Forward Pass
 
@@ -509,13 +472,8 @@ We first describe the standard attention backward pass in [Algorithm 3](#alg3 "I
 
 We now make two observations about FlashAttention backward pass:
 
-1.  1.
-
-    We do not need to store the dropout mask of size $O(N^{2})$ from the forward pass. Instead, we can save the pseudo-random number generator states from the forward pass and re-generate the dropout mask in the backward pass. This allows us to only use $O(N)$ extra memory.
-
-2.  2.
-
-    When computing the softmax gradient, we use [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") to compute $D_{i}=P_{i:}^{\top}\mathrm{dP}_{i:}$ without reducing over $P_{i:}$ and $\mathrm{dP}_{i:}$ of size $N$ (they might not fit into SRAM). Instead we can rewrite $D_{i}=\mathrm{do}_{i}^{\top}o_{i}$ and compute the dot product between vectors of size $d$.
+1. We do not need to store the dropout mask of size $O(N^{2})$ from the forward pass. Instead, we can save the pseudo-random number generator states from the forward pass and re-generate the dropout mask in the backward pass. This allows us to only use $O(N)$ extra memory.
+2. When computing the softmax gradient, we use [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") to compute $D_{i}=P_{i:}^{\top}\mathrm{dP}_{i:}$ without reducing over $P_{i:}$ and $\mathrm{dP}_{i:}$ of size $N$ (they might not fit into SRAM). Instead we can rewrite $D_{i}=\mathrm{do}_{i}^{\top}o_{i}$ and compute the dot product between vectors of size $d$.
 
 The full FlashAttention backward pass algorithm is in [Algorithm 4](#alg4 "In B.4 FlashAttention: Backward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"). Conceptually it is just a block version of the derivation in [Section B.2](#A2.SS2 "B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness").
 

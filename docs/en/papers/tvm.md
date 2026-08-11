@@ -258,21 +258,10 @@ A distributed device pool scales up the running of on-hardware trials and enable
 
 TVM’s core is implemented in C++ ($\sim$50k LoC). We provide language bindings to Python and Java. Earlier sections of this paper evaluated the impact of several individual optimizations and components of TVM, namely, operator fusion in [Figure 4](#figure-04), latency hiding in [Figure 10](#figure-10), and the ML-based cost model in [Figure 12](#figure-12). We now focus on an end-to-end evaluation that aims to answer the following questions:
 
--   •
-
-    Can TVM optimize DL workloads over multiple platforms?
-
--   •
-
-    How does TVM compare to existing DL frameworks (which rely on heavily optimized libraries) on each back-end?
-
--   •
-
-    Can TVM support new, emerging DL workloads (e.g., depthwise convolution, low precision operations)?
-
--   •
-
-    Can TVM support and optimize for new specialized accelerators?
+- Can TVM optimize DL workloads over multiple platforms?
+- How does TVM compare to existing DL frameworks (which rely on heavily optimized libraries) on each back-end?
+- Can TVM support new, emerging DL workloads (e.g., depthwise convolution, low precision operations)?
+- Can TVM support and optimize for new specialized accelerators?
 
 To answer these questions, we evaluated TVM on four types of platforms: (1) a server-class GPU, (2) an embedded GPU, (3) an embedded CPU, and (4) a DL accelerator implemented on a low-power FPGA SoC. The benchmarks are based on real world DL inference workloads, including ResNet [Xivi16], MobileNet [CoRRa17], the LSTM Language Model [Xivc14], the Deep Q Network (DQN) [Natura15] and Deep Convolutional Generative Adversarial Networks (DCGAN) [Xivf15]. We compare our approach to existing DL frameworks, including MxNet [Learna15] and TensorFlow [Larges15], that rely on highly engineered, vendor-specific libraries. TVM performs end-to-end automatic optimization and code generation *without the need for an external operator library*.
 
