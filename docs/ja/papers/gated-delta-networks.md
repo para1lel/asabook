@@ -4,433 +4,409 @@ createTime: 2026/08/05 00:34:32
 permalink: /ja/papers/gated-delta-networks/
 ---
 
-> [Songlin Yang](https://sustcsonglin.github.io/), [Jan Kautz](https://www.jankautz.com/), and [Ali Hatamizadeh](https://ahatamiz.github.io/). arXiv 初回投稿日: December 9, 2024; 現行版は v3. [Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464). [原 PDF](/paper/gated-delta-networks.pdf). [TeX ソース](https://export.arxiv.org/e-print/2412.06464). 正確な印刷レイアウトと参考文献については原 PDF を正本とする.
+> [Songlin Yang](https://sustcsonglin.github.io/) [+author-note]、[Jan Kautz](https://www.jankautz.com/)、[Ali Hatamizadeh](https://ahatamiz.github.io/)。arXiv 初回投稿: 2024 年 12 月 9 日、現行版: v3。[ICLR 2025](https://openreview.net/forum?id=r8H7xhYPwz) 採択。[Gated Delta Networks: Improving Mamba2 with Delta Rule](https://arxiv.org/abs/2412.06464)。[原論文 PDF](/paper/gated-delta-networks.pdf)。[DOI](https://doi.org/10.48550/arXiv.2412.06464)。[TeX ソース](https://export.arxiv.org/e-print/2412.06464v3)。正確な印刷レイアウトと参考文献については、原論文 PDF を正本とする。
 
 ## 要約
 
-リニア・トランスフォーマーは、標準的なトランスフォーマーの効率的な代替手段として注目を集めていますが、検索や長文コンテキストのタスクにおける性能には限界がありました。これらの制約に対処するため、最近の研究では、適応的メモリ制御のためのゲーティングと、正確なメモリ更新のためのデルタ更新規則という二つの異なるメカニズムが探求されてきました。我々は、これらのメカニズムが補完的であることを観察しました―ゲーティングは迅速なメモリ消去を可能にし、デルタルールはターゲットを絞った更新を促進します。この洞察に基づき、我々はゲーテッド・デルタルールを導入し、最新のハードウェアに最適化された並列トレーニングアルゴリズムを開発しました。我々の提案するアーキテクチャ、Gated DeltaNetは、言語モデル、常識推論、コンテキスト内検索、長さ外推、長文コンテキスト理解を含む複数のベンチマークにおいて、Mamba2やDeltaNetなどの既存モデルを一貫して上回ります。さらに、Gated DeltaNet レイヤーをスライディングウィンドウアテンションやMamba2レイヤーと組み合わせたハイブリッドアーキテクチャを開発することで、トレーニング効率の向上とタスク性能の向上の両方を達成しました。
-コード： [https://github.com/NVlabs/GatedDeltaNet](https://github.com/NVlabs/GatedDeltaNet]
+線形 Transformer は標準的な Transformer の効率的な代替手段として注目されているが、検索タスクや長文脈タスクでの性能には限界があった。この問題に対し、近年の研究は二つの異なる仕組みを検討している。一つは適応的にメモリを制御するゲーティング、もう一つはメモリを正確に変更する delta 更新則である。本研究では、両者が相補的であることに着目する。ゲーティングはメモリをすばやく消去でき、delta 則は狙った箇所を更新できる。この知見に基づいて gated delta 則を導入し、現代のハードウェア向けに最適化した並列訓練アルゴリズムを開発する。提案アーキテクチャ Gated DeltaNet は、言語モデリング、常識推論、文脈内検索、長さ外挿、長文脈理解を含む複数のベンチマークで、Mamba2 や DeltaNet などの既存モデルを一貫して上回る。さらに、Gated DeltaNet 層をスライディングウィンドウ注意または Mamba2 層と組み合わせたハイブリッドアーキテクチャにより、訓練効率とタスク性能の両方を改善する。
+コード: [https://github.com/NVlabs/GatedDeltaNet](https://github.com/NVlabs/GatedDeltaNet)
 
 ## 1 はじめに
 
-トランスフォーマーアーキテクチャは、大規模言語モデル（LLM）の能力を飛躍的に向上させ、効果的なアテンション機構により、幅広いタスクで優れた性能を示しています。この機構は、正確なシーケンスモデリングに優れ、トレーニング中に最新のGPUの並列処理能力を活用します。しかし、自己注意機構はシーケンスの長さに応じて二次的にスケーリングするため、トレーニングおよび推論の両方で大きな計算負荷が発生します。
+Transformer アーキテクチャは、効果的な注意機構によって大規模言語モデル (LLM) の能力を大きく押し上げ、幅広いタスクで優れた性能を示してきた。この機構は系列を正確にモデル化でき、訓練時には現代の GPU の並列処理能力も活用できる。一方、自己注意の計算量は系列長に対して二次的に増えるため、訓練と推論の双方で大きな計算負荷が生じる。
 
-これらの問題を緩和するために、研究者たちは線形トランスフォーマー [ICMLa20] のような代替手段を検討してきました。これは従来のソフトマックスベースのアテンションを、カーネル化されたドットプロダクトベースの線形アテンションに置き換えることで、行列値状態を持つ線形RNNとして再構成し、推論時のメモリ要件を大幅に削減します。初期の線形トランスフォーマーは、標準のトランスフォーマーと比較して言語モデル化タスクで性能が劣っていましたが、LSTMに類似したデータ依存型ゲート機構を組み込むなどの最近の改善（GLA [PMLRa24] や Mamba2 [Daoa24] のようなモデルで実証されています）により、有望な改善が認められています。しかし、長いシーケンスでの情報管理、特に従来のトランスフォーマーが優位を持つコンテキスト内検索タスクでは、課題が依然として残っています [Arora23, Arora24, Jelass24, Wen24, Aky24]。
+この問題を緩和するため、線形 Transformer [ICMLa20] などの代替手法が研究されている。線形 Transformer は従来の softmax 注意をカーネル化した内積ベースの線形注意に置き換え、行列値状態を持つ線形 RNN として捉え直すことで、推論時のメモリ使用量を大幅に減らす。初期の線形 Transformer は言語モデリングで標準 Transformer に及ばなかったが、GLA [PMLRa24] や Mamba2 [Daoa24] に見られる LSTM 型のデータ依存ゲートを導入した近年の改良は、有望な成果を示している。ただし、長い系列の情報管理、とりわけ従来の Transformer が優位な文脈内検索では、依然として課題が残る [Arora23, Arora24, Jelass24, Wen24, Aky24]。
 
-この現象は驚くべきことではありません。線形トランスフォーマーは、外積ベースのキー・バリュー関連付けメモリを実装していると解釈でき、テンソル積表現 [Smolen90] を思い起こさせます。しかし、保存できる直交キー・バリュー対の数はモデルの次元によって*制限*されています。シーケンスの長さがこの次元を超えると、「メモリ衝突」が避けられず、正確な取得が妨げられます [ICMLa21]。
+これは不思議ではない。線形 Transformer は、テンソル積表現 [Smolen90] を思わせる、外積ベースのキー・バリュー連想メモリを実装していると解釈できる。しかし、保存可能な直交キー・バリュー対の数はモデルの次元によって*制限*される。系列長がこの次元を超えると「メモリ衝突」が避けられず、正確な検索が難しくなる [ICMLa21]。
 
-Mamba2は、この制限に対処するため、シンプルなゲート付き更新ルール${\mathbf{S}}_{t}=\alpha_{t}{\mathbf{S}}_{t-1}+{\bm{v}}_{t}{\bm{k}}_{t}^{\top}$を導入し、各タイムステップで動的な比率によってすべてのキー・バリュー関連を均等に減衰させます$\alpha_{t}$。しかし、このアプローチは異なるキー・バリュー関連の重要度の違いを考慮しておらず、メモリの利用効率が低下する可能性があります。モデルが特定のキー・バリュー関連を忘れる必要がある場合、すべてのキー・バリュー関連が同様に忘れられるため、このプロセスはあまりターゲットを絞った効率的なものではありません。
+Mamba2 は単純なゲート付き更新則 ${\mathbf{S}}_{t}=\alpha_{t}{\mathbf{S}}_{t-1}+{\bm{v}}_{t}{\bm{k}}_{t}^{\top}$ を導入し、各時刻ですべてのキー・バリュー対応を動的な比率 $\alpha_t\in(0,1)$ によって一様に減衰させる。しかし、この方法はキー・バリュー対応ごとの重要度の違いを考慮しないため、メモリを効率よく使えない場合がある。特定の対応だけを忘れたい場合でも、すべての対応が同じように忘却されるため、更新の対象を絞れず非効率である。
 
-対照的に、デルタルール [Widrow60] を持つ線形トランスフォーマーは、DeltaNet [ICMLa21, NeurIP24] として知られ、古いキーとバリューのペアを順次新しいものに（ソフトに）置き換えることでメモリを選択的に更新します。この方法は、インコンテキストリトリーバルの合成ベンチマークで印象的な性能を示しています。しかし、このプロセスは一度に一つのキー・バリューペアしか変更しないため、特に以前のデータを消去する必要があるコンテキスト切り替え時に、古いまたは不関連な情報を迅速にクリアする能力に欠けています。その結果、DeltaNet は現実世界のタスク [NeurIP24] において中程度の性能しか示さないことがわかっており、おそらく堅牢なメモリクリア機構が欠如しているためです。
+これに対し、delta 則 [Widrow60] を用いる線形 Transformer、すなわち DeltaNet [ICMLa21, NeurIP24] は、古いキー・バリュー対を到着した対で順次 (soft に) 置き換え、メモリを選択的に更新する。合成データによる文脈内検索ベンチマークでは高い性能を示す。一方、この処理で一度に変更できるのは一つのキー・バリュー対だけであり、古い情報や無関係な情報をすばやく消去できない。とくに、それまでのデータを消す必要がある文脈切り替え時に問題となる。そのため DeltaNet の実世界タスクでの性能は中程度にとどまっており [NeurIP24]、堅牢なメモリ消去機構の欠如が一因と考えられる。
 
-メモリ管理におけるゲート付き更新則とデルタ則の補完的な利点を認識し、私たちは両方のアプローチを組み合わせたシンプルで直感的なメカニズム「ゲート付きデルタ則」を提案します。この統一則により柔軟なメモリ制御が可能になり、$\alpha_{t}\rightarrow 0$ を設定することでメモリを迅速にクリアでき、$\alpha_{t}\rightarrow 1$ を設定することで他の情報に影響を与えずに特定の内容だけを選択的に更新することが可能（事実上、純粋なデルタ則に切り替え）になります。
+ゲート付き更新則と delta 則はメモリ管理において相補的な利点を持つ。そこで本研究は、両者を組み合わせた単純で直感的な仕組みである*gated delta 則*を提案する。この統一的な更新則では、$\alpha_t\rightarrow 0$ とすればメモリをすばやく消去できる。一方、$\alpha_t\rightarrow 1$ とすれば、ほかの情報に影響を与えず特定の内容だけを選択的に更新できる。後者は純粋な delta 則への切り替えに相当する。
 
-残された課題は、ゲート付きデルタルールをハードウェア効率的に実装することにあります。WY 表現 [Compua85] を用いてデルタルールの計算を並列化する [NeurIP24] の効率的アルゴリズムに基づき、我々は慎重にその手法を拡張してゲーティング項を組み込みました。我々の拡張により、チャンク単位の並列処理 [Huaa22, Suna23, PMLRa24] の利点が保持され、ハードウェア効率的なトレーニングが可能になります。
+残る課題は、gated delta 則をハードウェア効率よく実装することである。[NeurIP24] は WY 表現 [Compua85] を用いて delta 則の計算を並列化した。本研究はこの効率的なアルゴリズムを拡張し、ゲーティング項を組み込む。この拡張はチャンク単位並列処理 [Huaa22, Suna23, PMLRa24] の利点を保ち、ハードウェア効率のよい訓練を可能にする。
 
-この結果得られたアーキテクチャ、Gated DeltaNet は、言語モデル、常識推論、コンテキスト内検索、長さの外挿、長文コンテキスト理解を含む包括的なベンチマークで、Mamba2 や DeltaNet の両方を一貫して上回ります。これらの結果に基づき、Gated DeltaNet レイヤーをスライディングウィンドウ注意や Mamba2 レイヤーと戦略的に組み合わせたハイブリッドアーキテクチャも開発し、トレーニング効率とモデル性能の両方をさらに向上させます。
+得られたアーキテクチャ Gated DeltaNet は、言語モデリング、常識推論、文脈内検索、長さ外挿、長文脈理解を含む包括的なベンチマークで、Mamba2 と DeltaNet の双方を一貫して上回る。さらに、Gated DeltaNet 層をスライディングウィンドウ注意または Mamba2 層と組み合わせたハイブリッドアーキテクチャを構築し、訓練効率とモデル性能をいっそう改善する。
 
-## 2 前提
+## 2 予備知識
 
-### 2.1 チャンク単位並列形式による線形注意
+### 2.1 Mamba2：減衰を伴う線形注意
 
-線形トランスフォーマー [ICMLa20] は、正規化およびクエリ/キーの活性化を除外すると、次の線形帰納として定式化できることが知られています：
-
-$$
-{\mathbf{S}}_{t}={\mathbf{S}}_{t-1}+{\bm{v}}_{t}{\bm{k}}_{t}^{\top}\in\mathbb{R}^{d_{v}\times d_{k}},\qquad\qquad{\bm{o}}_{t}={\mathbf{S}}_{t}{\bm{q}}_{t}\in\mathbb{R}^{d_{v}}
-$$
-
-ここで、$d_{k}$ および $d_{v}$ は、それぞれクエリ/キーと値の（ヘッド）次元を表します。漸化式を展開することで、以下のようにベクトル形式（左）および行列形式（右）の両方で表現できます：
+正規化とクエリ／キーの活性化を除くと、線形 Transformer [ICMLa20] は次の線形漸化式として表せる。
 
 $$
-{\bm{o}}_{t}=\sum_{i=1}^{t}({\bm{v}}_{i}{\bm{k}}_{i}^{\top}){\bm{q}}_{t}=\sum_{i=1}^{t}{\bm{v}}_{i}({\bm{k}}_{i}^{\top}{\bm{q}}_{t})\in\mathbb{R}^{d_{v}},\qquad{\mathbf{O}}=({\mathbf{Q}}{\mathbf{K}}^{\top}\odot{\mathbf{M}}){\mathbf{V}}\in\mathbb{R}^{L\times d_{v}}
+{\mathbf{S}}_t={\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top\in\mathbb{R}^{d_v\times d_k},\qquad\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t\in\mathbb{R}^{d_v}
 $$
 
-ここで $L$ はシーケンス長であり、${\mathbf{M}}\in\mathbb{R}^{L\times L}$ は ${\mathbf{M}}_{\mathrm{ij}}=0$ の場合に定義される因果マスク $i<j$ であり、そうでない場合は $1$ です。
-
-この定式化により、線形アテンションは従来のアテンションメカニズムで使用されるソフトマックス操作を排除し、代わりに行列乗算の線形性と結合性を利用することで、線形の計算複雑度を実現することが明確になります。しかし、再帰型と並列型の両方は効率的な学習には理想的ではありません [PMLRa24]。これが、以下で紹介するハードウェア効率の良い線形時間学習のために、チャンク単位の並列形式 [Huaa22, Suna23, PMLRa24] を使用する動機となります。
-
-#### チャンク単位並列形式
-
-要約すると、チャンク単位の並列形式は入力と出力をサイズ $C$ のいくつかのチャンクに分割し、各チャンクの出力を前のチャンクの最終状態と現在のチャンクのクエリ／キー／バリューブロックに基づいて計算します。[Suna23, PMLRa24, NeurIP24] の表記に従って、例としてクエリブロック ${\bm{q}}$ を取り上げます。チャンク $t$ のクエリブロックを ${\mathbf{Q}}_{[t]}:={\bm{q}}_{\mathrm{tC}+1:(t+1)C+1}$ と表し、チャンク $t$ 内の $r$ 番目のクエリを ${\bm{q}}_{[t]}^{r}:={\bm{q}}_{\mathrm{tC}+r}$ と表します。チャンク $t$ の初期状態は ${\mathbf{S}}_{[t]}:={\mathbf{S}}_{[t]}^{0}={\mathbf{S}}_{[t-1]}^{C}$ と定義されます。再帰を部分的に展開すると、我々は次のようになります
+ここで $d_k$ と $d_v$ は、それぞれクエリ／キーと値の（ヘッド）次元である。漸化式を展開すると、次のベクトル形式（左）と行列形式（右）が得られる。
 
 $$
-{\mathbf{S}}_{[t]}^{r}={\mathbf{S}}_{[t]}+\sum_{i=1}^{r}{\bm{v}}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_{v}\times d_{k}},\qquad{\bm{o}}_{[t]}^{r}={\mathbf{S}}_{[t]}^{r}{\bm{q}}_{[t]}^{r}={\mathbf{S}}_{[t]}{\bm{q}}_{[t]}^{r}+\sum_{i=1}^{r}{\bm{v}}_{[t]}^{i}\left({\bm{k}}_{[t]}^{i\top}{\bm{q}}_{[t]}^{r}\right)\in\mathbb{R}^{d_{v}}
+{\bm{o}}_t=\sum_{i=1}^t({\bm{v}}_i{\bm{k}}_i^\top){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i({\bm{k}}_i^\top{\bm{q}}_t)\in\mathbb{R}^{d_v},\qquad {\mathbf{O}}=({\mathbf{Q}}{\mathbf{K}}^\top\odot{\mathbf{M}}){\mathbf{V}}\in\mathbb{R}^{L\times d_v}
 $$
 
-同等に、行列形式では：
+ここで $L$ は系列長であり、${\mathbf{M}}\in\mathbb{R}^{L\times L}$ は、$i<j$ のとき ${\mathbf{M}}_{ij}=0$、それ以外では $1$ となる因果マスクである。
+
+ただし、この素朴な線形注意は言語モデリングで Transformer に大きく劣る。そのため、過去の情報を忘却する減衰項を加えるのが一般的である。Mamba2 [Daoa24] を例に取ると、具体的なパラメータ化を除いて次の線形漸化式で表せる。
 
 $$
-{\mathbf{S}}_{[t+1]}={\mathbf{S}}_{[t]}+{\mathbf{V}}_{[t]}{\mathbf{K}}_{[t]}^{\top}\in\mathbb{R}^{d_{v}\times d_{k}},\qquad{\mathbf{O}}_{[t]}={\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^{\top}+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^{\top}\odot{\mathbf{M}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_{v}}
+{\mathbf{S}}_t={\color[\mathrm{rgb}]{0,0,1}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
 $$
 
-ここで ${\mathbf{M}}\in\mathbb{R}^{C\times C}$ は因果マスクです。上記の方程式は行列積（matmul）に富んでおり、$C$ を 16 の倍数に設定することで、テンソルコア―半精度の行列積操作に特化した GPU ユニット―を活用してハードウェア効率の高いトレーニングが可能になります。通常、$C$ は小さな定数（例えば、FLA [Zhang24] で実装されている 64）に設定され、全体の計算複雑性がシーケンス長に対して線形に保たれ、非常に長いシーケンスの効率的なモデリングを可能にします。
-
-### 2.2 Mamba2： スカラー値のデータ依存減衰を伴う線形アテンション
-
-Mamba2 [Daoa24] は、特定のパラメータ設定まで、次の線形帰納式で表すことができます：
+ここで ${\color[\mathrm{rgb}]{0,0,1}\alpha_t\in(0,1)}$ は $t$ に応じて変化する、データ依存のスカラー減衰項である。累積減衰積 ${\color[\mathrm{rgb}]{0,0,1}\gamma_j=\prod_{i=1}^j\alpha_i}$ を定義して漸化式を展開すると、ベクトル形式（左）と行列並列形式（右）が得られる。
 
 $$
-{\mathbf{S}}_{t}=\alpha_{t}{\mathbf{S}}_{t-1}+{\bm{v}}_{t}{\bm{k}}_{t}^{\top},\qquad{\bm{o}}_{t}={\mathbf{S}}_{t}{\bm{q}}_{t}
+{\bm{o}}_t=\sum_{i=1}^t\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma}\right){\mathbf{V}}
 $$
 
-ここで $\alpha_{t}\in(0,1)$ はデータ依存のスカラー値減衰項です。以下では、減衰項を青で強調表示して、通常の線形アテンションとの比較を明確にします。累積減衰積 $\gamma_{j}=\prod_{i=1}^{j}\alpha_{i}$ を定義し、再帰を展開することで、結果をベクトル形式（左）および行列並列形式（右）の両方で表すことができます：
+${\color[\mathrm{rgb}]{0,0,1}\Gamma\in\mathbb{R}^{L\times L}}$ は減衰を考慮した因果マスクであり、$i\geq j$ のとき ${\color[\mathrm{rgb}]{0,0,1}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$、それ以外では ${\color[\mathrm{rgb}]{0,0,1}\Gamma_{ij}=0}$ である。この並列形式と再帰形式の等価性は、[Daoa24] では状態空間双対性（SSD）と呼ばれる。同様の再帰構造は Gated RFA [ICLRa21]、xLSTM [Beck24]、Gated RetNet [Sunb24] にも現れる。$\gamma_t$ がデータに依存しない場合は RetNet [Suna23] と Lightning-Attention [Lightn24] に帰着する。$\gamma_t$ をスカラーから行列へ拡張しても、外積構造でパラメータ化すれば効率的な訓練アルゴリズムを構成できる [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25]。
+
+**チャンク単位の訓練。** 再帰形式と並列形式は、どちらも効率的な訓練には適していない [Huaa22, PMLRa24]。そこで、ハードウェア効率のよい線形時間訓練のためにチャンク並列形式 [Huaa22, Suna23] を用いる。入力と出力を長さ $C$ のチャンクに分け、各チャンクの出力を前チャンクの最終状態と現在チャンクのクエリ／キー／値ブロックから計算する。[Suna23, PMLRa24, NeurIP24] の記法に従い、クエリブロック ${\bm{q}}$ を例に取る。${\mathbf{Q}}_{[t]}:={\bm{q}}_{tC+1:(t+1)C+1}$ をチャンク $t$ のクエリブロック、${\bm{q}}_{[t]}^r:={\bm{q}}_{tC+r}$ をその $r$ 番目のクエリとする。初期状態は ${\mathbf{S}}_{[t]}:={\mathbf{S}}_{[t]}^0={\mathbf{S}}_{[t-1]}^C$ である。漸化式を部分的に展開すると、
 
 $$
-{\bm{o}}_{t}=\sum_{i=1}^{t}\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}}{\gamma_{i}}}{\bm{v}}_{i}{\bm{k}}_{i}^{\top}\right){\bm{q}}_{t}=\sum_{i=1}^{t}{\bm{v}}_{i}\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}}{\gamma_{i}}}{\bm{k}}_{i}^{\top}{\bm{q}}_{t}\right),\qquad{\mathbf{O}}=\left(\left({\mathbf{Q}}{\mathbf{K}}^{\top}\right)\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma}\right){\mathbf{V}}
+{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}+\sum_{i=1}^r{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad {\bm{o}}_{[t]}^r={\mathbf{S}}_{[t]}^r{\bm{q}}_{[t]}^r={\mathbf{S}}_{[t]}{\bm{q}}_{[t]}^r+\sum_{i=1}^r{\bm{v}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{q}}_{[t]}^r\right)\in\mathbb{R}^{d_v}
 $$
 
-ここで、$\Gamma\in\mathbb{R}^{L\times L}$ は減衰対応の因果マスクであり、$\Gamma_{\mathrm{ij}}=\frac{\gamma_{i}}{\gamma_{j}}$ は $i\geq j$ の場合に、そうでない場合は $\Gamma_{\mathrm{ij}}=0$ となります。
-
-この並列かつ再帰的な定式化は、[Daoa24] では状態空間デュアリティ（SSD）と呼ばれます。注目すべきことに、この再帰構造は Gated RFA [ICLRa21]、xLSTM [Beck24]、Gated RetNet [Sunb24] でも採用されています。
-
-#### チャンク単位並列形式
-
-記法を少し乱用して、チャンク内での減衰の局所累積積を $\gamma_{[t]}^{j}=\prod_{i=\mathrm{tC}+1}^{\mathrm{tC}+j}\alpha_{i}$ と定義します。さらに、$i\geq j$ の場合は $(\Gamma_{[t]})_{\mathrm{ij}}=\frac{\gamma_{[t]}^{j}}{\gamma_{[t]}^{i}}$、それ以外の場合は 0 と定義します。帰納式を部分的に展開することで、次の方程式を得ます：
+等価な行列形式は次のとおりである。
 
 $$
-{\mathbf{S}}_{[t]}^{r}={\color[\mathrm{rgb}]{0,0,1}\gamma^{r}_{[t]}}{\mathbf{S}}_{[t]}+\sum_{i=1}^{r}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma^{r}_{[t]}}{\gamma^{i}_{[t]}}}{\bm{v}}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top},\qquad{\bm{o}}_{[t]}^{r}={\color[\mathrm{rgb}]{0,0,1}\gamma^{r}_{[t]}}{\mathbf{S}}_{[t]}^{r}{\bm{q}}_{[t]}^{r}={\mathbf{S}}_{[t]}{\bm{q}}_{[t]}^{r}+\sum_{i=1}^{r}{\bm{v}}_{[t]}^{i}\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma^{r}_{[t]}}{\gamma^{i}_{[t]}}}{\bm{k}}_{[t]}^{i\top}{\bm{q}}_{[t]}^{r}\right)
+{\mathbf{S}}_{[t+1]}={\mathbf{S}}_{[t]}+{\mathbf{V}}_{[t]}{\mathbf{K}}_{[t]}^\top\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 $$
 
-これは行列形式で同等に表現できます。
+ここで ${\mathbf{M}}\in\mathbb{R}^{C\times C}$ は因果マスクである。上式は行列乗算を中心に構成されるため、Tensor Core による最適化が可能である。このチャンクアルゴリズムは、減衰を伴う線形注意にも容易に拡張できる。
+
+<span id="equation-01"></span>
 
 $$
-{\mathbf{S}}_{[t+1]}\qquad =\color[\mathrm{rgb}]{0,0,1}{\gamma_{[t]}^{C}}\color[\mathrm{rgb}]{0,0,0}{\mathbf{S}}_{[t]}+{\mathbf{V}}_{[t]}^{\top}{\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\frac{\gamma_{[t]}^{C}}{\gamma_{[t]}}\right)}{\mathbf{K}}_{[t]}\tag{1}
+{\mathbf{S}}_{[t+1]}={\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+\tag{1}
+$$
+
+ここで ${\color[\mathrm{rgb}]{0,0,1}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$ である。[+1] 左矢印 ($\overleftarrow{\cdot}$) と右矢印 ($\overrightarrow{\cdot}$) は、それぞれ変数を各チャンクの先頭位置と末尾位置まで減衰させることを表す。
+
+<span id="equation-02"></span>
+
+$$
+{\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
 $$
 
 $$
-{\mathbf{O}}_{[t]}\qquad ={\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\gamma_{[t]}\right)}{\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^{\top}+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^{\top}\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\tag{2}
-$$
-
-（累積）減衰項は、最小限の計算オーバーヘッドで行列積にスムーズに統合できることがわかります。これにより、チャンクごとの並列形式は効率的であり、高性能なテンソルコアベースの加速との互換性が維持されます。
-
-### 2.3 デルタネットワーク：デルタ則による線形アテンション
-
-デルタ更新規則 [Widrow60, ICMLa21] は *動的に* 現在の入力キー （${\bm{k}}_{t}$） に関連付けられた値 （${\bm{v}}_{t}^{\mathrm{old}}$） を消去し、新しい値 （${\bm{v}}_{t}^{\mathrm{new}}$） を書き込みます。この新しい値は、現在の入力値と古い値の線形結合です。このプロセスは各時間ステップでキーと値の関連付けペアを更新し、スカラー $\beta_{t}\in(0,1)$ が古い関連付けを新しいものに置き換える程度を決定します。以下の通りです。
-
-$$
-{\mathbf{S}}_{t}\qquad ={\mathbf{S}}_{t-1}-\underbrace{\left({\mathbf{S}}_{t-1}{\bm{k}}_{t}\right)}_{ {\bm{v}}_{t}^{\mathrm{old}}}{\bm{k}}_{t}^{\top}+\underbrace{\left(\beta_{t}{\bm{v}}_{t}+(1-\beta_{t}){\mathbf{S}}_{t-1}{\bm{k}}_{t})\right)}_{ {\bm{v}}_{t}^{\mathrm{new}}}{\bm{k}}_{t}^{\top}={\mathbf{S}}_{t-1}\left({\mathbf{I}}-\beta_{t}{\bm{k}}_{t}{\bm{k}}_{t}^{\top}\right)+\beta_{t}{\bm{v}}_{t}{\bm{k}}_{t}^{\top}
-$$
-
-#### チャンク単位並列形式
-
-再帰を部分的に展開することで、次のようになる
-
-$$
-{\mathbf{S}}_{[t]}^{r}={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^{r}{\mathbf{I}}-\beta_{[t]}^{i}{\bm{k}}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\right)}_{:={\mathbf{P}}_{[t]}^{r}}+\underbrace{\sum_{i=1}^{r}\left(\beta^{i}_{[t]}{\bm{v}}^{i}_{[t]}{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^{r}\left({\mathbf{I}}-\beta_{[t]}^{j}{\bm{k}}^{j}_{[t]}{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{H}}_{t}^{r}}\tag{3}
-$$
-
-ここで ${\mathbf{P}}_{[t]}^{j}$ は遷移行列の累積積を含みます。[NeurIP24] はこれらが （一般化された） ハウスホルダー行列の形式をとることを示しており、従来の WY 表現 [Compua85] を通じたメモリ効率の良い計算を可能にします。これに基づき、彼らはプロセスを最適化するための2つのコンパクトな表現を導入します：
-
-$$
-{\mathbf{P}}_{[t]}^{r}\qquad ={\mathbf{I}}-\sum_{i=1}^{r}\mathbf{w}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_{k}\times d_{k}}\qquad{\mathbf{H}}_{[t]}^{r}=\sum_{i=1}^{r}\mathbf{u}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_{v}\times d_{k}}\tag{4}
+{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
 $$
 
 $$
-\mathbf{w}_{[t]}^{r}\qquad =\beta_{[t]}^{r}\left({\bm{k}}_{[t]}^{r}-\sum_{i=1}^{r-1}\left(\mathbf{w}_{[t]}^{i}({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^{r})\right)\right)\quad\mathbf{u}_{[t]}^{r}=\beta_{[t]}^{r}\left({\bm{v}}_{[t]}^{r}-\sum_{i=1}^{r-1}\left(\mathbf{u}_{[t]}^{i}({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^{r})\right)\right)\tag{5}
+{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
+\tag{2}
 $$
 
-ここで $\mathbf{w}_{[t]}^{r}\in\mathbb{R}^{d_{k}}$ および $\mathbf{u}_{[t]}^{r}\in\mathbb{R}^{d_{v}}$。これらを式 [3](#S2.E3) におよび行列形式に代入すると、次のようになります：
+ほかの変数（例えば ${\color[\mathrm{rgb}]{0,0,1}\overrightarrow{\bm{v}}}$）も同様である。Mamba2 の SSD 分解アルゴリズムは、このチャンクアルゴリズムとほぼ等価である。[PMLRa24] はさらに、細粒度の減衰を組み込む一般化チャンクアルゴリズムを提案した。
+
+### 2.2 Delta Networks：Delta 則を用いた線形注意
+
+delta 更新則 [Widrow60, ICMLa21] は、現在の入力キー ${\bm{k}}_t$ に対応する値 ${\bm{v}}_t^{\mathrm{old}}$ を*動的に*消去し、新しい値 ${\bm{v}}_t^{\mathrm{new}}$ を書き込む。新しい値は現在の入力値と古い値の線形結合であり、「書き込み強度」$\beta_t\in(0,1)$ がその比率を決める。[+2]
 
 $$
-{\mathbf{S}}_{[t+1]}\qquad ={\mathbf{S}}_{[t]}+\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^{\top}\right)^{\top}{\mathbf{K}}_{[t]}\tag{6}
+{\mathbf{S}}_t={\mathbf{S}}_{t-1}-\underbrace{\left({\mathbf{S}}_{t-1}{\bm{k}}_t\right)}_{{\bm{v}}_t^{\mathrm{old}}}{\bm{k}}_t^\top+\underbrace{\left(\beta_t{\bm{v}}_t+(1-\beta_t){\mathbf{S}}_{t-1}{\bm{k}}_t\right)}_{{\bm{v}}_t^{\mathrm{new}}}{\bm{k}}_t^\top={\mathbf{S}}_{t-1}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
 $$
 
+上式のとおり、DeltaNet は一般化 Householder 遷移行列 $({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top)$ を持つ一次線形漸化式である。連想記憶と言語モデリングの性能は高い [ICMLa21] が、計算効率が低かったため、[NeurIP24] が以下のハードウェア効率的なチャンク訓練法を導入するまで広く注目されなかった。
+
+**チャンク並列形式。** 漸化式を部分的に展開すると、
+
+<span id="equation-03"></span>
+
 $$
-{\mathbf{O}}_{[t]}\qquad ={\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^{\top}+({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^{\top}\odot{\mathbf{M}})\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^{\top}\right)\tag{7}
+{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)}_{:={\mathbf{P}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{H}}_{[t]}^r}
+\tag{3}
+$$
+
+${\mathbf{P}}_{[t]}^j$ は一般化 Householder 行列の累積積を含み、古典的な WY 表現 [Compua85] で最適化できる。
+
+<span id="equation-04"></span>
+
+$$
+{\mathbf{P}}_{[t]}^r={\mathbf{I}}-\sum_{i=1}^r{\bm{w}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_k\times d_k},\qquad {\bm{w}}_{[t]}^r=\beta_{[t]}^r\left({\bm{k}}_{[t]}^r-\sum_{i=1}^{r-1}{\bm{w}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_k}
+\tag{4}
+$$
+
+同様に、${\mathbf{H}}_{[t]}^r$ は次のように表せる。
+
+<span id="equation-05"></span>
+
+$$
+{\mathbf{H}}_{[t]}^r=\sum_{i=1}^r{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad {\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}{\bm{u}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
+\tag{5}
+$$
+
+行列形式では、 ${\mathbf{P}}_{[t]}={\mathbf{I}}-{\mathbf{W}}_{[t]}^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_k\times d_k}$, ${\mathbf{H}}_{[t]}={\mathbf{U}}_{[t]}^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_v\times d_k}$。UT 変換 [Joffra06] を用いると、 ${\mathbf{W}}$ と ${\mathbf{U}}$ はさらに次の行列形式になる。
+
+<span id="equation-06"></span>
+
+$$
+{\mathbf{T}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]}){\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right]^{-1}\mathrm{diag}(\beta_{[t]})\in\mathbb{R}^{C\times C}
+\tag{6}
+$$
+
+<span id="equation-07"></span>
+
+$$
+{\mathbf{W}}_{[t]}={\mathbf{T}}_{[t]}{\mathbf{K}}_{[t]}\in\mathbb{R}^{C\times d_k},\qquad {\mathbf{U}}_{[t]}={\mathbf{T}}_{[t]}{\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+\tag{7}
+$$
+
+これらを[式 3](#equation-03)へ代入すると、行列乗算を利用して Tensor Core で最適化できる DeltaNet のチャンクアルゴリズムが得られる。
+
+<span id="equation-08"></span>
+
+$$
+{\mathbf{S}}_{[t+1]}={\mathbf{S}}_{[t]}{\mathbf{P}}_{[t]}+{\mathbf{H}}_{[t]}={\mathbf{S}}_{[t]}+\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^\top\right)^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_v\times d_k}
+\tag{8}
+$$
+
+<span id="equation-09"></span>
+
+$$
+{\mathbf{O}}_{[t]}={\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
+\tag{9}
 $$
 
 ## 3 ゲーテッドデルタネットワーク
 
-### 3.1 定式化：ゲーテッドデルタルール
+### 3.1 定式化：ゲーテッド Delta 則
 
-提案されたゲーテッドデルタルールはシンプルでありながら効果的です：
+提案するゲーテッド delta 則は単純だが効果的である。
 
-$$
-{\mathbf{S}}_{t}={\mathbf{S}}_{t-1}\left(\color[\mathrm{rgb}]{0,0,1}{\alpha_{t}}\color[\mathrm{rgb}]{0,0,0}({\mathbf{I}}-\beta_{t}{\bm{k}}_{t}{\bm{k}}_{t}^{\top})\right)+\beta_{t}{\bm{v}}_{t}{\bm{k}}_{t}^{\top}\tag{8}
-$$
-
-ここでデータ依存ゲーティング項 $\color[\mathrm{rgb}]{0,0,1}{\alpha_{t}}\color[\mathrm{rgb}]{0,0,0}\in(0,1)$ が状態減衰を制御します。この定式化は、ゲーティング機構とデルタ規則の両方の利点を統合しています： ゲーティング項は適応的メモリ管理を可能にし、デルタ更新構造は効果的なキーと値の関連学習を促進します。
-
-我々は、[Liua24] によって導入されたオンライン学習フレームワークの観点からゲーティッドデルタ則の形式的分析を提示します。このフレームワークでは、再帰状態の更新は目的関数 $\bm{L_{t}}(S)$ を持つオンライン学習問題の解として現れます。[表1](#table-01) に示されているように、最近の線形 RNN アーキテクチャは、オンライン学習目的関数に正則化項を組み込むことが一般的であり、これにより状態が以前の値から発散するのを防ぎ、メモリ保持を可能にします。しかし、情報で状態が飽和すると、この保持メカニズムは問題になります。そのような場合、各状態は複数の情報要素の重ね合わせをエンコードする必要があるため、正確な検索が困難になります。この制限に対処するために、Mamba2 と Gated DeltaNet は、正則化項を緩和し、$S_{t}$ と $S_{t-1}$ の間で制御された逸脱を可能にする適応スケーリング因子 $\alpha_{t}$ を導入します。この修正により、選択的忘却を通じた動的メモリ管理が可能になります。
-
-一方で、Linear Attention（LA）および Mamba2 は単純な線形予測損失 $\langle{\mathbf{S}}_{t}{\bm{k}}_{t},{\bm{v}}_{t}\rangle$ を使用するのに対し、Longhorn [Liua24] はキーと値の関連性のより良いモデリングのために、より表現力豊かなオンライン回帰目的 $\|{\mathbf{S}}_{t}{\bm{k}}_{t}-{\bm{v}}_{t}\|^{2}$ を使用する。結果として得られる Longhorn の更新ルールはデルタ更新ルールに非常に似ており [+1]、（ゲート付き）デルタルールが Mamba2 よりも文脈内関連記憶において優れていることを示唆している。
-
-高速重みプログラミング [ICMLc22] およびテスト時トレーニング [Suna24] の観点から、隠れ状態 ${\mathbf{S}}$ は重み行列として解釈することができ、デルタ則は *オンライン* 確率的勾配降下法 （SGD） を介して目的 $L({\mathbf{S}}_{t})=\frac{1}{2}\|{\mathbf{S}}_{t}{\bm{k}}_{t}-{\bm{v}}_{t}\|^{2}$ を最適化します：
+<span id="equation-10"></span>
 
 $$
-{\mathbf{S}}_{t+1}\qquad ={\mathbf{S}}_{t}-\beta_{t}\nabla_{S}L({\mathbf{S}}_{t})={\mathbf{S}}_{t}-\beta_{t}({\mathbf{S}}_{t}{\bm{k}}_{t}-{\bm{v}}_{t}){\bm{k}}_{t}^{\top}={\mathbf{S}}_{t}\left({\mathbf{I}}-\beta_{t}{\bm{k}}_{t}{\bm{k}}_{t}^{\top}\right)+\beta_{t}{\bm{v}}_{t}{\bm{k}}_{t}^{\top}
+{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color[\mathrm{rgb}]{0,0,1}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
+\tag{10}
 $$
 
-ここで $\beta_{t}$ は（適応型）学習率を表します。この観点から、ゲート付きデルタ則は SGD 更新に適応的重み減衰項 $\alpha_{t}$ を組み込むものと見なすことができ、これは深層学習 [Hertz91, Andriu23] で広く使用されている手法です。
+データ依存のゲーティング項 ${\color[\mathrm{rgb}]{0,0,1}\alpha_t}\in(0,1)$ が状態の減衰を制御する。この形式では、ゲーティング項がメモリを適応的に管理し、delta 更新構造がキー・バリュー対応を学習する。
+
+[Liua24] のオンライン学習フレームワークからゲーテッド delta 則を解析する。この枠組みでは、再帰状態の更新はオンライン学習問題の*閉形式*解として得られる（[表 1](#table-01)）。近年の線形 RNN は、状態が以前の値から離れすぎないようオンライン学習目的に正則化項を加え、メモリを保持する。しかし状態が情報で飽和すると、複数の情報が重ねて符号化され、正確な検索が難しくなる。Mamba2 と Gated DeltaNet は適応的な係数 $\alpha_t$ で正則化を緩め、${\mathbf{S}}_t$ と ${\mathbf{S}}_{t-1}$ の差を制御する。選択的な忘却によってメモリを動的に管理し、無関係な情報を除去できる（[§ 3.2](#32-ケーススタディsingle-needle-in-a-haystack-s-niah)）。
+
+一方、Linear Attention（LA）と Mamba2 は単純な負の内積損失 $-\langle{\mathbf{S}}_t{\bm{k}}_t,{\bm{v}}_t\rangle$ を使う。Longhorn [Liua24] は、キー・バリュー対応をよりよくモデル化するため、表現力の高いオンライン回帰目的 $\|{\mathbf{S}}_t{\bm{k}}_t-{\bm{v}}_t\|^2$ を用いる。Longhorn の更新則は delta 更新則によく似ており、[+3]（ゲーテッド）delta 則がインコンテキスト連想記憶で Mamba2 より優れる可能性を示す。
+
+高速重みプログラミング [ICMLc22]、テスト時訓練 [Suna24]、テスト時回帰 [Testti25] の観点では、隠れ状態 ${\mathbf{S}}$ を（高速）重み行列と解釈できる。delta 則は*テスト時*確率的勾配降下法（SGD）でオンライン回帰目的 $\mathcal{L}({\mathbf{S}}_t)=\frac{1}{2}\|{\mathbf{S}}_t{\bm{k}}_t-{\bm{v}}_t\|^2$ を最適化する。
+
+$$
+{\mathbf{S}}_{t+1}={\mathbf{S}}_t-\beta_t\nabla\mathcal{L}({\mathbf{S}}_t)={\mathbf{S}}_t-\beta_t({\mathbf{S}}_t{\bm{k}}_t-{\bm{v}}_t){\bm{k}}_t^\top={\mathbf{S}}_t\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
+$$
+
+ここで $\beta_t$ は（適応的な）学習率である。この見方では、ゲーテッド delta 則は SGD 更新に適応的な重み減衰項 $\alpha_t$ を加えたものと解釈できる。重み減衰は深層学習で広く使われる [Hertz91, Andriu23]。同時期の Titans [Learni24] も、RNN のテスト時 SGD 更新に重み減衰を組み込む有効性を示した。
 
 <span id="table-01"></span>
 
-![論文の表 1](../../papers/gated-delta-networks/table-01.png)
+![原論文の表 1](../../papers/gated-delta-networks/table-01.png)
 
-**表1.** [Liua24]のフレームワークを用いた異なる線形RNNモデルと対応するオンライン学習目標の比較。便宜上、Longhornのベクトル値${\bm{\beta}}$をスカラー値$\beta$に簡略化する。
-
-### 3.2 アルゴリズム： ハードウェア効率の高いチャンク単位訓練
-
-この小節では、ゲート付きデルタ則の効率的なチャンク単位アルゴリズムについて説明する。
-
-#### チャンク単位並列形式
-
-再帰を部分的に展開することで、次のようになる
-
-$$
-{\mathbf{S}}_{[t]}^{r}={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^{r}{\color[\mathrm{rgb}]{0,0,1}\alpha_{[t]}^{i}}\left({\mathbf{I}}-\beta_{[t]}^{i}{\bm{k}}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{P}}_{[t]}^{r}}+\underbrace{\sum_{i=1}^{r}\left(\beta^{i}_{[t]}{\bm{v}}^{i}_{[t]}{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^{r}{\color[\mathrm{rgb}]{0,0,1}\alpha_{[t]}^{j}}\left({\mathbf{I}}-\beta_{[t]}^{j}{\bm{k}}^{j}_{[t]}{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{H}}_{[t]}^{r}}
-$$
-
-式 [4](#S2.E4)-[5](#S2.E5)のWY表現を調整し、以下のように減衰項を組み込む。
-
-$$
-{\mathbf{P}}_{[t]}^{r}\qquad =\color[\mathrm{rgb}]{0,0,1}{\gamma_{[t]}^{r}}\color[\mathrm{rgb}]{0,0,0}\left({\mathbf{I}}-\sum_{i=1}^{r}\mathbf{w}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\right)\qquad {\mathbf{H}}_{[t]}^{r}\qquad =\sum_{i=1}^{r}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}^{r}}{\gamma_{t}^{i}}}\mathbf{u}_{[t]}^{i}{\bm{k}}_{[t]}^{i\top}\tag{9}
-$$
-
-$$
-\mathbf{w}_{[t]}^{r}\qquad =\beta_{[t]}^{r}\left({\bm{k}}_{[t]}^{r}-\sum_{i=1}^{r-1}\left(\mathbf{w}_{[t]}^{i}({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^{r})\right)\right)\qquad \mathbf{u}_{[t]}^{r}\qquad =\beta_{[t]}^{r}\left({\bm{v}}_{[t]}^{r}-\sum_{i=1}^{r-1}\left(\mathbf{u}_{[t]}^{i}({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^{r}}{\gamma_{[t]}^{i}}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^{r})\right)\right)\tag{10}
-$$
-
-正確性の証明は付録に記載されている。行列形式では同等に表せる：
-
-$$
-{\mathbf{S}}_{[t+1]}\qquad ={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^{C}}{\mathbf{S}}_{[t]}+\left({\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\gamma_{[t]}\right)}{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^{\top}\right)^{\top}{\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\frac{\gamma_{[t]}^{C}}{\gamma_{[t]}}\right)}{\mathbf{K}}_{[t]}\tag{11}
-$$
-
-$$
-{\mathbf{O}}_{[t]}\qquad ={\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\gamma_{[t]}\right)}{\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^{\top}+({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^{\top}\odot{\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}})\left({\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\gamma_{[t]}\right)}{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^{\top}\right)\tag{12}
-$$
-
-#### 式[1](#S2.E1)-[2](#S2.E2)との比較
-
-重要な違いは、値ブロック ${\mathbf{V}}_{[t]}$ が「疑似」値項 ${\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\mathrm{Diag}\left(\gamma_{[t]}\right)}{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^{\top}$ に置き換えられている点にあります。この修正は Eq.[6](#S2.E6)-[7](#S2.E7) に似ていますが、特に減衰認識を組み込んでいる点が特徴です。
-
-#### UT変換
-
-ハードウェア効率を最大化するために、我々はUT変換[Joffra06]を式[10]（#S3.E10 「チャンク単位の並列形式にて。‣ 3.2 アルゴリズム： ハードウェア効率の良いチャンク単位トレーニング ‣ 3 ゲーティッドデルタネットワーク ‣ ゲーティッドデルタネットワーク： デルタルールによるMamba2の改善」に適用します。この手法は、操作をマトリックス乗算形式に再構成し、非マトリックス乗算FLOPsを削減します。これは、トレーニング中のハードウェア利用率向上に不可欠です[Daob23, Refc23, PMLRa24]。
-
-$$
-{\mathbf{W}}_{[t]}\qquad ={\mathbf{A}}^{W}_{[t]}\mathrm{Diag}(\beta_{[t]}){\mathbf{K}}_{[t]},\qquad {\mathbf{A}}^{W}_{[t]}=\left({\mathbf{I}}-\mathrm{lower}(\mathrm{Diag}(\beta_{[t]}){\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^{\top})\right)^{-1}
-$$
-
-$$
-{\mathbf{U}}_{[t]}\qquad ={\mathbf{A}}^{U}_{[t]}\mathrm{Diag}\left(\beta_{[t]}\right){\mathbf{V}}_{[t]},\qquad {\mathbf{A}}^{U}_{[t]}=\left({\mathbf{I}}-\mathrm{lower}\left(\mathrm{Diag}(\beta_{[t]})\left({\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^{\top}\right)\right)\right)^{-1}
-$$
-
-ここで $\mathrm{lower}(\cdot):=\mathrm{tril}(\cdot,-1)$； 下三角行列の逆行列は前進代入によって効率的に計算できます。
-
-#### 速度に関する注意
-
-Mamba2と同様に、ゲーティング項（青色で表示）は、行列積構造には影響を与えず、（中間）変数との要素ごとの乗算のみを行うため、テンソルコアGPUの最適化が可能です。[Fig. 3](#figure-03)に示すように、Gated DeltaNetはDeltaNetと同じ速度を維持し、より複雑で表現力豊かな遷移行列を持つにもかかわらず、Mamba2と比べてわずかな性能差しかありません。
-
-### 3.3 ゲーテッドデルタネットワークとハイブリッドモデル
-
-<span id="figure-01"></span>
-
-![図1](../../papers/gated-delta-networks/figure-01.png)
-
-**図1.** Gated DeltaNetモデルの（ハイブリッド）アーキテクチャとブロック設計の可視化。Gated DeltaNet-H1とH2はそれぞれGated DeltaNet SWAおよびMamba2 Gated DeltaNet SWAパターンを使用します。ブロック設計では、クエリ/キー経路は線形投影、ショートコンボリューション、SiLU、L2正規化で構成され、バリュー経路は線形投影、ショートコンボリューション、SiLUを含みます。α/βは線形投影を使用し、出力ゲートは線形投影とSiLUを適用します。
-
-#### トークンミキサーブロック
-
-基本的なGated DeltaNetはLlamaのマクロアーキテクチャに従い、トークンミキサーレイヤーをSwiGLU MLPレイヤーと積み重ねますが、自己注意をゲーテッドデルタルールのトークンミキシングに置き換えています。[図1](#figure-01)（右）はそのブロック設計を示しています。ゲーテッドデルタルール（式[8](#S3.E8)では、クエリ、キー、バリュー$\{ {\bm{q}},{\bm{k}},{\bm{v}}\}$が線形射影、短い畳み込み、SiLUを通して生成され、訓練安定性のために${\bm{q}},{\bm{k}}$にL2正規化が適用されます。$\alpha,\beta$は線形射影のみを使用します。[+2] [Suna23]に従い、出力は出力射影を適用する前に正規化とゲーティングを通して処理されます。
-
-#### ハイブリッドモデル
-
-線形トランスフォーマーは局所的なシフトや比較のモデリングに限界があり、その固定状態サイズは検索タスク[Arora24]を困難にします。グリフィン[De24]やサンバ[Ren24]のような最近のハイブリッドアーキテクチャに従い、線形再帰レイヤーをスライディングウィンドウアテンション（SWA）と組み合わせ、GatedDeltaNet-H1を構築しました。また、Mamba2、GatedDeltaNet、SWAを積み重ねてGatedDeltaNet-H2を構築しました。
-
-## 4 実験
-
-#### セットアップ
-
-我々の実験では、純粋なTransformerモデル、RNNベースのアプローチ、ハイブリッドアーキテクチャを含む最近の最先端アーキテクチャの包括的な比較を行います。以下のベースラインに対して評価を行います： RetNet [Suna23]、HGRN2 [Qin24a]、Mamba [Daoc23]、Mamba2 [Daob24]、Samba [Ren24]、およびDeltaNet [NeurIP24]。公正な比較のため、すべてのモデルはFineWeb-Eduデータセットからサンプリングされた100Bトークン上で、1.3Bパラメータの条件下で訓練されます[Penedo24]。最適化にはAdamWを使用し、ピーク学習率は4e-4、重み減衰は0.1、勾配クリッピングは1.0に設定します。学習率は1Bトークンのウォームアップ期間を持つコサインアニーリングスケジュールに従い、バッチサイズは0.5Mトークンです。すべてのモデルは32,000語彙サイズのLLaMA 2トークナイザーを使用します。シーケンスモデリングでは、トレーニング長を4Kトークンに設定し、Sambaおよび我々のハイブリッドモデルではスライディングウィンドウサイズを2Kとします。評価設定は付録を参照してください。
+**表 1.** [Liua24] の枠組みに基づく線形 RNN と対応するオンライン学習目的の比較。簡単のため、Longhorn のベクトル値 ${\bm{\beta}}$ をスカラー $\beta$ に置き換えた。
 
 <span id="table-02"></span>
 
-![論文の表 2](../../papers/gated-delta-networks/table-02.png)
+![原論文の表 2](../../papers/gated-delta-networks/table-02.png)
 
-**表2.** 言語モデリングとゼロショット常識推論における性能比較。
+**表 2.** 1.3B モデルの S-NIAH ベンチマークにおけるゼロショット性能（設定は[§ 4](#4-実験)）。
 
-#### 常識推論
+### 3.2 ケーススタディ：Single Needle in a Haystack（S-NIAH）
 
-[表2](#table-02)では、400Mおよび1.3Bパラメータを持つモデルの言語モデリングのパープレキシティと常識推論ベンチマークにおけるゼロショット精度を示しています。ゲーテッドDeltaNetは、RetNet、HGRN2、Mamba、Mamba2、DeltaNetを含む他の線形モデルを両方の規模で一貫して上回ります。予想通り、ハイブリッドバリアントはさらに性能を向上させます。
+delta 則とゲーテッド則の相補性を調べるため、RULER [Hsieh24] の Single Needle-In-A-Haystack（S-NIAH）でケーススタディを行う。キー・バリュー対が文脈という干し草の中の針となり、モデルはキーを与えられたときに値を想起しなければならない。[表 2](#table-02) から三つの点が分かる。
+
+**減衰は記憶保持を損なう。** 最も単純な S-NIAH-1 は反復する合成文脈を使い、記憶すべき情報が少ないため長期保持を測る。DeltaNet はすべての系列長でほぼ完全な性能を示す。Mamba2 は履歴を急速に減衰させるため 2K を超えると大きく低下するが、Gated DeltaNet は delta 則により低下が小さい。
+
+**ゲーティングはフィルタリングを助ける。** 実世界の文章を文脈に使う S-NIAH-2/3 では、モデルが関連しうる情報をすべて保存するため、効率的なメモリ管理が問われる。状態サイズが固定されていると、消去できない情報が重なって区別不能になり、メモリ衝突が起きる。DeltaNet は長い系列で大きく低下する。Mamba2 と Gated DeltaNet はゲートで不要な情報を除くため、性能を保ちやすい。
+
+**Delta 則は記憶を助ける。** S-NIAH-3 では値を数字から UUID に変え、複雑なパターンの記憶を測る。Mamba2 は急速に低下するが Gated DeltaNet は良好であり、delta 則の記憶能力が高いことを確認できる。
+
+### 3.3 アルゴリズム: ハードウェア効率のよいチャンク単位訓練
+
+本節では、Gated DeltaNet を訓練するためのハードウェア効率のよいチャンク単位アルゴリズムを導出する。[式 10](#equation-10) の漸化式を部分的に展開すると、
+
+$$
+{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color[\mathrm{rgb}]{0,0,1}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color[\mathrm{rgb}]{0,0,1}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
+$$
+
+を得る。${\mathbf{F}}_{[t]}^r={\color[\mathrm{rgb}]{0,0,1}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$ であることは容易に分かる。${\mathbf{G}}_{[t]}^r$ については、[式 5](#equation-05) を次のように修正する。
+
+$$
+{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
+$$
+
+(証明は[付録 A](#付録-a-gated-delta-則の拡張-wy-表現)を参照)。UT 変換により、行列形式は次のようになる。
+
+$$
+\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color[\mathrm{rgb}]{0,0,1}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+$$
+
+Mamba2 が線形注意を拡張した方法 ([式 1](#equation-01)) と同様に、DeltaNet のチャンク単位アルゴリズム ([式 8](#equation-08)-[9](#equation-09)) を次のように修正すれば、Gated DeltaNet をハードウェア効率よく訓練できる。
+
+$$
+{\mathbf{S}}_{[t+1]}={\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
+$$
+
+$$
+{\mathbf{O}}_{[t]}={\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
+$$
+
+ここで ${\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$、${\color[\mathrm{rgb}]{0,0,1}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$、${\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}}{\bm{k}}_{[t]}^r$、${\color[\mathrm{rgb}]{0,0,1}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$ であり、[式 2](#equation-02) の定義と同じである。
+
+### 3.4 Gated Delta Networks とハイブリッドモデル
+
+**Token mixer ブロック。** 基本の Gated DeltaNet は Llama のマクロアーキテクチャに従い、token mixer 層と SwiGLU MLP 層を積み重ねるが、自己注意を gated delta 則による token mixing に置き換える。[図 1](#figure-01) (右) にブロック構造を示す。gated delta 則 ([式 10](#equation-10)) では、クエリ、キー、値 $\{{\bm{q}},{\bm{k}},{\bm{v}}\}$ を線形射影、短い畳み込み、SiLU によって生成し、訓練を安定させるため ${\bm{q}},{\bm{k}}$ に L2 正規化を適用する。$\alpha,\beta$ には線形射影だけを用いる。[+4] [Suna23] に従い、出力射影の前に出力を正規化してゲート処理する。
+
+<span id="figure-01"></span>
+
+![図 1](../../papers/gated-delta-networks/figure-01.png)
+
+**図 1.** Gated DeltaNet モデルの (ハイブリッド) アーキテクチャとブロック構造。Gated DeltaNet-H1 は Gated DeltaNet + SWA、H2 は Mamba2 + Gated DeltaNet + SWA の配置を用いる。ブロック内では、クエリ／キーパスが線形射影、短い畳み込み、SiLU、L2 正規化、値パスが線形射影、短い畳み込み、SiLU からなる。alpha/beta は線形射影を用い、出力ゲートは SiLU を伴う線形射影を適用する。
+
+**ハイブリッドモデル。** 線形 Transformer は局所的なシフトや比較のモデル化に限界があり、状態サイズが固定されるため検索タスクも難しい [Arora24]。Griffin [De24] や Samba [Ren24] など近年のハイブリッドアーキテクチャに従い、線形再帰層とスライディングウィンドウ注意 (SWA) を組み合わせた GatedDeltaNet-H1 を構築する。また、Mamba2、GatedDeltaNet、SWA を順に積み重ねた GatedDeltaNet-H2 も構築する。
+
+## 4 実験
+
+**設定。** 純粋な Transformer、RNN ベースの手法、ハイブリッドアーキテクチャを含む近年の代表的なモデルを幅広く比較する。ベースラインは RetNet [Suna23]、HGRN2 [Qin24a]、Mamba [Daoc23]、Mamba2 [Daob24]、Samba [Ren24]、DeltaNet [NeurIP24] である。公平な比較のため、すべてのモデルを 1.3B パラメータとし、FineWeb-Edu [Penedo24] から抽出した 100B token を用いて同じ条件で訓練する。AdamW optimizer を使用し、最大学習率を 4e-4、weight decay を 0.1、gradient clipping を 1.0 とする。学習率には 1B token の warm-up を伴う cosine annealing schedule を用い、batch size は 0.5M token とする。すべてのモデルで、語彙数 32,000 の Llama2 tokenizer を使用する。系列モデリングの訓練長は 4K token とし、Samba と提案するハイブリッドモデルの sliding window size は 2K とする。評価設定は[§ B.1](#b1-評価)、ablation study は[§ B.2](#b2-アブレーション研究)を参照。
 
 <span id="table-03"></span>
 
-![論文の表 3](../../papers/gated-delta-networks/table-03.png)
-|||（パスキー検索）||||（干し草の中の数字）
-ZX0032QXZ  （干し草の中の単語）||||（干し草の束の中の言葉）|||
-|モデル||1K|2K|4K|8K|1K|2K|4K|8K|1K|2K|4K|
-|DeltaNet||97.4|96.8|99.0|98.8|98.4|45.6|18.6|14.4|85.2|47.0|22.4|
-|マンバ2||99.2|98.8|65.4|30.4|99.4|98.8|56.2|17.0|64.4|47.6|4.6|
-|ゲーテッドデルタネット||98.4|88.4|91.4|91.8|100.0|99.8|92.2|29.6|86.6|84.2|27.6|
+![原論文の表 3](../../papers/gated-delta-networks/table-03.png)
 
-**表3.** S-NIAHベンチマークスイートでの性能比較。
+**表 3.** 言語モデリングと zero-shot 常識推論の性能比較。
 
-#### 合成データにおけるコンテキスト内検索
-
-[表3](#table-03) は、RULER [Hsieh24] による Single Needle-In-A-Haystack （S-NIAH） ベンチマークスイートの結果を示しています。合成入力を用いた最も単純な S-NIAH-1 設定では、DeltaNet は全てのシーケンス長でほぼ完璧な性能を達成しており、文脈内リコールに特に有利なデルタ更新ルールの恩恵を受けています（§[3.1](#S3.SS1)）。一方、Gated DeltaNet はゲーティング機構が情報を破棄するため、完全な記憶保持が妨げられ、取得精度はやや低下します。Mamba2 の性能は 2K シーケンスを超えると大幅に低下します。
-
-しかし、記憶からの検索は保持力だけでなく「忘却」能力にも依存します。状態サイズが固定されている場合、記憶のクリアランスが不足すると、状態が飽和して記憶の衝突が発生します。複数の情報が重なり、区別できなくなるのです。これは、針が実世界のテキストデータに基づく NIAH-2 および NIAH-3 で明らかとなります：DeltaNet の性能は大幅に低下する一方、Gated DeltaNet の適応的なメモリ管理は Mamba2 や DeltaNet よりも明確な利点を示します。
-
-#### 実世界データでの文脈内リトリーバル
+**常識推論。** [表 3](#table-03) に、400M および 1.3B パラメータのモデルについて、言語モデリングの perplexity と常識推論ベンチマークの **zero-shot** accuracy を示す。どちらの規模でも、Gated DeltaNet は RetNet、HGRN2、Mamba、Mamba2、DeltaNet を含むほかの線形モデルを一貫して上回る。予想どおり、ハイブリッド版はさらに高い性能を示す。
 
 <span id="table-04"></span>
 
-![論文の表 4](../../papers/gated-delta-networks/table-04.png)
+![原論文の表 4](../../papers/gated-delta-networks/table-04.png)
 
-**表4.** 入力を2Kトークンに切り詰めた場合の現実世界のリコールに基づく検索タスクでの精度。SQD： SQUADE。TQA： Trivial QA。
+**表 4.** 入力を 2K token に切り詰めた実世界の recall 型検索タスクにおける accuracy。SQD: SQUADE。TQA: Trivial QA。
 
-[表4](#table-04) は、[Aroraa24]で使用された現実世界のリコール集約型タスクの結果を示す。予想通り、線形再帰モデルはトランスフォーマーモデルと比べて大きな性能差を示し、線形再帰とアテンションを組み合わせたハイブリッドモデルは検索タスクにおいて純アテンションモデルよりも優れた性能を示す。
+**実世界データにおける文脈内検索。** [表 4](#table-04) に [Aroraa24] が使用した実世界の recall-intensive task の結果を示す。予想どおり、線形再帰モデルは Transformer に比べて大きく劣る。一方、線形再帰と注意を組み合わせたハイブリッドモデルは、検索タスクで純粋な注意モデルを上回る。
 
-純粋なリカレントモデルに関しては、DeltaNet が合成のコンテキスト内検索タスク [NeurIP24] で優れた性能を示したにもかかわらず、実世界での検索性能は Mamba2 に遅れを取っており、これは S-NIAH-2 および S-NIAH-3 での我々の観察結果と一致しています（[表3](#table-03)）。ゲート付き DeltaNet は、ゲート付きデルタルールのおかげで DeltaNet と Mamba2 の両方を上回りますが、改善幅は [表3](#table-03) よりも小さいです。我々は、この性能差の縮小を、命令に整合していない小型言語モデルが繰り返しエラーを起こしやすいことに起因すると考えています。これらのタスクにおける誤りの主な原因はこの繰り返しエラーです（参照： [Aroraa24]）。この問題は更新ルールの選択にほとんど依存しないため、モデル間の性能差は [表3](#table-03) と比べてあまり顕著ではありません。
+純粋な再帰モデルを見ると、DeltaNet は合成文脈内検索タスクで優れているにもかかわらず [NeurIP24]、実世界の検索では Mamba2 に及ばない。この結果は S-NIAH-2/3 での観察 ([表 2](#table-02)) と一致する。Gated DeltaNet は gated delta 則によって DeltaNet と Mamba2 の両方を上回るが、改善幅は[表 2](#table-02)より小さい。これは、instruction alignment を行っていない小規模言語モデルでは反復誤りが生じやすく、それが各タスクの主な誤りとなるためだと考えられる ([Aroraa24] 付録 E を参照)。この問題は更新則の選択にほぼ依存しないため、モデル間の性能差は[表 2](#table-02)ほど大きくならない。
 
 <span id="figure-02"></span>
 
-![図2](../../papers/gated-delta-networks/figure-02.png)
+![図 2](../../papers/gated-delta-networks/figure-02.png)
 
-**図2.** 6つの長いベンチマークにおける長さの外挿。
+**図 2.** 六つの長系列ベンチマークにおける長さ外挿。
 
-#### 長いシーケンスにおける長さの外挿。
+**長系列における長さ外挿。** [図 2](#figure-02) に示すとおり、六つの長文脈ベンチマークで、最大 20K token の系列へ外挿する能力を評価する。RNN モデルの中では、Gated DeltaNet がタスク全体で最も低い perplexity を達成する。長さ外挿の結果にはばらつきがあるものの、Gated DeltaNet は比較的安定しており、メモリ管理が優れていることを示唆する。ハイブリッドモデルは、注意によって局所文脈をモデル化し、再帰部分のメモリ管理負担を軽くすることで、さらに性能を改善する。今後は、より長い系列に対する能力を検証する。
 
-図[2](#figure-02)に示されているように、我々は6つの長文コンテキストベンチマークにおいて、最大20Kトークンのシーケンスに対するモデルの外挿能力を評価します。Gated DeltaNetは、RNNモデルの中でタスク全体において最も低いパープレキシティを達成します。長さの外挿では結果が混在するものの、Gated DeltaNetは比較的安定した性能を示しており、より優れたメモリ管理を示唆しています。ハイブリッドモデルはさらに、局所コンテキストモデリングのための注意機構を活用することで、再帰的なコンポーネントのメモリ管理の負担を軽減し、性能を向上させています。今後の研究では、これらのモデルのさらに長いシーケンスに対する能力を探究します。
-
-#### 長文文脈理解
-
-[表5](#table-05)に示されているように、我々はLongBench [Bai23]におけるモデルの性能を評価しました。再帰モデルの中では、Gated DeltaNetは一貫した優位性を示しており、特に単一ドキュメントQA、少数ショットのコンテキスト内学習、コードタスクにおいて優れており、それぞれ検索、コンテキスト内学習、状態追跡における優れた能力を示しています。
+**長文脈理解。** [表 5](#table-05) に LongBench [Bai23] での結果を示す。再帰モデルの中では Gated DeltaNet が一貫して優れており、とくに single-document QA、few-shot 文脈内学習、コードタスクで大きな優位を示す。これらはそれぞれ、検索、文脈内学習、状態追跡の能力を表す。
 
 <span id="table-05"></span>
 
-![論文の表 5](../../papers/gated-delta-networks/table-05.png)
+![原論文の表 5](../../papers/gated-delta-networks/table-05.png)
 
-**表5.** LongBench [Bai23] の14タスクにおける精度： ナラティブQA、QasperQA、マルチフィールドQA、HotpotQA、2WikiマルチQA、Musique、政府報告、QMSum、MultiNews、TRec、Trivia QA、SamSum、LCC、RepoBench-P の順。
+**表 5.** LongBench [Bai23] の 14 タスクにおける accuracy。順に Narrative QA、QasperQA、MultiField QA、HotpotQA、2WikiMulti QA、Musique、GovReport、QMSum、MultiNews、TRec、Trivia QA、SamSum、LCC、RepoBench-P。
 
 <span id="figure-03"></span>
 
-![図3](../../papers/gated-delta-networks/figure-03.png)
+![図 3](../../papers/gated-delta-networks/figure-03.png)
 
-**図3.** 単一のH100 GPU上での1.3Bモデルのトレーニングスループット比較。
+**図 3.** 単一の H100 GPU における 1.3B モデルの訓練 throughput 比較。
 
-#### スループット比較。
+**Throughput 比較。** [図 3](#figure-03) に各モデルの訓練 throughput を示す。提案する gated delta 則が元の delta 則に加える overhead はわずかであり、Gated DeltaNet は DeltaNet とほぼ同じ throughput を達成する。両者は遷移行列の表現力が高いため、Mamba2 より毎秒 2-3K token ほど遅い。
 
-さまざまなモデル間のトレーニングスループット比較は[図3](#figure-03)に示されています。我々の分析が示すように、提案されたゲート付きデルタルールは元のデルタルールと比較してわずかなオーバーヘッドしか導入せず、Gated DeltaNetは実質的にDeltaNetと同等のスループットを達成します。両者は、より表現力の高い遷移行列のため、Mamba2（2-3Kトークン/秒）よりもわずかに遅くなっています。
-
-Transformerは、非常に最適化されたFlash-Attention-2カーネル[Daob23]のおかげで、2Kコンテキストウィンドウ領域で最高の性能を達成します。したがって、2KウィンドウサイズのSWAアテンションと他のトークンミキサーを組み合わせたハイブリッドアプローチは、単独のミキサーよりも高いスループットを示します：SambaはMambaよりも優れており、Gated DeltaNet-H1および-H2はGated DeltaNetよりも優れています。特筆すべきは、Gated DeltaNet-H1が短いシーケンスでもすべてのシーケンス長で優れたトレーニングスループットを維持している点です。
+2K context window では、高度に最適化された Flash-Attention-2 kernel [Daob23] により Transformer++ が最も高い性能を示す。このため、window size 2K の SWA とほかの token mixer を組み合わせたハイブリッド手法は、単独の mixer より高い throughput を示す。Samba は Mamba を、Gated DeltaNet-H1 と -H2 は Gated DeltaNet を上回る。Gated DeltaNet-H1 は、短い系列を含むすべての系列長で良好な訓練 throughput を維持する。
 
 ## 5 関連研究
 
-#### ゲート付き線形RNN。
+**ゲート付き線形 RNN。** 大規模な線形再帰言語モデルは、訓練と推論の効率が高いため大きな注目を集めている。線形 RNN は、S4 [ICLRb22]、S5 [ICLRb23]、LRU [ICMLa23]、RWKV4/5 [EMNLP23]、RetNet [Suna23] に代表されるデータ非依存の減衰機構から、HGRN1/2 [Qin24a, Qina23]、Mamba1/2 [Daoc23, Daoa24]、RWKV6 [Peng24]、GSA [Gated24] など近年のアーキテクチャが採用するデータ依存の減衰機構へと急速に発展してきた。この変化は、ゲーティング／忘却機構 (Mamba では selective mechanism と呼ぶ) の利点が実証されてきたことによる。この古典的な概念はゲート付き RNN の研究 [Gersa00] に端を発し、その重要性は繰り返し確認されている [Greff15, Lasenb18, Qin24a, Qina23, Daoc23]。
 
-大規模な線形リカレント言語モデルは、そのトレーニングと推論効率の高さから大きな注目を集めてきました。線形RNNの分野は、S4 [ICLRb22]、S5 [ICLRb23]、LRU [ICMLa23]、RWKV4/5 [EMNLP23]、RetNet [Suna23]のようなデータ非依存の減衰メカニズムを使用するモデルから、HGRN1/2 [Qin24a, Qina23]、Mamba1/2 [Daoc23, Daoa24]、RWKV6 [Peng24]、GSA [Gated24]のようなより新しいアーキテクチャでデータ依存の減衰メカニズムを取り入れる方向へ急速に進化してきました。この移行は、ゲート／忘却メカニズム（Mambaでは選択的メカニズムと呼ばれる）の利点が実証されていることに起因しており、これはゲート付きRNNの文献 [Gersa00] に起源を持つ古典的概念で、その重要性は一貫して再確認されてきました [Greff15, Lasenb18, Qin24a, Qina23, Daoc23]。
+現代の忘却ゲートは、LSTM などの従来設計と異なり、以前の隠れ状態への依存を除き、入力データだけに依存する。この変更により、系列長方向の効率的な並列処理が可能になる [Mar18, Qina23]。忘却ゲートを持たないことは DeltaNet の明確な弱点であり、本研究のゲート付き拡張はこの不足を自然かつ効果的で、ハードウェア効率のよい方法で補う。同時期の研究 RWKV-7 [+5] も同様の発想を用いるが、対角行列と低ランク行列の和による、より柔軟な遷移を採用する。すなわち ${\mathbf{S}}_t={\mathbf{S}}_{t-1}(\mathrm{diag}({\mathbf{d}}_t)-{\mathbf{a}}_t{\mathbf{b}}_t^\top)+{\bm{v}}_t{\bm{k}}_t^\top$、ただし ${\mathbf{d}}_t,{\mathbf{a}}_t,{\mathbf{b}}_t\in\mathbb{R}^{d_k}$ である。Flash Linear Attention [Yan24] の実装のように、チャンク単位アルゴリズムもこの場合に合わせて同様に修正できる。[+6]
 
-現代の忘却ゲートは、LSTMのような従来の設計とは異なり、前の隠れ状態への依存を取り除き、入力データのみを基に動作します。この変更により、シーケンス長にわたる効率的な並列処理が可能になります [Mar18, Qina23]。忘却ゲートが存在しないことはDeltaNetにおける顕著な制限でしたが、我々のゲート付き拡張は、このギャップを自然かつ効果的に解決します。
+**Delta 則。** Delta 学習則は Hebbian 学習より大きなメモリ容量を持つ [Gardne88, Kak89]。線形 Transformer が Hebbian 学習に似た規則を使うのに対し、DeltaNet はこの利点を活用する。メモリ容量の優位性は、合成文脈内学習タスクだけでなく、言語モデリング [Irie21, NeurIP24]、強化学習 [ICMLd22]、画像生成 [ICLRa23] にも及ぶ。[NeurIP24] は delta 則の計算を並列化し、DeltaNet のデータ依存な identity-plus-low-rank 構造 $({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top)$ が、Mamba2 のデータ依存な対角行列 $(\alpha_t{\mathbf{I}})$ より柔軟であることを示した。この構造上の利点は、正規言語の認識 [Bethar24, Grazzi24] や $\mathrm{TC}^0$ complexity class を超える状態追跡 [Merril24] など、コード生成と推論に重要な複雑な推論を可能にしうる。
 
-#### デルタ則。
+こうした大きな利点がある一方、delta 則には理論上の限界があり [Bali23]、実世界のデータセットでは中程度の性能にとどまる [NeurIP24]。非線形漸化式で表現力を高める従来の試み [Irie21, ICMLd22] は一部の限界を克服したが、訓練時の並列性を犠牲にし、性能と効率の trade-off を生んだ。近年の研究は、並列性を損なわず状態追跡を改善するため、負の固有値を用いる方法 [Grazzi24] や、高ランク変換を可能にする複数の Householder 遷移行列の積 [Increa25] を提案している。これらの方法は Gated DeltaNet にもそのまま適用できる。
 
-デルタ学習則は、ヘッブ学習則と比較して優れた記憶容量を提供することが示されています [Gardne88, Kak89]。線形トランスフォーマーがヘッブに似た学習則に依存する一方で、DeltaNetはデルタ則を利用しており、この記憶容量における利点は、合成のコンテキスト内学習タスクで経験的に明らかです。さらに、この優位性は、言語モデル化 [Irie21, NeurIP24]、強化学習 [ICMLd22]、および画像生成 [ICLRa23] を含むさまざまな応用にわたって拡張されています。[NeurIP24] はさらに、デルタ則の計算をシーケンス長にわたって並列化し、DeltaNet の遷移行列の表現力の向上を示しました。具体的には、DeltaNet のデータ依存の恒等行列プラス低ランク構造（${\mathbf{I}}-\beta_{t}{\bm{k}}_{t}{\bm{k}}_{t}^{\top}$）は、Mamba2 のデータ依存の対角行列（$\alpha_{t}{\mathbf{I}}$）と比較してより大きな柔軟性を提供します。この対角から構造化密行列へのアーキテクチャの変化は、正則言語認識 [Bethar24, Grazzi24] や TC0 複雑性クラスを超える状態追跡タスク [Merril24] を含む複雑な推論タスクにおけるモデルの能力を大幅に向上させ、このような能力はコーディングのような応用に特に重要です。[Grazzi24] による最近の研究は、DeltaNet に負の固有値を許可することでその状態追跡能力をさらに強化できることを示しており、これは Gated DeltaNet にも直接組み込むことが可能です。
+(オンライン) 学習目的の観点からは、別の定式化によって表現力をさらに拡張できる。TTT [Suna24] と Titans [Learni24] は非線形回帰 $\mathcal{L}({\mathbf{S}}_t)=\frac{1}{2}\|f_{{\mathbf{S}}_t}({\bm{k}}_t)-{\bm{v}}_t\|^2$ を用いる。ここで $f_{\mathbf{S}}$ は ${\mathbf{S}}$ によってパラメータ化された非線形関数である。Mesa layer [Uncove24] は履歴全体を考慮する回帰 $\mathcal{L}({\mathbf{S}}_t)=\frac{1}{2}\sum_{i=1}^t\|{\mathbf{S}}_t{\bm{k}}_i-{\bm{v}}_i\|^2$ を用いる。両者の違いは Least Mean Square と Recursive Least Square の違いに似ている。ただし、これらの表現力が高い変種は非線形漸化式を導入するため、回避策が必要になる。たとえば TTT と Titans のようにチャンク全体を処理した後だけ非線形更新を行うか、[Parall24, Systef24, Balanc25] のように非線形漸化式を近似する。
 
-デルタ則は、勾配降下を通じたオンライン（メタ）学習と興味深い関連を持っています [Munkhd19, ICMLc22]。Longhorn [Liua24] や TTT [Suna24] などの最近のアーキテクチャは、状態空間学習を勾配ベースのオンライン学習問題として再定式化することで、この関係を再検討しています（参照：§[3.1](#S3.SS1)）。Longhorn はより理論的に厳密な定式化を提供しますが、対角近似に依存するため表現力が大幅に制限されます。TTT は興味深いケースを示しています：Layernorm のない線形変種は DeltaNet と同等ですが、Layernorm を加えると非線形 RNN モデルに変換されます。この変換には、チャンク単位で毎 N トークンごとに「デルタ類似則」を適用するハイブリッドトレーニングアプローチが必要です（N はチャンクサイズです）。
-
-利点がある一方で、デルタ則には理論的制限があります [Bali23] そして現実世界のデータセットでは中程度の性能を示します [NeurIP24]。以前の拡張は厳密な*非線形*再帰により表現力を高めます [Irie21, ICMLd22] が、トレーニングの並列性を犠牲にします。我々の Gated DeltaNet は線形 RNN を維持しつつ、ゲーティングによって表現力を向上させ、タスク全体で一貫した改善をもたらします。将来の研究では、GLA のような対角ゲーティング [PMLRa24] を採用してゲーティング制約をさらに緩和することが可能です。
+**ハイブリッドモデル。** 本研究では、層の間に注意層を挟むハイブリッド構成を検討する。この一般的な構成は MiniMax-01 [Scalin25] や Hybrid Mamba2-Attention [Catanz24] でも用いられている。一つの層の内部で線形注意と softmax 注意を組み合わせる方法 [Huaa22, Systeg24, ArXiv24, Combin24, Don25, Repreb25] も、興味深い研究対象である。
 
 ## 6 結論
 
-本研究では、Gated DeltaNet を紹介しました。これは Mamba2 と比較してより優れたキー-バリュー関連学習を可能にし、DeltaNet より適応的なメモリクリアランスを実現することで、さまざまなタスクで一貫して優れた実証結果をもたらします。私たちは、[NeurIP24] からの並列アルゴリズムを拡張し、Gated DeltaNet のハードウェア効率の良いトレーニングを可能にしました。ハイブリッド Gated DeltaNet モデルは、さらに高いトレーニングスループットと総合的な性能を達成し、実用的な展開に適しています。
+本研究では Gated DeltaNet を提案した。Gated DeltaNet は Mamba2 より優れたキー・バリュー対応学習と、DeltaNet より適応的なメモリ消去を実現し、さまざまなタスクで一貫して高い実験性能を示す。[NeurIP24] の並列アルゴリズムを拡張し、Gated DeltaNet のハードウェア効率のよい訓練を可能にした。ハイブリッド Gated DeltaNet は訓練 throughput と総合性能をさらに改善し、実運用に適している。
 
 ## 謝辞
 
-図の作成を手伝ってくれたYu Zhang氏、評価に関する有益な議論をしてくれたSimeng Sun氏とZhixuan Lin氏、そしてDeltaNetのオンライン学習の視点について洞察に満ちたフィードバックをくれたEric Alcaide氏に感謝します。
+図の作成とモデル評価を支援してくれた Yu Zhang、原稿に有益な意見を寄せてくれた Kazuki Irie、長系列タスクの評価設定について議論してくれた Simeng Sun と Zhixuan Lin、DeltaNet のオンライン学習としての解釈について議論してくれた Eric Alcaide と Volodymyr Kyrylov に感謝する。
 
-## 付録 A
+## 付録 A gated delta 則の拡張 WY 表現
 
-### A.1 Gated Delta Ruleの拡張WY表現
+記法を簡潔にするため、ここでは最初のチャンクだけを考える。
 
-記法の煩雑さを避けるため、ここでは最初のチャンクのみを考えます。
-
-${\mathbf{S}}_{t}$に対して、拡張WY表現は次の通りです。
+${\mathbf{S}}_t$ の拡張 WY 表現は
 
 $$
-{\mathbf{S}}_{t}=\sum_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^{\top},\qquad\mathbf{u}_{t}=\beta_{t}\left({\bm{v}}_{t}-\sum_{i=1}^{t-1}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^\top{\bm{k}}_{t}\right)
+{\mathbf{S}}_t=\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
 $$
 
-これを数学的帰納法によって証明します。
+である。これを数学的帰納法で証明する。
 
-###### 証明
+**証明。**
 
 $$
-\centering{\mathbf{S}}_{t+1}\@\mathrm{add}@\mathrm{centering}\qquad ={\mathbf{S}}_{t}\left({\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^{\top})\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^{\top}
+{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-={\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}(\sum_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^{\top})-{\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\beta_{t+1}(\sum_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^{\top}{\bm{k}}_{i}{\bm{k}}_{t+1}^{\top})+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^{\top}
+={\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\left(\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color[\mathrm{rgb}]{0,0,1}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^{\top}+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^\top{\bm{k}}_{t+1}\right)}_{\mathbf{u}_{t+1}}{\bm{k}}_{t+1}^{\top}
+=\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^{\top}+\underbrace{ {\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}\mathbf{u}_{t+1}{\bm{k}}_{t+1}^{\top}
+=\sum_{i=1}^t{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^{t+1}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_{i}}}\mathbf{u}_{i}{\bm{k}}_{i}^{\top}
+=\sum_{i=1}^{t+1}{\color[\mathrm{rgb}]{0,0,1}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
 $$
 
 ∎
 
-${\mathbf{P}}_{t}$に対して、
-
-$$
-{\mathbf{P}}_{t}\qquad =\prod_{i=1}^{t}{\color[\mathrm{rgb}]{0,0,1}\alpha_{t}}\left({\mathbf{I}}-\beta_{i}{\bm{k}}_{i}{\bm{k}}_{i}^{\top}\right)
-$$
-
-$$
-={\color[\mathrm{rgb}]{0,0,1}\underbrace{\left(\prod_{i=1}^{t}\alpha_{t}\right)}_{\gamma_{t}}}\underbrace{\left(\prod_{i=1}^{t}\left({\mathbf{I}}-\beta_{i}{\bm{k}}_{i}{\bm{k}}_{i}^{\top}\right)\right)}_{ {\mathbf{I}}-\sum_{i=1}^{t}\mathbf{w}_{i}{\bm{k}}_{i}^{\top}}
-$$
-
-そして
-
-$$
-\prod_{i=1}^{t}\left({\mathbf{I}}-\beta_{i}{\bm{k}}_{i}{\bm{k}}_{i}^{\top}\right)={\mathbf{I}}-\sum_{i=1}^{t}\mathbf{w}_{i}{\bm{k}}_{i}^{\top},\quad\mathbf{w}_{n}=\beta_{n}{\bm{k}}_{n}-\beta_{n}\sum_{t=1}^{n-1}\left(\mathbf{w}_{t}({\bm{k}}_{t}^{\top}{\bm{k}}_{n}\right)
-$$
-
-はすでに [NeurIP24] で証明されています。
-
-### A.2 アブレーション研究
-
-<span id="table-06"></span>
-
-![論文の表 6](../../papers/gated-delta-networks/table-06.png)
-
-**表S.1.** ゲート付きDeltaNetブロックのアブレーション研究。Avg-PPLとAvg-Accはそれぞれ平均的なパプレクシティとゼロショットの常識的推論精度を示します（[表2](#table-02)参照）。すべてのモデルは4億のパラメータを持ち、同じFineWeb-Eduデータセットのサブセット上で15Bトークンに対して訓練されています[Penedo24]。
-
-<span id="table-07"></span>
-
-![論文の表 7](../../papers/gated-delta-networks/table-07.png)
-
-**表 S.2.** Gated DeltaNet モデルのアブレーション研究。すべての評価は lm-evaluation-harness [Gaob21] を使用して行われています。すべてのモデルは Llama トークナイザーを使用し、FineWeb-Edu データセット [Penedo24] の同じサブセットでトレーニングされています。
-
-[表 S.1](#table-06) は、Gated DeltaNet ブロックの構成要素に関する消去実験（アブレーションスタディ）を示しています。我々の実験では、ショートコンボリューションと出力ゲートの両方がモデルの性能にとって重要であり、出力の正規化はわずかな改善しかもたらさないことを示しています。[NeurIP24] と一貫して、最適な性能には L2 正規化が不可欠であることがわかりましたが、特徴マップの選択は影響が少ないことが確認されました。それにもかかわらず、SiLU は常に他の活性化関数よりも優れており、[Qin23] の観察結果と一致しています。実証的な分析を通じて、ヘッドの次元サイズを 128 に設定することが、性能と計算効率の間で最適なバランスを提供することを確認しました。さらに、[表 S.2](#table-07) は、さまざまなハイブリッドアーキテクチャの中で、Mamba2、Gated DeltaNet、SWA をこの特定の順序で組み合わせることが最良の結果を生むことを示しています。
-
-## 付録 B 実験設定
+## 付録 B 実験の続き
 
 ### B.1 評価
 
-#### 常識推論
+**常識推論。** [Daoc23] に従い、PIQA [AAAIc20]、HellaSwag [Italyb19]、WinoGrande [AAAId20]、ARC-easy (ARC-e) と ARC-challenge (ARC-c) [Clark18]、SIQA [Sap19]、BoolQ [Clark19]、Wikitext [ICLR17]、LAMBADA [August16] の各常識推論ベンチマークでモデルを評価する。
 
-[Daoc23] に従い、我々のモデルを複数の常識推論ベンチマークで評価しました： PIQA [AAAIc20]、HellaSwag [Italyb19]、WinoGrande [AAAId20]、ARC-easy （ARC-e） および ARC-challenge （ARC-c） [Clark18]、SIQA [Sap19]、BoolQ [Clark19]、Wikitext [ICLR17]、そして LAMBADA [August16]。
+**文脈内検索。** 合成タスクと実世界タスクの両方を評価する。合成タスクには RULER [Hsieh24] の Needle-In-A-Haystack Single (NIAH-S) benchmark suite を用いる。これには難度が順に上がる S-NIAH-1 (passkey retrieval)、S-NIAH-2 (numerical needle in haystack)、S-NIAH-3 (word-based needle in haystack) の三タスクが含まれる。
 
-#### コンテキスト内検索
+実世界タスクでは [Aroraa24] に従い、構造化 HTML の関係抽出を行う SWDE [Lockar19]、PDF からキー・バリューを検索する FDA [Aroraa23]、さらに SQuAD [Austra18]、TriviaQA [Canada17]、Drop [Duaa19]、NQ [Kwiatk19] を含む複数の question-answering dataset で評価する。事前訓練済みモデルは instruction tuning を行っていないため、モデルの next-word prediction の訓練目的により近い [Aroraa24] の Cloze Completion Formatting prompt を使用する。
 
-我々の評価は、合成タスクと実世界のタスクの両方で構成されています。合成タスクについては、RULER [Hsieh24] から提供される Needle-In-A-Haystack Single （NIAH-S） ベンチマークスイートを使用しており、これは次第に複雑さが増す三つのタスクを含みます：S-NIAH-1（パスキー取得）、S-NIAH-2（数値針探し）、S-NIAH-3（単語ベースの針探し）。
+**長文脈理解。** LongBench [Bai23] の 14 タスクで評価する。内訳は、narrative comprehension (Narrative QA [Lingui18])、scientific understanding (QasperQA [Dasigi21])、multi-hop reasoning (MultiField QA、HotpotQA [Tsujib18]、2WikiMulti QA [Online20]、Musique [Lingui22])、document summarization (GovReport [Huang21]、QMSum [Zhong21]、MultiNews [Fabbri19])、各種の専門タスク (TRec [COLING02]、Trivia QA [Canada17]、SamSum [China19]、LCC [Guoa23]、RepoBench-P [Liub23]) である。
 
-実世界のタスクについては、[Aroraa24] に従い、以下の多様なデータセットで評価を行います：構造化HTML関係抽出のための SWDE [Lockar19]、PDFキー・バリュー取得のための FDA [Aroraa23]、そして複数の質問応答データセットである SQuAD [Austra18]、TriviaQA [Canada17]、Drop [Duaa19]、および NQ [Kwiatk19]。事前学習済みモデルは指示チューニングを持たないため、[Aroraa24] で提供されるクロス完了フォーマット（Cloze Completion Formatting）プロンプトを使用し、モデルの次単語予測トレーニング目標により適合させています。
+### B.2 アブレーション研究
 
-#### 長文文脈理解
+<span id="table-06"></span>
 
-我々は Longbench [Bai23] の14のタスクで評価を行い、それには次が含まれます：ナラティブ理解（Narrative QA [Lingui18]）、科学的理解（QasperQA [Dasigi21]）、マルチホップ推論（MultiField QA、HotpotQA [Tsujib18]、2WikiMulti QA [Online20]、Musique [Lingui22]）、文書要約（GovReport [Huang21]、QMSum [Zhong21]、MultiNews [Fabbri19]）、および様々な専門タスク（TRec [COLING02]、Trivia QA [Canada17]、SamSum [China19]、LCC [Guoa23]、RepoBench-P [Liub23]）。
+![原論文の表 S.1](../../papers/gated-delta-networks/table-06.png)
 
-[+1]： 理論的な違いは最適化手法にあります。Longhorn は暗黙的なオンライン学習 [Bartle10] を用いて閉形式の全体的最適更新を導き出す一方で、DeltaNet は同じ目的関数を一段階の明示的勾配降下によって最適化します、と [Liua24] によって指摘されています。Longhorn は理論的により強固な基盤を持つにもかかわらず、我々はこれらのアプローチ間で経験的な性能差が有意に認められなかったため、DeltaNet の元の定式化を維持します。
+**表 S.1.** Gated DeltaNet ブロックの ablation study。Avg-PPL と Avg-Acc は、それぞれ平均 perplexity と zero-shot 常識推論 accuracy ([表 3](#table-03)と同じ) を表す。すべてのモデルは 400M パラメータで、FineWeb-Edu [Penedo24] の同じ subset を用いて 15B token 訓練する。
 
-[+2]： 我々は$\alpha$のためにMamba2のパラメータ化を使用しますが、簡略化のため省略します。
+<span id="table-07"></span>
+
+![原論文の表 S.2](../../papers/gated-delta-networks/table-07.png)
+
+**表 S.2.** Gated DeltaNet モデルの ablation study。すべての評価には `lm-evaluation-harness` [Gaob21] を用いる。すべてのモデルは Llama tokenizer を使用し、FineWeb-Edu [Penedo24] の同じ subset で訓練する。
+
+[表 S.1](#table-06) は Gated DeltaNet ブロックの各構成要素に対する ablation study を示す。短い畳み込みと出力ゲートはいずれもモデル性能に不可欠であり、出力正規化による改善はわずかである。[NeurIP24] と同様に、最良の性能には L2 正規化が必要である一方、feature map の選択による影響は小さい。ただし、SiLU はほかの活性化関数を一貫して上回り、[Qin23] の観察と一致する。実験から、head dimension 128 が性能と計算効率の良好な trade-off になると分かった。また、[表 S.2](#table-07) は、複数のハイブリッドアーキテクチャのうち、Mamba2、Gated DeltaNet、SWA をこの順に組み合わせた構成が最も優れることを示す。
+
+[+author-note]: 数式部分を担当。Songlin Yang が NVIDIA でインターンをしていた期間の研究。
+
+[+1]: ここでは $\gamma$ の記号をやや広い意味で用い、系列全体ではなく、各チャンクの先頭位置から個別に計算した累積積を表す。
+
+[+2]: $\beta_t\in(0,2)$ とすれば負の固有値を許容し、DeltaNet の状態追跡能力を引き出すこともできる [Grazzi24, Increa25]。
+
+[+3]: 理論上の違いは最適化手法にある。Longhorn は implicit online learning [Bartle10] によって閉形式の大域最適更新を導出する一方、[Liua24] が指摘したように、DeltaNet は同じ目的を一段階の explicit gradient descent で最適化する。
+
+[+4]: $\alpha$ には Mamba2 のパラメータ化を用いるが、簡潔にするため省略する。
+
+[+5]: [https://github.com/BlinkDL/RWKV-LM/tree/main/RWKV-v7](https://github.com/BlinkDL/RWKV-LM/tree/main/RWKV-v7)
+
+[+6]: [https://github.com/fla-org/flash-linear-attention/tree/main/fla/ops/generalized_delta_rule](https://github.com/fla-org/flash-linear-attention/tree/main/fla/ops/generalized_delta_rule)

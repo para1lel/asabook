@@ -1,35 +1,5 @@
 [
   {
-    "name": "figure-01",
-    "page": 7,
-    "x": 137,
-    "y": 39.5,
-    "width": 350.5,
-    "height": 228.5,
-    "matchScore": 0.747,
-    "preserveSource": false
-  },
-  {
-    "name": "figure-02",
-    "page": 8,
-    "x": 431.5,
-    "y": 325,
-    "width": 48.5,
-    "height": 32.5,
-    "matchScore": 0.336,
-    "preserveSource": true
-  },
-  {
-    "name": "figure-03",
-    "page": 9,
-    "x": 172,
-    "y": 262,
-    "width": 267.5,
-    "height": 179,
-    "matchScore": 0.555,
-    "preserveSource": false
-  },
-  {
     "name": "table-01",
     "page": 5,
     "x": 104.99991000000023,
@@ -40,20 +10,30 @@
   },
   {
     "name": "table-02",
-    "page": 7,
-    "x": 122.5,
-    "y": 336.5,
-    "width": 365,
-    "height": 132.5,
-    "preserveSource": false
-  },
-  {
-    "name": "table-03",
     "page": 5,
     "x": 164.5,
     "y": 219,
     "width": 278.5,
     "height": 56.5,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-01",
+    "page": 7,
+    "x": 137,
+    "y": 88,
+    "width": 350.5,
+    "height": 180,
+    "matchScore": 0.747,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 7,
+    "x": 122.5,
+    "y": 336.5,
+    "width": 365,
+    "height": 132.5,
     "preserveSource": false
   },
   {
@@ -66,12 +46,31 @@
     "preserveSource": false
   },
   {
+    "name": "figure-02",
+    "page": 8,
+    "x": 120,
+    "y": 205,
+    "width": 375,
+    "height": 250,
+    "preserveSource": false
+  },
+  {
     "name": "table-05",
     "page": 9,
     "x": 117.5,
     "y": 80.5,
     "width": 377,
     "height": 130,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 9,
+    "x": 172,
+    "y": 262,
+    "width": 267.5,
+    "height": 179,
+    "matchScore": 0.555,
     "preserveSource": false
   },
   {
