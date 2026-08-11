@@ -22,7 +22,7 @@ permalink: /papers/glm-5/
 
 我们提出新一代旗舰模型 GLM-5, 旨在突破这些障碍. GLM-5 在性能与效率上均实现了范式转变, 在 ArtificialAnalysis.ai, LMArena Text 和 LMArena Code 等主要开放排行榜上达到当前最佳水平. 更重要的是, GLM-5 重新定义了真实世界编码的标准, 展现出处理复杂端到端软件开发任务的卓越能力, 远远超出 SWE-bench 等传统静态基准的范围.
 
-**结果.** [图 1](#figure-01) 展示了 GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro 和 GPT-5.2 (xhigh) 在 8 项智能体, 推理与编码基准上的结果: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [TeaWeb], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25] 和 Vending Bench 2 [Bac25]. 平均而言, GLM-5 相较上一版本 GLM-4.7 提升约 20%, 与 Claude Opus 4.5 和 GPT-5.2 (xhigh) 相当, 并优于 Gemini 3 Pro.
+**结果.** [图 1](#figure-01) 展示了 GLM-5, GLM-4.7, Claude Opus 4.5, Gemini 3 Pro 和 GPT-5.2 (xhigh) 在 8 项智能体, 推理与编码基准上的结果: Humanity's Last Exam [Pha25], SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal-Bench 2.0 [Tea25a], BrowseComp [Wei25], MCP-Atlas [Ban26a], $\tau^{2}$-Bench [Yao24, Bar25] 和 Vending Bench 2 [Bac25]. 平均而言, GLM-5 相较上一版本 GLM-4.7 提升约 20%, 与 Claude Opus 4.5 和 GPT-5.2 (xhigh) 相当, 并优于 Gemini 3 Pro.
 
 GLM-5 在 Intelligence Index v4.0 中获得 50 分, 成为新的开放权重模型第一名 (见[图 2](#figure-02)). 相比 GLM-4.7 的 42 分提高了 8 分, 主要得益于智能体性能以及知识与幻觉控制方面的改进. 这是开放权重模型首次在 Artificial Analysis Intelligence Index v4.0 中达到 50 分.
 
@@ -84,7 +84,7 @@ LMArena 由加州大学伯克利分校发起, 是一个依靠人类判断评估�
 
 然而, 在使用 Muon 优化器的实验中, 我们发现采用 576 维潜在 KV cache 的 MLA 无法达到具有 8 个查询组的 GQA (记作 GQA-8, 使用 2048 维 KV cache) 的性能. 为弥合这一差距, 我们调整了 GLM-4.5 中的 Muon 优化器方案. 原方案对多头查询, 键和值的上投影矩阵 $W^{\mathrm{UQ}},W^{\mathrm{UK}},W^{\mathrm{UV}}$ 执行矩阵正交化. 我们改为按不同注意力头将这些矩阵拆分成更小的矩阵, 再分别进行矩阵正交化. 这一方法称为 Muon Split, 使不同注意力头的投影权重可以按不同尺度更新. 如[表 1](#table-01) 所示, 该方法有效提升了 MLA 性能, 使其与 GQA-8 相当. 实践中我们还发现, 采用 Muon Split 后, GLM-5 的注意力 logit 尺度在预训练期间无需任何裁剪策略便可保持稳定.
 
-MLA 的另一项缺点是解码时计算成本较高. 解码过程中, MLA 执行 576 维点积, 高于 GQA 的 128 维计算. DeepSeek-V3 的注意力头数量根据 H800 的 roofline 选择 [Zha25b], 但这一配置不适合其他硬件. 考虑到 MLA 在训练与预填充阶段采用多头注意力 (MHA) 形式, 我们将头维度从 192 提高到 256, 同时将注意力头数量减少三分之一. 这样既保持训练计算量与参数量不变, 又减少了解码计算量. [表 1](#table-01) 中将该变体记作 MLA-256, 在 Muon Split 下其性能与 MLA 相当.
+MLA 的另一项缺点是解码时计算成本较高. 解码过程中, MLA 执行 576 维点积, 高于 GQA 的 128 维计算. DeepSeek-V3 的注意力头数量根据 H800 的 roofline 选择 [Zha25c], 但这一配置不适合其他硬件. 考虑到 MLA 在训练与预填充阶段采用多头注意力 (MHA) 形式, 我们将头维度从 192 提高到 256, 同时将注意力头数量减少三分之一. 这样既保持训练计算量与参数量不变, 又减少了解码计算量. [表 1](#table-01) 中将该变体记作 MLA-256, 在 Muon Split 下其性能与 MLA 相当.
 
 <span id="table-02"></span>
 
@@ -130,7 +130,7 @@ DSA 训练从中期训练结束时的基础模型开始. 预热阶段共 1000 �
 
 **表 4.** GLM-9B 基线与两种 SWA 变体在*不进行任何额外训练*时的 RULER 基准结果. 两种 SWA 方法都采用 1:1 的全注意力层与 SWA 层比例, 窗口大小为 4096 token. 基于搜索的 SWA 模式仅在 16K 上下文长度下发现一次, 随后统一应用于所有输入长度.
 
-我们在四项长上下文基准上评估所有方法: RULER [Hsi24], MRCR ([https://huggingface.co/datasets/openai/mrcr](https://huggingface.co/datasets/openai/mrcr)), HELMET-ICL [Yen24] 和 RepoQA [LiuWeb]. 结果汇总于[表 5](#table-05). 每种方法均在 64K 上下文长度下持续训练 190B token, 高效注意力层与全注意力层的比例保持为 1:1. GDN 和 SimpleGDN 方法沿用 Jet-Nemotron [Gu25a] 的流程.
+我们在四项长上下文基准上评估所有方法: RULER [Hsi24], MRCR ([https://huggingface.co/datasets/openai/mrcr](https://huggingface.co/datasets/openai/mrcr)), HELMET-ICL [Yen24] 和 RepoQA [Liu24]. 结果汇总于[表 5](#table-05). 每种方法均在 64K 上下文长度下持续训练 190B token, 高效注意力层与全注意力层的比例保持为 1:1. GDN 和 SimpleGDN 方法沿用 Jet-Nemotron [Gu25a] 的流程.
 
 <span id="table-05"></span>
 
@@ -184,7 +184,7 @@ DSA 训练从中期训练结束时的基础模型开始. 预热阶段共 1000 �
 
 **高效延迟权重梯度计算.** 为减少流水线气泡, 我们将关键路径上的一部分权重梯度计算延后 [Qi23]. 结合优化后的存储与通信重叠, 细粒度延迟可以在控制内存开销的同时提高吞吐量.
 
-**高效长序列训练.** 序列越长, 数据并行组与流水线并行组间的负载不均衡越严重. 我们通过工作负载感知的序列重排, 注意力计算动态重分配, 以及将数据并行 rank 灵活划分为不同大小的上下文并行组来解决这一问题 [Ge25, Wan25b]. 分层 all-to-all 让节点内与节点间的 QKV 张量通信相互重叠, 从而降低延迟.
+**高效长序列训练.** 序列越长, 数据并行组与流水线并行组间的负载不均衡越严重. 我们通过工作负载感知的序列重排, 注意力计算动态重分配, 以及将数据并行 rank 灵活划分为不同大小的上下文并行组来解决这一问题 [Ge48, Wan25b]. 分层 all-to-all 让节点内与节点间的 QKV 张量通信相互重叠, 从而降低延迟.
 
 #### 2.4.3 INT4 量化感知训练
 
@@ -224,7 +224,7 @@ GLM-5 的后训练阶段旨在将基础模型转化为推理, 编码和智能体
 
 ### 3.2 推理强化学习
 
-**强化学习算法骨干.** 我们的强化学习算法以 GRPO [Sha24] 为基础, 并引入 IcePop 技术 [Zha25c] 来缓解*训练-推理不一致*, 即强化学习优化期间推理分布与训练分布之间的差异. 我们明确区分用于梯度更新的*训练策略* $\pi^{\mathrm{train}}$ 与用于轨迹采样的*推理策略* $\pi^{\mathrm{infer}}$. 相比原始 IcePop 形式, 我们移除 KL 正则项以加快强化学习能力提升. 最终优化损失为:
+**强化学习算法骨干.** 我们的强化学习算法以 GRPO [Sha24] 为基础, 并引入 IcePop 技术 [Zha25d] 来缓解*训练-推理不一致*, 即强化学习优化期间推理分布与训练分布之间的差异. 我们明确区分用于梯度更新的*训练策略* $\pi^{\mathrm{train}}$ 与用于轨迹采样的*推理策略* $\pi^{\mathrm{infer}}$. 相比原始 IcePop 形式, 我们移除 KL 正则项以加快强化学习能力提升. 最终优化损失为:
 
 $$
 \begin{aligned}
@@ -368,7 +368,7 @@ $$
 
 **用于 token 裁剪的直接双侧重要性采样.** 不同于第 3 节的同步强化学习设置, 在异步环境中, rollout 引擎可能在单条轨迹生成期间经历多次更新, 因此跟踪精确行为概率 $\pi_{\theta_{\mathrm{old}}}$ 的计算成本高得难以承受. 否则, 我们必须维护大量历史模型 checkpoint $\{\pi_{\theta_{\mathrm{old}}^{(1)}},\dots,\pi_{\theta_{\mathrm{old}}^{(N)}}\}$, 这在实际实现中并不可行.
 
-为解决这一问题, 我们首先采用简化的 token 级重要性采样机制, 直接复用 rollout 期间产生的 log-probability 作为行为代理. 通过将重要性采样比率计算为 $r_{t}(\theta)=\frac{\pi_{\theta}}{\pi_{\mathrm{rollout}}}$ 并舍弃传统的 $\pi_{\theta_{\mathrm{old}}}$, 我们消除了另行执行旧策略推理的计算开销. 其次, 我们采用双侧校准的 token 级掩码策略. 与标准 PPO 的非对称裁剪不同, 我们将信赖域限制在 $[1-\epsilon_{\ell},1+\epsilon_{h}]$ 内, 其中 $\epsilon_{\ell}$ 和 $\epsilon_{h}$ 为裁剪超参数. 区间外的 token 会从梯度计算中完全掩去, 防止策略极端偏离造成训练不稳定. 该方法与 IcePop 机制 [Tea25c] 类似, 但进一步移除了 $\pi_{\theta_{\mathrm{old}}}$, 因而更简单, 训练也更稳定.
+为解决这一问题, 我们首先采用简化的 token 级重要性采样机制, 直接复用 rollout 期间产生的 log-probability 作为行为代理. 通过将重要性采样比率计算为 $r_{t}(\theta)=\frac{\pi_{\theta}}{\pi_{\mathrm{rollout}}}$ 并舍弃传统的 $\pi_{\theta_{\mathrm{old}}}$, 我们消除了另行执行旧策略推理的计算开销. 其次, 我们采用双侧校准的 token 级掩码策略. 与标准 PPO 的非对称裁剪不同, 我们将信赖域限制在 $[1-\epsilon_{\ell},1+\epsilon_{h}]$ 内, 其中 $\epsilon_{\ell}$ 和 $\epsilon_{h}$ 为裁剪超参数. 区间外的 token 会从梯度计算中完全掩去, 防止策略极端偏离造成训练不稳定. 该方法与 IcePop 机制 [Tea25] 类似, 但进一步移除了 $\pi_{\theta_{\mathrm{old}}}$, 因而更简单, 训练也更稳定.
 
 形式上, 采用 token 级裁剪的优化目标可写为:
 
@@ -406,11 +406,11 @@ $$
 
 #### 4.2.1 软件工程 (SWE) 环境
 
-在构建可执行环境前, 我们收集大量真实的 Issue-Pull Request (PR) 配对, 并采用严格的基于规则与 LLM 的过滤, 确保获取真实高质量的 issue 描述. 我们将实例分为错误修复, 功能实现, 重构和其他类型, 并纳入必要的任务要求, 确保模型实现与测试 patch 一致. 我们采用基于 RepoLaunch [Zha25a] 框架的环境搭建流程, 扩展从真实 SWE issue 构建可执行环境的能力. 该流程会自动分析仓库的安装方式与依赖配置, 构建可执行环境并生成测试命令, 随后利用 LLM 针对测试输出生成相应编程语言的日志解析函数, 从中提取 Fail-to-Pass (F2P) 和 Pass-to-Pass (P2P) 测试用例. 借助该流程, 我们从数千个仓库中构建了超过 10k 个可验证环境, 覆盖 Python, Java, Go, C, CPP, JavaScript, TypeScript, PHP 和 Ruby 共 9 种编程语言.
+在构建可执行环境前, 我们收集大量真实的 Issue-Pull Request (PR) 配对, 并采用严格的基于规则与 LLM 的过滤, 确保获取真实高质量的 issue 描述. 我们将实例分为错误修复, 功能实现, 重构和其他类型, 并纳入必要的任务要求, 确保模型实现与测试 patch 一致. 我们采用基于 RepoLaunch [Zha25b] 框架的环境搭建流程, 扩展从真实 SWE issue 构建可执行环境的能力. 该流程会自动分析仓库的安装方式与依赖配置, 构建可执行环境并生成测试命令, 随后利用 LLM 针对测试输出生成相应编程语言的日志解析函数, 从中提取 Fail-to-Pass (F2P) 和 Pass-to-Pass (P2P) 测试用例. 借助该流程, 我们从数千个仓库中构建了超过 10k 个可验证环境, 覆盖 Python, Java, Go, C, CPP, JavaScript, TypeScript, PHP 和 Ruby 共 9 种编程语言.
 
 #### 4.2.2 终端环境
 
-**基于种子数据合成.** 为大规模构建可验证的终端智能体环境, 我们设计了一条包含三个阶段的智能体数据合成流程: 生成任务草案, 实现具体任务和迭代优化任务. 我们从真实软件工程与基于终端的计算机使用场景中收集一组种子任务, 再利用 LLM 集思广益, 生成大量可验证终端任务草案. 随后由构建智能体将这些草案实例化为 Harbor [Tea26c] 格式的具体任务, 包括结构化任务描述, Docker 化执行环境和相应测试脚本. 接着, 改进智能体依据人工定义的评分准则检查并迭代完善生成的任务, 确保 Docker 镜像可以可靠构建, 测试用例与任务规约一致, 且环境能抵御潜在漏洞或捷径. 总体而言, 该流程产生了数千个多样且可验证的终端智能体环境, Docker 构建准确率超过 90%.
+**基于种子数据合成.** 为大规模构建可验证的终端智能体环境, 我们设计了一条包含三个阶段的智能体数据合成流程: 生成任务草案, 实现具体任务和迭代优化任务. 我们从真实软件工程与基于终端的计算机使用场景中收集一组种子任务, 再利用 LLM 集思广益, 生成大量可验证终端任务草案. 随后由构建智能体将这些草案实例化为 Harbor [Har26a] 格式的具体任务, 包括结构化任务描述, Docker 化执行环境和相应测试脚本. 接着, 改进智能体依据人工定义的评分准则检查并迭代完善生成的任务, 确保 Docker 镜像可以可靠构建, 测试用例与任务规约一致, 且环境能抵御潜在漏洞或捷径. 总体而言, 该流程产生了数千个多样且可验证的终端智能体环境, Docker 构建准确率超过 90%.
 
 **基于 Web 语料合成.** 我们开发了一条可扩展的自动化流程, 基于 Web 语料构建经 LLM 验证的终端编码任务. 该流程采用闭环设计, 由构建智能体兼任自身的第一轮评测者. 首先, 我们收集大规模代码相关网页语料, 并应用数据质量分类器, 只保留高质量内容, 丢弃以非技术内容为主或缺乏实质性代码的页面. 从过滤后的子集中, 再找出适合改写成终端式任务的网页. 随后按主题类别与难度分层采样, 确保所得任务池分布均衡且具有多样性. 第二步, 我们将 Harbor 任务构建规约 ([https://harborframework.com/docs/tasks/task-tutorial](https://harborframework.com/docs/tasks/task-tutorial)) 与每个选定的源网页一同提供给编码智能体. 规约包括任务 schema, 格式要求和任务示例. 智能体需要 (i) 根据网页内容合成完整终端任务, 并 (ii) 对自己的输出运行 Harbor 验证脚本. 如验证失败, 智能体会反复诊断并修改任务, 直至通过全部自动检查. 只有成功通过这一自验证闭环的任务才会进入最终数据集.
 
@@ -487,7 +487,7 @@ $$
 
 ### 6.1 ARC 基准评测
 
-[表 7](#table-07) 给出了 ARC 基准的主要结果, 将 GLM-5 与 GLM-4.7, DeepSeek-V3.2 [Dee25a], Kimi-K2.5 [Kim26a], Claude Opus 4.5 [Ant25a], Gemini 3 Pro [Dee25] 和 GPT-5.2 (xhigh) [Ope25b] 进行比较. 总体而言, GLM-5 相较 GLM-4.7 实现了显著提升, 在开源模型中达到当前最佳性能, 并缩小了与 Claude Opus 4.5 等闭源模型的差距. 评测细节见[第 B.2 节](#b2-arc-基准评测).
+[表 7](#table-07) 给出了 ARC 基准的主要结果, 将 GLM-5 与 GLM-4.7, DeepSeek-V3.2 [Dee25a], Kimi-K2.5 [Kim26b], Claude Opus 4.5 [Ant25a], Gemini 3 Pro [Dee25] 和 GPT-5.2 (xhigh) [Ope25b] 进行比较. 总体而言, GLM-5 相较 GLM-4.7 实现了显著提升, 在开源模型中达到当前最佳性能, 并缩小了与 Claude Opus 4.5 等闭源模型的差距. 评测细节见[第 B.2 节](#b2-arc-基准评测).
 
 <span id="table-07"></span>
 
@@ -503,13 +503,13 @@ $$
 
 #### 6.1.2 编码基准评测
 
-编码基准包括 SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal Bench 2.0 [TeaWeb] 和 CyberGym [Wan25c]. 对 SWE-bench Verified 与 Multilingual, 我们使用 OpenHands 框架, 并为 GLM-5 定制指令提示词. Terminal-Bench 2.0 使用 Terminus-2 与 Claude Code 两种智能体框架; 我们还报告了经过验证的 Terminal-Bench 2.0 版本上的性能, 该版本修复了部分含糊指令, 更多信息见 [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified). CyberGym 基准在 Claude Code 2.1.18 中评测.
+编码基准包括 SWE-bench Verified [Jim23], SWE-bench Multilingual [Yan25b], Terminal Bench 2.0 [Tea25a] 和 CyberGym [Wan25c]. 对 SWE-bench Verified 与 Multilingual, 我们使用 OpenHands 框架, 并为 GLM-5 定制指令提示词. Terminal-Bench 2.0 使用 Terminus-2 与 Claude Code 两种智能体框架; 我们还报告了经过验证的 Terminal-Bench 2.0 版本上的性能, 该版本修复了部分含糊指令, 更多信息见 [https://huggingface.co/datasets/zai-org/terminal-bench-2-verified](https://huggingface.co/datasets/zai-org/terminal-bench-2-verified). CyberGym 基准在 Claude Code 2.1.18 中评测.
 
 [表 7](#table-07) 显示, GLM-5 在开源 LLM 中的编码基准性能达到当前最佳. 与闭源 LLM 相比, GLM-5 在 SWE-bench Verified 上优于 Gemini 3 Pro, 在 SWE-bench Multilingual 上也超过 Gemini 3 Pro 与 GPT-5.2 (xhigh). 在 Terminal-Bench 2.0 上, GLM-5 的结果与 Claude Opus 4.5 相当; 修复该基准的含糊指令后, 结果甚至更好. 为展示编码能力的泛化性, 我们使用两种智能体框架评测 Terminal Bench 2.0, GLM-5 在两种框架中均表现稳定. 在网络安全编码基准 CyberGym 上, GLM-5 相较 GLM-4.7 实现显著提升, 仅次于 Claude Opus 4.5.
 
 #### 6.1.3 智能体能力评测
 
-智能体基准包括 BrowseComp [Wei25], BrowseComp-ZH [Zho25], $\tau^{2}$-Bench [Bar25], MCP-Atlas [Ban26a], Tool-Decathlon [Li25b], Vending-Bench 2 [Bac25] 和 GDPval-AA [Pat25]. BrowseComp 衡量语言智能体通过浏览 Web 解决困难问题的能力, BrowseComp-ZH 则主要面向中文 Web. BrowseComp 的上下文管理采用与 DeepSeek-V3.2 和 Kimi K2.5 相同的 discard-all 策略. $\tau^{2}$-Bench 评估对话智能体在双控制环境中的能力. 我们对 Retail 和 Telecom 略微调整提示词, 避免用户过早终止导致失败 (见[第 B.3 节](#b3-2-bench-的优化用户模拟器)). 对 Airline, 我们采用 Claude Opus 4.5 系统卡 [Ant25a] 提出的领域修复, 以获得更准确的结果. MCP-Atlas 是一项真实工具使用基准, 评估 LLM 在给定模型上下文协议 (MCP) 服务器时执行多步工作流的表现. 为公平比较, 我们在 500 项公开任务上重新评测所有模型, 并将单项任务的超时时间从 4 分钟延长至 10 分钟, 避免部署条件造成任务失败. MCP-Atlas 使用 Gemini 3 Pro 作为 judge 模型. Tool-Decathlon 也是工具使用基准, 但面向真实长程任务. Vending-Bench 2 衡量 LLM 在模拟环境中长期运营企业的智能体能力, 相比前代 Vending-Bench 引入了更多现实因素. GDPval 则关注 AI 智能体处理具有经济价值任务的表现.
+智能体基准包括 BrowseComp [Wei25], BrowseComp-ZH [Zho25], $\tau^{2}$-Bench [Bar25], MCP-Atlas [Ban26a], Tool-Decathlon [Too26], Vending-Bench 2 [Bac25] 和 GDPval-AA [Pat25]. BrowseComp 衡量语言智能体通过浏览 Web 解决困难问题的能力, BrowseComp-ZH 则主要面向中文 Web. BrowseComp 的上下文管理采用与 DeepSeek-V3.2 和 Kimi K2.5 相同的 discard-all 策略. $\tau^{2}$-Bench 评估对话智能体在双控制环境中的能力. 我们对 Retail 和 Telecom 略微调整提示词, 避免用户过早终止导致失败 (见[第 B.3 节](#b3-2-bench-的优化用户模拟器)). 对 Airline, 我们采用 Claude Opus 4.5 系统卡 [Ant25a] 提出的领域修复, 以获得更准确的结果. MCP-Atlas 是一项真实工具使用基准, 评估 LLM 在给定模型上下文协议 (MCP) 服务器时执行多步工作流的表现. 为公平比较, 我们在 500 项公开任务上重新评测所有模型, 并将单项任务的超时时间从 4 分钟延长至 10 分钟, 避免部署条件造成任务失败. MCP-Atlas 使用 Gemini 3 Pro 作为 judge 模型. Tool-Decathlon 也是工具使用基准, 但面向真实长程任务. Vending-Bench 2 衡量 LLM 在模拟环境中长期运营企业的智能体能力, 相比前代 Vending-Bench 引入了更多现实因素. GDPval 则关注 AI 智能体处理具有经济价值任务的表现.
 
 [表 7](#table-07) 显示, GLM-5 在智能体基准上相较 GLM-4.7 提升显著. 在 BrowseComp 上, 无论是否使用上下文管理, GLM-5 都在前沿 LLM 中达到当前最佳表现. 在 BrowseComp-ZH 上, GLM-5 也优于 Claude Opus 4.5 和 Gemini 3 Pro. 对 $\tau^{2}$-Bench, MCP-Atlas 和 Tool-Decathlon 三项工具使用智能体任务, GLM-5 的表现与 Claude Opus 4.5 相当, 体现出强大的工具使用能力. GLM-5 在 Vending-Bench 2 上获得 \$4,432, 进一步证明其处理长期企业任务的能力. 在经济场景中, GLM-5 在 GDPval-AA 上优于 Claude Opus 4.5, 仅次于 GPT-5.2 (xhigh).
 
