@@ -51,16 +51,16 @@ $$
 ただし、この素朴な線形注意は言語モデリングで Transformer に大きく劣る。そのため、過去の情報を忘却する減衰項を加えるのが一般的である。Mamba2 [Daoa24] を例に取ると、具体的なパラメータ化を除いて次の線形漸化式で表せる。
 
 $$
-{\mathbf{S}}_t={\color{#000099}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
+{\mathbf{S}}_t={\color{#ffd54f}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
 $$
 
-ここで ${\color{#000099}\alpha_t\in(0,1)}$ は $t$ に応じて変化する、データ依存のスカラー減衰項である。累積減衰積 ${\color{#000099}\gamma_j=\prod_{i=1}^j\alpha_i}$ を定義して漸化式を展開すると、ベクトル形式（左）と行列並列形式（右）が得られる。
+ここで ${\color{#ffd54f}\alpha_t\in(0,1)}$ は $t$ に応じて変化する、データ依存のスカラー減衰項である。累積減衰積 ${\color{#ffd54f}\gamma_j=\prod_{i=1}^j\alpha_i}$ を定義して漸化式を展開すると、ベクトル形式（左）と行列並列形式（右）が得られる。
 
 $$
-{\bm{o}}_t=\sum_{i=1}^t\left({\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color{#000099}\Gamma}\right){\mathbf{V}}
+{\bm{o}}_t=\sum_{i=1}^t\left({\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color{#ffd54f}\Gamma}\right){\mathbf{V}}
 $$
 
-${\color{#000099}\Gamma\in\mathbb{R}^{L\times L}}$ は減衰を考慮した因果マスクであり、$i\geq j$ のとき ${\color{#000099}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$、それ以外では ${\color{#000099}\Gamma_{ij}=0}$ である。この並列形式と再帰形式の等価性は、[Daoa24] では状態空間双対性（SSD）と呼ばれる。同様の再帰構造は Gated RFA [ICLRa21]、xLSTM [Beck24]、Gated RetNet [Sunb24] にも現れる。$\gamma_t$ がデータに依存しない場合は RetNet [Suna23] と Lightning-Attention [Lightn24] に帰着する。$\gamma_t$ をスカラーから行列へ拡張しても、外積構造でパラメータ化すれば効率的な訓練アルゴリズムを構成できる [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25]。
+${\color{#ffd54f}\Gamma\in\mathbb{R}^{L\times L}}$ は減衰を考慮した因果マスクであり、$i\geq j$ のとき ${\color{#ffd54f}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$、それ以外では ${\color{#ffd54f}\Gamma_{ij}=0}$ である。この並列形式と再帰形式の等価性は、[Daoa24] では状態空間双対性（SSD）と呼ばれる。同様の再帰構造は Gated RFA [ICLRa21]、xLSTM [Beck24]、Gated RetNet [Sunb24] にも現れる。$\gamma_t$ がデータに依存しない場合は RetNet [Suna23] と Lightning-Attention [Lightn24] に帰着する。$\gamma_t$ をスカラーから行列へ拡張しても、外積構造でパラメータ化すれば効率的な訓練アルゴリズムを構成できる [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25]。
 
 **チャンク単位の訓練。** 再帰形式と並列形式は、どちらも効率的な訓練には適していない [Huaa22, PMLRa24]。そこで、ハードウェア効率のよい線形時間訓練のためにチャンク並列形式 [Huaa22, Suna23] を用いる。入力と出力を長さ $C$ のチャンクに分け、各チャンクの出力を前チャンクの最終状態と現在チャンクのクエリ／キー／値ブロックから計算する。[Suna23, PMLRa24, NeurIP24] の記法に従い、クエリブロック ${\bm{q}}$ を例に取る。${\mathbf{Q}}_{[t]}:={\bm{q}}_{tC+1:(t+1)C+1}$ をチャンク $t$ のクエリブロック、${\bm{q}}_{[t]}^r:={\bm{q}}_{tC+r}$ をその $r$ 番目のクエリとする。初期状態は ${\mathbf{S}}_{[t]}:={\mathbf{S}}_{[t]}^0={\mathbf{S}}_{[t-1]}^C$ である。漸化式を部分的に展開すると、
 
@@ -79,28 +79,28 @@ $$
 <span id="equation-01"></span>
 
 $$
-{\mathbf{S}}_{[t+1]}={\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#000099}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#000099}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#000099}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+{\mathbf{S}}_{[t+1]}={\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#ffd54f}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#ffd54f}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#ffd54f}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 \tag{1}
 $$
 
-ここで ${\color{#000099}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$ である。[+1] 左矢印 ($\overleftarrow{\cdot}$) と右矢印 ($\overrightarrow{\cdot}$) は、それぞれ変数を各チャンクの先頭位置と末尾位置まで減衰させることを表す。
+ここで ${\color{#ffd54f}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$ である。[+1] 左矢印 ($\overleftarrow{\cdot}$) と右矢印 ($\overrightarrow{\cdot}$) は、それぞれ変数を各チャンクの先頭位置と末尾位置まで減衰させることを表す。
 
 <span id="equation-02"></span>
 
 $$
-{\color{#000099}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color{#000099}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
+{\color{#ffd54f}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color{#ffd54f}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
 $$
 
 $$
-{\color{#000099}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color{#000099}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
+{\color{#ffd54f}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color{#ffd54f}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
 $$
 
 $$
-{\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#000099}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
+{\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#ffd54f}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
 \tag{2}
 $$
 
-ほかの変数（例えば ${\color{#000099}\overrightarrow{\bm{v}}}$）も同様である。Mamba2 の SSD 分解アルゴリズムは、このチャンクアルゴリズムとほぼ等価である。[PMLRa24] はさらに、細粒度の減衰を組み込む一般化チャンクアルゴリズムを提案した。
+ほかの変数（例えば ${\color{#ffd54f}\overrightarrow{\bm{v}}}$）も同様である。Mamba2 の SSD 分解アルゴリズムは、このチャンクアルゴリズムとほぼ等価である。[PMLRa24] はさらに、細粒度の減衰を組み込む一般化チャンクアルゴリズムを提案した。
 
 ### 2.2 Delta Networks：Delta 則を用いた線形注意
 
@@ -180,11 +180,11 @@ $$
 <span id="equation-10"></span>
 
 $$
-{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#000099}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
+{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#ffd54f}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
 \tag{10}
 $$
 
-データ依存のゲーティング項 ${\color{#000099}\alpha_t}\in(0,1)$ が状態の減衰を制御する。この形式では、ゲーティング項がメモリを適応的に管理し、delta 更新構造がキー・バリュー対応を学習する。
+データ依存のゲーティング項 ${\color{#ffd54f}\alpha_t}\in(0,1)$ が状態の減衰を制御する。この形式では、ゲーティング項がメモリを適応的に管理し、delta 更新構造がキー・バリュー対応を学習する。
 
 [Liua24] のオンライン学習フレームワークからゲーテッド delta 則を解析する。この枠組みでは、再帰状態の更新はオンライン学習問題の*閉形式*解として得られる（[表 1](#table-01)）。近年の線形 RNN は、状態が以前の値から離れすぎないようオンライン学習目的に正則化項を加え、メモリを保持する。しかし状態が情報で飽和すると、複数の情報が重ねて符号化され、正確な検索が難しくなる。Mamba2 と Gated DeltaNet は適応的な係数 $\alpha_t$ で正則化を緩め、${\mathbf{S}}_t$ と ${\mathbf{S}}_{t-1}$ の差を制御する。選択的な忘却によってメモリを動的に管理し、無関係な情報を除去できる（[§ 3.2](#32-ケーススタディsingle-needle-in-a-haystack-s-niah)）。
 
@@ -225,32 +225,32 @@ delta 則とゲーテッド則の相補性を調べるため、RULER [Hsieh24] �
 本節では、Gated DeltaNet を訓練するためのハードウェア効率のよいチャンク単位アルゴリズムを導出する。[式 10](#equation-10) の漸化式を部分的に展開すると、
 
 $$
-{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color{#000099}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color{#000099}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
+{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color{#ffd54f}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color{#ffd54f}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
 $$
 
-を得る。${\mathbf{F}}_{[t]}^r={\color{#000099}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color{#000099}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$ であることは容易に分かる。${\mathbf{G}}_{[t]}^r$ については、[式 5](#equation-05) を次のように修正する。
+を得る。${\mathbf{F}}_{[t]}^r={\color{#ffd54f}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color{#ffd54f}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$ であることは容易に分かる。${\mathbf{G}}_{[t]}^r$ については、[式 5](#equation-05) を次のように修正する。
 
 $$
-{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color{#000099}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color{#000099}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
+{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color{#ffd54f}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color{#ffd54f}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
 $$
 
 (証明は[付録 A](#付録-a-gated-delta-則の拡張-wy-表現)を参照)。UT 変換により、行列形式は次のようになる。
 
 $$
-\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color{#000099}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color{#ffd54f}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 $$
 
 Mamba2 が線形注意を拡張した方法 ([式 1](#equation-01)) と同様に、DeltaNet のチャンク単位アルゴリズム ([式 8](#equation-08)-[9](#equation-09)) を次のように修正すれば、Gated DeltaNet をハードウェア効率よく訓練できる。
 
 $$
-{\mathbf{S}}_{[t+1]}={\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#000099}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color{#000099}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
+{\mathbf{S}}_{[t+1]}={\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#ffd54f}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color{#ffd54f}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
 $$
 
 $$
-{\mathbf{O}}_{[t]}={\color{#000099}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#000099}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
+{\mathbf{O}}_{[t]}={\color{#ffd54f}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#ffd54f}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
 $$
 
-ここで ${\color{#000099}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$、${\color{#000099}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$、${\color{#000099}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r$、${\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$ であり、[式 2](#equation-02) の定義と同じである。
+ここで ${\color{#ffd54f}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$、${\color{#ffd54f}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$、${\color{#ffd54f}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r$、${\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$ であり、[式 2](#equation-02) の定義と同じである。
 
 ### 3.4 Gated Delta Networks とハイブリッドモデル
 
@@ -341,7 +341,7 @@ $$
 ${\mathbf{S}}_t$ の拡張 WY 表現は
 
 $$
-{\mathbf{S}}_t=\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
+{\mathbf{S}}_t=\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
 $$
 
 である。これを数学的帰納法で証明する。
@@ -349,23 +349,23 @@ $$
 **証明。**
 
 $$
-{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color{#000099}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
+{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color{#ffd54f}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-={\color{#000099}\alpha_{t+1}}\left(\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color{#000099}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
+={\color{#ffd54f}\alpha_{t+1}}\left(\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color{#ffd54f}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
+=\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color{#000099}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
+=\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^{t+1}{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
+=\sum_{i=1}^{t+1}{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
 $$
 
 ∎

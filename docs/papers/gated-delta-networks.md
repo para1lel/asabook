@@ -52,16 +52,16 @@ $$
 这种基础线性注意力的语言建模性能远逊于 Transformer. 常见的改进办法是加入衰减项, 用来遗忘历史信息. 以 Mamba2 [Daoa24] 为例, 它可以表示为如下线性递推 (忽略具体参数化方式):
 
 $$
-{\mathbf{S}}_t={\color{#000099}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
+{\mathbf{S}}_t={\color{#ffd54f}\alpha_t}{\mathbf{S}}_{t-1}+{\bm{v}}_t{\bm{k}}_t^\top,\qquad {\bm{o}}_t={\mathbf{S}}_t{\bm{q}}_t
 $$
 
-其中 ${\color{#000099}\alpha_t\in(0,1)}$ 是随 $t$ 变化的数据相关标量衰减项. 定义累积衰减乘积 ${\color{#000099}\gamma_j=\prod_{i=1}^j\alpha_i}$, 展开递推后, 同样可以得到向量形式 (左) 和并行矩阵形式 (右):
+其中 ${\color{#ffd54f}\alpha_t\in(0,1)}$ 是随 $t$ 变化的数据相关标量衰减项. 定义累积衰减乘积 ${\color{#ffd54f}\gamma_j=\prod_{i=1}^j\alpha_i}$, 展开递推后, 同样可以得到向量形式 (左) 和并行矩阵形式 (右):
 
 $$
-{\bm{o}}_t=\sum_{i=1}^t\left({\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color{#000099}\Gamma}\right){\mathbf{V}}
+{\bm{o}}_t=\sum_{i=1}^t\left({\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{v}}_i{\bm{k}}_i^\top\right){\bm{q}}_t=\sum_{i=1}^t{\bm{v}}_i\left({\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{k}}_i^\top{\bm{q}}_t\right),\qquad {\mathbf{O}}=\left(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\color{#ffd54f}\Gamma}\right){\mathbf{V}}
 $$
 
-${\color{#000099}\Gamma\in\mathbb{R}^{L\times L}}$ 是考虑衰减的因果掩码. 当 $i\geq j$ 时, ${\color{#000099}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$; 否则 ${\color{#000099}\Gamma_{ij}=0}$. [Daoa24] 将这种并行形式与递推形式的等价关系称为状态空间对偶 (SSD). Gated RFA [ICLRa21], xLSTM [Beck24] 和 Gated RetNet [Sunb24] 也采用了同类递推结构. 当 $\gamma_t$ 与数据无关时, 该形式退化为 RetNet [Suna23] 和 Lightning-Attention [Lightn24]. 如果把 $\gamma_t$ 从标量扩展为矩阵, 只要用外积结构进行参数化, 仍可设计高效训练算法; [PMLRa24] 给出了这种方法, 后续工作也采用了它 [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25].
+${\color{#ffd54f}\Gamma\in\mathbb{R}^{L\times L}}$ 是考虑衰减的因果掩码. 当 $i\geq j$ 时, ${\color{#ffd54f}\Gamma_{ij}=\frac{\gamma_i}{\gamma_j}}$; 否则 ${\color{#ffd54f}\Gamma_{ij}=0}$. [Daoa24] 将这种并行形式与递推形式的等价关系称为状态空间对偶 (SSD). Gated RFA [ICLRa21], xLSTM [Beck24] 和 Gated RetNet [Sunb24] 也采用了同类递推结构. 当 $\gamma_t$ 与数据无关时, 该形式退化为 RetNet [Suna23] 和 Lightning-Attention [Lightn24]. 如果把 $\gamma_t$ 从标量扩展为矩阵, 只要用外积结构进行参数化, 仍可设计高效训练算法; [PMLRa24] 给出了这种方法, 后续工作也采用了它 [PMLRa24, Peng24, Qin24a, Gated24, Systee24, Reprea25, Refini25].
 
 **分块训练.** 递推形式和并行形式都不适合直接进行高效训练 [Huaa22, PMLRa24], 因此需要分块并行形式 [Huaa22, Suna23], 以线性时间完成硬件友好的训练. 它把输入和输出划分成若干个长度为 $C$ 的块, 每个块的输出由前一块的最终状态以及当前块的查询/键/值共同计算. 沿用 [Suna23, PMLRa24, NeurIP24] 的记号, 以查询块 ${\bm{q}}$ 为例: ${\mathbf{Q}}_{[t]}:={\bm{q}}_{tC+1:(t+1)C+1}$ 表示第 $t$ 块的查询, ${\bm{q}}_{[t]}^r:={\bm{q}}_{tC+r}$ 表示其中第 $r$ 个查询. 第 $t$ 块的初始状态定义为 ${\mathbf{S}}_{[t]}:={\mathbf{S}}_{[t]}^0={\mathbf{S}}_{[t-1]}^C$. 部分展开递推式可得
 
@@ -80,28 +80,28 @@ $$
 <span id="equation-01"></span>
 
 $$
-{\mathbf{S}}_{[t+1]}={\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#000099}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#000099}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#000099}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+{\mathbf{S}}_{[t+1]}={\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#ffd54f}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#ffd54f}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#ffd54f}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 \tag{1}
 $$
 
-其中 ${\color{#000099}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$. [+1] 下文用左箭头 ($\overleftarrow{\cdot}$) 和右箭头 ($\overrightarrow{\cdot}$) 分别表示变量衰减到每个块的首位置与末位置:
+其中 ${\color{#ffd54f}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$. [+1] 下文用左箭头 ($\overleftarrow{\cdot}$) 和右箭头 ($\overrightarrow{\cdot}$) 分别表示变量衰减到每个块的首位置与末位置:
 
 <span id="equation-02"></span>
 
 $$
-{\color{#000099}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color{#000099}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
+{\color{#ffd54f}\overleftarrow{{\bm{q}}_{[t]}^r}}={\color{#ffd54f}\gamma_{[t]}^r}{\bm{q}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ first\ position\ of\ chunk}\ t
 $$
 
 $$
-{\color{#000099}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color{#000099}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
+{\color{#ffd54f}\overrightarrow{{\bm{k}}_{[t]}^r}}={\color{#ffd54f}\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r\qquad\mathrm{decaying\ each\ vector\ to\ the\ last\ position\ of\ chunk}\ t
 $$
 
 $$
-{\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#000099}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
+{\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#ffd54f}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
 \tag{2}
 $$
 
-其他变量 (如 ${\color{#000099}\overrightarrow{\bm{v}}}$) 也作同样处理. Mamba2 的 SSD 分解算法与这一分块算法基本等价. [PMLRa24] 还提出了更一般的扩展分块算法, 可在线性注意力中加入细粒度衰减机制.
+其他变量 (如 ${\color{#ffd54f}\overrightarrow{\bm{v}}}$) 也作同样处理. Mamba2 的 SSD 分解算法与这一分块算法基本等价. [PMLRa24] 还提出了更一般的扩展分块算法, 可在线性注意力中加入细粒度衰减机制.
 
 ### 2.2 Delta 网络: 使用 Delta 规则的线性注意力
 
@@ -181,11 +181,11 @@ $$
 <span id="equation-10"></span>
 
 $$
-{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#000099}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
+{\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#ffd54f}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
 \tag{10}
 $$
 
-数据相关门控项 ${\color{#000099}\alpha_t}\in(0,1)$ 控制状态衰减. 这一形式兼具门控机制和 delta 规则的特点: 门控项负责自适应管理记忆, delta 更新结构则负责学习键值关联.
+数据相关门控项 ${\color{#ffd54f}\alpha_t}\in(0,1)$ 控制状态衰减. 这一形式兼具门控机制和 delta 规则的特点: 门控项负责自适应管理记忆, delta 更新结构则负责学习键值关联.
 
 我们用 [Liua24] 提出的在线学习框架分析门控 delta 规则. 在该框架中, 递归状态更新是在线学习问题的*闭式*解, 见[表 1](#table-01). 近期线性 RNN 通常会在在线学习目标中加入正则项, 防止状态偏离先前值, 从而保留记忆. 但状态被信息填满后, 这种保留机制会成为负担: 每个状态都必须编码多条信息的叠加, 精确检索随之变得困难. Mamba2 和 Gated DeltaNet 为此引入自适应缩放因子 $\alpha_t$, 放松正则项对 ${\mathbf{S}}_t$ 与 ${\mathbf{S}}_{t-1}$ 的约束. 模型因而可以选择性遗忘, 动态管理记忆, 也能滤掉无关信息 (见[§ 3.2](#32-个案研究single-needle-in-a-haystack-s-niah)).
 
@@ -226,32 +226,32 @@ $$
 本节推导用于训练 Gated DeltaNet 的硬件高效分块算法. 部分展开[式 10](#equation-10) 的递推可得
 
 $$
-{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color{#000099}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color{#000099}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
+{\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\color{#ffd54f}\alpha_{[t]}^i}\left({\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)\right)}_{:={\mathbf{F}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r{\color{#ffd54f}\alpha_{[t]}^j}\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{G}}_{[t]}^r}
 $$
 
-容易看出 ${\mathbf{F}}_{[t]}^r={\color{#000099}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color{#000099}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$. 对于 ${\mathbf{G}}_{[t]}^r$, 我们把[式 5](#equation-05) 改写为
+容易看出 ${\mathbf{F}}_{[t]}^r={\color{#ffd54f}\gamma_{[t]}^r}{\mathbf{P}}_{[t]}^r={\color{#ffd54f}\overleftarrow{{\mathbf{P}}_{[t]}^r}}$. 对于 ${\mathbf{G}}_{[t]}^r$, 我们把[式 5](#equation-05) 改写为
 
 $$
-{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color{#000099}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color{#000099}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
+{\mathbf{G}}_{[t]}^r=\sum_{i=1}^r{\color{#ffd54f}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}\widetilde{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad \widetilde{\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}\widetilde{\bm{u}}_{[t]}^i\left({\color{#ffd54f}\frac{\gamma_{[t]}^r}{\gamma_{[t]}^i}}{\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
 $$
 
 (证明见[附录 A](#附录-a-门控-delta-规则的扩展-wy-表示)). 经过 UT 变换, 得到矩阵形式:
 
 $$
-\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color{#000099}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
+\widetilde{\mathbf{U}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]})\left({\color{#ffd54f}\Gamma_{[t]}}\odot{\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right)\right]^{-1}\mathrm{diag}(\beta_{[t]}){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
 $$
 
 与 Mamba2 扩展线性注意力的做法 ([式 1](#equation-01)) 相似, 我们把 DeltaNet 的分块算法 ([式 8](#equation-08)-[9](#equation-09)) 改成下式, 使 Gated DeltaNet 可以高效训练:
 
 $$
-{\mathbf{S}}_{[t+1]}={\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#000099}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color{#000099}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
+{\mathbf{S}}_{[t+1]}={\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}+\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#ffd54f}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)^\top{\color{#ffd54f}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k}
 $$
 
 $$
-{\mathbf{O}}_{[t]}={\color{#000099}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#000099}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
+{\mathbf{O}}_{[t]}={\color{#ffd54f}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left(\widetilde{\mathbf{U}}_{[t]}-{\color{#ffd54f}\overleftarrow{{\mathbf{W}}_{[t]}}}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
 $$
 
-其中 ${\color{#000099}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$, ${\color{#000099}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$, ${\color{#000099}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r$, 以及 ${\color{#000099}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$; 这些定义与[式 2](#equation-02) 相同.
+其中 ${\color{#ffd54f}\overleftarrow{{\bm{q}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{q}}_{[t]}^r$, ${\color{#ffd54f}\overleftarrow{{\bm{w}}_{[t]}^r}=\gamma_{[t]}^r}{\bm{w}}_{[t]}^r$, ${\color{#ffd54f}\overrightarrow{{\bm{k}}_{[t]}^r}=\frac{\gamma_{[t]}^C}{\gamma_{[t]}^r}}{\bm{k}}_{[t]}^r$, 以及 ${\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}=\gamma_{[t]}^C}{\mathbf{S}}_{[t]}$; 这些定义与[式 2](#equation-02) 相同.
 
 ### 3.4 门控 Delta 网络与混合模型
 
@@ -342,7 +342,7 @@ delta 规则也有理论局限 [Bali23], 在真实数据集上的性能较为一
 ${\mathbf{S}}_t$ 的扩展 WY 表示为
 
 $$
-{\mathbf{S}}_t=\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
+{\mathbf{S}}_t=\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top,\qquad {\bm{u}}_t=\beta_t\left({\bm{v}}_t-\sum_{i=1}^{t-1}{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_t\right)
 $$
 
 下面用数学归纳法证明.
@@ -350,23 +350,23 @@ $$
 **证明.**
 
 $$
-{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color{#000099}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
+{\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color{#ffd54f}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-={\color{#000099}\alpha_{t+1}}\left(\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color{#000099}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color{#000099}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
+={\color{#ffd54f}\alpha_{t+1}}\left(\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top\right)-{\color{#ffd54f}\alpha_{t+1}}\beta_{t+1}\left(\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_t}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_i{\bm{k}}_{t+1}^\top\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
+=\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{\beta_{t+1}\left({\bm{v}}_{t+1}-\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top{\bm{k}}_{t+1}\right)}_{{\bm{u}}_{t+1}}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^t{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color{#000099}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
+=\sum_{i=1}^t{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top+\underbrace{{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_{t+1}}}}_{1}{\bm{u}}_{t+1}{\bm{k}}_{t+1}^\top
 $$
 
 $$
-=\sum_{i=1}^{t+1}{\color{#000099}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
+=\sum_{i=1}^{t+1}{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
 $$
 
 ∎

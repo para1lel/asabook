@@ -199,6 +199,18 @@ pre * {
   overscroll-behavior-inline: contain;
 }
 
+.paper-reading {
+  --paper-formula-accent: #8a6a00;
+}
+
+[data-theme="dark"] .paper-reading {
+  --paper-formula-accent: #ffd54f;
+}
+
+.paper-reading .katex-html [style*="color:#ffd54f"] {
+  color: var(--paper-formula-accent) !important;
+}
+
 @media (max-width: 719px) {
   .tilesight-paper .katex-display {
     font-size: 0.7em;
