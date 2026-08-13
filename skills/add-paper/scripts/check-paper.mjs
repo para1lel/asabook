@@ -209,6 +209,86 @@ function validateRunInParagraphHeadings(markdown, label) {
   }
 }
 
+const formalStatementKinds = new Map([
+  ['Definition', 'definition'],
+  ['定义', 'definition'],
+  ['定義', 'definition'],
+  ['Lemma', 'lemma'],
+  ['引理', 'lemma'],
+  ['補題', 'lemma'],
+  ['Proposition', 'proposition'],
+  ['命题', 'proposition'],
+  ['命題', 'proposition'],
+  ['Corollary', 'corollary'],
+  ['推论', 'corollary'],
+  ['系', 'corollary'],
+  ['Theorem', 'theorem'],
+  ['定理', 'theorem'],
+  ['Claim', 'claim'],
+  ['断言', 'claim'],
+  ['主張', 'claim'],
+])
+const formalStatementNames = [...formalStatementKinds.keys()].join('|')
+const formalStatementNumber = '(?:[A-Z]\\.)?\\d+(?:\\.\\d+)*'
+const formalStatementHeading = new RegExp(`^#{1,6}\\s+(?:${formalStatementNames})\\s+${formalStatementNumber}`, 'u')
+const formalStatementRunIn = new RegExp(`^\\*\\*(${formalStatementNames})\\s+(${formalStatementNumber})([.。:：]?)\\*\\*(.*)$`, 'u')
+const unboldedFormalStatement = new RegExp(`^(?:${formalStatementNames})\\s+${formalStatementNumber}[.。:：]`, 'u')
+const standaloneProofLabel = /^(?:#{1,6}\s+)?(?:\*\*|__|\*|_)?(?:Proof|证明|証明)[.。:：]?(?:\*\*|__|\*|_)?\s*$/u
+const proofRunInPrefix = /^(?:\*\*|__|\*|_)?(?:Proof|证明|証明)[.。:：](?:\*\*|__|\*|_)?\s+\S/u
+
+function validateFormalStatementsAndProofs(markdown, locale, label) {
+  const lines = markdown.split(/\r?\n/)
+  const statements = []
+  const expectedProofTitle = { en: 'Proof', zh: '证明', ja: '証明' }[locale]
+  let proofCount = 0
+  let fenceMarker = null
+
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    if (formalStatementHeading.test(line)) {
+      fail(`${label}: formal statement at line ${index + 1} must use a bold run-in label, not a heading`)
+    }
+    if (unboldedFormalStatement.test(line)) {
+      fail(`${label}: formal statement label at line ${index + 1} must be bold`)
+    }
+
+    const statement = line.match(formalStatementRunIn)
+    if (statement) {
+      if (!statement[4].startsWith(' ') || statement[4].trim() === '') {
+        fail(`${label}: formal statement label at line ${index + 1} must share its Markdown line with the statement`)
+      }
+      statements.push(`${formalStatementKinds.get(statement[1])}:${statement[2]}`)
+    }
+
+    if (standaloneProofLabel.test(line) || proofRunInPrefix.test(line)) {
+      fail(`${label}: standalone proof label at line ${index + 1}; use a localized details container`)
+    }
+
+    const proofContainer = line.match(/^:{3,}\s+details(?:\s+(.*?))?\s*$/u)
+    const proofTitle = proofContainer?.[1]?.trim() ?? ''
+    if (proofContainer && /^(?:Proof|证明|証明)(?:[.。:：]|\s|$)/iu.test(proofTitle)) {
+      proofCount += 1
+      if (proofTitle !== expectedProofTitle) {
+        fail(`${label}: proof container at line ${index + 1} must use the localized summary '${expectedProofTitle}'`)
+      }
+    }
+
+    if (/(?:[∎□]|\$?\\square\$?)\s*[.。]?\s*$/u.test(line)) {
+      fail(`${label}: terminal QED mark at line ${index + 1}; the proof container supplies the boundary`)
+    }
+  }
+
+  return { statements, proofCount }
+}
+
 function validateNoTypesetTables(markdown, label) {
   const lines = markdown.split(/\r?\n/)
   let fenceMarker = null
@@ -464,6 +544,7 @@ for (const page of pages) {
   }
   validateFencedCodeIndentation(markdown, label)
   validateRunInParagraphHeadings(markdown, label)
+  const formalContent = validateFormalStatementsAndProofs(markdown, page.locale, label)
   validateNoTypesetTables(markdown, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {
@@ -481,6 +562,8 @@ for (const page of pages) {
     headings: numberedHeadings(markdown),
     tags: equationTags(markdown),
     figureTableCaptions,
+    formalStatements: formalContent.statements,
+    proofCount: formalContent.proofCount,
   })
 }
 
@@ -490,10 +573,13 @@ if (pageData.length === pages.length) {
     if (page.frontmatter.title !== base.frontmatter.title) {
       fail(`${page.label}: title differs from ${base.label}`)
     }
-    for (const field of ['headings', 'tags', 'images', 'figureTableCaptions']) {
+    for (const field of ['headings', 'tags', 'images', 'figureTableCaptions', 'formalStatements']) {
       if (JSON.stringify(page[field]) !== JSON.stringify(base[field])) {
         fail(`${page.label}: ${field} sequence differs from ${base.label}`)
       }
+    }
+    if (page.proofCount !== base.proofCount) {
+      fail(`${page.label}: proof-container count differs from ${base.label}`)
     }
     const baseCitations = [...base.citations].sort()
     const localizedCitations = [...page.citations].sort()

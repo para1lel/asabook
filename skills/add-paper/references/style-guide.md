@@ -7,6 +7,7 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - [Page Structure](#page-structure)
 - [Citations and Abbreviations](#citations-and-abbreviations)
 - [Content Annotations](#content-annotations)
+- [Formal Statements and Proofs](#formal-statements-and-proofs)
 - [Hyphens and Dashes](#hyphens-and-dashes)
 - [Math](#math)
 - [Algorithms](#algorithms)
@@ -43,6 +44,41 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - Define its content separately as `[+label]: content`. Indent continuation lines by two spaces.
 - Use the same stable labels in English, Chinese, and Japanese, and preserve every link and detail from the source footnote.
 - Confirm `markdown.annotation` is enabled and verify the built page renders each marker as an interactive annotation.
+
+## Formal Statements and Proofs
+
+- Match the published paper's run-in treatment of numbered definitions, lemmas, propositions, corollaries, theorems, and claims. Bold only the localized label and number, then begin the statement after exactly one space on the same Markdown line.
+- Use `**Theorem 3.8.** Statement...`, `**定理 3.8.** 陈述...`, and `**定理 3.8。** 文...`. Do not use Markdown headings, an isolated bold-only line, or a blank line between the label and statement.
+- Keep the label and first clause together even when the statement continues across several visual lines. Use `<br>` for intentional line breaks within that paragraph instead of Markdown trailing spaces. Do not put the label alone above `$$...$$`.
+- Preserve stable anchors for linked statements, but place the anchor in its own line immediately before the run-in paragraph; the anchor does not change the visual run-in requirement.
+- Convert each source proof environment or standalone proof passage to a default-closed Plume details container. Localize only the summary label: `Proof` in English, `证明` in Simplified Chinese, and `証明` in Japanese.
+- Put the entire proof inside one container, including multiple paragraphs and display equations. Do not add an `open` option or equivalent default-expanded state.
+- Omit the original visible proof prefix and terminal QED marker. Do not retain `Proof.`, `证明.`, `証明。`, `∎`, `□`, or `\square` inside or around the container.
+- Leave ordinary prose that cites, summarizes, or sketches a proof outside a container unless the source presents it as an independent proof passage.
+
+English example:
+
+```markdown
+<span id="theorem-03-08"></span>
+
+**Theorem 3.8.** The expected improvement factor is $f(\alpha,\gamma,c)$.
+
+::: details Proof
+Let the cost of one target-model step be $T$. The result follows by dividing the total cost by the expected number of generated tokens.
+:::
+```
+
+Localized summaries use the same body structure:
+
+```markdown
+::: details 证明
+证明正文.
+:::
+
+::: details 証明
+証明本文。
+:::
+```
 
 ## Hyphens and Dashes
 
@@ -148,6 +184,8 @@ Example:
 - Compare the English page against the TeX source and PDF sentence by sentence for exact wording and complete coverage.
 - Compare each Chinese and Japanese sentence against the same source for additions, omissions, and semantic drift.
 - Confirm every run-in paragraph heading remains bold at the start of its paragraph and that no blank line splits it from the following prose.
+- Compare the canonical kind-and-number sequence of every formal statement across all three languages. Confirm every label is bold and shares its paragraph with the statement.
+- Compare proof-container counts across all three languages. Confirm the summaries are `Proof`, `证明`, and `証明`, every proof is closed by default, and no visible proof prefix or terminal QED mark remains.
 - Compare equation tags, citation-token sets, image basenames, and algorithm step counts.
 - Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
 - Confirm no standalone reference-list or empty generic appendix heading remains.

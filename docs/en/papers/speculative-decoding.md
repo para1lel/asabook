@@ -303,6 +303,7 @@ We would like to extend a special thank you to YaGuang Li for help with everythi
 
 <span id="section-a-01"></span>
 
+::: details Proof
 We will now show that for any distributions $p(x)$ and $q(x)$, the tokens sampled via *speculative sampling* from $p(x)$ and $q(x)$ are distributed identically to those sampled from $p(x)$ alone. Let $\beta$ be the acceptance probability ([Definition 3.1](#definition-03-01)).
 
 Note that as $p^{\prime}(x)=\mathrm{norm}(\max(0,p(x)-q(x)))=\frac{p(x)-\min(q(x),p(x))}{\sum_{x^{\prime}}(p(x^{\prime})-\min(q(x^{\prime}),p(x^{\prime})))}=\frac{p(x)-\min(q(x),p(x))}{1-\beta}$, the normalizing constant for the adjusted distribution $p^{\prime}(x)$ is $1-\beta$, where the last equation follows immediately from [Lemma 3.3](#lemma-03-03) and [Theorem 3.5](#theorem-03-05).
@@ -331,7 +332,8 @@ $$
 P(x=x^{\prime})=\min(p(x^{\prime}),q(x^{\prime}))+p(x^{\prime})-\min(p(x^{\prime}),q(x^{\prime}))=p(x^{\prime}).
 $$
 
-As desired. $\square$
+As desired.
+:::
 
 ### A.2 Speculative Sampling vs. Rejection Sampling
 

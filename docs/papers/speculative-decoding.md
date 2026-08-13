@@ -303,6 +303,7 @@ T5-XXL (11B 参数) 的模型设置见[第 4.1 节](#section-04-01).
 
 <span id="section-a-01"></span>
 
+::: details 证明
 下面证明: 对任意分布 $p(x)$ 和 $q(x)$, 通过*推测采样*从 $p(x)$ 和 $q(x)$ 得到的词元, 与只从 $p(x)$ 采样的词元具有相同的分布. 令 $\beta$ 为接受概率 (见[定义 3.1](#definition-03-01)).
 
 注意, $p^{\prime}(x)=\mathrm{norm}(\max(0,p(x)-q(x)))=\frac{p(x)-\min(q(x),p(x))}{\sum_{x^{\prime}}(p(x^{\prime})-\min(q(x^{\prime}),p(x^{\prime})))}=\frac{p(x)-\min(q(x),p(x))}{1-\beta}$. 因此, 调整后分布 $p^{\prime}(x)$ 的归一化常数为 $1-\beta$, 最后一个等式直接由[引理 3.3](#lemma-03-03) 和[定理 3.5](#theorem-03-05) 得出.
@@ -331,7 +332,8 @@ $$
 P(x=x^{\prime})=\min(p(x^{\prime}),q(x^{\prime}))+p(x^{\prime})-\min(p(x^{\prime}),q(x^{\prime}))=p(x^{\prime}).
 $$
 
-即为所求. $\square$
+即为所求.
+:::
 
 ### A.2 推测采样与拒绝采样
 

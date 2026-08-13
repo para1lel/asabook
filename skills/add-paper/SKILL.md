@@ -1,6 +1,6 @@
 ---
 name: add-paper
-description: Add or revise an arXiv paper in the ASa Book papers collection as English, Simplified Chinese, and Japanese pages. Use when Codex needs to add, typeset, translate, localize, synchronize, validate, revise, or commit a paper from an arXiv identifier or URL; preserve the English source, write natural localized technical Chinese and Japanese without semantic drift, use concise titles and Plume content annotations, omit standalone reference lists, preserve shared figures and inline citations, crop every table directly from the published PDF instead of typesetting it, link every figure and table reference to a stable anchor, validate the production build, and commit all current repository changes together.
+description: Add or revise an arXiv paper in the ASa Book papers collection as English, Simplified Chinese, and Japanese pages. Use when Codex needs to add, typeset, translate, localize, synchronize, validate, revise, or commit a paper from an arXiv identifier or URL; preserve the English source, write natural localized technical Chinese and Japanese without semantic drift, use concise titles and Plume content annotations, format theorem-like statements as bold run-ins and standalone proofs as collapsed details containers, omit standalone reference lists, preserve shared figures and inline citations, crop every table directly from the published PDF instead of typesetting it, link every figure and table reference to a stable anchor, validate the production build, and commit all current repository changes together.
 ---
 
 # Add an arXiv Paper
@@ -65,6 +65,15 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 2. Keep exactly one space between the closing bold marker and the paragraph text. Never insert a blank line or line break between them, because that changes the run-in heading into a standalone block.
 3. Preserve the source heading's wording and punctuation in English and translate it faithfully in Chinese and Japanese. Do not apply this rule to section headings, figure or table captions, algorithm titles, or labels that introduce a list, table, code block, or display equation.
 
+## Format Formal Statements and Proofs
+
+1. Render every numbered definition, lemma, proposition, corollary, theorem, and claim as a bold run-in label followed immediately by its statement on the same Markdown line, for example `**Theorem 3.8.** The expected improvement factor is ...`. Never render the label as a heading or isolated paragraph.
+2. Keep a multi-line statement in the same paragraph. Put its first clause after the bold label and use `<br>` for deliberate continuation lines; do not add trailing spaces or move the label above a display block.
+3. Wrap every source proof environment or otherwise standalone proof passage in a default-closed Plume details container. Use `Proof`, `证明`, and `証明` as the English, Simplified Chinese, and Japanese summary labels.
+4. Put the complete proof, including all paragraphs and display equations, inside one container. Keep anchors outside the container when other content links to the statement.
+5. Remove the source's visible `Proof.` label and terminal QED mark, including `∎`, `□`, and `\square`; the container summary supplies the label and boundary. Do not wrap a sentence that merely refers to a proof or sketches an argument as part of ordinary prose.
+6. Follow the exact syntax and examples in [references/style-guide.md](references/style-guide.md), and keep the formal-statement sequence and proof-container count aligned across all three languages.
+
 ## Format Algorithm Descriptions
 
 1. Render math-heavy algorithms as compact unordered Markdown lists beginning with `-`. Put the algorithm title in bold above the list.
@@ -124,11 +133,11 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 3. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
 4. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
-5. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, run-in paragraph headings split into standalone bold lines, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
+5. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, run-in paragraph headings split into standalone bold lines, theorem-like labels rendered as headings or isolated paragraphs, standalone proofs left outside localized details containers, terminal QED marks, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
 6. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
 7. Run `git diff --check`.
 8. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.
-9. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, or navigation changed. Confirm that equations render, tags remain visible, annotations open correctly, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, and citation abbreviations show their explanations.
+9. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, formal statements, proof containers, or navigation changed. Confirm that equations render, tags remain visible, annotations open correctly, theorem-like labels are bold and share a paragraph with their statements, proof details are closed by default and open correctly without horizontal overflow, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, and citation abbreviations show their explanations.
 10. Stop every development or preview server started for validation.
 
 ## Commit the Repository State

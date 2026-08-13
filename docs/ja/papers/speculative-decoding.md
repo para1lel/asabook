@@ -303,6 +303,7 @@ LaMDA に関するあらゆる支援と、論文中の LaMDA 図の計算を手�
 
 <span id="section-a-01"></span>
 
+::: details 証明
 任意の分布 $p(x)$ と $q(x)$ に対し、 $p(x)$ と $q(x)$ から *speculative sampling* によりサンプリングされたトークンが、 $p(x)$ 単独からサンプリングしたトークンと同一に分布することを示す。 $\beta$ を acceptance probability とする（[定義 3.1](#definition-03-01)）。
 
 $p^{\prime}(x)=\mathrm{norm}(\max(0,p(x)-q(x)))=\frac{p(x)-\min(q(x),p(x))}{\sum_{x^{\prime}}(p(x^{\prime})-\min(q(x^{\prime}),p(x^{\prime})))}=\frac{p(x)-\min(q(x),p(x))}{1-\beta}$ であることに注意する。調整済み分布 $p^{\prime}(x)$ の正規化定数は $1-\beta$ であり、最後の等式は [補題 3.3](#lemma-03-03) と [定理 3.5](#theorem-03-05) から直ちに従う。
@@ -331,7 +332,8 @@ $$
 P(x=x^{\prime})=\min(p(x^{\prime}),q(x^{\prime}))+p(x^{\prime})-\min(p(x^{\prime}),q(x^{\prime}))=p(x^{\prime}).
 $$
 
-以上で示された。 $\square$
+以上で示された。
+:::
 
 ### A.2 Speculative Sampling と Rejection Sampling
 
