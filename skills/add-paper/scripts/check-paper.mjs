@@ -65,6 +65,7 @@ function plainMathWords(expression) {
   const shortWords = new Set(['and', 'arg', 'cos', 'exp', 'for', 'if', 'in', 'log', 'not', 'of', 'or', 'out', 'sin', 'tan', 'to'])
   const stripped = expression
     .replace(/\\mathrm\{[^{}]*\}/g, ' ')
+    .replace(/\\mathit\{[^{}]*\}/g, ' ')
     .replace(/\\(?:begin|end)\{[^{}]*\}/g, ' ')
     .replace(/\\texttt\{[^{}]*\}/g, ' ')
     .replace(/\\[A-Za-z]+/g, ' ')
@@ -533,7 +534,7 @@ for (const page of pages) {
     }
     const words = plainMathWords(expression)
     if (words.length > 0) {
-      warn(`${label}: math expression ${index + 1} may contain multi-letter word(s) outside \\mathrm{}: ${words.join(', ')}`)
+      warn(`${label}: review ambiguous multi-letter math sequence(s): ${words.join(', ')}; use \\mathrm{} only for text, units, labels, or abbreviations, and preserve adjacent variables such as RD or thm`)
     }
   })
 

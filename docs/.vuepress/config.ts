@@ -420,6 +420,8 @@ const paperAbbreviations = {
   'Xia24a': 'Guangxuan Xiao et al. "Efficient Streaming Language Models with Attention Sinks." The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024. 2024. [Link](https://openreview.net/forum?id=NG7sS51zVF)',
   'Ope25c': 'OpenAI. "gpt-oss-120b & gpt-oss-20b Model Card." CoRR. 2025. [Link](https://doi.org/10.48550/ARXIV.2508.10925)',
   'Ain23': 'Ainslie, Joshua et al. "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints." arXiv preprint arXiv:2305.13245. 2023.',
+  'Dee23': 'Microsoft. "DeepSpeed Model Implementations for Inference (MII)." 2023. [Link](https://github.com/microsoft/DeepSpeed-MII)',
+  'Liu24l': 'Hao Liu, Wilson Yan, Matei Zaharia, and Pieter Abbeel. "World Model on Million-Length Video and Language with RingAttention." 2024. [Link](https://arxiv.org/abs/2402.08268)',
   'Los17': 'Loshchilov, Ilya et al. "Decoupled weight decay regularization." arXiv preprint arXiv:1711.05101. 2017.',
   'Nes83': 'Nesterov, Yurii. "A method of solving a convex programming problem with convergence rate O(1 / k^2)." Soviet Mathematics Doklady. 1983.',
   'Zha25e': 'Shulai Zhang et al. "Comet: Fine-grained Computation-communication Overlapping for Mixture-of-Experts." 2025. [Link](https://arxiv.org/abs/2502.19811)',
