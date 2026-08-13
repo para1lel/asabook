@@ -131,7 +131,7 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
    npm run paper:check-screenshots -- <slug>
    ```
 
-3. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically.
+3. Resolve every error. Review warnings against the TeX source and PDF rather than suppressing them mechanically. Multi-letter mathematical identifiers such as `a_{ij}` are warnings, not errors, unless they are clearly prose words or abbreviations that should use `\mathrm{}`.
 4. Compare the English page with the TeX source and PDF section by section and sentence by sentence. Confirm complete coverage and exact wording before comparing every Chinese and Japanese sentence with the same source for omissions, additions, weakened or strengthened claims, and changed logical relationships.
 5. Search all three pages for malformed math, missing citation definitions, stale source paths, pseudocode fences used for math-heavy algorithms, code-block indentation that does not use two-space levels, run-in paragraph headings split into standalone bold lines, theorem-like labels rendered as headings or isolated paragraphs, standalone proofs left outside localized details containers, terminal QED marks, inconsistent captions, unlinked or misdirected figure and table references, missing figure and table anchors, Markdown footnotes, standalone reference headings, empty generic appendix headings, consecutive ASCII hyphens in rendered article content, and legacy matrix transpose notation `^{T}`.
 6. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.

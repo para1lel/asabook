@@ -533,7 +533,7 @@ for (const page of pages) {
     }
     const words = plainMathWords(expression)
     if (words.length > 0) {
-      fail(`${label}: math expression ${index + 1} has multi-letter word(s) outside \\mathrm{}: ${words.join(', ')}`)
+      warn(`${label}: math expression ${index + 1} may contain multi-letter word(s) outside \\mathrm{}: ${words.join(', ')}`)
     }
   })
 

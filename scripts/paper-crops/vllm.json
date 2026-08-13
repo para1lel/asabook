@@ -2,12 +2,11 @@
   {
     "name": "figure-01",
     "page": 1,
-    "x": 427,
+    "x": 315,
     "y": 175,
-    "width": 124.5,
+    "width": 240,
     "height": 139.5,
-    "matchScore": 0.868,
-    "preserveSource": true
+    "preserveSource": false
   },
   {
     "name": "figure-02",

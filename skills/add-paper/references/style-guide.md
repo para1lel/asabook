@@ -93,7 +93,7 @@ Localized summaries use the same body structure:
 - Use `$...$` for inline math and `$$...$$` for display math. Keep `\tag{N}` inside the same display-math delimiters as its equation.
 - Write every matrix transpose as `^\top`, never `^{T}`.
 - Verify every numbered display equation in the built page. A literal `\tag{N}` in prose or outside math is invalid.
-- Put every multi-letter word or abbreviation inside `\mathrm{}` in every formula, including subscripts and superscripts. Examples: `X_{\mathrm{FP}32}`, `X^{\mathrm{unscaled}}`, `\mathrm{round}(x)`, and `\mathrm{LZD}(b)`.
+- Put prose words and abbreviations inside `\mathrm{}` in formulas, including textual subscripts and superscripts. Do not romanize multi-index variable names such as `a_{ij}`, `A_{ij}`, or `jB`; these are mathematical symbols, not words. The checker reports possible unwrapped words as warnings for review rather than hard failures. Examples: `X_{\mathrm{FP}32}`, `X^{\mathrm{unscaled}}`, `\mathrm{round}(x)`, and `\mathrm{LZD}(b)`.
 - Leave single-letter mathematical variables such as `x`, `m`, `W`, and `R` unwrapped.
 - Use semantic built-in operators where available. In particular, use `\min` and `\max`, never raw `min`/`max`, `\mathrm{min}`, or `\mathrm{max}`.
 - Use `\|x\|` for every norm. Never write `||x||`, `\Vert x\Vert`, or `\lVert x\rVert`.
