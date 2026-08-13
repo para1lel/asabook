@@ -84,9 +84,7 @@ Transformer 等大型自回归模型的推理很慢: 解码 $K$ 个词元需要�
 
 <span id="definition-03-01"></span>
 
-###### 定义 3.1.
-
-给定前缀 $x_{<t}$, *接受率 $\beta_{x_{<t}}$* 是按[第 2.3 节](#section-02-03) 的推测采样方法接受 $x_{t}\sim q(x_{t}|x_{<t})$ 的概率 [+2].
+**定义 3.1.** 给定前缀 $x_{<t}$, *接受率 $\beta_{x_{<t}}$* 是按[第 2.3 节](#section-02-03) 的推测采样方法接受 $x_{t}\sim q(x_{t}|x_{<t})$ 的概率 [+2].
 
 $E(\beta)$ 可以自然地衡量 $M_{q}$ 对 $M_{p}$ 的近似程度. 若作简化假设, 认为各个 $\beta$ 独立同分布, 并记 $\alpha=E(\beta)$, 则单次运行[算法 1](#algorithm-01) 生成的词元数服从有上限的几何分布: 成功概率为 $1-\alpha$, 上限为 $\gamma+1$. [算法 1](#algorithm-01) 生成的期望词元数满足[式 (1)](#equation-01), 见[图 2](#figure-02).
 
@@ -106,40 +104,27 @@ $$
 
 下面推导一个简单公式, 用前缀和两个模型 $M_{p}$, $M_{q}$ 计算 $\alpha$. 首先定义一种自然的散度 $D_{\mathrm{LK}}$:
 
-###### 定义 3.2.
-
-$D_{\mathrm{LK}}(p,q)=\sum_{x}|p(x)-M(x)|=\sum_{x}|q(x)-M(x)|$, 其中 $M(x)=\frac{p(x)+q(x)}{2}$.
+**定义 3.2.** $D_{\mathrm{LK}}(p,q)=\sum_{x}|p(x)-M(x)|=\sum_{x}|q(x)-M(x)|$, 其中 $M(x)=\frac{p(x)+q(x)}{2}$.
 
 <span id="lemma-03-03"></span>
 
-###### 引理 3.3.
+**引理 3.3.** $D_{\mathrm{LK}}(p,q)=1-\sum_{x}\min(p(x),q(x))$
 
-$D_{\mathrm{LK}}(p,q)=1-\sum_{x}\min(p(x),q(x))$
-
-###### 证明.
-
-$D_{\mathrm{LK}}(p,q)=\sum_{x}|p(x)-M(x)|=\sum_{x}\frac{|p-q|}{2}=1-\sum_{x}\frac{p+q-|p-q|}{2}=1-\sum_{x}\min(p(x),q(x))$ ∎
+::: details 证明
+$D_{\mathrm{LK}}(p,q)=\sum_{x}|p(x)-M(x)|=\sum_{x}\frac{|p-q|}{2}=1-\sum_{x}\frac{p+q-|p-q|}{2}=1-\sum_{x}\min(p(x),q(x))$
+:::
 
 由[引理 3.3](#lemma-03-03) 立即可得:
 
-###### 推论 3.4.
-
-$$
-\begin{aligned}
-D_{\mathrm{LK}}(p,q)&\text{ 是 }[0,1]\text{ 上的对称散度}.\\
-D_{\mathrm{LK}}(p,q)=0&\iff p=q.\\
-D_{\mathrm{LK}}(p,q)=1&\iff p\text{ 与 }q\text{ 的支撑集不相交}.
-\end{aligned}
-$$
+**推论 3.4.** $D_{\mathrm{LK}}(p,q)$ 是 $[0,1]$ 上的对称散度.<br>
+$D_{\mathrm{LK}}(p,q)=0\iff p=q$.<br>
+$D_{\mathrm{LK}}(p,q)=1\iff p$ 与 $q$ 的支撑集不相交.
 
 <span id="theorem-03-05"></span>
 
-###### 定理 3.5.
+**定理 3.5.** $\beta=1-D_{\mathrm{LK}}(p,q)$
 
-$\beta=1-D_{\mathrm{LK}}(p,q)$
-
-###### 证明.
-
+::: details 证明
 $$
 \beta=E_{x\sim q(x)}
 \begin{cases}
@@ -148,16 +133,13 @@ $$
 \end{cases}
 =E_{x\sim q(x)}\min\left(1,\frac{p(x)}{q(x)}\right)=\sum_{x}\min(p(x),q(x))
 $$
-
-∎
+:::
 
 最后得到:
 
 <span id="corollary-03-06"></span>
 
-###### 推论 3.6.
-
-$\alpha=1-E(D_{\mathrm{LK}}(p,q))=E(\min(p,q))$
+**推论 3.6.** $\alpha=1-E(D_{\mathrm{LK}}(p,q))=E(\min(p,q))$
 
 实验中观测到的 $\alpha$ 值见[表 3](#table-03).
 
@@ -167,31 +149,25 @@ $\alpha=1-E(D_{\mathrm{LK}}(p,q))=E(\min(p,q))$
 
 在独立同分布假设下, 算法将目标模型的调用次数缩减 $\frac{1-\alpha^{\gamma+1}}{1-\alpha}$ 倍. 一般的推测执行和本文算法都假设计算资源足以支撑增加的并发度 (见[第 3.4 节](#section-03-04)). 分析墙钟时间时, 我们假设可以并行完成 $\gamma+1$ 次 $M_{p}$ 计算而不增加墙钟时间. 要计算总墙钟时间的加速比, 还需计入近似模型 $M_{q}$ 的运行成本.
 
-###### 定义 3.7.
-
-令*成本系数* $c$ 为单次运行 $M_{q}$ 与单次运行 $M_{p}$ 所需时间之比.
+**定义 3.7.** 令*成本系数* $c$ 为单次运行 $M_{q}$ 与单次运行 $M_{p}$ 所需时间之比.
 
 $\alpha$ 是模型和任务的内在属性, $c$ 则取决于硬件配置和软件实现细节. 在我们的实验中, $M_{q}$ 通常比 $M_{p}$ 小两三个数量级, $c$ 始终小于 $0.05$, 并且经常接近于 0, 可以忽略不计.
 
 <span id="theorem-03-08"></span>
 
-###### 定理 3.8.
+**定理 3.8.** [算法 1](#algorithm-01) 在总墙钟时间上的期望加速比为 $\frac{1-\alpha^{\gamma+1}}{(1-\alpha)({\gamma}c+1)}$.
 
-[算法 1](#algorithm-01) 在总墙钟时间上的期望加速比为 $\frac{1-\alpha^{\gamma+1}}{(1-\alpha)({\gamma}c+1)}$.
-
-###### 证明.
-
-设 $M_{p}$ 单步运行的成本为 $T$. [算法 1](#algorithm-01) 每次运行的成本为 $Tc\gamma+T$, 因为近似模型 $M_{q}$ 运行 $\gamma$ 次, $M_{p}$ 运行一次. 根据[式 (1)](#equation-01), 每次运行平均生成 $\frac{1-\alpha^{\gamma+1}}{1-\alpha}$ 个词元. 因而, 用[算法 1](#algorithm-01) 生成一个词元的总期望成本为 $\frac{(c\gamma+1)(1-\alpha)}{1-\alpha^{\gamma+1}}T$. 标准解码算法生成一个词元的成本为 $T$, 结论得证. ∎
+::: details 证明
+设 $M_{p}$ 单步运行的成本为 $T$. [算法 1](#algorithm-01) 每次运行的成本为 $Tc\gamma+T$, 因为近似模型 $M_{q}$ 运行 $\gamma$ 次, $M_{p}$ 运行一次. 根据[式 (1)](#equation-01), 每次运行平均生成 $\frac{1-\alpha^{\gamma+1}}{1-\alpha}$ 个词元. 因而, 用[算法 1](#algorithm-01) 生成一个词元的总期望成本为 $\frac{(c\gamma+1)(1-\alpha)}{1-\alpha^{\gamma+1}}T$. 标准解码算法生成一个词元的成本为 $T$, 结论得证.
+:::
 
 [定理 3.8](#theorem-03-08) 假设生成序列足够长. 例如, 由于 $M_{p}$ 至少运行一次, 加速比不会超过生成的词元数.
 
-###### 推论 3.9.
+**推论 3.9.** 若 $\alpha>c$, 则存在某个 $\gamma$ 能带来加速, 且加速比至少为 $\frac{1+\alpha}{1+c}$.
 
-若 $\alpha>c$, 则存在某个 $\gamma$ 能带来加速, 且加速比至少为 $\frac{1+\alpha}{1+c}$.
-
-###### 证明.
-
-如果某个 $\gamma$ 能带来加速, 那么任意 $0<\gamma^{*}<\gamma$ 也能带来加速. 因此, 要判断本文方法能否加速, 可以令[定理 3.8](#theorem-03-08) 中的 $\gamma=1$, 得到 $\frac{1-\alpha^{2}}{(1-\alpha)(c+1)}=\frac{1+\alpha}{1+c}$. ∎
+::: details 证明
+如果某个 $\gamma$ 能带来加速, 那么任意 $0<\gamma^{*}<\gamma$ 也能带来加速. 因此, 要判断本文方法能否加速, 可以令[定理 3.8](#theorem-03-08) 中的 $\gamma=1$, 得到 $\frac{1-\alpha^{2}}{(1-\alpha)(c+1)}=\frac{1+\alpha}{1+c}$.
+:::
 
 ### 3.4 算术运算次数
 
@@ -199,17 +175,13 @@ $\alpha$ 是模型和任务的内在属性, $c$ 则取决于硬件配置和软�
 
 [算法 1](#algorithm-01) 并行运行 $M_{p}$ 共 $\gamma+1$ 次, 因此*并发*算术运算次数增加到 $\gamma+1$ 倍. [算法 1](#algorithm-01) 每次最多生成 $\gamma+1$ 个词元, 所以*总*算术运算次数可能高于标准解码算法. 若 $M_{q}$ 给出的样本被接受, 增加的并发是“免费”的, 总运算次数不变 [+3]. 若候选被拒绝, 则有计算被浪费. 下面分析该方法对算术运算总数的影响.
 
-###### 定义 3.10.
+**定义 3.10.** 令 $\hat{c}$ 为近似模型 $M_{q}$ 与目标模型 $M_{p}$ 每生成一个词元所需算术运算次数之比.
 
-令 $\hat{c}$ 为近似模型 $M_{q}$ 与目标模型 $M_{p}$ 每生成一个词元所需算术运算次数之比.
+**定理 3.11.** [算法 1](#algorithm-01) 的总运算次数期望增加为原来的 $\frac{(1-\alpha)({\gamma}\hat{c}+\gamma+1)}{1-\alpha^{\gamma+1}}$ 倍.
 
-###### 定理 3.11.
-
-[算法 1](#algorithm-01) 的总运算次数期望增加为原来的 $\frac{(1-\alpha)({\gamma}\hat{c}+\gamma+1)}{1-\alpha^{\gamma+1}}$ 倍.
-
-###### 证明.
-
-设 $\hat{T}$ 为标准解码基线每生成一个词元所做的算术运算数, 即单次运行 $M_{p}$ 的运算数. [算法 1](#algorithm-01) 的一次迭代需要 $\hat{T}\hat{c}\gamma+\hat{T}(\gamma+1)$ 次运算, 对应于 $M_{q}$ 的 $\gamma$ 次运行和 $M_{p}$ 的 $\gamma+1$ 次并行运行. 将其除以[算法 1](#algorithm-01) 的期望词元生成数, 即[式 (1)](#equation-01), 再除以 $\hat{T}$, 结论得证. ∎
+::: details 证明
+设 $\hat{T}$ 为标准解码基线每生成一个词元所做的算术运算数, 即单次运行 $M_{p}$ 的运算数. [算法 1](#algorithm-01) 的一次迭代需要 $\hat{T}\hat{c}\gamma+\hat{T}(\gamma+1)$ 次运算, 对应于 $M_{q}$ 的 $\gamma$ 次运行和 $M_{p}$ 的 $\gamma+1$ 次并行运行. 将其除以[算法 1](#algorithm-01) 的期望词元生成数, 即[式 (1)](#equation-01), 再除以 $\hat{T}$, 结论得证.
+:::
 
 $\alpha$ 越低, 算术运算次数增加得越多, 反之亦然. 对 Transformer 解码器而言, [算法 1](#algorithm-01) 的总算术运算次数 (不计 $M_{q}$ 的运行) *可以用同等规模 Transformer 编码器的一次运行作为上界*.
 
