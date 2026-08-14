@@ -172,7 +172,7 @@ To piggyback decodes with a prefill, we need to take care of two things. First, 
 Decode batch. The maximum decode batch size to be piggybacked with a prefill chunk is determined based on the available GPU memory ($M_{G}$), the model’s parameter memory requirement per GPU ($M_{S}$), and the maximum sequence length $L$ that the model supports. The total of prefill ($P$) and decode ($D$) tokens per request cannot exceed this maximum sequence length. Assuming the memory required per pair of K and V for a token is $m_{\mathrm{kv}}$, the maximum permissible batch size $B$ is determined as follows
 
 $$
-B=\lfloor\left(\frac{M_{G}-M_{S}}{L*m_{\mathrm{kv}}}\right)\rfloor
+B=\left\lfloor\frac{M_{G}-M_{S}}{L*m_{\mathrm{kv}}}\right\rfloor
 $$
 
 In the baseline scheme, decode-only batches can be of size at most $B$. In Sarathi, the number of decodes can be at most $B-1$ as they piggyback along with one prefill chunk (the prefill’s KV cache also needs to be in GPU memory until its corresponding decode iterations begin).
