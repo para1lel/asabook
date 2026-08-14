@@ -108,12 +108,11 @@
   {
     "name": "table-01",
     "page": 8,
-    "x": 479,
-    "y": 279,
-    "width": 61,
-    "height": 34,
-    "matchScore": 0.554,
-    "preserveSource": true
+    "x": 72,
+    "y": 88,
+    "width": 465,
+    "height": 139,
+    "preserveSource": false
   },
   {
     "name": "table-02",
