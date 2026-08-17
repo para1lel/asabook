@@ -1843,6 +1843,48 @@ const paperAbbreviations = {
   'Zha23f': 'Zhang et al. (2023) Hong Zhang, Yupeng Tang, Anurag Khandelwal, and Ion Stoica. 2023. SHEPHERD: Serving DNNs in the Wild. In 20th USENIX Symposium on Networked Systems Design and Implementation (NSDI 23). USENIX Association, Boston, MA, 787–808. https://www.usenix.org/conference/nsdi23/presentation/zhang-hong [Link](https://www.usenix.org/conference/nsdi23/presentation/zhang-hong)',
   'Zho21b': 'Zhong et al. (2021) Ming Zhong, Da Yin, Tao Yu, Ahmad Zaidi, Mutethia Mutuma, Rahul Jha, Ahmed Hassan Awadallah, Asli Celikyilmaz, Yang Liu, Xipeng Qiu, and Dragomir Radev. QMSum: A new benchmark for query-based multi-domain meeting summarization. In Kristina Toutanova, Anna Rumshisky, Luke Zettlemoyer, Dilek Hakkani-Tur, Iz Beltagy, Steven Bethard, Ryan Cotterell, Tanmoy Chakraborty, and Yichao Zhou (eds.), Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, pp. 5905–5921, Online, 2021. Association for Computational Linguistics. doi: 10.18653/v1/2021.naacl-main.472. URL https://aclanthology.org/2021.naacl-main.472. [Link](https://aclanthology.org/2021.naacl-main.472)',
   'Kie21': 'Douwe Kiela, Max Bartolo, Yixin Nie, Divyansh Kaushik, Atticus Geiger, Zhengxuan Wu, Bertie Vidgen, Grusha Prasad, Amanpreet Singh, Pratik Ringshia, Zhiyi Ma, Tristan Thrush, Sebastian Riedel, Zeerak Waseem, Pontus Stenetorp, Robin Jia, Mohit Bansal, Christopher Potts, and Adina Williams. Dynabench: Rethinking benchmarking in NLP. In Kristina Toutanova, Anna Rumshisky, Luke Zettlemoyer, Dilek Hakkani-Tur, Iz Beltagy, Steven Bethard, Ryan Cotterell, Tanmoy Chakraborty, and Yichao Zhou, editors, Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, pages 4110--4124, Online, June 2021. Association for Computational Linguistics. 10.18653/v1/2021.naacl-main.324. https://aclanthology.org/2021.naacl-main.324. [Link](https://aclanthology.org/2021.naacl-main.324)',
+  'Lm01': 'Lianmin Zheng et al. "SGLang: Efficient Execution of Structured Language Model Programs." 2024. [Link](https://arxiv.org/abs/2312.07104)',
+  'Lm02': 'Bin Gao et al. "Cost-Efficient Large Language Model Serving for Multi-turn Conversations with CachedAttention." 2024. [Link](https://arxiv.org/abs/2403.19708)',
+  'Lm03': 'Shuowei Jin, Xueshen Liu, Qingzhao Zhang, and Zhuoqing Mao. "Compute or Load KV Cache? Why Not Both?" ICML. 2025. [Link](https://openreview.net/forum?id=WOyOtaO6lQ)',
+  'Lm04': 'Zebin Ren et al. "An I/O Characterizing Study of Offloading LLM Models and KV Caches to NVMe SSD." CHEOPS. 2025. [Link](https://doi.org/10.1145/3719330.3721230)',
+  'Lm05': 'Chao Jin et al. "RAGCache: Efficient Knowledge Caching for Retrieval-Augmented Generation." 2024. [Link](https://arxiv.org/abs/2404.12457)',
+  'Lm06': 'Shiyang Chen et al. "KVDirect: Distributed Disaggregated LLM Inference." 2024. [Link](https://arxiv.org/abs/2501.14743)',
+  'Lm07': 'Weijian Chen et al. "IMPRESS: An Importance-Informed Multi-Tier Prefix KV Storage System for Large Language Model Inference." FAST. 2025. [Link](https://www.usenix.org/conference/fast25/presentation/chen-weijian-impress)',
+  'Lm08': 'Pratyush Patel et al. "Splitwise: Efficient Generative LLM Inference Using Phase Splitting." 2024. [Link](https://arxiv.org/abs/2311.18677)',
+  'Lm09': 'Xiaoxiang Shi, Colin Cai, Junjia Du, and Zhihao Jia. "Nexus: Proactive Intra-GPU Disaggregation of Prefill and Decode in LLM Serving." 2025. [Link](https://arxiv.org/abs/2507.06608)',
+  'Lm10': 'UCCL Team. "Everything You Want to Know about KV Cache Transfer Engine." 2025. [Link](https://uccl-project.github.io/posts/kv-transfer-engine/)',
+  'Lm11': 'Wook Kwon et al. "Demystifying NCCL: An In-Depth Analysis of GPU-Based Collective Communication." 2025. [Link](https://arxiv.org/abs/2507.04786)',
+  'Lm12': 'NVIDIA Developer Forums. "Why Is the Transfer Throughput Low When Transferring Small Size Data (GPU Host/Device Transfers)?" 2020. [Link](https://forums.developer.nvidia.com/t/why-is-the-transfer-throughput-low-when-transferring-small-size-data-from-host-to-device-or-device-to-host/153962)',
+  'Lm13': 'Meta Engineering. "RoCE Networks for Distributed AI Training at Scale." 2024. [Link](https://engineering.fb.com/2024/08/05/data-center-engineering/roce-network-distributed-ai-training-at-scale/)',
+  'Lm14': 'Yang Zhou et al. "An Extensible Software Transport Layer for GPU Networking." 2025. [Link](https://arxiv.org/abs/2504.17307)',
+  'Lm15': 'Zhiqiang Xie et al. "Strata: Hierarchical Context Caching for Long Context Language Model Serving." 2025. [Link](https://arxiv.org/abs/2508.18572)',
+  'Lm16': '"Best 44 Large Language Models (LLMs) in 2025." 2025. [Link](https://explodingtopics.com/blog/list-of-llms)',
+  'Lm17': 'vLLM Project. "vLLM Production Stack: Reference System for K8S-native Cluster-wide Deployment with Community-driven Performance Optimization." 2025. [Link](https://github.com/vllm-project/production-stack)',
+  'Lm18': 'NVIDIA Corporation. "NVIDIA Dynamo: A Datacenter-Scale Distributed Inference Serving Framework." 2025. [Link](https://github.com/ai-dynamo/dynamo)',
+  'Lm19': 'The AIBrix Team et al. "AIBrix: Towards Scalable, Cost-Effective Large Language Model Inference Infrastructure." 2025. [Link](https://arxiv.org/abs/2504.03648)',
+  'Lm20': 'llm-d Project. "llm-d: A Kubernetes-Native High-Performance Distributed LLM Inference Framework." 2025. [Link](https://github.com/llm-d/llm-d)',
+  'Lm21': 'The SGLang Team. "OME: Revolutionizing LLM Infrastructure with Model-Driven Architecture." 2025. [Link](https://lmsys.org/blog/2025-07-08-ome/)',
+  'Lm22': 'KServe Contributors. "kserve/kserve: Standardized Distributed Generative and Predictive AI Inference Platform for Scalable, Multi-Framework Deployment on Kubernetes." 2025. [Link](https://github.com/kserve/kserve)',
+  'Lm23': 'Redis. "Redis Enterprise Software Reference - Redis Documentation." 2025. [Link](https://redis.io/docs/latest/operate/rs/references/)',
+  'Lm24': 'ByteDance. "InfiniStore: KV Cache Store for Distributed LLM Inference." 2025. [Link](https://github.com/bytedance/InfiniStore)',
+  'Lm25': 'DeepSeek AI Contributors. "deepseek-ai/3FS: A High-Performance Distributed File System for AI Training and Inference Workloads." 2025. [Link](https://github.com/deepseek-ai/3FS)',
+  'Lm26': 'Lingfan Yu, Jinkun Lin, and Jinyang Li. "Stateful Large Language Model Serving with Pensieve." EuroSys. 2025. [Link](https://doi.org/10.1145/3689031.3696086)',
+  'Lm27': 'In Gim et al. "Prompt Cache: Modular Attention Reuse for Low-Latency Inference." MLSys. 2024. [Link](https://proceedings.mlsys.org/paper_files/paper/2024/hash/a66caa1703fe34705a4368c3014c1966-Abstract-Conference.html)',
+  'Lm28': 'Lu Ye et al. "ChunkAttention: Efficient Self-Attention with Prefix-Aware KV Cache and Two-Phase Partition." ACL. 2024. [Link](https://aclanthology.org/2024.acl-long.623/)',
+  'Lm29': 'Wonbeom Lee, Jungi Lee, Junghwan Seo, and Jaewoong Sim. "InfiniGen: Efficient Generative Inference of Large Language Models with Dynamic KV Cache Management." OSDI. 2024. [Link](https://www.usenix.org/conference/osdi24/presentation/lee)',
+  'Lm30': 'Yilong Zhao et al. "BlendServe: Optimizing Offline Inference for Auto-regressive Large Models with Resource-aware Batching." 2024. [Link](https://arxiv.org/abs/2411.16102)',
+  'Lm31': 'Huan Yang et al. "KVShare: An LLM Service System with Efficient and Effective Multi-Tenant KV Cache Reuse." 2025. [Link](https://arxiv.org/abs/2503.16525)',
+  'Lm32': 'Simon Jegou, Maximilian Jeblick, Alessio Devoto, Jiwei Liu, and David Austin. "KVPress: Efficient KV Cache Compression for Long-Context LLMs." 2024. [Link](https://github.com/NVIDIA/kvpress)',
+  'Lm33': 'Guangxuan Xiao et al. "DuoAttention: Efficient Long-Context LLM Inference with Retrieval and Streaming Heads." 2024. [Link](https://arxiv.org/abs/2410.10819)',
+  'Lm34': 'Ziran Qin et al. "CAKE: Cascading and Adaptive KV Cache Eviction with Layer Preferences." 2025. [Link](https://arxiv.org/abs/2503.12491)',
+  'Lm35': 'Jiaming Tang, Yilong Zhao, Kan Zhu, Guangxuan Xiao, Baris Kasikci, and Song Han. "Quest: Query-Aware Sparsity for Efficient Long-Context LLM Inference." 2024. [Link](https://arxiv.org/abs/2406.10774)',
+  'Lm36': 'Suyu Ge, Yunan Zhang, Liyuan Liu, Minjia Zhang, Jiawei Han, and Jianfeng Gao. "Model Tells You What to Discard: Adaptive KV Cache Compression for LLMs." 2024. [Link](https://arxiv.org/abs/2310.01801)',
+  'Lm37': 'Junyan Li et al. "CommVQ: Commutative Vector Quantization for KV Cache Compression." 2025. [Link](https://arxiv.org/abs/2506.18879)',
+  'Lm38': 'Dayou Du, Shijie Cao, Jianyi Cheng, Luo Mai, Ting Cao, and Mao Yang. "BitDecoding: Unlocking Tensor Cores for Long-Context LLMs with Low-Bit KV Cache." 2025. [Link](https://arxiv.org/abs/2503.18773)',
+  'Lm39': 'Hailin Zhang et al. "PQCache: Product Quantization-based KVCache for Long Context LLM Inference." 2025. [Link](https://arxiv.org/abs/2407.12820)',
+  'Lm40': 'William D. Strecker. "VAX-11/780: A Virtual Address Extension to the DEC PDP-11 Family." Proceedings of the National Computer Conference. 1978.',
+  'Lm41': 'GMI Cloud. "GMI Cloud: GPU Cloud Solutions for Scalable AI & Inference." 2025. [Link](https://www.gmicloud.ai/)',
+  'Lm42': 'Yichao "Peak" Ji. "Context Engineering for AI Agents: Lessons from Building Manus." 2025. [Link](https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -2063,9 +2105,9 @@ export default defineUserConfig({
   },
 
   theme: plumeTheme({
-    docsRepo: 'https://github.com/zynier/asabook',
+    docsRepo: 'https://github.com/para1lel/asabook',
     social: [
-      { icon: 'github', link: 'https://github.com/zynier/asabook' },
+      { icon: 'github', link: 'https://github.com/para1lel/asabook' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/349394806' },
     ],
     navbarSocialInclude: ['github', 'bilibili'],
@@ -2127,7 +2169,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve'],
+                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'lmcache'],
               },
               {
                 text: '分布式训练',
@@ -2239,7 +2281,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve'],
+                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'lmcache'],
               },
               {
                 text: 'Distributed Training',
@@ -2461,7 +2503,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve'],
+                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'lmcache'],
               },
               {
                 text: '分散学習',
