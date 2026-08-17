@@ -1,0 +1,3186 @@
+<?xml version="1.0" encoding="UTF-8"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">ORCA: A Distributed Serving System for Transformer-Based Generative Models</title>
+				<funder>
+					<orgName type="full">FriendliAI Inc.</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct status="extracted">
+					<analytic>
+						<author>
+							<persName><forename type="first">Gyeong-In</forename><surname>Yu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Seoul National University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Joo</forename><forename type="middle">Seong</forename><surname>Jeong</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Seoul National University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Geon-Woo</forename><surname>Kim</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution">FriendliAI Seoul National University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Kim</forename><surname>Soojeong</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Seoul National University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><forename type="first">Byung-Gon</forename><surname>Friendliai</surname></persName>
+							<affiliation key="aff3">
+								<orgName type="institution">FriendliAI Seoul National University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName><surname>Chun</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution">FriendliAI Seoul National University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">ORCA: A Distributed Serving System for Transformer-Based Generative Models</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">D8D4F7AC67493B57646A706352446951</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.9.1" ident="GROBID" when="2026-08-17T10:49+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<label type="revision">0.9.1</label>
+					<label type="parameters">startPage=-1, endPage=-1, consolidateCitations=0, consolidateHeader=1, consolidateFunders=0, includeRawAffiliations=false, includeRawCitations=false, includeRawCopyrights=false, generateTeiIds=false, generateTeiCoordinates=[], flavor=null, debugLabelingCollector=disabled</label>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Large-scale Transformer-based models trained for generation tasks (e.g., GPT-3) have recently attracted huge interest, emphasizing the need for system support for serving models in this family. Since these models generate a next token in an autoregressive manner, one has to run the model multiple times to process an inference request where each iteration of the model generates a single output token for the request. However, existing systems for inference serving do not perform well on this type of workload that has a multi-iteration characteristic, due to their inflexible scheduling mechanism that cannot change the current batch of requests being processed; requests that have finished earlier than other requests in a batch cannot return to the client, while newly arrived requests have to wait until the current batch completely finishes.</p><p>In this paper, we propose iteration-level scheduling, a new scheduling mechanism that schedules execution at the granularity of iteration (instead of request) where the scheduler invokes the execution engine to run only a single iteration of the model on the batch. In addition, to apply batching and iteration-level scheduling to a Transformer model at the same time, we suggest selective batching, which applies batching only to a selected set of operations. Based on these two techniques, we have implemented a distributed serving system called ORCA, with additional designs for scalability to models with hundreds of billions of parameters. Our evaluation on a GPT-3 175B model shows that ORCA can significantly outperform NVIDIA FasterTransformer in terms of both latency and throughput: 36.9× throughput improvement at the same level of latency.</p><p>c) Internal state usage of Transformer. h, k, v, and c refer to layer input/output, Attention key, Attention value, and LSTM internal memory, respectively. l denotes layer index and t denotes token index.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Language generation tasks are becoming increasingly paramount to many types of applications, such as chatbot <ref type="bibr" target="#b8">[9,</ref><ref type="bibr" target="#b51">52]</ref>, summarization <ref type="bibr" target="#b40">[41,</ref><ref type="bibr" target="#b44">45,</ref><ref type="bibr" target="#b53">54]</ref>, code generation <ref type="bibr" target="#b12">[13]</ref>, and caption generation <ref type="bibr" target="#b64">[65,</ref><ref type="bibr" target="#b65">66]</ref>. Moreover, recent works published by * Corresponding author.</p><p>AI21 Labs <ref type="bibr" target="#b36">[37]</ref>, DeepMind <ref type="bibr" target="#b25">[26,</ref><ref type="bibr" target="#b47">48]</ref>, Google <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b20">21,</ref><ref type="bibr" target="#b62">63]</ref>, Meta Platforms <ref type="bibr" target="#b9">[10,</ref><ref type="bibr" target="#b66">67]</ref>, Microsoft <ref type="bibr" target="#b49">[50]</ref>, Microsoft &amp; NVIDIA <ref type="bibr" target="#b58">[59]</ref>, and OpenAI <ref type="bibr" target="#b11">[12]</ref> have reported that every language processing task, including translation <ref type="bibr" target="#b10">[11,</ref><ref type="bibr" target="#b16">17]</ref>, classification <ref type="bibr" target="#b19">[20,</ref><ref type="bibr" target="#b52">53]</ref>, question-answering <ref type="bibr" target="#b31">[32,</ref><ref type="bibr" target="#b32">33,</ref><ref type="bibr" target="#b39">40]</ref> and more, can be cast as a language generation problem and have shown great improvements along this direction. The rise of generative models is not limited to the language domain; the AI community has also given growing interest to generation problems in other domains such as image, video, speech, or a mixture of multiple domains <ref type="bibr" target="#b18">[19,</ref><ref type="bibr" target="#b37">38,</ref><ref type="bibr" target="#b50">51,</ref><ref type="bibr" target="#b61">62]</ref>. At the heart of generative models lies the Transformer architecture <ref type="bibr" target="#b59">[60]</ref> and its variants <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b46">[47]</ref><ref type="bibr" target="#b47">[48]</ref><ref type="bibr" target="#b48">[49]</ref>. By relying on the attention mechanism <ref type="bibr" target="#b59">[60]</ref>, Transformer models can learn better representations where each element of the sequence may have a direct connection with every other element, which was not possible in recurrent models <ref type="bibr" target="#b24">[25]</ref>.</p><p>To use generative models in real-world applications, we often delegate the inference procedure to a separate service responsible for ML inference serving. The growing demands for this service, which should provide inference results for client requests at low latency and high throughput, have facilitated the development of inference serving systems such as Triton Inference Server <ref type="bibr" target="#b6">[7]</ref> and TensorFlow Serving <ref type="bibr" target="#b41">[42]</ref>. These systems can use a separately-developed DNN execution engine to perform the actual tensor operations. For example, we can deploy a service for language generation tasks by using a combination of Triton and FasterTransformer <ref type="bibr" target="#b3">[4]</ref>, an execution engine optimized for the inference of Transformerbased models. In this case, Triton is mainly responsible for grouping multiple client requests into a batch, while Faster-Transformer receives the batch from Triton and conducts the inference procedure in the batched manner.</p><p>Unfortunately, we notice that the existing inference systems, including both the serving system layer and the execution engine layer, have limitations in handling requests for Transformer-based generative models. Since these models are trained to generate a next token in an autoregressive manner, one should run the model as many times as the number of tokens to generate, while for other models like ResNet <ref type="bibr" target="#b23">[24]</ref> and BERT <ref type="bibr" target="#b17">[18]</ref> a request can be processed by running the model once. That is, in order to process a request to the generative model, we have to run multiple iterations of the model; each iteration generates a single output token, which is used as an input in the following iteration. Such multi-iteration characteristic calls into question the current design of inference systems, where the serving system schedules the execution of the engine at the granularity of request. Under this design, when the serving system dispatches a batch of requests to the engine, the engine returns inference results for the entire batch at once after processing all requests within the batch. As different client requests may require different numbers of iterations for processing, requests that have finished earlier than others in the batch cannot return to the client, resulting in an increased latency. Requests arrived after dispatching the batch also should wait for processing the batch, which can significantly increase the requests' queueing time.</p><p>In this paper, we propose to schedule the execution of the engine at the granularity of iteration instead of request. In particular, the serving system invokes the engine to run only a single iteration of the model on the batch. As a result, a newly arrived request can be considered for processing after waiting for only a single iteration of the model. The serving system checks whether a request has finished processing after every return from the engine -hence the finished requests can also be returned to the clients immediately.</p><p>Nevertheless, a noticeable challenge arises when we attempt to apply batching and the iteration-level scheduling at the same time. Unlike the canonical request-level scheduling, the proposed scheduling can issue a batch of requests where each request has so far processed a different number of tokens. In such a case, the requests to the Transformer model cannot be processed in the batched manner because the attention mechanism calls for non-batchable tensor operations whose input tensors have variable shapes depending on the number of processed tokens.</p><p>To address this challenge, we suggest to apply batching only to a selected set of operations, which we call selective batching. By taking different characteristics of operations into account, selective batching splits the batch and processes each request individually for the Attention<ref type="foot" target="#foot_0">foot_0</ref> operation while applying batching to other operations of the Transformer model. We observe that the decision not to batch the executions of the Attention operation has only a small impact on efficiency. Since the Attention operation is not associated with any model parameters, applying batching to Attention has no benefit of reducing the amount of GPU memory reads by reusing the loaded parameters across multiple requests.</p><p>Based on these techniques, we design and implement ORCA, a distributed serving system for Transformer-based generative models. In order to handle large-scale models, ORCA adopts parallelization strategies including intra-layer and inter-layer model parallelism, which were originally developed by training systems <ref type="bibr" target="#b54">[55,</ref><ref type="bibr" target="#b57">58]</ref> for Transformer models. We also devise a new scheduling algorithm for the proposed iteration-level scheduling, with additional considerations for memory management and pipelined execution across workers.</p><p>We evaluate ORCA using OpenAI GPT-3 <ref type="bibr" target="#b11">[12]</ref> models with various configurations, scaling up to 341B of parameters. The results show that ORCA significantly outperforms FasterTransformer <ref type="bibr" target="#b3">[4]</ref>, showing 36.9× throughput improvement at the same level of latency. While we use a language model as a driving example throughout the paper and conduct experiments only on language models, generative models in other domains can benefit from our approach as long as the models are based on the Transformer architecture and use the autoregressive generation procedure <ref type="bibr" target="#b18">[19,</ref><ref type="bibr" target="#b37">38,</ref><ref type="bibr" target="#b50">51,</ref><ref type="bibr" target="#b61">62]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Background</head><p>We provide background on the inference procedure of GPT <ref type="bibr" target="#b11">[12,</ref><ref type="bibr" target="#b46">47]</ref>, a representative example of Transformer-based generative models that we use throughout this paper, and ML inference serving systems.</p><p>Inference procedure of GPT. GPT is an autoregressive language model based on one of architectural variants of Transformer <ref type="bibr" target="#b59">[60]</ref>. It takes text as input and produces new text as output. In particular, the model receives a sequence of input tokens and then completes the sequence by generating subsequent output tokens. Figure <ref type="figure" target="#fig_0">1a</ref> illustrates a simplified computation graph that represents this procedure with a three-layer GPT model, where nodes and edges indicate Transformer layers and dependencies between the layers, respectively. The Transformer layers are executed in the order denoted by the numbers on the nodes, and the nodes that use the same set of model parameters (i.e., nodes representing the same layer) are filled with the same color.</p><p>The generated output token is fed back into the model to generate the next output token, imposing a sequential, oneby-one inference procedure. This autoregressive procedure of generating a single token is done by running all the layers of the model with the input, which is either a sequence of input tokens that came from the client or a previously generated output token. We define the run of all layers as an iteration of the model. In the example shown in Figure <ref type="figure" target="#fig_0">1a</ref>, the inference procedure comprises three iterations. The first iteration ("iter 1") takes all the input tokens ("I think this") at once and generates the next token ("is"). This iteration composes an initiation phase, a procedure responsible for processing the input tokens and generating the first output token. The next two iterations ("iter 2" and "iter 3"), which compose an increment phase, take the output token of the preceding iteration and generate</p><p>I think this 1 4 7 5 8 is great 6 9 is great &lt;EOS&gt; 2 iter 1 iter 2 iter 3 3 (a) A computation graph representing an inference procedure using a GPT model. The graph does not depict layers other than Transformer layers (e.g., embedding) for simplicity. MLP LayerNorm QKV Linear Attention Query Value Key Attn Out Linear Add Input LayerNorm Linear GeLU Linear Add Output (b) A Transformer layer used in GPT. k l,1:t-1 v l,1:t-1 k l,1:t-1 v l,1:t-1 Transformer layer Transformer layer LSTM layer LSTM layer k l,1:t v l,1:t k l,1:t v l,1:t k l,1:t+1 v l,1:t+1 k l,1:t+1 v l,1:t+1 c l,t-1 h l,t-1 the next token. In this case, "iter 3" is the last iteration because it produces "&lt;EOS&gt;", a special end-of-sequence token that terminates output generation. Note that while the increment phase comprises multiple iterations because each iteration is only able to process a single token, the initiation phase is typically implemented as a single iteration by processing all the input tokens in parallel. The original Transformer <ref type="bibr" target="#b59">[60]</ref> employs two stacks of Transformer layers, while GPT's architecture consists of a single layer stack, namely decoder. Figure <ref type="figure" target="#fig_0">1b</ref> shows a Transformer layer used in GPT. Among the operations that compose the Transformer layer, Attention is the essence that distinguishes Transformer from other architectures. At a high level, the Attention operation computes a weighted average of the tokens of interest so that each token in the sequence is aware of the other. It takes three inputs, query, key, and value, computes dot products of the query (for the current token) with all keys (for the tokens of interest), applies Softmax on the dot products to get weights, and conducts weighted average of all values associated with the weights.</p><p>Since the Attention requires keys and values of all preceding tokens, <ref type="foot" target="#foot_1">2</ref> we consider the keys and values as internal states that should be maintained across multiple iterations. A naïve, state-less inference procedure would take all tokens in the sequence (including both the client-provided input tokens and the output tokens generated so far) to recompute all the keys and values at every iteration. To avoid such recomputation, fairseq <ref type="bibr" target="#b42">[43]</ref> suggests incremental decoding, which saves the keys and values for reuse in successive iterations. Other systems for Transformer such as FasterTransformer <ref type="bibr" target="#b3">[4]</ref> and Megatron-LM <ref type="bibr" target="#b2">[3]</ref> also do the same.</p><p>Figure <ref type="figure" target="#fig_0">1c</ref> illustrates the state usage pattern of Transformer, along with LSTM <ref type="bibr" target="#b24">[25]</ref> that also maintains internal states. The main difference is that the size of the states (k for Attention key and v for value) in Transformer increases with iteration, whereas the size of the states (c for LSTM internal memory and h for LSTM layer's input/output) in LSTM remains constant. When processing the token at index t, the Attention operation takes all previous Attention keys k l,1:t-1 and values v l,1:t-1 along with the current key k l,t and value v l,t . <ref type="foot" target="#foot_2">3</ref> Therefore, the Attention operation should perform computation on tensors of different shapes depending on the number of tokens already processed.</p><p>Prior to the Attention operation, there are the layer normalization operation (LayerNorm) and the QKV Linear (linear and split operations to get the query, key and value). Operations performed after Attention are, in order, a linear operation (Attn Out Linear), an add operation for residual connection (Add), layer normalization operation (LayerNorm), the multilayer perceptron (MLP) operations, and the other residual connection operation (Add).</p><p>ML inference serving systems. Growing demands for MLdriven applications have made ML inference serving service a critical workload in modern datacenters. Users (either the end-user or internal microservices of the application) submit requests to an inference service, and the service gives replies on the requests based on a pre-defined ML model using its provisioned resource, typically equipped with specialized accelerators such as GPUs and TPUs. In particular, the service runs a DNN model with input data to generate output for the request. Just like other services operating on datacenters, a well-managed inference service should provide low latency and high throughput within a reasonable amount of cost.</p><p>To meet such constraints, service operators often use ML inference serving systems such as Triton Inference Server <ref type="bibr" target="#b6">[7]</ref> and TensorFlow Serving <ref type="bibr" target="#b41">[42]</ref>. These systems can be seen as an abstraction sitting atop underlying model execution engines such as TensorRT <ref type="bibr" target="#b5">[6]</ref>, TVM <ref type="bibr" target="#b13">[14]</ref>, TensorFlow <ref type="bibr" target="#b7">[8]</ref>, and many others <ref type="bibr" target="#b43">[44,</ref><ref type="bibr" target="#b45">46]</ref>, being agnostic to various kinds of ML models, execution engines, and computing hardware. While delegating the role of driving the main mathematical operations to the engines, serving systems are in charge of exposing endpoints that receive inference requests, scheduling executions of the engine, and sending responses to the requests. Accordingly, these systems focus on aspects such as batching the executions <ref type="bibr" target="#b6">[7,</ref><ref type="bibr" target="#b15">16,</ref><ref type="bibr" target="#b34">35,</ref><ref type="bibr" target="#b41">42,</ref><ref type="bibr" target="#b55">56]</ref>, selecting an appropriate model from multiple model variants <ref type="bibr" target="#b15">[16,</ref><ref type="bibr" target="#b26">27,</ref><ref type="bibr" target="#b29">30,</ref><ref type="bibr" target="#b56">57]</ref>, deploying multiple models (each for different inference services) on the same device <ref type="bibr" target="#b6">[7,</ref><ref type="bibr" target="#b28">29,</ref><ref type="bibr" target="#b34">35,</ref><ref type="bibr" target="#b55">56]</ref>, and so on.</p><p>Among the features and optimizations provided by serving systems, batching is a key to achieve high accelerator utilization when using accelerators like GPUs. When we run the execution engine with batching enabled, the input tensors from multiple requests coalesce into a single, large input tensor before being fed to the first operation of the model. Since the accelerators prefer large input tensors over small ones to better exploit the vast amount of parallel computation units, the engine's throughput is highly dependent on the batch size, i.e., the number of inference requests the engine processes together. Reusing the model parameters loaded from off-chip memory is another merit in batched execution, especially when the model involves memory-intensive operations.</p><p>Figure <ref type="figure" target="#fig_1">2</ref> shows an overall workflow of serving a generative language model with existing serving systems and execution engines. The main component of the serving system (e.g., Triton <ref type="bibr" target="#b6">[7]</ref>) is the scheduler, which is responsible for creating a batch of requests by retrieving requests from a queue and scheduling the execution engine (e.g., FasterTransformer <ref type="bibr" target="#b3">[4]</ref>) to process the batch. The execution engine processes the received batch by running multiple iterations of the model being served and returns the generated text back to the serving system. In Figure <ref type="figure" target="#fig_1">2</ref>, the serving system schedules the engine to process two requests (x 1 : "I think", x 2 : "I love") in a batch and the engine generates "this is great" and "you" for requests x 1 and x 2 , respectively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Challenges and Proposed Solutions</head><p>In this section, we describe challenges in serving Transformerbased generative models and propose two techniques: iteration-level scheduling and selective batching.</p><p>C1: Early-finished and late-joining requests. One major limitation of existing systems is that the serving system and the execution engine interact with each other only when (1) the serving system schedules the next batch on an idle engine; or (2) the engine finishes processing the current batch. In other words, these systems are designed to schedule executions at request granularity; the engine maintains a batch of requests fixed until all requests in the batch finish. This can be problematic in the serving of generative models, since each request in a batch may require different number of iterations, resulting in certain requests finishing earlier than the others.</p><p>In the example shown in Figure <ref type="figure" target="#fig_2">3</ref>, although request x 2 finishes earlier than request x 1 , the engine performs computation for both "active" and "inactive" requests throughout all iterations. Such extra computation for inactive requests (x 2 at iter 3 and 4) limits the efficiency of batched execution. What makes it even worse is that this behavior prevents an early return of the finished request to the client, imposing a substantial amount of extra latency. This is because the engine only returns the execution results to the serving system when it finishes processing all requests in the batch. Similarly, when a new request arrives in the middle of the current batch's execution, the aforementioned scheduling mechanism makes the newly arrived request wait until all requests in the current batch have finished. We argue that the current request-level scheduling mechanism cannot efficiently handle workloads with multi-iteration characteristic. Note that this problem of early-finished and late-joining requests does not occur in the training of language models; the training procedure finishes processing the whole batch in a single iteration by using the teacher forcing technique <ref type="bibr" target="#b63">[64]</ref>.</p><p>response Orca System Endpoint request Scheduler Request Pool Execution Engine ! " # x 1 x 1 x 11 x 11 x 12 x 12 x 13 x 13 x 14 x 14 x 2 x 2 x 21 x 21 x 22 x 22 x 3 x 3 x 31 x 31 x 32 x 32 x 4 x 4 x 41 x 41 x 42 x 42 x 43 x 43 x 1 , x 2 , x 3 , x 4 x 1 , x 2 , x 3 , x 4 • • • • • • x 15 , x 23 , x 33 , x 44 x 15 , x 23 , x 33 , x 44 $ x i j is the j-th token of the i-th request. Shaded tokens represent input tokens received from the clients, while unshaded tokens are generated by ORCA. For example, request x 1 initially arrived with two input tokens (x 11 , x 12 ) and have run two iterations so far, where the first and second iterations generated x 13 and x 14 , respectively. On the other hand, request x 3 only contains input tokens (x 31 , x 32 ) because it has not run any iterations yet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S1: Iteration-level scheduling.</head><p>To address the above limitations, we propose to schedule executions at the granularity of iteration. At high level, the scheduler repeats the following procedure: (1) selects requests to run next; (2) invokes the engine to execute one iteration for the selected requests; and (3) receives execution results for the scheduled iteration. Since the scheduler receives a return on every iteration, it can detect the completion of a request and immediately return its generated tokens to the client. For a newly arrived request, the request gets a chance to start processing (i.e., the scheduler may select the new request to run next) after execution of the currently scheduled iteration, significantly reducing the queueing delay. With iteration-level scheduling, the scheduler has a full control on how many and which requests are processed in each iteration.</p><p>Figure <ref type="figure" target="#fig_3">4</ref> depicts the system architecture and the overall workflow of ORCA using the iteration-level scheduling. ORCA exposes an endpoint (e.g., HTTPS or gRPC) where inference requests arrive at the system and responses to the requests are sent out. The endpoint puts newly arrived requests in the request pool, a component that manages all requests in the system during their lifetime. The pool is monitored by the scheduler, which is responsible for: selecting a set of requests from the pool, scheduling the execution engine to run an iteration of the model on the set, receiving execution results (i.e., output tokens) from the engine, and updating the pool by appending each output token to the corresponding request. The engine is an abstraction for executing the actual tensor operations, which can be parallelized across multiple GPUs spread across multiple machines. In the example shown in Figure <ref type="figure" target="#fig_3">4</ref>, the scheduler interacts with the request pool to decide which requests to run next and invokes the engine to run four selected requests: (x 1 , x 2 , x 3 , x 4 ). The scheduler provides the engine with input tokens of the requests scheduled for the first time. In this case, x 3 and x 4 have not run any iterations yet, so the scheduler hands over (x 31 , x 32 ) for x 3 and (x 41 , x 42 , x 43 ) for x 4 . The engine runs an iteration of the model on the four requests and returns generated output tokens (x 15 , x 23 , x 33 , x 44 ), one for each scheduled request. Once a request has finished processing, the request pool removes the finished request and notifies the endpoint to send a response. Unlike the method shown in Figure <ref type="figure" target="#fig_1">2</ref> that should run multiple iterations on a scheduled batch until finish of all requests within the batch, ORCA's scheduler can change which requests are going to be processed at every iteration. We describe the detailed algorithm about how to select the requests at every iteration in Section 4.2.</p><p>C2: Batching an arbitrary set of requests. When we try to use the iteration-level scheduling in practice, one major challenge that we are going to face is batching. To achieve high efficiency, the execution engine should be able to process any selected set of requests in the batched manner. Without batching, one would have to process each selected request one by one, losing out on the massively parallel computation capabilities of GPUs.</p><p>Unfortunately, there is no guarantee that even for a pair of requests (x i , x j ), for the next iteration, their executions can be merged and replaced with a batched version. There are three cases for a pair of requests where the next iteration cannot be batched together: (1) both requests are in the initiation phase and each has different number of input tokens (e.g., x 3 and x 4 in Figure <ref type="figure" target="#fig_3">4</ref>); (2) both are in the increment phase and each is processing a token at different index from each other (x 1 and x 2 ); or (3) each request is in the different phase: initiation or increment (x 1 and x 3 ). Recall that in order to batch the execution of multiple requests, the execution of each request must consist of identical operations, each consuming identically-shaped input tensors. In the first case, the two requests cannot be processed in a batch because the "length" dimension of their input tensors, which is the number of input tokens, are not equal. The requests in the second case have difference in the tensor shape of Attention keys and values because each processes token at different index, as shown in Figure <ref type="figure" target="#fig_0">1c</ref>. For the third case, we cannot batch the iterations of different phases because they take different number of tokens as input; an iteration of the initiation phase processes all input tokens in parallel for efficiency, while in the increment phase each iteration takes a single token as its input (we assume the use of fairseq-style incremental decoding <ref type="bibr" target="#b42">[43]</ref>).</p><p>Batching is only applicable when the two selected requests are in the same phase, with the same number of input tokens (in case of the initiation phase) or with the same token index (in case of the increment phase). This restriction significantly reduces the likelihood of batching in real-world workloads,</p><p>QKV Linear Split Attention K/V Manager Attn x 4 x 4 Attn x 3 x 3 Attn x 2 x 2 Attn x 1 x 1 Layer Input Key Value x 1 : (x 11 , x 12 , x 13 ) x 1 : (x 11 , x 12 , x 13 ) x 2 : (x 21 ) x 2 : (x 21 ) Merge Attn Out Linear [7, H] [7, H] • • • • • • [7, H] [7, H] [2, 3H] [2, 3H] [3, 3H] [3, 3H] [1, 3H] [1, 3H] [1, 3H] [1, 3H] [7, 3H] [7, 3H] [7, H] [7, H] x 32 x 32 x 41 x 41 x 42 x 42 x 43 x 43 x 14 x 14 x 22 x 22 x 31 x 31 [2, H] [2, H] [3, H] [3, H] [1, H] [1, H] [1, H] [1, H] because the scheduler should make a wish for the presence of two requests eligible for batching at the same time. The likelihood further decreases exponentially as the batch size increases, making it impractical to use a large batch size that can pull out better throughput without compromising latency.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S2: Selective batching.</head><p>We propose selective batching, a technique for batched execution that allows high flexibility in composing requests as a batch. Instead of processing a batch of requests by "batchifying" all tensor operations composing the model, this technique selectively apply batching only to a handful of operations.</p><p>The main problem regarding batching described above is that the three aforementioned cases <ref type="foot" target="#foot_3">4</ref> correspond to irregularly shaped input (or state) tensors, which cannot be coalesced into a single large tensor and fed into a batch operation. In the canonical batching mechanism, at each iteration, a Transformer layer takes a 3-dimensional input tensor of shape [B, L, H] generated by concatenating multiple [L, H] input tensors of requests in a batch, where B is the batch size, L is the number of tokens processed together, and H is the hidden size of the model. For example, in Figure <ref type="figure" target="#fig_2">3</ref>, "iter 1" (initiation phase) takes an input tensor of shape [2, 2, H] and "iter 2" (increment phase) takes a tensor of shape [2, 1, H]. However, when the scheduler decides to run an iteration on batch (x 1 , x 2 , x 3 , x 4 ) in Figure <ref type="figure" target="#fig_3">4</ref>, the inputs for requests in the initiation phase (x 3 : [2, H] and x 4 : [3, H]) cannot coalesce into a single tensor of shape [B, L, H] because x 3 and x 4 have different number of input tokens, 2 and 3.</p><p>Interestingly, not all operations are incompatible with such irregularly shaped tensors. Operations such as non-Attention matrix multiplication and layer normalization can be made to work with irregularly shaped tensors by flattening the tensors.</p><p>For instance, the aforementioned input tensors for x 3 and x 4 can compose a 2-dimensional tensor of shape [∑ L, H] = [5, H] without an explicit batch dimension. This tensor can be fed into all non-Attention operations including Linear, Layer-Norm, Add, and GeLU operations because they do not need to distinguish tensor elements of different requests. On the other hand, the Attention operation requires a notion of requests (i.e., requires the batch dimension) to compute attention only between the tokens of the same request, typically done by applying cuBLAS routines for batch matrix multiplication.</p><p>Selective batching is aware of the different characteristics of each operation; it splits the batch and processes each request individually for the Attention operation while applying token-wise (instead of request-wise) batching to other operations without the notion of requests. Figure <ref type="figure" target="#fig_4">5</ref> presents the selective batching mechanism processing a batch of requests (x 1 , x 2 , x 3 , x 4 ) described in Figure <ref type="figure" target="#fig_3">4</ref>. This batch has 7 input tokens to process, so we make the input tensor have a shape of <ref type="bibr">[7, H]</ref> and apply the non-Attention operations. Before the Attention operation, we insert a Split operation and run the Attention operation separately on the split tensor for each request. The outputs of Attention operations are merged back into a tensor of shape [7, H] by a Merge operation, bringing back the batching functionality to the rest of operations.</p><p>To make the requests in the increment phase can use the Attention keys and values for the tokens processed in previous iterations, ORCA maintains the generated keys and values in the Attention K/V manager. The manager maintains these keys and values separately for each request until the scheduler explicitly asks to remove certain request's keys and values, i.e., when the request has finished processing. The Attention operation for request in the increment phase (x 1 and x 2 ) takes keys and values of previous tokens (x 11 , x 12 , x 13 for x 1 ; x 21 for x 2 ) from the manager, along with the current token's query, key, and value from the Split operation to compute attention between the current token and the previous ones.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">ORCA Design</head><p>Based on the above techniques, we design and implement ORCA: a distributed serving system for Transformer-based generative models. We have already discussed the system components and the overall execution model of ORCA while describing Figure <ref type="figure" target="#fig_3">4</ref>. In this section, we answer the remaining issues about how to build an efficient system that can scale to large-scale models with hundreds of billions of parameters. We also describe the scheduling algorithm for iteration-level scheduling, i.e., how to select a batch of requests from the request pool at every iteration.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Distributed Architecture</head><p>Recent works <ref type="bibr" target="#b11">[12,</ref><ref type="bibr" target="#b30">31]</ref> have shown that scaling language models can dramatically improve the quality of models. Hence, Execution Engine Scheduler Controller Control Plane Data Plane Worker 1 GPU GPU GPU Engine Master schedule tokens Controller Worker 2 GPU GPU GPU tokens control message control message tokens Figure 7</p><p>: An illustration of the distributed architecture of ORCA's execution engine using the parallelization configuration shown in Figure <ref type="figure">6</ref>. For example, the first inter-layer partition (Layer1 and Layer2) in Figure <ref type="figure">6</ref> is assigned to Worker1, while the second partition is assigned to Worker2. system support for serving such large language models is getting more importance, especially when the model does not fit in a single GPU. In such a case, one should split the model parameters along with the corresponding computation and distribute them across multiple GPUs and machines.</p><p>ORCA composes known parallelization techniques for Transformer models: intra-layer parallelism and inter-layer parallelism. These two model parallelism strategies, which are also used by FasterTransformer <ref type="bibr" target="#b3">[4]</ref>, have been originally developed for distributed training. Intra-layer parallelism <ref type="bibr" target="#b54">[55,</ref><ref type="bibr" target="#b57">58]</ref> splits matrix multiplications (i.e., Linear and Attention operations) and their associated parameters over multiple GPUs. We omit the detail about how this strategy partitions each matrix multiplication. On the other hand, inter-layer parallelism splits Transformer layers over multiple GPUs. ORCA assigns the same number of Transformer layers to each GPU. Figure <ref type="figure">6</ref> illustrates an example application of intra-and inter-layer parallelism to a 4-layer GPT model. The 4 layers are split into 2 inter-layer partitions, and the layers in the partition are subdivided into 3 intra-layer partitions. We assign each partition to a GPU, using a total of 6 GPUs.</p><p>The ORCA execution engine supports distributed execution using the techniques described above. Figure <ref type="figure">7</ref> depicts the architecture of an ORCA engine. Each worker process is responsible for an inter-layer partition of the model and can be placed on a different machine from each other. In particular, each worker manages one or more CPU threads each dedicated for controlling a GPU, the number of which depends on the degree of intra-layer parallelism.</p><p>The execution procedure of the ORCA execution engine is as follows. Once the engine is scheduled to run an iteration of the model for a batch of requests, the engine master forwards the received information about the scheduled batch to the first worker process (Worker1). The information includes tokens for the current iteration and a control message, which is composed of ids of requests within the batch, current token index (for requests in the increment phase), and number of input tokens (for requests in the initiation phase). The controller of Worker1 hands over the information received from the engine master to the GPU-controlling threads, where each thread parses the information and issues proper GPU kernels to its associated GPU. For example, the kernel for the Attention operation uses the request id and the current token index to get the GPU memory address of previous keys and values kept by the Attention K/V manager. In the meantime, the controller also forwards the control message to the controller of the next worker (Worker2), without waiting for the completion of the kernels issued on the GPUs of Worker1. Unlike Worker1, the controller of the last worker (Worker2) waits for (i.e., synchronize with) the completion of the issued GPU kernels, in order to fetch the output token for each request and send the tokens back to the engine master.</p><p>To keep GPUs busy as much as possible, we design the ORCA engine to minimize synchronization between the CPU and GPUs. We observe that current systems for distributed inference (e.g., FasterTransformer <ref type="bibr" target="#b3">[4]</ref> and Megatron-LM <ref type="bibr" target="#b2">[3]</ref>) have CPU-GPU synchronization whenever each process receives control messages<ref type="foot" target="#foot_4">foot_4</ref> because they exchange the messages through a GPU-to-GPU communication channel -NCCL <ref type="bibr" target="#b4">[5]</ref>. The exchange of these control messages occurs at every iteration, imposing a non-negligible performance overhead. On the other hand, ORCA separates the communication channels for control messages (plus tokens) and tensor data transfer, avoiding the use of NCCL for data used by CPUs. Figure <ref type="figure">7</ref> shows that the ORCA engine uses NCCL exclusively for exchanging intermediate tensor data (represented by dashed arrows) as this data is produced and consumed by GPUs. Control messages, which is used by the CPU threads for issuing GPU kernels, sent between the engine master and worker controllers by a separate communication channel that does not involve GPU such as gRPC <ref type="bibr" target="#b1">[2]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Scheduling Algorithm</head><p>The ORCA scheduler makes decisions on which requests should be selected and processed at every iteration. The scheduler has high flexibility in selecting a set of requests to com-pose a batch, because of the selective batching technique that allows the engine to run any set of requests in the batched manner. Now the main question left is how to select the requests at every iteration.</p><p>We design the ORCA scheduler to use a simple algorithm that does not change the processing order of client requests; early-arrived requests are processed earlier. That is, we ensure iteration-level first-come-first-served (FCFS) property. We define the iteration-level FCFS property for workloads with multi-iteration characteristics as follows: for any pair of requests (x i , x j ) in the request pool, if x i has arrived earlier than x j , x i should have run the same or more iterations than x j . Note that some late-arrived requests may return earlier to clients if the late request requires a smaller number of iterations to finish.</p><p>Still, the scheduler needs to take into account additional factors: diminishing returns to increasing the batch size and GPU memory constraint. Increasing the batch size trades off increased throughput for increased latency, but as the batch size becomes larger, the amount of return (i.e., increase in throughput) diminishes. Therefore, just like other serving systems <ref type="bibr" target="#b6">[7,</ref><ref type="bibr" target="#b15">16]</ref>, ORCA also has a notion of a max batch size: the largest possible number of requests within a batch. The ORCA system operator can tune this knob to maximize throughput while satisfying one's latency budget. We will discuss this in more details with experiment results in Section 6.2.</p><p>Another factor is the GPU memory constraint. Optimizing memory usage by reusing buffers for intermediate results across multiple operations is a well-known technique used by various systems <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b5">6]</ref>, and ORCA also adopts this technique. However, unlike the buffers for intermediate results that can be reused immediately, buffers used by the Attention K/V manager for storing the keys and values cannot be reclaimed until the ORCA scheduler notifies that the corresponding request has finished processing. A naïve implementation can make the scheduler fall into a deadlock when the scheduler cannot issue an iteration for any requests in the pool because there is no space left for storing a new Attention key and value for the next token. This requires the ORCA scheduler to be aware of the remaining size of pre-allocated memory regions for the manager.</p><p>The ORCA scheduler takes all these factors into account: it selects at most "max batch size" requests based on the arrival time, while reserving enough space for storing keys and values to a request when the request is scheduled for the first time. We describe the scheduling process in Algorithm 1. The algorithm selects a batch of requests from the request pool (line 4) and schedules the batch (line 5). The Select function (line 17) selects at most max_bs requests from the pool based on the arrival time of the request (lines 20-22). Algorithm 1 does not depict the procedure of request arrival and return; one may think of it as there exist concurrent threads inserting newly arrived requests into request_pool and removing finished requests from request_pool. When the scheduler considers a request in the initiation phase, meaning that the request has never been scheduled yet, the scheduler uses the request's max_tokens<ref type="foot" target="#foot_5">foot_5</ref> attribute to reserve max_tokens slots of GPU memory for storing the keys and values in advance (lines <ref type="bibr" target="#b22">[23]</ref><ref type="bibr" target="#b23">[24]</ref><ref type="bibr" target="#b24">[25]</ref><ref type="bibr" target="#b25">[26]</ref>. The scheduler determines whether the reservation is possible (line 25) based on n_rsrv, the number of currently reserved slots, where a slot is defined by the amount of memory required for storing an Attention key and value for a single token. Here, n_slots is a parameter tuned by the ORCA system operator indicating the size of memory region (in terms of slots) allocated to the Attention K/V manager. Since the number of tokens in a request cannot exceed max_tokens, if the reservation is possible, it is guaranteed that the manager can allocate buffers for the newly generated keys and values until the request finishes.</p><p>Unlike the tuning of max_bs that requires quantifying the trade-off between latency and throughput, the ORCA system</p><formula xml:id="formula_0">Worker1 Worker2 Worker3 Time A 1 B 1 A 1 B 1 A 1 B 1 C 1 D 1 C 1 D 1 C 1 D 1 E 1 F 1 E 1 F 1 E 1 F 1 A 2 B 2</formula><p>A 2 B 2 A 2 B 2 C 2 D 2 C 2 D 2 E 2 F 2 (a) ORCA execution pipeline. Partition1 Partition2 Partition3 A 1 Time B 1 A 1 B 1 A 1 B 1 A 2 B 2 A 2 B 2 A 2 B 2 A 3 (b) FasterTransformer execution pipeline. operator can easily configure n_slots without any experiments. Given a model specification (e.g., hidden size, number of layers, etc.) and degrees of intra-and inter-layer parallelism, ORCA's GPU memory usage mostly depends on n_slots. That is, the operator can simply use the largest possible n_slots under the memory constraint.</p><p>Pipeline parallelism. ORCA's scheduler makes the execution of workers in the engine to be pipelined across multiple batches. The scheduler does not wait for the return of a scheduled batch until n_scheduled, the number of currently scheduled batches, reaches n_workers (line 9-10 of Algorithm 1). By doing so, the scheduler keeps the number of concurrently running batches in the engine to be n_workers, which means that every worker in the engine is processing one of the batches without being idle.</p><p>Figure <ref type="figure" target="#fig_7">8a</ref> depicts the execution pipeline of 3 ORCA workers, using a max batch size of 2. We assume that the request A arrives before B, which arrives before C, and so on. At first, the scheduler selects requests A and B based on the arrival time and schedules the engine to process a batch of requests A and B (we call this batch AB), where Worker1, Worker2, and Worker3 process the batch in turn. The scheduler waits for the return of the batch AB only after the scheduler injects two more batches: CD and EF. Once the batch AB returns, requests A and B get selected and scheduled once again, because they are the earliest arrived requests among the requests in the pool.</p><p>In contrast, the interface between current serving systems and execution engines (e.g., a combination of Triton <ref type="bibr" target="#b6">[7]</ref> and FasterTransformer <ref type="bibr" target="#b3">[4]</ref>) does not allow injecting another batch before the finish of the current running batch, due to the request-level scheduling. That is, Triton cannot inject the next request C to FasterTransformer until the current batch AB finishes. To enable pipelined execution of multiple inter-layer partitions under such constraint, FasterTransformer splits a batch of requests into multiple microbatches <ref type="bibr" target="#b27">[28]</ref> and pipelines the executions of partitions across the microbatches.</p><p>In Figure <ref type="figure" target="#fig_7">8b</ref>, FasterTransformer splits the batch AB into two microbatches, A and B. Since each partition processes a microbatch (which is smaller than the original batch) in the batched manner, the performance gain from batching can become smaller. Moreover, this method may insert bubbles into the pipeline when the microbatch size is too large, making the number of microbatches smaller than the number of partitions. While FasterTransformer needs to trade batching efficiency (larger microbatch size) for pipelining efficiency (fewer pipeline bubbles), ORCA is free of such a tradeoffthanks to iteration-level scheduling -and can easily pipeline requests without dividing a batch into microbatches.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Implementation</head><p>We have implemented ORCA with 13K lines of C++, based on the CUDA ecosystem. We use gRPC <ref type="bibr" target="#b1">[2]</ref> for the communication in the control plane of the ORCA engine, while NCCL <ref type="bibr" target="#b4">[5]</ref> is used in the data plane, for both inter-layer and intra-layer communication. Since we design ORCA to focus on Transformer-based generative models, ORCA provides popular Transformer layers as a building block of models including the original encoder-decoder Transformer <ref type="bibr" target="#b59">[60]</ref>, GPT <ref type="bibr" target="#b46">[47]</ref>, and other variants discussed in Raffel et al. <ref type="bibr" target="#b48">[49]</ref>.</p><p>We have also implemented fused kernels for LayerNorm, Attention, and GeLU operators, just like other systems for training or inference of Transformer models <ref type="bibr" target="#b0">[1,</ref><ref type="bibr" target="#b3">4,</ref><ref type="bibr" target="#b57">58]</ref>. For example, the procedure of computing dot products between Attention query and keys, Softmax on the dot products, and weighted average of Attention values are fused into a single CUDA kernel for the Attention operator. In addition, we go one step further and fuse the kernels of the split Attention operators by simply concatenating all thread blocks of the kernels for different requests. Although this fusion makes the thread blocks within a kernel have different characteristics and lifetimes (which is often discouraged by CUDA programming practice) because they process tensors of different shapes, we find this fusion to be beneficial by improving GPU utilization and reducing the kernel launch overhead <ref type="bibr" target="#b33">[34,</ref><ref type="bibr" target="#b38">39]</ref>.</p><p>In this section, we present evaluation results to show the efficiency of ORCA.</p><p>Environment. We run our evaluation on Azure ND96asr A100 v4 VMs, each equipped with 8 NVIDIA 40-GB A100 GPUs connected over NVLink. We use at most four VMs depending on the size of the model being tested. Each VM has 8 Mellanox 200Gbps HDR Infiniband adapters, providing an 1.6Tb/s of interconnect bandwidth between VMs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Models.</head><p>Throughout the experiments, we use GPT <ref type="bibr" target="#b11">[12]</ref> as a representative example of Transformer-based generative models. We use GPT models with various configurations, which is listed in Table <ref type="table" target="#tab_0">1</ref>. The configurations for 13B and 175B models come from the GPT-3 paper <ref type="bibr" target="#b11">[12]</ref>. Based on these two models, we change the number of layers and hidden size to make configurations for 101B and 341B models. All models have a maximum sequence length of 2048, following the setting of the original literature <ref type="bibr" target="#b11">[12]</ref>. We use fp16-formatted model parameters and intermediate activations for the experiments. We also apply inter-and intra-layer parallelism strategies described in Section 4.1, except for the 13B model that can fit in a GPU. For example, the 175B model is partitioned over a total of 16 GPUs by using 2 inter-layer partitions subdivided into 8 intra-layer partitions, where the 8 GPUs in the same VM belongs to the same inter-layer partition.</p><p>Baseline system. We compare with FasterTransformer <ref type="bibr" target="#b3">[4]</ref>, an inference engine that supports large scale Transformer models via distributed execution. While there exist other systems with the support for distributed execution such as Megatron-LM <ref type="bibr" target="#b2">[3]</ref> and DeepSpeed <ref type="bibr" target="#b0">[1]</ref>, these systems are primarily designed and optimized for training workloads, which makes them show relatively lower performance compared to the inference-optimized systems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Scenarios.</head><p>We use two different scenarios to drive our evaluation. First, we design a microbenchmark to solely assess the performance of the ORCA engine without being affected by the iteration-level scheduling. In particular, we do not run the ORCA scheduler in this scenario. Instead, given a batch of requests, the testing script repeats injecting the same batch into the ORCA engine until all requests in the batch finishes, mimicking the behavior of the canonical request-level scheduling. We also assume that all requests in the batch have the same number of input tokens and generate the same number of output tokens. We report the time taken for processing the batch (not individual requests) and compare the result with FasterTransformer <ref type="bibr" target="#b3">[4]</ref>.</p><p>The second scenario tests the end-to-end performance of ORCA by emulating a workload. We synthesize a trace of client requests because there is no publicly-available request trace for generative language models. Each request in the synthesized trace is randomly generated by sampling the number of input tokens and a max_gen_tokens attribute, where the number of input tokens plus max_gen_tokens equals to the max_tokens attribute described in Section 4.2. We assume that all requests continue generation until the number of generated tokens reaches max_gen_tokens. In other words, we make the model never emit the "&lt;EOS&gt;" token. This is because we have neither the actual model checkpoint nor the actual input text so we do not have any information to guess the right timing of the "&lt;EOS&gt;" token generation. Once the requests are generated, we synthesize the trace by setting the request arrival time based on the Poisson process. To assess ORCA's behavior under varying load, we change the Poisson parameter (i.e., arrival rate) and adjust the request arrival time accordingly. We report latency and throughput using multiple traces generated from different distributions for better comparison and understanding of the behavior of ORCA and FasterTransformer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">Engine Microbenchmark</head><p>We first compare the performance of FasterTransformer and the ORCA engine using the first scenario. We set all requests in the batch to have the same number of input tokens (32 or 128) and generate 32 tokens. That is, in this set of experiments, all requests within the batch start and finish processing at the same time. We conduct experiments using three different models: 13B, 101B, and 175B. For each model, we use the corresponding parallelization strategy shown in Table <ref type="table" target="#tab_0">1</ref>.</p><p>Figure <ref type="figure" target="#fig_8">9</ref> shows the performance of FasterTransformer and the ORCA engine for processing a batch composed of the same requests. In Figure <ref type="figure" target="#fig_8">9a</ref>, the ORCA engine shows a similar (or slightly worse) performance compared to FasterTransformer across all configurations. This is because ORCA does not apply batching to the Attention operations, while FasterTransformer apply batching to all operations. Still, the performance difference is relatively small. Despite not batching the Attention operation, the absence of model parameters in Attention makes this decision has little impact on efficiency as there is no benefit of reusing model parameters across multiple requests.</p><p>Figure <ref type="figure" target="#fig_8">9b</ref> presents similar results for the 101B model that uses all of the 8 GPUs in a single VM. From these results, we can say that the ORCA engine and FasterTransformer have comparable efficiencies in the implementations of CUDA kernels and the communication between intra-layer partitions. Note that FasterTransformer cannot use a batch size of 8 or larger with the 13B model (16 or larger with the 101B model) because of the fixed amount of memory pre-allocation for each request's Attention keys and values, which grows in proportion to the max sequence length of the model (2048 for this case). In contrast, ORCA avoids redundant memory</p><p>1 2 4 8 16 32 Batch Size 0 500 1000 1500 Execution Time (ms) ft(32) orca(32) ft(128) orca(128) (a) 13B model, 1 GPU. 1 2 4 8 16 32 Batch Size 0 1000 2000 Execution Time (ms) ft(32) orca(32) ft(128) orca(128) (b) 101B model, 8 GPUs. 1 2 4 8 16 32 Batch Size 0 1000 2000 3000 Execution Time (ms) ft(32) orca(32) ft(128) orca(128) (c) 175B model, 16 GPUs. 0 2 4 6 Throughput (req/s) 10 2 10 3</p><p>Norm Latency (ms/token) ft(1, 1) ft <ref type="bibr" target="#b7">(8,</ref><ref type="bibr" target="#b7">8)</ref> orca( <ref type="formula">1</ref>) orca( <ref type="formula">8</ref>) orca( <ref type="formula">16</ref>) orca <ref type="bibr" target="#b31">(32)</ref> (a) 101B model, 8 GPU.</p><p>0 2 4 6 Throughput (req/s) 10 2 10 3</p><p>Norm Latency (ms/token) ft(1, 1) ft <ref type="bibr" target="#b7">(8,</ref><ref type="bibr" target="#b7">8)</ref> orca( <ref type="formula">1</ref>) orca( <ref type="formula">8</ref>) orca( <ref type="formula">16</ref>) orca <ref type="bibr" target="#b31">(32)</ref> (b) 175B model, 16 GPUs.</p><p>0 2 4 6 Throughput (req/s) 10 2 10 3</p><p>Norm Latency (ms/token) ft(1, 1) ft <ref type="bibr" target="#b7">(8,</ref><ref type="bibr" target="#b7">8)</ref> orca( <ref type="formula">1</ref>) orca( <ref type="formula">8</ref>) orca( <ref type="formula">16</ref>) orca <ref type="bibr" target="#b31">(32)</ref> (c) 341B model, 32 GPUs.</p><p>Figure <ref type="figure" target="#fig_0">10</ref>: Median end-to-end latency normalized by the number of generated tokens and throughput. Label "orca(max_bs)" represents results from ORCA with a max batch size of max_bs. Label "ft(max_bs, mbs)" represents results from FasterTransformer with a max batch size of max_bs and a microbatch size of mbs.</p><p>allocation by setting the size of buffers for the keys and values separately for each request based on the max_tokens attribute.</p><p>Next, we go one step further and experiment with the 175B model, which splits the layers into two inter-layer partitions. In this case, for better comparison, we disable pipelined execution of the inter-layer partitions for both systems. For Faster-Transformer, we set the size of a microbatch to be equal to the batch size to disable pipelining. As shown in Figure <ref type="figure" target="#fig_8">9c</ref>, the ORCA engine outperforms FasterTransformer by up to 47%. We attribute this performance improvement to the controldata plane separation described in Section 4.1. We omit the 341B model as it has similar results compared to the 175B model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">End-to-end Performance</head><p>Now we assess the end-to-end performance of ORCA by measuring the latency and throughput with the synthesized request trace under varying load. When synthesizing the trace, we sample each request's number of input tokens from U(32, 512), a uniform distribution ranging from 32 to 512 (inclusive). The max_gen_tokens attributed is sampled from U(1, 128), which means that the least and the most timeconsuming requests require 1 and 128 iterations of the model for processing, respectively.</p><p>Unlike the microbenchmark shown in Section 6.1, to measure the end-to-end performance, we test the entire ORCA software stack including the ORCA scheduler. Client requests arrive to the ORCA scheduler following the synthesized trace described above. We report results from various max batch size configurations. For FasterTransformer that does not have its own scheduler, we implement a custom scheduler that receives client requests, creates batches, and injects the batches to an instance of FasterTransformer. We make the custom scheduler create batches dynamically by taking at most max batch size requests from the request queue, which is the most common scheduling algorithm used by existing serving systems like Triton <ref type="bibr" target="#b6">[7]</ref> and TensorFlow Serving <ref type="bibr" target="#b41">[42]</ref>. Again, we report results from various max batch size configurations, along with varying microbatch sizes, an additional knob in FasterTransformer that governs the pipelining behavior (see Section 4.2).</p><p>Figure <ref type="figure" target="#fig_0">10</ref> shows median end-to-end latency and throughput. Since each request in the trace requires different processing time, which is (roughly) in proportion to the number of generated tokens, we report median latency normalized by the number of generated tokens of each request. From the figure, we can see that ORCA provides significantly higher throughput and lower latency than FasterTransformer. The only exception is the 101B model under low load (Figure <ref type="figure" target="#fig_0">10a</ref>). In this case, both ORCA and FasterTransformer do not have enough number of requests to process in a batch. That is, the latency will mostly depend on the engine's performance, which is shown in Figure <ref type="figure" target="#fig_8">9b</ref>. As the load becomes heavier, ORCA provides higher throughput with a relatively small increase in latency, because the ORCA scheduler makes late-arrived requests hitch a ride with the current ongoing batch. In contrast, FasterTransformer fails to efficiently handle multiple requests that (1) arrive at different times; (2) require different number of iterations to finish; or (3) start with different number of input tokens, resulting in a peak throughput of 0.49 req/s and much higher latency. If we use the 175B or 341B model (Figures <ref type="figure" target="#fig_0">10b</ref> and <ref type="figure" target="#fig_0">10c</ref>) that employs more than one inter-layer partitions, ORCA outperforms FasterTransformer under every level of load in terms of both latency and throughput, resulting in an order of magnitude higher throughput when we compare results at a similar level of latency. For example, to match a median normalized latency of 190ms for the 175B model, which is a double of the normalized execution time (by the number of generated tokens) of "orca(128)" shown in Figure <ref type="figure" target="#fig_8">9c</ref>, FasterTransformer provides a throughput of 0.185 req/s whereas ORCA provides a throughput of 6.81 req/s, which is a 36.9× speedup.</p><p>Varying batch size configurations. Figure <ref type="figure" target="#fig_0">10</ref> shows that the increase of the max batch size of ORCA results in a higher throughput without affecting the latency. This is because the iteration-level scheduling of ORCA resolves the problem of early-finished and late-joining requests. Nevertheless, there is no guarantee that increasing the batch size will not negatively affect the latency, for arbitrary hardware settings, models, and workloads. As mentioned in Section 4.2, the max batch size must be set carefully by considering both the required latency and throughput requirements. Interestingly, larger max batch size in FasterTransformer does not necessarily help improving throughput. By testing all possible combinations of max batch size (max_bs) and microbatch size (mbs) on all models under varying load, we find that (max_bs, mbs) = (1, 1) or <ref type="bibr" target="#b7">(8,</ref><ref type="bibr" target="#b7">8)</ref> are the best options. Per our discussion in Section 4.1, FasterTransformer's microbatch-based pipelining can be less efficient because the engine is going to process at most mbs number of requests in the batched manner, which explains why the configurations with the maximum possible mbs (which is the same as max_bs) have better performance than others. In addition, while increasing max_bs can improve performance due to the increased batch size, at the same time, this also increases the likelihood of batching requests with large difference in the number of input tokens or the number of generated tokens. In such cases, FasterTransformer cannot efficiently handle the batch because (1) for the first iteration of the batch, Faster-Transformer processes requests as if they all had the same input length as the shortest one; and (2) early-finished requests cannot immediately return to the clients.</p><p>Trace of homogeneous requests. We test the behavior of ORCA and FasterTransformer when using a trace of homogeneous requests, i.e., all requests in a trace have the same number of input tokens and the same max_gen_tokens attribute. Since all requests require the same number of iterations to finish processing, the problem of early-leaving requests does not occur for this trace. As a result, now the increase of the max_bs has a noticeable positive impact on the performance of FasterTransformer, as shown in Figure <ref type="figure" target="#fig_9">11</ref>. Still, ORCA outperforms FasterTransformer (max_bs=8) except for the case using a max batch size of 1, where ORCA degenerates into a simple pipeline of the ORCA workers that does not perform batching.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Related Work and Discussion</head><p>Fine-grained batching for recurrent models. We would like to highlight BatchMaker <ref type="bibr" target="#b22">[23]</ref> as one of the most relevant previous works. BatchMaker is a serving system for RNNs that performs scheduling and batching at the granularity of RNN cells, motivated by the unique RNN characteristic of repeating the same computation. Once a request arrives, Batch-Maker breaks the dataflow graph for processing the request into RNN cells, schedules execution at the granularity of cells (instead of the entire graph), and batches the execution of identical cells (if any). Since each RNN cell always performs the exact same computation, BatchMaker can execute multiple RNN cells in a batched manner regardless of the position (i.e., token index) of the cell. By doing so, BatchMaker allows a newly arrived request for RNN to join (or a finished request to leave) the current executing batch without waiting for the batch to completely finish.</p><p>However, BatchMaker cannot make batches of cells for Transformer models because there are too many distinct cells (a subgraph that encapsulates the computation for processing a token; Figure <ref type="figure" target="#fig_0">1c</ref>) in the graph. Each cell at a different token index t must use a different set of Attention Keys/Values. As the cell for each t is different, the graph comprises L different cells (L denotes the number of input and generated tokens), significantly lowering the likelihood of cells of the same computation being present at a given moment (e.g., in Figure <ref type="figure" target="#fig_0">10</ref>, L ranges from 33 = 32 + 1 to 640 = 512 + 128). Thus execution of the cells will be mostly serialized, making BatchMaker fall back to non-batched execution. BatchMaker also lacks support for large models that require model and pipeline parallelism.</p><p>While BatchMaker is geared towards detecting and aligning batch-able RNN cells, our key principle in designing ORCA is to perform as much computation as possible per each round of model parameter read. This is based on the insight that reading parameters from GPU global memory is a major bottleneck in terms of end-to-end execution time, for large-scale models. Adhering to this principle, we apply iteration-level scheduling and selective batching to process all "ready" tokens in a single round of parameter read, regardless of whether the processing of tokens can be batched (non-Attention ops) or not (Attention ops).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Specialized execution engines for Transformer models.</head><p>The outstanding performance of Transformer-based models encourages the development of inference systems specialized for them. FasterTransformer <ref type="bibr" target="#b3">[4]</ref>, LightSeq <ref type="bibr" target="#b60">[61]</ref>, TurboTransformers <ref type="bibr" target="#b21">[22]</ref> and EET <ref type="bibr" target="#b35">[36]</ref> are such examples. Each of these systems behave as an backend execution engine of existing serving systems like Triton Inference Server <ref type="bibr" target="#b6">[7]</ref> and Tensor-Flow Serving <ref type="bibr" target="#b41">[42]</ref>. That is, these systems delegate the role of scheduling to the serving system layer, adhering to the canonical request-level scheduling. Instead, ORCA suggests to schedule executions at a finer granularity, which is not possible in current systems without changing the mechanism for coordination between the scheduler and the execution engine. Note that among these systems, FasterTransformer is the only one with the support for distributed execution. While systems like Megatron-LM <ref type="bibr" target="#b2">[3]</ref> and DeepSpeed <ref type="bibr" target="#b0">[1]</ref> can also be used for distributed execution, these systems are primarily optimized for large-scale training rather than inference serving.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Interface between serving systems and execution engines.</head><p>Current general-purpose serving systems such as Triton Inference Server <ref type="bibr" target="#b6">[7]</ref> and Clipper <ref type="bibr" target="#b15">[16]</ref> serve as an abstraction for handling client requests and scheduling executions of the underlying execution engines. This approach is found to be beneficial by separating the design and implementation of the serving layer and the execution layer. However, we find that the prevalent interface between the two layers is too restricted for handling models like GPT <ref type="bibr" target="#b11">[12]</ref>, which has the multi-iteration characteristic. Instead, we design ORCA to tightly integrate the scheduler and the engine, simplifying the application of the two proposed techniques: iteration-level scheduling and selective batching. While in this paper we do not study a general interface design that supports the two techniques without losing the separation of abstractions, it can be an interesting topic to explore such possibility; we leave this issue to future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Conclusion</head><p>We present iteration-level scheduling with selective batching, a novel approach that achieves low latency and high throughput for serving Transformer-based generative models. Iteration-level scheduling makes the scheduler interact with the execution engine at the granularity of iteration instead of request, while selective batching enables batching arbitrary requests processing tokens at different positions, which is crucial for applying batching with iteration-level scheduling. Based on these techniques, we have designed and implemented a distributed serving system named ORCA. Experiments show the effectiveness of our approach: ORCA provides an order of magnitude higher throughput than current state-of-the-art systems at the same level of latency.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Illustrations for GPT's inference procedure, Transformer layer, and internal state usage.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Overall workflow of serving a generative language model with existing systems.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Figure3: An illustration for a case where the requests have the same input length but some requests finish earlier than others. Shaded tokens represent input tokens. "-" denotes inputs and outputs of extra computation imposed by the scheduling.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: System overview of ORCA. Interactions between components represented as dotted lines indicate that the interaction takes place at every iteration of the execution engine.x i j is the j-th token of the i-th request. Shaded tokens represent input tokens received from the clients, while unshaded tokens are generated by ORCA. For example, request x 1 initially arrived with two input tokens (x 11 , x 12 ) and have run two iterations so far, where the first and second iterations generated x 13 and x 14 , respectively. On the other hand, request x 3 only contains input tokens (x 31 , x 32 ) because it has not run any iterations yet.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: An illustration of ORCA execution engine running a Transformer layer on a batch of requests with selective batching. We only depict the QKV Linear, Attention, and Attention Out Linear operations for simplicity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 6 :Figure 7</head><label>67</label><figDesc>Figure 6: An example of intra-and inter-layer parallelism. A vertical dotted line indicates partitioning between layers and a horizontal line indicates partitioning within a layer.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Algorithm 1 : 6 foreach req in batch do 7 req.state ← RUNNING 8 n_scheduled ← n_scheduled + 1 9if n_scheduled = n_workers then 10 wait for return of a scheduled batch 11 foreach 20 SortByArrivalTime(pool) 21 foreach req in pool do 22 if← new_n_rsrv 27 batch ← batch {req} 28 return</head><label>1678110112021222728</label><figDesc>ORCA scheduling algorithm Params: n_workers: number of workers, max_bs: max batch size, n_slots: number of K/V slots 1 n_scheduled ← 0 2 n_rsrv ← 0 3 while true do 4 batch, n_rsrv ← Select(request_pool, n_rsrv) 5 schedule engine to run one iteration of the model for the batch req in the returned batch do 12 req.state ← INCREMENT 13 if finished(req) then 14 n_rsrv ← n_rsrvreq.max_tokens 15 n_scheduled ← n_scheduled -1 16 17 def Select(pool, n_rsrv): 18 batch ← {} 19 pool ← {req ∈ pool|req.state = RUNNING} batch.size() = max_bs then break 23 if req.state = INITIATION then 24 new_n_rsrv ← n_rsrv + req.max_tokens 25 if new_n_rsrv &gt; n_slots then break 26 n_rsrv batch, n_rsrv</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 8 :</head><label>8</label><figDesc>Figure 8: Comparison of the use of pipeline parallelism in ORCA and FasterTransformer where X i is the i-th iteration of request X.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 9 :</head><label>9</label><figDesc>Figure9: Execution time of a batch of requests using FasterTransformer and the ORCA engine without the scheduling component. Label "ft(n)" represents results from FasterTransformer processing requests with n input tokens. Configurations that incurs out of memory error are represented as missing entries (e.g., ft<ref type="bibr" target="#b31">(32)</ref> for the 101B model with a batch size of 16).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 11 :</head><label>11</label><figDesc>Figure11: Median end-to-end latency and throughput, using the 175B model with traces composed of homogeneous requests. We do not normalize the latency since all requests have the same characteristic.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><graphic coords="1,0.00,0.00,621.00,245.85" type="bitmap"/></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><graphic coords="1,0.00,543.00,621.00,259.01" type="bitmap"/></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0"><head>Table 1 :</head><label>1</label><figDesc>Configurations of models used in the experiments.</figDesc><table><row><cell cols="2"># Params # Layers</cell><cell>Hidden size</cell><cell># Inter-partitions</cell><cell># Intra-partitions</cell></row><row><cell>13B</cell><cell>40</cell><cell>5120</cell><cell>1</cell><cell>1</cell></row><row><cell>101B</cell><cell>80</cell><cell>10240</cell><cell>1</cell><cell>8</cell></row><row><cell>175B</cell><cell>96</cell><cell>12288</cell><cell>2</cell><cell>8</cell></row><row><cell>341B</cell><cell>120</cell><cell>15360</cell><cell>4</cell><cell>8</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0"><p>In some literature the Attention operation has an extended definition that includes linear layers (QKV Linear and Attn Out Linear; Figure1b). On the other hand, we use a narrow definition as described in Figure1b.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1"><p>Language models like GPT use causal masking, which means all preceding tokens are of interest and participate in the Attention operation.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2"><p>k l,1:t-1 represents Attention keys of the l-th layer for tokens at indices 1 to t -1 while k l,t is for the Attention key of the l-th layer for the token at index t. Same for v l,1:t-1 and v l,t .</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3"><p>We use the first case as a driving example, but the argument can be similarly applied to the other two cases.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4"><p>This includes various metadata such as batch size, sequence length, and whether a request within the batch has finished processing.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5"><p>The max_tokens attribute is a per-request option, meaning the maximum number of tokens that a request can have after processing.</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>We thank our shepherd <rs type="person">Amar Phanishayee</rs> and the anonymous reviewers for their insightful comments. This work was supported by <rs type="funder">FriendliAI Inc.</rs></p></div>
+			</div>
+			<listOrg type="funding">
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct status="extracted" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName><surname>Deepspeed</surname></persName>
+		</author>
+		<ptr target="https://github.com/microsoft/DeepSpeed"/>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b1">
+	<monogr>
+		<title/>
+		<author>
+			<persName><surname>Grpc</surname></persName>
+		</author>
+		<ptr target="https://grpc.io"/>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName><forename type="first">Megatron-Lm</forename></persName>
+		</author>
+		<ptr target="https://github.com/NVIDIA/Megatron-LM"/>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b3">
+	<monogr>
+		<ptr target="https://github.com/NVIDIA/FasterTransformer"/>
+		<title level="m">NVIDIA FasterTransformer</title>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b4">
+	<monogr>
+		<ptr target="https://github.com/NVIDIA/nccl"/>
+		<title level="m">NVIDIA NCCL</title>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b5">
+	<monogr>
+		<ptr target="https://developer.nvidia.com/tensorrt"/>
+		<title level="m">NVIDIA TensorRT</title>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b6">
+	<monogr>
+		<ptr target="https://developer.nvidia.com/nvidia-triton-inference-server"/>
+		<title level="m">NVIDIA Triton Inference Server</title>
+		<imprint>
+			<date type="published" when="2021-12-13">Dec 13, 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b7">
+	<analytic>
+		<title level="a" type="main">TensorFlow: A System for Large-Scale Machine Learning</title>
+		<author>
+			<persName><forename type="first">Martín</forename><surname>Abadi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Barham</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jianmin</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhifeng</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andy</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeffrey</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthieu</forename><surname>Devin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sanjay</forename><surname>Ghemawat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Geoffrey</forename><surname>Irving</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Isard</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Manjunath</forename><surname>Kudlur</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Josh</forename><surname>Levenberg</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rajat</forename><surname>Monga</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sherry</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Derek</forename><forename type="middle">G</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benoit</forename><surname>Steiner</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Tucker</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vijay</forename><surname>Vasudevan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pete</forename><surname>Warden</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Martin</forename><surname>Wicke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuan</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiaoqiang</forename><surname>Zheng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 12th USENIX Conference on Operating Systems Design and Implementation</title>
+		<meeting>the 12th USENIX Conference on Operating Systems Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="265" to="283"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Towards a Human-like Open-Domain Chatbot</title>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Adiwardana</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Minh-Thang</forename><surname>Luong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><forename type="middle">R</forename><surname>So</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jamie</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noah</forename><surname>Fiedel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Romal</forename><surname>Thoppilan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zi</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Apoorv</forename><surname>Kulshreshtha</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gaurav</forename><surname>Nemade</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yifeng</forename><surname>Lu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2001.09977</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Efficient Large Scale Language Modeling with Mixtures of Experts</title>
+		<author>
+			<persName><forename type="first">Mikel</forename><surname>Artetxe</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shruti</forename><surname>Bhosale</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Todor</forename><surname>Mihaylov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Shleifer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xi</forename><surname>Victoria Lin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jingfei</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Srinivasan</forename><surname>Iyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ramakanth</forename><surname>Pasunuru</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Giri</forename><surname>Anantharaman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xian</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shuohui</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Halil</forename><surname>Akin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mandeep</forename><surname>Baines</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Louis</forename><surname>Martin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xing</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Punit</forename><surname>Singh Koura</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Brian O'</forename><surname>Horo</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeff</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><surname>Diab</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zornitsa</forename><surname>Kozareva</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ves</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.10684</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b10">
+	<analytic>
+		<title level="a" type="main">A Statistical Approach to Machine Translation</title>
+		<author>
+			<persName><forename type="first">F</forename><surname>Peter</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Stephen</forename><forename type="middle">A</forename><surname>Cocke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><forename type="middle">J</forename><surname>Della Pietra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fredrick</forename><surname>Della Pietra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><forename type="middle">D</forename><surname>Jelinek</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Robert</forename><forename type="middle">L</forename><surname>Lafferty</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><forename type="middle">S</forename><surname>Mercer</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Roossin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="79" to="85"/>
+			<date type="published" when="1990">1990</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Language Models are Few-Shot Learners</title>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nick</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Melanie</forename><surname>Subbiah</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jared</forename><forename type="middle">D</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Prafulla</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Neelakantan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pranav</forename><surname>Shyam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Girish</forename><surname>Sastry</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amanda</forename><surname>Askell</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sandhini</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ariel</forename><surname>Herbert-Voss</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gretchen</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Henighan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aditya</forename><surname>Ramesh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Ziegler</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeffrey</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Clemens</forename><surname>Winter</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chris</forename><surname>Hesse</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mark</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eric</forename><surname>Sigler</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mateusz</forename><surname>Litwin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Scott</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Chess</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jack</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Berner</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Mccandlish</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Evaluating Large Language Models Trained on Code</title>
+		<author>
+			<persName><forename type="first">Mark</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jerry</forename><surname>Tworek</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Heewoo</forename><surname>Jun</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Qiming</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Henrique</forename><surname>Ponde De Oliveira Pinto</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jared</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Harrison</forename><surname>Edwards</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuri</forename><surname>Burda</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nicholas</forename><surname>Joseph</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Greg</forename><surname>Brockman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Ray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Raul</forename><surname>Puri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gretchen</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Petrov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Heidy</forename><surname>Khlaaf</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Girish</forename><surname>Sastry</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pamela</forename><surname>Mishkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Brooke</forename><surname>Chan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Scott</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nick</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mikhail</forename><surname>Pavlov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alethea</forename><surname>Power</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohammad</forename><surname>Bavarian</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Clemens</forename><surname>Winter</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Philippe</forename><surname>Tillet</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Felipe</forename><forename type="middle">Petroski</forename><surname>Such</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dave</forename><surname>Cummings</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthias</forename><surname>Plappert</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fotios</forename><surname>Chantzis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elizabeth</forename><surname>Barnes</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ariel</forename><surname>Herbert-Voss</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">William</forename><surname>Hebgen Guss</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Nichol</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alex</forename><surname>Paino</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nikolas</forename><surname>Tezak</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jie</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Igor</forename><surname>Babuschkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Suchir</forename><surname>Balaji</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shantanu</forename><surname>Jain</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">William</forename><surname>Saunders</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Hesse</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><forename type="middle">N</forename><surname>Carr</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jan</forename><surname>Leike</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Joshua</forename><surname>Achiam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vedant</forename><surname>Misra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Evan</forename><surname>Morikawa</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthew</forename><surname>Knight</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Miles</forename><surname>Brundage</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mira</forename><surname>Murati</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katie</forename><surname>Mayer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Welinder</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bob</forename><surname>Mcgrew</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Mccandlish</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wojciech</forename><surname>Zaremba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2107.03374</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b13">
+	<analytic>
+		<title level="a" type="main">TVM: An Automated Endto-End Optimizing Compiler for Deep Learning</title>
+		<author>
+			<persName><forename type="first">Tianqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Thierry</forename><surname>Moreau</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ziheng</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lianmin</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eddie</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Meghan</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Haichen</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Leyuan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuwei</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luis</forename><surname>Ceze</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Carlos</forename><surname>Guestrin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Krishnamurthy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 13th USENIX Conference on Operating Systems Design and Implementation</title>
+		<meeting>the 13th USENIX Conference on Operating Systems Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="579" to="594"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b14">
+	<monogr>
+		<title level="m" type="main">PaLM: Scaling Language Modeling with Pathways</title>
+		<author>
+			<persName><forename type="first">Aakanksha</forename><surname>Chowdhery</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maarten</forename><surname>Bosma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gaurav</forename><surname>Mishra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paul</forename><surname>Barham</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyung</forename><forename type="middle">Won</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Charles</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Gehrmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Parker</forename><surname>Schuh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kensen</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sasha</forename><surname>Tsvyashchenko</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Joshua</forename><surname>Maynez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Abhishek</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Parker</forename><surname>Barnes</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yi</forename><surname>Tay</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Emily</forename><surname>Vinodkumar Prabhakaran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nan</forename><surname>Reif</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ben</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Reiner</forename><surname>Hutchinson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Pope</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Austin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Guy</forename><surname>Isard</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Pengcheng</forename><surname>Gur-Ari</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Toju</forename><surname>Yin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Anselm</forename><surname>Duke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sanjay</forename><surname>Levskaya</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sunipa</forename><surname>Ghemawat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Henryk</forename><surname>Dev</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xavier</forename><surname>Michalewski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vedant</forename><surname>Garcia</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kevin</forename><surname>Misra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Liam</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Denny</forename><surname>Fedus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Daphne</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Ippolito</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyeontaek</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Barret</forename><surname>Lim</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alexander</forename><surname>Zoph</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><surname>Spiridonov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Sepassi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shivani</forename><surname>Dohan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mark</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><forename type="middle">M</forename><surname>Omernick</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Thanumalayan</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marie</forename><surname>Sankaranarayana Pillai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aitor</forename><surname>Pellat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Erica</forename><surname>Lewkowycz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rewon</forename><surname>Moreira</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oleksandr</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katherine</forename><surname>Polozov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zongwei</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xuezhi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Brennan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mark</forename><surname>Saeta</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Orhan</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michele</forename><surname>Firat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Catasta</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kathy</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Douglas</forename><surname>Meier-Hellstern</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeff</forename><surname>Eck</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Slav</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noah</forename><surname>Petrov</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Fiedel</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2204.02311</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Clipper: A Low-Latency Online Prediction Serving System</title>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Crankshaw</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xin</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Giulio</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><forename type="middle">J</forename><surname>Franklin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Joseph</forename><forename type="middle">E</forename><surname>Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ion</forename><surname>Stoica</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 14th USENIX Symposium on Networked Systems Design and Implementation</title>
+		<meeting>the 14th USENIX Symposium on Networked Systems Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="613" to="627"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b16">
+	<analytic>
+		<title level="a" type="main">A Survey of Multilingual Neural Machine Translation</title>
+		<author>
+			<persName><forename type="first">Raj</forename><surname>Dabre</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chenhui</forename><surname>Chu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Anoop</forename><surname>Kunchukuttan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Computing Surveys</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b17">
+	<analytic>
+		<title level="a" type="main">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186"/>
+		</imprint>
+	</monogr>
+	<note>Long and Short Papers)</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b18">
+	<analytic>
+		<title level="a" type="main">CogView: Mastering Textto-Image Generation via Transformers</title>
+		<author>
+			<persName><forename type="first">Ming</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhuoyi</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenyi</forename><surname>Hong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wendi</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chang</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Da</forename><surname>Yin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Junyang</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xu</forename><surname>Zou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhou</forename><surname>Shao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hongxia</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jie</forename><surname>Tang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Measuring and Mitigating Unintended Bias in Text Classification</title>
+		<author>
+			<persName><forename type="first">Lucas</forename><surname>Dixon</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeffrey</forename><surname>Sorensen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nithum</forename><surname>Thain</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lucy</forename><surname>Vasserman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 AAAI/ACM Conference on AI, Ethics, and Society</title>
+		<meeting>the 2018 AAAI/ACM Conference on AI, Ethics, and Society</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="67" to="73"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b20">
+	<monogr>
+		<title level="m" type="main">GLaM: Efficient Scaling of Language Models with Mixture-of-Experts</title>
+		<author>
+			<persName><forename type="first">Nan</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yanping</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><forename type="middle">M</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Simon</forename><surname>Tong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dmitry</forename><surname>Lepikhin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuanzhong</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maxim</forename><surname>Krikun</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adams</forename><forename type="middle">Wei</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Orhan</forename><surname>Firat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Barret</forename><surname>Zoph</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Liam</forename><surname>Fedus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maarten</forename><surname>Bosma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zongwei</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tao</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yu</forename><forename type="middle">Emma</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kellie</forename><surname>Webster</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marie</forename><surname>Pellat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kevin</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kathy</forename><surname>Meier-Hellstern</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Toju</forename><surname>Duke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lucas</forename><surname>Dixon</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kun</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">V</forename><surname>Quoc</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yonghui</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhifeng</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Claire</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Cui</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.06905</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b21">
+	<analytic>
+		<title level="a" type="main">TurboTransformers: An Efficient GPU Serving System for Transformer Models</title>
+		<author>
+			<persName><forename type="first">Jiarui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yang</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chengduo</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jie</forename><surname>Zhou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 26th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming</title>
+		<meeting>the 26th ACM SIGPLAN Symposium on Principles and Practice of Parallel Programming</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="389" to="402"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Low Latency RNN Inference with Cellular Batching</title>
+		<author>
+			<persName><forename type="first">Pin</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lingfan</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yongwei</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jinyang</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Thirteenth EuroSys Conference</title>
+		<meeting>the Thirteenth EuroSys Conference</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Deep Residual Learning for Image Recognition</title>
+		<author>
+			<persName><forename type="first">Kaiming</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiangyu</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shaoqing</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jian</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2016 IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the 2016 IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="770" to="778"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Long Short-Term Memory</title>
+		<author>
+			<persName><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780"/>
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Training Compute-Optimal Large Language Models</title>
+		<author>
+			<persName><forename type="first">Jordan</forename><surname>Hoffmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Borgeaud</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arthur</forename><surname>Mensch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elena</forename><surname>Buchatskaya</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Trevor</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eliza</forename><surname>Rutherford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Diego</forename><surname>De Las</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lisa</forename><forename type="middle">Anne</forename><surname>Casas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Johannes</forename><surname>Hendricks</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aidan</forename><surname>Welbl</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eric</forename><surname>Hennigan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katie</forename><surname>Noland</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">George</forename><surname>Millican</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bogdan</forename><surname>Van Den Driessche</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aurelia</forename><surname>Damoc</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Simon</forename><surname>Guy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Karen</forename><surname>Osindero</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Erich</forename><surname>Simonyan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jack</forename><forename type="middle">W</forename><surname>Elsen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oriol</forename><surname>Rae</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Laurent</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Sifre</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2203.15556</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Focus: Querying Large Video Datasets with Low Latency and Low Cost</title>
+		<author>
+			<persName><forename type="first">Kevin</forename><surname>Hsieh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ganesh</forename><surname>Ananthanarayanan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Bodik</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shivaram</forename><surname>Venkataraman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Paramvir</forename><surname>Bahl</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthai</forename><surname>Philipose</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Phillip</forename><forename type="middle">B</forename><surname>Gibbons</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Onur</forename><surname>Mutlu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 13th USENIX Conference on Operating Systems Design and Implementation</title>
+		<meeting>the 13th USENIX Conference on Operating Systems Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="269" to="286"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b27">
+	<analytic>
+		<title level="a" type="main">GPipe: Efficient Training of Giant Neural Networks Using Pipeline Parallelism</title>
+		<author>
+			<persName><forename type="first">Yanping</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Youlong</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ankur</forename><surname>Bapna</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Orhan</forename><surname>Firat</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dehao</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mia</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyoukjoong</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jiquan</forename><surname>Ngiam</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">V</forename><surname>Quoc</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yonghui</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Wu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Mainstream: Dynamic Stem-Sharing for Multi-Tenant Video Processing</title>
+		<author>
+			<persName><forename type="first">Angela</forename><forename type="middle">H</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">L.-K</forename><surname>Daniel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Wong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lilia</forename><surname>Canel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ishan</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Misra</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><forename type="middle">A</forename><surname>Kaminsky</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Padmanabhan</forename><surname>Kozuch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><forename type="middle">G</forename><surname>Pillai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gregory</forename><forename type="middle">R</forename><surname>Andersen</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Ganger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 USENIX Annual Technical Conference</title>
+		<meeting>the 2018 USENIX Annual Technical Conference</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="29" to="42"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b29">
+	<analytic>
+		<title level="a" type="main">NoScope: Optimizing Neural Network Queries over Video at Scale</title>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Kang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Emmons</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Firas</forename><surname>Abuzaid</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Bailis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the VLDB Endowment</title>
+		<meeting>the VLDB Endowment</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="1586" to="1597"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Scaling Laws for Neural Language Models</title>
+		<author>
+			<persName><forename type="first">Jared</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Mccandlish</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Henighan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tom</forename><forename type="middle">B</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benjamin</forename><surname>Chess</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Scott</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeffrey</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2001.08361</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b31">
+	<analytic>
+		<title level="a" type="main">UNIFIEDQA: Crossing Format Boundaries with a Single QA System</title>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Khashabi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sewon</forename><surname>Min</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tushar</forename><surname>Khot</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ashish</forename><surname>Sabharwal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oyvind</forename><surname>Tafjord</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hannaneh</forename><surname>Hajishirzi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Findings of the Association for Computational Linguistics: EMNLP 2020</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1896" to="1907"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Natural Questions: a Benchmark for Question Answering Research</title>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Kwiatkowski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jennimaria</forename><surname>Palomaki</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Olivia</forename><surname>Redfield</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ankur</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chris</forename><surname>Alberti</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Danielle</forename><surname>Epstein</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="452" to="466"/>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Nimble: Lightweight and Parallel GPU Task Scheduling for Deep Learning</title>
+		<author>
+			<persName><forename type="first">Woosuk</forename><surname>Kwon</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gyeong-In</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eunji</forename><surname>Jeong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Byung-Gon</forename><surname>Chun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b34">
+	<analytic>
+		<title level="a" type="main">PRETZEL: Opening the Black Box of Machine Learning Prediction Serving Systems</title>
+		<author>
+			<persName><forename type="first">Yunseong</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alberto</forename><surname>Scolari</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Byung-Gon</forename><surname>Chun</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Marco</forename></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Domenico</forename><surname>Santambrogio</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Markus</forename><surname>Weimer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matteo</forename><surname>Interlandi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 13th USENIX Symposium on Operating Systems Design and Implementation</title>
+		<meeting>the 13th USENIX Symposium on Operating Systems Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="611" to="626"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Easy and Efficient Transformer: Scalable Inference Solution For large NLP model</title>
+		<author>
+			<persName><forename type="first">Gongzheng</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yadong</forename><surname>Xi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jingzhen</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Duan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bai</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Changjie</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xiaoxi</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zeng</forename><surname>Zhao</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2104.12470</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b36">
+	<monogr>
+		<author>
+			<persName><forename type="first">Opher</forename><surname>Lieber</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Or</forename><surname>Sharir</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Barak</forename><surname>Lenz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yoav</forename><surname>Shoham</surname></persName>
+		</author>
+		<title level="m">Jurassic-1: Technical details and evaluation</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Vx2text: End-to-end learning of video-based text generation from multimodal inputs</title>
+		<author>
+			<persName><forename type="first">Xudong</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gedas</forename><surname>Bertasius</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jue</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shih-Fu</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Devi</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lorenzo</forename><surname>Torresani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the 2021 IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="7005" to="7015"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b38">
+	<monogr>
+		<title level="m" type="main">Rammer: Enabling Holistic Deep Learning Compiler Optimizations with rTasks</title>
+		<author>
+			<persName><forename type="first">Lingxiao</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhiqiang</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhi</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jilong</forename><surname>Xue</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Youshan</forename><surname>Miao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei</forename><surname>Cui</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wenxiang</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fan</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lintao</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lidong</forename><surname>Zhou</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="881" to="897"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Can a Suit of Armor Conduct Electricity? A New Dataset for Open Book Question Answering</title>
+		<author>
+			<persName><forename type="first">Todor</forename><surname>Mihaylov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tushar</forename><surname>Khot</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ashish</forename><surname>Sabharwal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="2381" to="2391"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Abstractive Text Summarization using Sequence-to-sequence RNNs and Beyond</title>
+		<author>
+			<persName><forename type="first">Ramesh</forename><surname>Nallapati</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bowen</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cícero</forename><surname>Nogueira Dos Santos</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Çaglar</forename><surname>Gülçehre</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bing</forename><surname>Xiang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 20th SIGNLL Conference on Computational Natural Language Learning</title>
+		<meeting>the 20th SIGNLL Conference on Computational Natural Language Learning</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="280" to="290"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b41">
+	<analytic>
+		<title level="a" type="main">TensorFlow-Serving: Flexible, High-Performance ML Serving</title>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Olston</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noah</forename><surname>Fiedel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kiril</forename><surname>Gorovoy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeremiah</forename><surname>Harmsen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Li</forename><surname>Lao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Fangwei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vinu</forename><surname>Rajashekhar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ramesh</forename><surname>Sukriti</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jordan</forename><surname>Soyke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Workshop on Machine Learning Systems at NIPS 2017</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b42">
+	<analytic>
+		<title level="a" type="main">fairseq: A Fast, Extensible Toolkit for Sequence Modeling</title>
+		<author>
+			<persName><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sergey</forename><surname>Edunov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alexei</forename><surname>Baevski</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angela</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nathan</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Grangier</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Auli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics (Demonstrations)</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics (Demonstrations)</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="48" to="53"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b43">
+	<analytic>
+		<title level="a" type="main">PyTorch: An Imperative Style, High-Performance Deep Learning Library</title>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Paszke</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Francisco</forename><surname>Massa</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Lerer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gregory</forename><surname>Chanan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Trevor</forename><surname>Killeen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zeming</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Natalia</forename><surname>Gimelshein</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luca</forename><surname>Antiga</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alban</forename><surname>Desmaison</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andreas</forename><surname>Kopf</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Edward</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zachary</forename><surname>Devito</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Martin</forename><surname>Raison</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alykhan</forename><surname>Tejani</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sasank</forename><surname>Chilamkurthy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Benoit</forename><surname>Steiner</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lu</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Junjie</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Soumith</forename><surname>Chintala</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b44">
+	<analytic>
+		<title level="a" type="main">A Deep Reinforced Model for Abstractive Summarization</title>
+		<author>
+			<persName><forename type="first">Romain</forename><surname>Paulus</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 6th International Conference on Learning Representations</title>
+		<meeting>the 6th International Conference on Learning Representations</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Scikit-Learn: Machine Learning in Python</title>
+		<author>
+			<persName><forename type="first">Fabian</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gaël</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alexandre</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bertrand</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Olivier</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mathieu</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ron</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jake</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alexandre</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthieu</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthieu</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Édouard</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">85</biblScope>
+			<biblScope unit="page" from="2825" to="2830"/>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Language Models are Unsupervised Multitask Learners</title>
+		<author>
+			<persName><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeff</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b47">
+	<monogr>
+		<author>
+			<persName><forename type="first">Jack</forename><forename type="middle">W</forename><surname>Rae</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sebastian</forename><surname>Borgeaud</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Trevor</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katie</forename><surname>Millican</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jordan</forename><surname>Hoffmann</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Francis</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Aslanides</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sarah</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Roman</forename><surname>Ring</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Susannah</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eliza</forename><surname>Rutherford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tom</forename><surname>Hennigan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jacob</forename><surname>Menick</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Albin</forename><surname>Cassirer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Richard</forename><surname>Powell</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">George</forename><surname>Van Den Driessche</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lisa</forename><forename type="middle">Anne</forename><surname>Hendricks</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maribeth</forename><surname>Rauh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Po-Sen</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amelia</forename><surname>Glaese</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Johannes</forename><surname>Welbl</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sumanth</forename><surname>Dathathri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Saffron</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jonathan</forename><surname>Uesato</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">John</forename><surname>Mellor</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Irina</forename><surname>Higgins</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Antonia</forename><surname>Creswell</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nat</forename><surname>Mcaleese</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Amy</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Erich</forename><surname>Elsen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Siddhant</forename><surname>Jayakumar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elena</forename><surname>Buchatskaya</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Budden</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Esme</forename><surname>Sutherland</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Karen</forename><surname>Simonyan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michela</forename><surname>Paganini</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Laurent</forename><surname>Sifre</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lena</forename><surname>Martens</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lorraine</forename><surname>Xiang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adhiguna</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aida</forename><surname>Kuncoro</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elena</forename><surname>Nematzadeh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Domenic</forename><surname>Gribovskaya</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Angeliki</forename><surname>Donato</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arthur</forename><surname>Lazaridou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jean-Baptiste</forename><surname>Mensch</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maria</forename><surname>Lespiau</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nikolai</forename><surname>Tsimpoukelli</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Doug</forename><surname>Grigorev</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Thibault</forename><surname>Fritz</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mantas</forename><surname>Sottiaux</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Toby</forename><surname>Pajarskas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhitao</forename><surname>Pohlen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Gong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cyprien</forename><surname>Toyama</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yujia</forename><surname>De Masson D'autume</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tayfun</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vladimir</forename><surname>Terzi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Igor</forename><surname>Mikulik</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aidan</forename><surname>Babuschkin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Diego</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName><surname>De Las</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aurelia</forename><surname>Casas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chris</forename><surname>Guy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">James</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthew</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Blake</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Laura</forename><surname>Hechtman</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Iason</forename><surname>Weidinger</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">William</forename><surname>Gabriel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ed</forename><surname>Isaac</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Simon</forename><surname>Lockhart</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Laura</forename><surname>Osindero</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chris</forename><surname>Rimell</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Oriol</forename><surname>Dyer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kareem</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeff</forename><surname>Ayoub</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lorrayne</forename><surname>Stanway</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Demis</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Koray</forename><surname>Hassabis</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Geoffrey</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+		<author>
+			<persName><surname>Irving</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2112.11446</idno>
+		<title level="m">Scaling Language Models: Methods, Analysis &amp; Insights from Training Gopher</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer</title>
+		<author>
+			<persName><forename type="first">Colin</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">140</biblScope>
+			<biblScope unit="page" from="1" to="67"/>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b49">
+	<monogr>
+		<title level="m" type="main">DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale</title>
+		<author>
+			<persName><forename type="first">Samyam</forename><surname>Rajbhandari</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Conglong</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhewei</forename><surname>Yao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Minjia</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Reza</forename><surname>Yazdani Aminabadi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ammar</forename><surname>Ahmad Awan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jeff</forename><surname>Rasley</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuxiong</forename><surname>He</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2201.05596</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b50">
+	<analytic>
+		<title level="a" type="main">Zero-Shot Text-to-Image Generation</title>
+		<author>
+			<persName><forename type="first">Aditya</forename><surname>Ramesh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mikhail</forename><surname>Pavlov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Gabriel</forename><surname>Goh</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Scott</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Chelsea</forename><surname>Voss</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mark</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 38th International Conference on Machine Learning</title>
+		<meeting>the 38th International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="8821" to="8831"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Recipes for Building an Open-Domain Chatbot</title>
+		<author>
+			<persName><forename type="first">Stephen</forename><surname>Roller</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Emily</forename><surname>Dinan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Da</forename><surname>Ju</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mary</forename><surname>Williamson</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jing</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Eric</forename><forename type="middle">Michael</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Y-Lan</forename><surname>Boureau</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main</title>
+		<meeting>the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="300" to="325"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b52">
+	<analytic>
+		<title level="a" type="main">Exploiting Cloze-Questions for Few-Shot Text Classification and Natural Language Inference</title>
+		<author>
+			<persName><forename type="first">Timo</forename><surname>Schick</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hinrich</forename><surname>Schütze</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main</title>
+		<meeting>the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="255" to="269"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Get To The Point: Summarization with Pointer-Generator Networks</title>
+		<author>
+			<persName><forename type="first">Abigail</forename><surname>See</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 55th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1073" to="1083"/>
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Mesh-TensorFlow: Deep Learning for Supercomputers</title>
+		<author>
+			<persName><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Youlong</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Dustin</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Penporn</forename><surname>Koanantakool</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Peter</forename><surname>Hawkins</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Hyoukjoong</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mingsheng</forename><surname>Hong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Cliff</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><surname>Sepassi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Blake</forename><surname>Hechtman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b55">
+	<analytic>
+		<title level="a" type="main">Nexus: A GPU Cluster Engine for Accelerating DNN-Based Video Analysis</title>
+		<author>
+			<persName><forename type="first">Haichen</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lequn</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuchen</forename><surname>Jin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Liangyu</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bingyu</forename><surname>Kong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthai</forename><surname>Philipose</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Krishnamurthy</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ravi</forename><surname>Sundaram</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 27th ACM Symposium on Operating Systems Principles</title>
+		<meeting>the 27th ACM Symposium on Operating Systems Principles</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="322" to="337"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Fast Video Classification via Adaptive Cascading of Deep Models</title>
+		<author>
+			<persName><forename type="first">Haichen</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Seungyeop</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Matthai</forename><surname>Philipose</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Arvind</forename><surname>Krishnamurthy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2017 IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the 2017 IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="3646" to="3654"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b57">
+	<monogr>
+		<title level="m" type="main">Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</title>
+		<author>
+			<persName><forename type="first">Mohammad</forename><surname>Shoeybi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mostofa</forename><surname>Patwary</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Raul</forename><surname>Puri</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Patrick</forename><surname>Legresley</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jared</forename><surname>Casper</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Catanzaro</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.08053</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b58">
+	<monogr>
+		<title level="m" type="main">Using DeepSpeed and Megatron to Train Megatron-Turing NLG 530B, A Large-Scale Generative Language Model</title>
+		<author>
+			<persName><forename type="first">Shaden</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mostofa</forename><surname>Patwary</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Brandon</forename><surname>Norick</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Patrick</forename><surname>Legresley</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Samyam</forename><surname>Rajbhandari</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jared</forename><surname>Casper</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zhun</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shrimai</forename><surname>Prabhumoye</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">George</forename><surname>Zerveas</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vijay</forename><surname>Korthikanti</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Elton</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Reza</forename><surname>Yazdani Aminabadi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Julie</forename><surname>Bernauer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mohammad</forename><surname>Shoeybi</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuxiong</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Michael</forename><surname>Houston</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Bryan</forename><surname>Catanzaro</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2201.11990</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b59">
+	<analytic>
+		<title level="a" type="main">Attention is All you Need</title>
+		<author>
+			<persName><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b60">
+	<analytic>
+		<title level="a" type="main">LightSeq: A High Performance Inference Library for Transformers</title>
+		<author>
+			<persName><forename type="first">Xiaohui</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ying</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yang</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mingxuan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Lei</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies: Industry Papers</title>
+		<meeting>the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies: Industry Papers</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="113" to="120"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b61">
+	<monogr>
+		<title level="m" type="main">Clip-gen: Language-free training of a text-to-image generator with clip</title>
+		<author>
+			<persName><forename type="first">Zihao</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Wei</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Qian</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xinglong</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Zili</forename><surname>Yi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2203.00386</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Finetuned Language Models are Zero-Shot Learners</title>
+		<author>
+			<persName><forename type="first">Jason</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Maarten</forename><surname>Bosma</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Vincent</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kelvin</forename><surname>Guu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Adams</forename><forename type="middle">Wei</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Brian</forename><surname>Lester</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Nan</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Andrew</forename><forename type="middle">M</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Quoc V</forename><surname>Le</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 10th International Conference on Learning Representations</title>
+		<meeting>the 10th International Conference on Learning Representations</meeting>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b63">
+	<analytic>
+		<title level="a" type="main">A Learning Algorithm for Continually Running Fully Recurrent Neural Networks</title>
+		<author>
+			<persName><forename type="first">Ronald</forename><forename type="middle">J</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">David</forename><surname>Zipser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="270" to="280"/>
+			<date type="published" when="1989">1989</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b64">
+	<analytic>
+		<title level="a" type="main">Show, Attend and Tell: Neural Image Caption Generation with Visual Attention</title>
+		<author>
+			<persName><forename type="first">Kelvin</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Jimmy</forename><surname>Ba</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ryan</forename><surname>Kiros</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Aaron</forename><surname>Courville</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ruslan</forename><surname>Salakhudinov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Rich</forename><surname>Zemel</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yoshua</forename><surname>Bengio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 32nd International Conference on Machine Learning</title>
+		<meeting>the 32nd International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="2048" to="2057"/>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b65">
+	<analytic>
+		<title level="a" type="main">Review Networks for Caption Generation</title>
+		<author>
+			<persName><forename type="first">Zhilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ye</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Yuexin</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">William</forename><forename type="middle">W</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Ruslan</forename><forename type="middle">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct status="extracted" xml:id="b66">
+	<monogr>
+		<title level="m" type="main">OPT: Open Pre-trained Transformer Language Models</title>
+		<author>
+			<persName><forename type="first">Susan</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Stephen</forename><surname>Roller</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mikel</forename><surname>Artetxe</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Moya</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Shuohui</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Christopher</forename><surname>Dewan</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Mona</forename><surname>Diab</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xian</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Xi</forename><surname>Victoria Lin</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Todor</forename><surname>Mihaylov</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Sam</forename><surname>Shleifer</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Kurt</forename><surname>Shuster</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Daniel</forename><surname>Simig</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Punit</forename><surname>Singh Koura</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Anjali</forename><surname>Sridhar</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Tianlu</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2205.01068</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>
