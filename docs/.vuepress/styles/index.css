@@ -167,6 +167,7 @@ pre * {
 }
 
 .paper-algorithm {
+  contain: inline-size paint;
   max-width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
@@ -199,6 +200,11 @@ pre * {
   overscroll-behavior-inline: contain;
 }
 
+.paper-reading .vp-doc div[class*="language-"] {
+  contain: inline-size paint;
+  max-width: 100%;
+}
+
 .paper-reading {
   --paper-formula-accent: #8a6a00;
 }
@@ -212,6 +218,13 @@ pre * {
 }
 
 @media (max-width: 719px) {
+  .paper-reading .vp-doc div[class*="language-"] pre,
+  .paper-reading .vp-doc div[class*="language-"] pre * {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
   .tilesight-paper .katex-display {
     font-size: 0.7em;
   }

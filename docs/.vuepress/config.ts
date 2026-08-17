@@ -1885,6 +1885,39 @@ const paperAbbreviations = {
   'Lm40': 'William D. Strecker. "VAX-11/780: A Virtual Address Extension to the DEC PDP-11 Family." Proceedings of the National Computer Conference. 1978.',
   'Lm41': 'GMI Cloud. "GMI Cloud: GPU Cloud Solutions for Scalable AI & Inference." 2025. [Link](https://www.gmicloud.ai/)',
   'Lm42': 'Yichao "Peak" Ji. "Context Engineering for AI Agents: Lessons from Building Manus." 2025. [Link](https://manus.im/blog/Context-Engineering-for-AI-Agents-Lessons-from-Building-Manus)',
+  'Adn24': 'Muhammad Adnan et al. "Keyformer: KV Cache Reduction through Key Tokens Selection for Efficient Generative Inference." 2024. [Link](https://arxiv.org/abs/2403.09054)',
+  'Agr24s': 'Amey Agrawal et al. "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve." 2024. [Link](https://arxiv.org/abs/2403.02310)',
+  'Akb24': 'Negar Akbarzadeh et al. "H3DM: A High-bandwidth High-capacity Hybrid 3D Memory Design for GPUs." Proceedings of the ACM on Measurement and Analysis of Computing Systems. 2024. [Link](https://doi.org/10.1145/3639038)',
+  'Bot24': 'Aleksandar Botev et al. "RecurrentGemma: Moving Past Transformers for Efficient Open Language Models." 2024. [Link](https://arxiv.org/abs/2404.07839)',
+  'Bra23': 'William Brandon et al. "Striped Attention: Faster Ring Attention for Causal Transformers." 2023. [Link](https://arxiv.org/abs/2311.09431)',
+  'Cai24p': 'Zefan Cai et al. "PyramidKV: Dynamic KV Cache Compression based on Pyramidal Information Funneling." 2024. [Link](https://arxiv.org/abs/2406.02069)',
+  'Cha23i': 'Character.AI. "Optimizing AI Inference at Character.AI." 2023. [Link](https://research.character.ai/optimizing-inference/)',
+  'Che24o': 'Shaoyuan Chen, Yutong Lin, Mingxing Zhang, and Yongwei Wu. "Efficient and Economic Large Language Model Inference with Attention Offloading." 2024. [Link](https://arxiv.org/abs/2405.01814)',
+  'Dev24': 'Alessio Devoto, Yu Zhao, Simone Scardapane, and Pasquale Minervini. "A Simple and Effective L2 Norm-Based Strategy for KV Cache Compression." 2024. [Link](https://arxiv.org/abs/2406.11430)',
+  'Fan24u': 'Jiarui Fang and Shangchun Zhao. "USP: A Unified Sequence Parallelism Approach for Long Context Generative AI." 2024. [Link](https://arxiv.org/abs/2405.07719)',
+  'Guo24a': 'Zhiyu Guo, Hidetaka Kamigaito, and Taro Watanabe. "Attention Score is not All You Need for Token Importance Indicator in KV Cache Reduction: Value Also Matters." 2024. [Link](https://arxiv.org/abs/2406.12335)',
+  'Kim16n': 'Duckhwan Kim et al. "Neurocube: A Programmable Digital Neuromorphic Architecture with High-Density 3D Memory." ISCA. 2016. [Link](https://doi.org/10.1109/ISCA.2016.41)',
+  'Kor23s': 'The Korea Economic Daily. "Samsung to unveil 3D DRAM in 2025 to lead AI chip market." 2023. [Link](https://www.kedglobal.com/korean-chipmakers/newsView/ked202404020016)',
+  'Lag21': 'Ann Franchesca Laguna, Arman Kazemi, Michael Niemier, and X. Sharon Hu. "In-Memory Computing based Accelerator for Transformer Networks for Long Sequences." DATE. 2021. [Link](https://doi.org/10.23919/DATE51398.2021.9474146)',
+  'Li23cim': 'Wantong Li et al. "H3DAtten: Heterogeneous 3-D Integrated Hybrid Analog and Digital Compute-in-Memory Accelerator for Vision Transformer Self-Attention." IEEE Transactions on Very Large Scale Integration Systems. 2023. [Link](https://doi.org/10.1109/TVLSI.2023.3299509)',
+  'Li23q': 'Dacheng Li et al. "LightSeq: Sequence Level Parallelism for Distributed Training of Long Context Transformers." WANT at NeurIPS. 2023.',
+  'Lie24': 'Opher Lieber et al. "Jamba: A Hybrid Transformer-Mamba Language Model." 2024. [Link](https://arxiv.org/abs/2403.19887)',
+  'Liu24m': 'Akide Liu et al. "MiniCache: KV Cache Compression in Depth Dimension for Large Language Models." 2024. [Link](https://arxiv.org/abs/2405.14366)',
+  'Moo23': 'Moonshot AI. "Kimi." 2023. [Link](https://kimi.moonshot.cn)',
+  'Nvi23t': 'NVIDIA Corporation. "TensorRT-LLM." 2023. [Link](https://github.com/NVIDIA/TensorRT-LLM)',
+  'Pac23': 'Charles Packer et al. "MemGPT: Towards LLMs as Operating Systems." 2023. [Link](https://arxiv.org/abs/2310.08560)',
+  'Sri23x': 'Shrihari Sridharan, Jacob R. Stevens, Kaushik Roy, and Anand Raghunathan. "X-Former: In-Memory Acceleration of Transformers." IEEE Transactions on Very Large Scale Integration Systems. 2023. [Link](https://doi.org/10.1109/TVLSI.2023.3282046)',
+  'Sri24': 'Vikranth Srivatsa et al. "Preble: Efficient Distributed Prompt Scheduling for LLM Serving." UCSD CSE Technical Reports. 2024. [Link](https://escholarship.org/uc/item/1bm0k1w0)',
+  'Wu24c': 'Haoyi Wu and Kewei Tu. "Layer-Condensed KV Cache for Efficient Inference of Large Language Models." 2024. [Link](https://arxiv.org/abs/2405.10637)',
+  'Wu24l': 'Bingyang Wu et al. "LoongServe: Efficiently Serving Long-context Large Language Models with Elastic Sequence Parallelism." 2024. [Link](https://arxiv.org/abs/2404.09526)',
+  'Yan20r': 'Xiaoxuan Yang, Bonan Yan, Hai Li, and Yiran Chen. "ReTransformer: ReRAM-based Processing-in-Memory Architecture for Transformer Acceleration." ICCAD. 2020. [Link](https://doi.org/10.1145/3400302.3415640)',
+  'Yan24p': 'Dongjie Yang et al. "PyramidInfer: Pyramid KV Cache Compression for High-throughput LLM Inference." 2024. [Link](https://arxiv.org/abs/2405.12532)',
+  'Yao24s': 'Yao Yao, Zuchao Li, and Hai Zhao. "SirLLM: Streaming Infinite Retentive LLM." 2024. [Link](https://arxiv.org/abs/2405.12528)',
+  'Yu24e': 'Hao Yu, Zelan Yang, Shen Li, Yong Li, and Jianxin Wu. "Effectively Compress KV Heads for LLM." 2024. [Link](https://arxiv.org/abs/2406.07056)',
+  'Zha13o': 'Jishen Zhao, Guangyu Sun, Gabriel H. Loh, and Yuan Xie. "Optimizing GPU Energy Efficiency with 3D Die-Stacking Graphics Memory and Reconfigurable Memory Interface." ACM Transactions on Architecture and Code Optimization. 2013. [Link](https://doi.org/10.1145/2541228.2541231)',
+  'Zha17o': 'Jishen Zhao, Qiaosha Zou, and Yuan Xie. "Overview of 3-D Architecture Design Opportunities and Techniques." IEEE Design and Test. 2017. [Link](https://doi.org/10.1109/MDAT.2015.2463282)',
+  'Zha23h': 'Zhenyu Zhang et al. "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models." 2023. [Link](https://arxiv.org/abs/2306.14048)',
+  'Zuh24': 'Zayd Muhammad Kawakibi Zuhri, Muhammad Farid Adilazuarda, Ayu Purwarianti, and Alham Fikri Aji. "MLKV: Multi-Layer Key-Value Heads for Memory Efficient Transformer Decoding." 2024. [Link](https://arxiv.org/abs/2406.09297)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -2169,7 +2202,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'lmcache'],
+                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'mooncake', 'lmcache'],
               },
               {
                 text: '分布式训练',
@@ -2281,7 +2314,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'lmcache'],
+                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'mooncake', 'lmcache'],
               },
               {
                 text: 'Distributed Training',
@@ -2503,7 +2536,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'lmcache'],
+                items: ['speculative-decoding', 'sarathi', 'vllm', 'distserve', 'mooncake', 'lmcache'],
               },
               {
                 text: '分散学習',
