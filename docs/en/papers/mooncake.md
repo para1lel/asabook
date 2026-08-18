@@ -16,7 +16,7 @@ Mooncake is the serving platform for Kimi, a leading LLM service provided by Moo
 ## 1 Introduction
 <span id="section-01-01"></span>
 
-### 1.1 Motivation of Developing Mooncacke
+### 1.1 Motivation of Developing Mooncake
 
 With the rapid adoption of large language models (LLMs) in various scenarios [Ope22, Tou23b, Che21, Pac23], the workloads for LLM serving have become significantly diversified. These workloads differ in input/output length, frequency and distribution of arrival, and, most importantly, demand different kinds of Service Level Objectives (SLOs). As a Model as a Service (MaaS) provider, one of the primary goals of Kimi [Moo23] is to solve an optimization problem with multiple complex constraints. The optimization goal is to maximize overall effective throughput, which directly impacts revenue, while the constraints reflect varying levels of SLOs. These SLOs typically involve meeting latency-related requirements, mainly the time to first token (TTFT) and the time between tokens (TBT).
 
@@ -47,7 +47,7 @@ In this paper, we summarize these problems as **overload-oriented scheduling** a
 
 <span id="section-01-02"></span>
 
-### 1.2 Design and Results of Mooncacke
+### 1.2 Design and Results of Mooncake
 
 In the following sections of this paper, we first present an overview of Mooncake's architecture, including its main components and the typical workflow for processing a request ([§ 3](#section-03)). Then, we describe the main design choices made during its implementation, especially those not covered in current research.
 

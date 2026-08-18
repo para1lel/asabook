@@ -1976,6 +1976,29 @@ const paperAbbreviations = {
   'Zha17a': 'Jishen Zhao, Qiaosha Zou, and Yuan Xie. "Overview of 3-D Architecture Design Opportunities and Techniques." IEEE Design and Test. 2017. [Link](https://doi.org/10.1109/MDAT.2015.2463282)',
   'Zha23g': 'Zhenyu Zhang et al. "H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models." 2023. [Link](https://arxiv.org/abs/2306.14048)',
   'Zuh24': 'Zayd Muhammad Kawakibi Zuhri, Muhammad Farid Adilazuarda, Ayu Purwarianti, and Alham Fikri Aji. "MLKV: Multi-Layer Key-Value Heads for Memory Efficient Transformer Decoding." 2024. [Link](https://arxiv.org/abs/2406.09297)',
+  'Abh24': 'Reyna Abhyankar, Zijian He, Vikranth Srivatsa, Hao Zhang, and Yiying Zhang. "APIServe: Efficient API Support for Large-Language Model Inferencing." arXiv preprint arXiv:2402.01869. 2024. [Link](https://arxiv.org/abs/2402.01869)',
+  'Beu23': 'Luca Beurer-Kellner, Marc Fischer, and Martin Vechev. "Prompting is Programming: A Query Language for Large Language Models." Proceedings of the ACM on Programming Languages, 7(PLDI):1946-1969. 2023. [Link](https://doi.org/10.1145/3591300)',
+  'Bub23': 'Sebastien Bubeck et al. "Sparks of Artificial General Intelligence: Early Experiments with GPT-4." arXiv preprint arXiv:2303.12712. 2023. [Link](https://arxiv.org/abs/2303.12712)',
+  'Gui22': 'Guidance AI. "A Guidance Language for Controlling Large Language Models." 2022. [Link](https://github.com/guidance-ai/guidance)',
+  'Jur24': 'Jordan Juravsky, Bradley Brown, Ryan Ehrlich, Daniel Y. Fu, Christopher Re, and Azalia Mirhoseini. "Hydragen: High-Throughput LLM Inference with Shared Prefixes." arXiv preprint arXiv:2402.05099. 2024. [Link](https://arxiv.org/abs/2402.05099)',
+  'Kha23': 'Omar Khattab et al. "DSPy: Compiling Declarative Language Model Calls into Self-Improving Pipelines." arXiv preprint arXiv:2310.03714. 2023. [Link](https://arxiv.org/abs/2310.03714)',
+  'Kuc23': 'Michael Kuchnik, Virginia Smith, and George Amvrosiadis. "Validating Large Language Models with ReLM." Proceedings of Machine Learning and Systems, 5. 2023. [Link](https://proceedings.mlsys.org/paper_files/paper/2023/hash/93c7d9da61ccb2a60ac047e92787c3ef-Abstract-mlsys2023.html)',
+  'Lan22': 'LangChain AI. "LangChain." 2022. [Link](https://github.com/langchain-ai/langchain)',
+  'Liu23l': 'Xiaoxia Liu, Jingyi Wang, Jun Sun, Xiaohan Yuan, Guoliang Dong, Peng Di, Wenhai Wang, and Dongxia Wang. "Prompting Frameworks for Large Language Models: A Survey." arXiv preprint arXiv:2311.12785. 2023. [Link](https://arxiv.org/abs/2311.12785)',
+  'Liu24n': 'Haotian Liu, Chunyuan Li, Yuheng Li, Bo Li, Yuanhan Zhang, Sheng Shen, and Yong Jae Lee. "LLaVA-NeXT: Improved Reasoning, OCR, and World Knowledge." 2024. [Link](https://llava-vl.github.io/blog/2024-01-30-llava-next/)',
+  'Liu24o': 'Shu Liu, Asim Biswal, Audrey Cheng, Xiangxi Mo, Shiyi Cao, Joseph E. Gonzalez, Ion Stoica, and Matei Zaharia. "Optimizing LLM Queries in Relational Workloads." arXiv preprint arXiv:2403.05821. 2024. [Link](https://arxiv.org/abs/2403.05821)',
+  'Liu24p': 'Zichang Liu, Aditya Desai, Fangshuo Liao, Weitao Wang, Victor Xie, Zhaozhuo Xu, Anastasios Kyrillidis, and Anshumali Shrivastava. "Scissorhands: Exploiting the Persistence of Importance Hypothesis for LLM KV Cache Compression at Test Time." Advances in Neural Information Processing Systems, 36. 2024. [Link](https://arxiv.org/abs/2305.17118)',
+  'Nin24': 'Xuefei Ning, Zinan Lin, Zixuan Zhou, Zifu Wang, Huazhong Yang, and Yu Wang. "Skeleton-of-Thought: Prompting LLMs for Efficient Parallel Generation." The Twelfth International Conference on Learning Representations. 2024. [Link](https://openreview.net/forum?id=mqVgBbNCm9)',
+  'Par23': 'Joon Sung Park, Joseph C. O\'Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, and Michael S. Bernstein. "Generative Agents: Interactive Simulacra of Human Behavior." UIST. 2023. [Link](https://doi.org/10.1145/3586183.3606763)',
+  'Sah23': 'Swarnadeep Saha, Omer Levy, Asli Celikyilmaz, Mohit Bansal, Jason Weston, and Xian Li. "Branch-Solve-Merge Improves Large Language Model Evaluation and Generation." arXiv preprint arXiv:2310.15123. 2023. [Link](https://arxiv.org/abs/2310.15123)',
+  'She23b': 'Ying Sheng, Shiyi Cao, Dacheng Li, Banghua Zhu, Zhuohan Li, Danyang Zhuo, Joseph E. Gonzalez, and Ion Stoica. "Fairness in Serving Large Language Models." arXiv preprint arXiv:2401.00588. 2023. [Link](https://arxiv.org/abs/2401.00588)',
+  'Sum23a': 'Theodore Sumers, Shunyu Yao, Karthik Narasimhan, and Thomas Griffiths. "Cognitive Architectures for Language Agents." Transactions on Machine Learning Research. 2023. [Link](https://openreview.net/forum?id=1i6ZCvflQJ)',
+  'Tra24': 'Vivien Tran-Thien. "Fast, High-Fidelity LLM Decoding with Regex Constraints." Unsupervised Thoughts. 2024. [Link](https://vivien000.github.io/blog/journal/llm-decoding-with-regex-constraints.html)',
+  'Wan22g': 'Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc V. Le, Ed H. Chi, Sharan Narang, Aakanksha Chowdhery, and Denny Zhou. "Self-Consistency Improves Chain of Thought Reasoning in Language Models." The Eleventh International Conference on Learning Representations. 2022. [Link](https://arxiv.org/abs/2203.11171)',
+  'Wan23d': 'Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandkumar. "Voyager: An Open-Ended Embodied Agent with Large Language Models." arXiv preprint arXiv:2305.16291. 2023. [Link](https://arxiv.org/abs/2305.16291)',
+  'Wil23': 'Brandon T. Willard and Remi Louf. "Efficient Guided Generation for Large Language Models." arXiv preprint arXiv:2307.09702. 2023. [Link](https://arxiv.org/abs/2307.09702)',
+  'Ye24a': 'Zihao Ye et al. "Accelerating Self-Attentions for LLM Serving with FlashInfer." 2024. [Link](https://flashinfer.ai/2024/02/02/introduce-flashinfer.html)',
+  'Zha24j': 'Yuanhan Zhang, Bo Li, Haotian Liu, Yong Jae Lee, Liangke Gui, Di Fu, Jiashi Feng, Ziwei Liu, and Chunyuan Li. "LLaVA-NeXT: A Strong Zero-shot Video Understanding Model." 2024. [Link](https://llava-vl.github.io/blog/2024-04-30-llava-next-video/)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -2260,7 +2283,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'distserve', 'mooncake', 'lmcache'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache'],
               },
               {
                 text: '分布式训练',
@@ -2372,7 +2395,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'distserve', 'mooncake', 'lmcache'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache'],
               },
               {
                 text: 'Distributed Training',
@@ -2594,7 +2617,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'distserve', 'mooncake', 'lmcache'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache'],
               },
               {
                 text: '分散学習',

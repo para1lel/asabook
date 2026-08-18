@@ -16,7 +16,7 @@ Mooncake は、Moonshot AI が提供する主要な LLM サービス Kimi のサ
 ## 1 はじめに
 <span id="section-01-01"></span>
 
-### 1.1 Mooncacke 開発の動機
+### 1.1 Mooncake 開発の動機
 
 さまざまなシナリオで大規模言語モデル （LLM） が急速に普及するにつれて [Ope22, Tou23b, Che21, Pac23]、LLM サービングのワークロードは大きく多様化している。これらのワークロードは入力/出力長、到着頻度、到着分布が異なり、さらに重要なことに、異なる種類の Service Level Objectives （SLO） を要求する。Model as a Service （MaaS） プロバイダとして、Kimi [Moo23] の主な目標の一つは、複数の複雑な制約を持つ最適化問題を解くことである。最適化の目標は全体の実効スループットを最大化することであり、これは収益に直接影響する。一方、制約はさまざまなレベルの SLO を表す。これらの SLO は通常、レイテンシに関する要件、主に Time To First Token （TTFT） と Time Between Tokens （TBT） を含む。
 
@@ -47,7 +47,7 @@ prefill スケジューリングは prefill ノードの利用可能な DRAM 容
 
 <span id="section-01-02"></span>
 
-### 1.2 Mooncacke の設計と結果
+### 1.2 Mooncake の設計と結果
 
 本論文の後半では、まず Mooncake のアーキテクチャ、主要コンポーネント、リクエスト処理の典型的なワークフローを概説する （[§ 3](#section-03)）。続いて、実装時に行った主な設計上の選択、特に現在の研究で扱われていないものを説明する。
 
