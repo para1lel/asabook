@@ -154,6 +154,8 @@ const paperAbbreviations = {
   'De24': 'Soham De. "Mixing Gated Linear Recurrences with Local Attention for Efficient Language Models." 2024. [Link](https://arxiv.org/abs/2402.19427)',
   'Dee24': 'Deepseek-Ai. "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model." cs.CL. 2024. [Link](https://arxiv.org/abs/2405.04434)',
   'Dee26': 'Deepseek-Ai. "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence." arXiv preprint. 2026.',
+  'Dee26a': 'DeepSeek-AI. "DeepSeek-V4-Pro." 2026. [Link](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro)',
+  'Dee26b': 'DeepSeek-AI. "DeepSeek-V4-Flash." 2026. [Link](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash)',
   'Dee24a': 'Deepseek-Ai. DeepSeek-V3 Technical Report. 2024. [Link](https://arxiv.org/abs/2412.19437)',
   'Ela26': 'Venmugil Elango. "LatentMoE: Toward Optimal Accuracy per FLOP and Parameter in Mixture of Experts." 2026. [Link](https://arxiv.org/abs/2601.18089)',
   'Fed22': 'William Fedus, Barret Zoph, Noam Shazeer. "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity." Journal of Machine Learning Research. 2022.',
@@ -187,6 +189,7 @@ const paperAbbreviations = {
   'Kim25a': 'Kimi Team. "Kimi-vl technical report." arXiv preprint. 2025.',
   'Kim26d': 'Kimi Team. "PerceptionBench: Evaluating Atomic Visual Perception in Multimodal Large Language Models." Moonshot AI. 2026. [Link](https://www.kimi.com/blog/perception-bench)',
   'Kim25b': 'Kimi Team. "Linear: An Expressive, Efficient Attention Architecture." cs.CL. 2025.',
+  'Kim25c': 'Moonshot AI. "Kimi-K2-Instruct." 2025. [Link](https://huggingface.co/moonshotai/Kimi-K2-Instruct)',
   'Lat21': 'Chris Lattner. "MLIR: Scaling Compiler Infrastructure for Domain Specific Computation." 2021 IEEE/ACM International Symposium on Code Generation and Optimization. 2021. [DOI](https://doi.org/10.1109/CGO51591.2021.9370308)',
   'Val26b': '"Vals AI." 2026. [Link](https://www.vals.ai/benchmarks/legal_research)',
   'Lep20': 'Dmitry Lepikhin. "Gshard: Scaling giant models with conditional computation and automatic sharding." arXiv preprint. 2020.',
@@ -257,6 +260,9 @@ const paperAbbreviations = {
   'Wu25': 'Zijian Wu. "MCPMark: A benchmark for stress-testing realistic and comprehensive mcp use." arXiv preprint. 2025.',
   'Xia26': 'B Xiao. "MiMo-V2-Flash Technical Report." arXiv preprint. 2026.',
   'Mim26': '"Xiaomi MiMo Team." MiMo-V2.5-Pro. 2026. [Link](https://huggingface.co/collections/XiaomiMiMo/mimo-v25.2026)',
+  'Mim26a': 'Xiaomi MiMo Team. "MiMo-V2.5." 2026. [Link](https://huggingface.co/XiaomiMiMo/MiMo-V2.5)',
+  'Qwe26': 'Qwen. "Qwen3.5-397B-A17B." 2026. [Link](https://huggingface.co/Qwen/Qwen3.5-397B-A17B)',
+  'Hy26': 'Tencent Hy. "Hy3." 2026. [Link](https://huggingface.co/tencent/Hy3)',
   'Xie25': 'Tianbao Xie. "Introducing OSWorld-Verified." xlang.ai. 2025. [Link](https://xlang.ai/blog/osworld-verified)',
   'Yan26': 'Zijie Yan. "Scalable Training of Mixture-of-Experts Models with Megatron Core." cs.DC. 2026. [Link](https://arxiv.org/abs/2603.07685)',
   'Yan25': 'Songlin Yang, Jan Kautz, Ali Hatamizadeh. "Gated Delta Networks: Improving Mamba2 with Delta Rule." Proceedings of ICLR. 2025. [Link](https://openreview.net/forum?id=r8H7xhYPwz)',
@@ -2345,7 +2351,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference'],
               },
               {
                 text: '分布式训练',
@@ -2457,7 +2463,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference'],
               },
               {
                 text: 'Distributed Training',
@@ -2679,7 +2685,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference'],
               },
               {
                 text: '分散学習',

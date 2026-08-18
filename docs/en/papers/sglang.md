@@ -248,37 +248,37 @@ Often in LLM programs, multiple text segments and generation calls are appended 
 - **Input:** The radix tree $T$, the memory pool $P$, the current running batch $B$, the waiting queue $Q$.
 - **Output:** Finished requests and updated system state.
 - **Get all requests from the waiting queue:**
-  - Set $requests\leftarrow Q.\text{get\_all\_requests}()$.
+  - Set $\mathrm{requests}\leftarrow Q.\text{get\_all\_requests}()$.
 - **Search for the prefix matching for all waiting requests:**
-  - **For** $req\in requests$:
-    - Set $req.prefix\_node, req.prefix\_len\leftarrow T.\text{match\_prefix}(req.input\_tokens)$.
+  - **For** $\mathrm{req}\in\mathrm{requests}$:
+    - Set $\mathrm{req.prefix\_node}, \mathrm{req.prefix\_len}\leftarrow T.\text{match\_prefix}(\mathrm{req.input\_tokens})$.
 - **Sort the requests according to the matched prefix lenghts:**
-  - Sort $requests$.
+  - Sort $\mathrm{requests}$.
 - **Select requests for the next batch:**
-  - Set $available\_size\leftarrow T.\text{evictable\_size}()+P.\text{available\_size}()$.
-  - Set $current\_size\leftarrow 0$.
-  - Set $new\_batch\leftarrow []$.
-  - **For** $req\in requests$:
-    - **If** $req.\text{size}()+current\_size<available\_size$:
-      - Append $req$ to $new\_batch$.
-      - Set $delta\leftarrow T.\text{increase\_ref\_counter}(req.prefix\_node)$.
-      - Set $available\_size\leftarrow available\_size+delta$.
-  - Remove requests in $new\_batch$ from $Q$.
+  - Set $\mathrm{available\_size}\leftarrow T.\text{evictable\_size}()+P.\text{available\_size}()$.
+  - Set $\mathrm{current\_size}\leftarrow 0$.
+  - Set $\mathrm{new\_batch}\leftarrow []$.
+  - **For** $\mathrm{req}\in\mathrm{requests}$:
+    - **If** $\mathrm{req}.\text{size}()+\mathrm{current\_size}<\mathrm{available\_size}$:
+      - Append $\mathrm{req}$ to $\mathrm{new\_batch}$.
+      - Set $\mathrm{delta}\leftarrow T.\text{increase\_ref\_counter}(\mathrm{req.prefix\_node})$.
+      - Set $\mathrm{available\_size}\leftarrow\mathrm{available\_size}+\mathrm{delta}$.
+  - Remove requests in $\mathrm{new\_batch}$ from $Q$.
 - **Insert requests into the current running batch:**
-  - Merge $new\_batch$ into $B$.
+  - Merge $\mathrm{new\_batch}$ into $B$.
 - **Allocate new memory and do eviction if necessary:**
-  - Set $needed\_size\leftarrow B.\text{needed\_size}()$.
-  - Set $success, buffer\leftarrow P.\text{alloc}(needed\_size)$.
+  - Set $\mathrm{needed\_size}\leftarrow B.\text{needed\_size}()$.
+  - Set $\mathrm{success}, \mathrm{buffer}\leftarrow P.\text{alloc}(\mathrm{needed\_size})$.
   - **If** `not success`:
-    - Evict $needed\_size$ from $T$.
-    - Set $success, buffer\leftarrow P.\text{alloc}(needed\_size)$.
-  - Run $B$ with $buffer$.
+    - Evict $\mathrm{needed\_size}$ from $T$.
+    - Set $\mathrm{success}, \mathrm{buffer}\leftarrow P.\text{alloc}(\mathrm{needed\_size})$.
+  - Run $B$ with $\mathrm{buffer}$.
 - **Process finished requests:**
-  - Set $finished\_requests\leftarrow B.\text{drop\_finished\_requests}()$.
-  - **For** $req\in finished\_requests$:
-    - Decrease the reference counter of $req.prefix\_node$ in $T$.
-    - Insert $req$ into $T$.
-- **Return:** $finished\_requests$.
+  - Set $\mathrm{finished\_requests}\leftarrow B.\text{drop\_finished\_requests}()$.
+  - **For** $\mathrm{req}\in\mathrm{finished\_requests}$:
+    - Decrease the reference counter of $\mathrm{req.prefix\_node}$ in $T$.
+    - Insert $\mathrm{req}$ into $T$.
+- **Return:** $\mathrm{finished\_requests}$.
 
 <span id="appendix-a-2"></span>
 

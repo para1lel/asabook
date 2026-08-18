@@ -248,37 +248,37 @@ vLLM [Kwo23] 和 ChunkedAttention [Ye24] 研究了 system prompt 共享等简单
 - **输入:** 基数树 $T$, 内存池 $P$, 当前运行批次 $B$, 等待队列 $Q$.
 - **输出:** 已完成请求和更新后的系统状态.
 - **从等待队列取得所有请求:**
-  - 令 $requests\leftarrow Q.\text{get\_all\_requests}()$.
+  - 令 $\mathrm{requests}\leftarrow Q.\text{get\_all\_requests}()$.
 - **为所有等待请求搜索匹配前缀:**
-  - **对于** $requests$ 中的每个 $req$:
-    - 令 $req.prefix\_node, req.prefix\_len\leftarrow T.\text{match\_prefix}(req.input\_tokens)$.
+  - **对于** $\mathrm{requests}$ 中的每个 $\mathrm{req}$:
+    - 令 $\mathrm{req.prefix\_node}, \mathrm{req.prefix\_len}\leftarrow T.\text{match\_prefix}(\mathrm{req.input\_tokens})$.
 - **按照匹配前缀长度排序请求:**
-  - 对 $requests$ 排序.
+  - 对 $\mathrm{requests}$ 排序.
 - **为下一个批次选择请求:**
-  - 令 $available\_size\leftarrow T.\text{evictable\_size}()+P.\text{available\_size}()$.
-  - 令 $current\_size\leftarrow 0$.
-  - 令 $new\_batch\leftarrow []$.
-  - **对于** $requests$ 中的每个 $req$:
-    - **如果** $req.\text{size}()+current\_size<available\_size$:
-      - 将 $req$ 追加到 $new\_batch$.
-      - 令 $delta\leftarrow T.\text{increase\_ref\_counter}(req.prefix\_node)$.
-      - 令 $available\_size\leftarrow available\_size+delta$.
-  - 从 $Q$ 中移除 $new\_batch$ 内的请求.
+  - 令 $\mathrm{available\_size}\leftarrow T.\text{evictable\_size}()+P.\text{available\_size}()$.
+  - 令 $\mathrm{current\_size}\leftarrow 0$.
+  - 令 $\mathrm{new\_batch}\leftarrow []$.
+  - **对于** $\mathrm{requests}$ 中的每个 $\mathrm{req}$:
+    - **如果** $\mathrm{req}.\text{size}()+\mathrm{current\_size}<\mathrm{available\_size}$:
+      - 将 $\mathrm{req}$ 追加到 $\mathrm{new\_batch}$.
+      - 令 $\mathrm{delta}\leftarrow T.\text{increase\_ref\_counter}(\mathrm{req.prefix\_node})$.
+      - 令 $\mathrm{available\_size}\leftarrow\mathrm{available\_size}+\mathrm{delta}$.
+  - 从 $Q$ 中移除 $\mathrm{new\_batch}$ 内的请求.
 - **将请求插入当前运行批次:**
-  - 将 $new\_batch$ 合并到 $B$.
+  - 将 $\mathrm{new\_batch}$ 合并到 $B$.
 - **分配新内存, 必要时执行驱逐:**
-  - 令 $needed\_size\leftarrow B.\text{needed\_size}()$.
-  - 令 $success, buffer\leftarrow P.\text{alloc}(needed\_size)$.
+  - 令 $\mathrm{needed\_size}\leftarrow B.\text{needed\_size}()$.
+  - 令 $\mathrm{success}, \mathrm{buffer}\leftarrow P.\text{alloc}(\mathrm{needed\_size})$.
   - **如果** `not success`:
-    - 从 $T$ 中驱逐 $needed\_size$.
-    - 令 $success, buffer\leftarrow P.\text{alloc}(needed\_size)$.
-  - 使用 $buffer$ 运行 $B$.
+    - 从 $T$ 中驱逐 $\mathrm{needed\_size}$.
+    - 令 $\mathrm{success}, \mathrm{buffer}\leftarrow P.\text{alloc}(\mathrm{needed\_size})$.
+  - 使用 $\mathrm{buffer}$ 运行 $B$.
 - **处理已完成请求:**
-  - 令 $finished\_requests\leftarrow B.\text{drop\_finished\_requests}()$.
-  - **对于** $finished\_requests$ 中的每个 $req$:
-    - 在 $T$ 中减小 $req.prefix\_node$ 的引用计数.
-    - 将 $req$ 插入 $T$.
-- **返回:** $finished\_requests$.
+  - 令 $\mathrm{finished\_requests}\leftarrow B.\text{drop\_finished\_requests}()$.
+  - **对于** $\mathrm{finished\_requests}$ 中的每个 $\mathrm{req}$:
+    - 在 $T$ 中减小 $\mathrm{req.prefix\_node}$ 的引用计数.
+    - 将 $\mathrm{req}$ 插入 $T$.
+- **返回:** $\mathrm{finished\_requests}$.
 
 <span id="appendix-a-2"></span>
 

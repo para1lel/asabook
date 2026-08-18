@@ -248,37 +248,37 @@ LM プログラムでは、複数のテキスト断片と生成呼び出しを�
 - **入力：** 基数木 $T$、メモリプール $P$、現在実行中のバッチ $B$、待機キュー $Q$。
 - **出力：** 完了したリクエストと更新後のシステム状態。
 - **待機キューからすべてのリクエストを取得：**
-  - $requests\leftarrow Q.\text{get\_all\_requests}()$ とする。
+  - $\mathrm{requests}\leftarrow Q.\text{get\_all\_requests}()$ とする。
 - **すべての待機リクエストについて一致するプリフィックスを探索：**
-  - **各** $req\in requests$ **について：**
-    - $req.prefix\_node, req.prefix\_len\leftarrow T.\text{match\_prefix}(req.input\_tokens)$ とする。
+  - **各** $\mathrm{req}\in\mathrm{requests}$ **について：**
+    - $\mathrm{req.prefix\_node}, \mathrm{req.prefix\_len}\leftarrow T.\text{match\_prefix}(\mathrm{req.input\_tokens})$ とする。
 - **一致したプリフィックスの長さに従ってリクエストをソート：**
-  - $requests$ をソートする。
+  - $\mathrm{requests}$ をソートする。
 - **次のバッチに入れるリクエストを選択：**
-  - $available\_size\leftarrow T.\text{evictable\_size}()+P.\text{available\_size}()$ とする。
-  - $current\_size\leftarrow 0$ とする。
-  - $new\_batch\leftarrow []$ とする。
-  - **各** $req\in requests$ **について：**
-    - **もし** $req.\text{size}()+current\_size<available\_size$ **なら：**
-      - $req$ を $new\_batch$ へ追加する。
-      - $delta\leftarrow T.\text{increase\_ref\_counter}(req.prefix\_node)$ とする。
-      - $available\_size\leftarrow available\_size+delta$ とする。
-  - $new\_batch$ 内のリクエストを $Q$ から削除する。
+  - $\mathrm{available\_size}\leftarrow T.\text{evictable\_size}()+P.\text{available\_size}()$ とする。
+  - $\mathrm{current\_size}\leftarrow 0$ とする。
+  - $\mathrm{new\_batch}\leftarrow []$ とする。
+  - **各** $\mathrm{req}\in\mathrm{requests}$ **について：**
+    - **もし** $\mathrm{req}.\text{size}()+\mathrm{current\_size}<\mathrm{available\_size}$ **なら：**
+      - $\mathrm{req}$ を $\mathrm{new\_batch}$ へ追加する。
+      - $\mathrm{delta}\leftarrow T.\text{increase\_ref\_counter}(\mathrm{req.prefix\_node})$ とする。
+      - $\mathrm{available\_size}\leftarrow\mathrm{available\_size}+\mathrm{delta}$ とする。
+  - $\mathrm{new\_batch}$ 内のリクエストを $Q$ から削除する。
 - **リクエストを現在実行中のバッチへ挿入：**
-  - $new\_batch$ を $B$ へマージする。
+  - $\mathrm{new\_batch}$ を $B$ へマージする。
 - **新しいメモリを割り当て、必要なら削除を実行：**
-  - $needed\_size\leftarrow B.\text{needed\_size}()$ とする。
-  - $success, buffer\leftarrow P.\text{alloc}(needed\_size)$ とする。
+  - $\mathrm{needed\_size}\leftarrow B.\text{needed\_size}()$ とする。
+  - $\mathrm{success}, \mathrm{buffer}\leftarrow P.\text{alloc}(\mathrm{needed\_size})$ とする。
   - **もし** `not success` **なら：**
-    - $T$ から $needed\_size$ を削除する。
-    - $success, buffer\leftarrow P.\text{alloc}(needed\_size)$ とする。
-  - $buffer$ を用いて $B$ を実行する。
+    - $T$ から $\mathrm{needed\_size}$ を削除する。
+    - $\mathrm{success}, \mathrm{buffer}\leftarrow P.\text{alloc}(\mathrm{needed\_size})$ とする。
+  - $\mathrm{buffer}$ を用いて $B$ を実行する。
 - **完了したリクエストを処理：**
-  - $finished\_requests\leftarrow B.\text{drop\_finished\_requests}()$ とする。
-  - **各** $req\in finished\_requests$ **について：**
-    - $T$ にある $req.prefix\_node$ の参照カウンタを減らす。
-    - $req$ を $T$ へ挿入する。
-- **返り値：** $finished\_requests$。
+  - $\mathrm{finished\_requests}\leftarrow B.\text{drop\_finished\_requests}()$ とする。
+  - **各** $\mathrm{req}\in\mathrm{finished\_requests}$ **について：**
+    - $T$ にある $\mathrm{req.prefix\_node}$ の参照カウンタを減らす。
+    - $\mathrm{req}$ を $T$ へ挿入する。
+- **返り値：** $\mathrm{finished\_requests}$。
 
 <span id="appendix-a-2"></span>
 
