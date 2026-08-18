@@ -1,0 +1,154 @@
+[
+  {
+    "name": "figure-01",
+    "page": 3,
+    "x": 316,
+    "y": 54,
+    "width": 242,
+    "height": 90
+  },
+  {
+    "name": "figure-02",
+    "page": 3,
+    "x": 318,
+    "y": 220,
+    "width": 232,
+    "height": 116
+  },
+  {
+    "name": "figure-03",
+    "page": 4,
+    "x": 54,
+    "y": 52,
+    "width": 244,
+    "height": 201
+  },
+  {
+    "name": "figure-04",
+    "page": 4,
+    "x": 323,
+    "y": 52,
+    "width": 227,
+    "height": 164
+  },
+  {
+    "name": "figure-05",
+    "page": 5,
+    "x": 54,
+    "y": 52,
+    "width": 244,
+    "height": 112
+  },
+  {
+    "name": "figure-06",
+    "page": 6,
+    "x": 53,
+    "y": 45,
+    "width": 505,
+    "height": 335
+  },
+  {
+    "name": "figure-07",
+    "page": 7,
+    "x": 53,
+    "y": 52,
+    "width": 244,
+    "height": 111
+  },
+  {
+    "name": "figure-08",
+    "page": 7,
+    "x": 320,
+    "y": 52,
+    "width": 230,
+    "height": 60
+  },
+  {
+    "name": "figure-09",
+    "page": 8,
+    "x": 53,
+    "y": 45,
+    "width": 244,
+    "height": 410
+  },
+  {
+    "name": "figure-10",
+    "page": 8,
+    "x": 342,
+    "y": 52,
+    "width": 188,
+    "height": 131
+  },
+  {
+    "name": "figure-11",
+    "page": 9,
+    "x": 318,
+    "y": 52,
+    "width": 240,
+    "height": 145
+  },
+  {
+    "name": "table-01",
+    "page": 10,
+    "x": 316,
+    "y": 50,
+    "width": 248,
+    "height": 164
+  },
+  {
+    "name": "figure-12",
+    "page": 11,
+    "x": 83,
+    "y": 52,
+    "width": 468,
+    "height": 335
+  },
+  {
+    "name": "figure-13",
+    "page": 12,
+    "x": 83,
+    "y": 52,
+    "width": 475,
+    "height": 170
+  },
+  {
+    "name": "table-02",
+    "page": 12,
+    "x": 54,
+    "y": 243,
+    "width": 244,
+    "height": 50
+  },
+  {
+    "name": "table-03",
+    "page": 13,
+    "x": 54,
+    "y": 42,
+    "width": 242,
+    "height": 80
+  },
+  {
+    "name": "table-04",
+    "page": 13,
+    "x": 54,
+    "y": 154,
+    "width": 242,
+    "height": 60
+  },
+  {
+    "name": "figure-14",
+    "page": 13,
+    "x": 322,
+    "y": 42,
+    "width": 236,
+    "height": 190
+  },
+  {
+    "name": "figure-15",
+    "page": 14,
+    "x": 83,
+    "y": 52,
+    "width": 475,
+    "height": 165
+  }
+]
