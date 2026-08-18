@@ -1,0 +1,38 @@
+[
+  {
+    "name": "table-01",
+    "page": 2,
+    "x": 80,
+    "y": 138,
+    "width": 434,
+    "height": 237,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-01",
+    "page": 2,
+    "x": 71,
+    "y": 482,
+    "width": 452,
+    "height": 222,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 5,
+    "x": 140,
+    "y": 76,
+    "width": 316,
+    "height": 317,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 6,
+    "x": 72,
+    "y": 75,
+    "width": 450,
+    "height": 304,
+    "preserveSource": false
+  }
+]
