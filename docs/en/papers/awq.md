@@ -14,7 +14,7 @@ Large language models (LLMs) have shown excellent performance on various tasks, 
 
 ## 1 Introduction
 
-Large language models (LLMs) based on transformers [Vas17] have shown excellent performance on various benchmarks [Bro77, Zha22a, Tou23, Les23]. However, the large model size leads to the high serving costs. For example, GPT-3 has 175B parameters, which is 350GB in FP16, while the latest H100 GPU only has 96GB memory, let alone edge devices.
+Large language models (LLMs) based on transformers [Vas17] have shown excellent performance on various benchmarks [Bro20c, Zha22a, Tou23, Les23]. However, the large model size leads to the high serving costs. For example, GPT-3 has 175B parameters, which is 350GB in FP16, while the latest H100 GPU only has 96GB memory, let alone edge devices.
 
 Low-bit weight quantization for LLMs can save memory but is hard. Quantization-aware training (QAT) is not practical due to the high training cost, while post-training quantization (PTQ) suffers from large accuracy degradation under a low-bit setting. The closest work is GPTQ [Fra22], which uses second-order information to perform error compensation. It may over-fit the calibration set during reconstruction, distorting the learned features on out-of-distribution domains ([Figure 6](#figure-06)), which could be problematic since LLMs are *generalist* models.
 

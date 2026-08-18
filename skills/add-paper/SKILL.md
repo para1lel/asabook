@@ -102,10 +102,13 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 
 1. Collect every inline citation token used by the page, including tokens that appear in captions, tables, algorithm prose, or acronym explanations. Do not collect citations solely to generate a standalone reference list.
 2. Add missing definitions to the single `paperAbbreviations` object in `docs/.vuepress/config.ts`. Do not create per-paper abbreviation files.
-3. Reuse an existing key only when it denotes the same work. Resolve collisions with a stable lowercase suffix and update all three pages consistently.
-4. Include enough bibliographic detail to identify the work and add a primary link when available. This registration is what gives citation tokens such as `[Hu21]` their underlined explanation.
-5. Add the slug to the matching category in the Chinese, English, and Japanese sidebars.
-6. Sort all three sidebar lists identically and chronologically by first arXiv submission date. For equal dates, keep the existing stable order unless title sorting is already the local convention.
+3. Form each citation key from the first three Latin letters of the first author's surname plus the final two digits of the publication year, with the first letter uppercase and the rest lowercase, for example `Vas17`. If the surname has fewer than three letters, use the complete surname, for example `Hu21`. For a source without a personal author, use the first three Latin letters of its named project; use the organization name only when there is no distinct project name.
+4. Reuse an existing key only when it denotes the same work. When different works share the same author-or-project prefix and publication year, keep the first registered key unsuffixed and append contiguous lowercase suffixes to the rest: no suffix, `a`, `b`, `c`, and so on. Reuse existing assignments and take the next available suffix; never use a paper slug, bibliography index, page number, or mnemonic suffix as the key or suffix.
+5. Use the formal publication year shown in the bibliographic entry. When there is no formal publication, use the source's release year. Do not infer the year from a bibliography index, page range, access date, arXiv identifier, or the paper currently being added.
+6. Update citation tokens consistently in the English, Simplified Chinese, and Japanese pages whenever a key changes.
+7. Include enough bibliographic detail to identify the work and add a primary link when available. This registration is what gives citation tokens such as `[Hu21]` their underlined explanation.
+8. Add the slug to the matching category in the Chinese, English, and Japanese sidebars.
+9. Sort all three sidebar lists identically and chronologically by first arXiv submission date. For equal dates, keep the existing stable order unless title sorting is already the local convention.
 
 ## Localize to Chinese and Japanese
 

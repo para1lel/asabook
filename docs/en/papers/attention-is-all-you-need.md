@@ -186,7 +186,7 @@ We employ three types of regularization during training:
 
 ##### Residual Dropout
 
-We apply dropout [Sri29] to the output of each sub-layer, before it is added to the sub-layer input and normalized. In addition, we apply dropout to the sums of the embeddings and the positional encodings in both the encoder and decoder stacks. For the base model, we use a rate of $P_{\mathrm{drop}}=0.1$.
+We apply dropout [Sri14] to the output of each sub-layer, before it is added to the sub-layer input and normalized. In addition, we apply dropout to the sums of the embeddings and the positional encodings in both the encoder and decoder stacks. For the base model, we use a rate of $P_{\mathrm{drop}}=0.1$.
 
 ##### Label Smoothing
 

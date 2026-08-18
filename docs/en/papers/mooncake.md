@@ -82,7 +82,7 @@ Due to the distinct characteristics of the prefill and decoding stages, MaaS pro
 As a MaaS provider, it is crucial to ensure quality assurance by meeting SLO metrics defined by service agreements.
 For example, a metric such as $\mathrm{TTFT}_{\mathrm{P90}} = 4\times$ indicates that 90% of inference requests will have a TTFT no greater than four times that of a single request running under the same conditions without interference. Specifically, in the end-to-end experiment of this paper ([§ 8.1](#section-08-01)), we set $\mathrm{TTFT}_{\mathrm{P90}} = 10\times$ and $\mathrm{TBT}_{\mathrm{P90}} = 5\times$. In real deployments, we set fixed SLOs of TTFT and TBT. If monitoring detects unmet SLOs, we either add inference resources or reject some incoming requests.
 
-However, due to the current contingent supply of GPUs, elastically scaling out the inference cluster is typically unfeasible. Therefore, deciding which requests to reject becomes a core issue in overload-oriented scheduling. Our main objective is to maximize overall throughput while adhering to SLOs, a concept referred to as goodput in other research [Zho24, Wu24l].
+However, due to the current contingent supply of GPUs, elastically scaling out the inference cluster is typically unfeasible. Therefore, deciding which requests to reject becomes a core issue in overload-oriented scheduling. Our main objective is to maximize overall throughput while adhering to SLOs, a concept referred to as goodput in other research [Zho24, Wu24a].
 Our approach differs in that only requests that fully complete their execution are counted in the measure of goodput. Otherwise, all previously consumed/generated tokens are not counted, and the corresponding resources are wasted. In other words, a request should be rejected as early as possible if it cannot finish its full execution under the SLO. Achieving this goal involves not only optimizing the architecture of both the prefill and decoding stages but also developing a capability to predict short-term future loads.
 
 <span id="section-03"></span>
@@ -194,7 +194,7 @@ Additionally, we observed a notable imbalance in cache block popularity, with ov
 ## 5 Implementation of the Prefill Pool
 
 Unlike the inviolable decoding nodes, the necessity and best practices for designing a separate and elastic prefill pool remain under debate.
-For example, although many researchers [Pat23, Zho24, Hu24b] share our intuition to use a disaggregated architecture, it is worth discussing whether this separation is still necessary with the introduction of chunked prefill [Agr24s].
+For example, although many researchers [Pat23, Zho24, Hu24b] share our intuition to use a disaggregated architecture, it is worth discussing whether this separation is still necessary with the introduction of chunked prefill [Agr24a].
 Chunked prefill divides the input tokens into multiple small chunks that join the continuous batch process. This approach has two clear benefits:
 *1)* Without separation, all nodes are treated equally, making scheduling easier;
 *2)* Inlining chunked prefill into the decoding batch can improve the computational intensity of the decoding batch, leading to better MFU.
@@ -213,7 +213,7 @@ Typically, for such long context requests, the input tokens can be 10 to 100 tim
 Due to the abundant parallelism in long context prefill, using more than a single 8x GPU node to process them in parallel is desirable.
 However, extending tensor parallelism  (TP) across more than one node requires two expensive RDMA-based all-reduce operations per layer, significantly reducing the MFU of prefill nodes.
 
-Recently, many works have proposed sequence parallelism (SP) [Sam23, Liu23, Bra23, Li23q, Kor22, Li23g, Fan24u].
+Recently, many works have proposed sequence parallelism (SP) [Sam23, Liu23, Bra23, Li23q, Kor22, Li23g, Fan24a].
 SP partitions the input sequences of requests across different nodes to achieve acceleration.
 These SP methods take advantage of the associative property of the attention operator and require cross-node communication at least once per layer during the implementation of Ring Attention [Liu23] or Striped Attention [Bra23].
 This greatly reduces network consumption and improves MFU.
@@ -222,7 +222,7 @@ However, adopting SP still results in a worse MFU compared to using single-node 
 A desired deployment organizes prefill nodes into two groups: one with TP only and the other with SP.
 Requests are dispatched to the SP group only when necessary to meet the TTFT SLO.
 This further disaggregation leads to problems in dynamically adjusting the number of nodes in each group, as a static parallelism setting can result in low utilization across the cluster.
-Recent research [Wu24l] proposes elastic sequence parallelism to dynamically scale up or down the SP group.
+Recent research [Wu24a] proposes elastic sequence parallelism to dynamically scale up or down the SP group.
 Although possible, this adds complexity to our architecture.
 For example, it requires establishing a global communication group in advance and complicates Conductor's design when considering metrics like cache reuse utilization and SLO requirement violations during adjustments.
 This makes it challenging for our situations that require frequent on-the-fly scalability during deployment.
@@ -408,7 +408,7 @@ As stated before, to protect proprietary information and facilitate reproducibil
 
 **Testbed** During the experiments, the system was deployed on a high-performance computing node cluster to test performance. Each node in the cluster is configured as follows: 8 NVIDIA-A800-SXM4-80GB GPUs, each with 80GB HBM, connected by NVLINK; equipped with RDMA network cards that support up to 800 Gbps of interconnect bandwidth between nodes. Each node deploys either a prefill instance or a decoding instance according to the startup parameter.
 
-**Dataset and Workload** Building upon previous research [Agr24s, Zho24, Wu24l], we selected or designed the datasets as outlined in [Table 2](#table-02). In addition to utilizing public datasets, we generated a batch of simulated data featuring predefined lengths and prefix cache ratios for our experiments. To examine performance in real-world scenarios, we constructed a dataset consisting of 23,000 real request traces, each annotated with an arrival timestamp. Experiments involving real request traces were conducted by replaying these requests according to their actual arrival times. For other scenarios, we simulated requests using a Poisson arrival process and controlled the request rate through RPS (Requests per Second).
+**Dataset and Workload** Building upon previous research [Agr24a, Zho24, Wu24a], we selected or designed the datasets as outlined in [Table 2](#table-02). In addition to utilizing public datasets, we generated a batch of simulated data featuring predefined lengths and prefix cache ratios for our experiments. To examine performance in real-world scenarios, we constructed a dataset consisting of 23,000 real request traces, each annotated with an arrival timestamp. Experiments involving real request traces were conducted by replaying these requests according to their actual arrival times. For other scenarios, we simulated requests using a Poisson arrival process and controlled the request rate through RPS (Requests per Second).
 
 **Metric** In the experiments, we focus on the throughput performance of various systems under defined SLOs. We measure the TTFT and TBT across different RPS rates, where a higher RPS signifies improved throughput. To assess whether the majority of requests satisfy the SLOs, we use the 90th percentile (P90) values of TTFT and TBT as the ultimate metrics. As mentioned in [§ 2](#section-02), the thresholds for TTFT and TBT are set by multiplying the lowest observed RPS values by factors of 10 and 5, respectively. Exceeding these thresholds indicates a failure to meet the SLOs, and the corresponding consumed resources are considered as wasted. For ease of comparison, we normalize all TTFT and TBT values against these upper limits, establishing a baseline of 1.0.
 
@@ -471,17 +471,17 @@ Specifically, we built a Mooncake cluster with 8 prefill instances and 8 decodin
 ## 9 Related Work
 
 Significant efforts have been dedicated to enhancing the efficiency of LLM serving systems through scheduling, memory management, and resource optimization.
-Production-grade systems like FasterTransformer [Nvi19a], TensorRT-LLM [Nvi23t], and DeepSpeed Inference [Ami22] are designed to significantly boost throughput.
+Production-grade systems like FasterTransformer [Nvi19a], TensorRT-LLM [Ten23], and DeepSpeed Inference [Ami22] are designed to significantly boost throughput.
 Orca [Yu22a] employs iteration-level scheduling to facilitate concurrent processing at various stages, while vLLM [Kwo23] leverages dynamic KVCache management to optimize memory.
-FlexGen [She23], SARATHI [Agr24s], and FastServe [Wu23a] incorporate innovative scheduling and swapping strategies to distribute workloads effectively across limited hardware, often complementing each other's optimizations.
+FlexGen [She23], SARATHI [Agr24a], and FastServe [Wu23a] incorporate innovative scheduling and swapping strategies to distribute workloads effectively across limited hardware, often complementing each other's optimizations.
 
 Our design of Mooncake builds on these developments, particularly drawing from the open-source community of vLLM, for which we are deeply appreciative.
 
 Moreover, recent research shares our insight into separating the prefill and decoding stages, leading to a disaggregated architecture that enhances system throughput. The arXiv publication of Splitwise [Pat23] is at the early stage of the development of Mooncake, which further motivated our progress. Many concurrent works corroborate our findings, including DistServe [Zho24], which optimizes resource allocation and parallel strategies for each stage to maximize GPU goodput, and TetriInfer [Hu24b], which incorporates both chunked prefill and two-stage disaggregation along with a predictive two-stage scheduling algorithm to optimize resource utilization.
 
-Prefix caching is also widely adopted to enable the reuse of KVCache across multiple requests, reducing computational overhead in LLM inference systems [Nvi23t, Kwo23]. Prompt Cache [Lm27] precomputes and stores frequently used text KVCache on inference servers, facilitating their reuse and significantly reducing inference latency. SGLang [Lm01] leverages RadixAttention, which uses a least recently used (LRU) cache within a radix tree structure to efficiently enable automatic sharing across various reuse patterns.
+Prefix caching is also widely adopted to enable the reuse of KVCache across multiple requests, reducing computational overhead in LLM inference systems [Ten23, Kwo23]. Prompt Cache [Gim24] precomputes and stores frequently used text KVCache on inference servers, facilitating their reuse and significantly reducing inference latency. SGLang [Zhe24] leverages RadixAttention, which uses a least recently used (LRU) cache within a radix tree structure to efficiently enable automatic sharing across various reuse patterns.
 
-Among these approaches, AttentionStore [Lm02], a concurrent work with us, proposes a hierarchical KVCache system that utilizes cost-effective memory and storage media to accommodate KVCache for all requests. The architecture of Mooncake shares many design choices with AttentionStore. However, in long-context inference, the KVCache becomes extremely large, requiring high capacity and efficient data transfer along with KVCache-centric global scheduling.
+Among these approaches, AttentionStore [Gao24a], a concurrent work with us, proposes a hierarchical KVCache system that utilizes cost-effective memory and storage media to accommodate KVCache for all requests. The architecture of Mooncake shares many design choices with AttentionStore. However, in long-context inference, the KVCache becomes extremely large, requiring high capacity and efficient data transfer along with KVCache-centric global scheduling.
 Additionally, Mooncake is not a standalone cache service; it incorporates both a memory-efficient cache storage mechanism and a cache-aware scheduling strategy, further improving prefix caching efficiency.
 
 Furthermore, recent research [Sri24] has started exploring the scheduling of prompts, which is essentially KVCache-centric scheduling. We corroborate many results in this area, although the real reusability in our online traces is much smaller than the results reproduced by open-source benchmarks. Theoretically, up to only 50% of the KVCache can be reused in our current workloads, even if we assume both the capacity of storage and the TTFT SLO are infinite. However, this reusability highly depends on the application scenario and can be as large as 90% for certain scenarios, such as our chat-to-paper service [https://papers.cool/](https://papers.cool/). We also emphasize the need for overload-oriented scheduling subject to SLOs, rather than merely throughput-oriented scheduling.
@@ -494,18 +494,18 @@ Disaggregating different parts of LLM serving into dedicated resource pools is k
 In the future, we plan to explore more opportunities along this path, particularly the potential use of heterogeneous accelerators.
 Current flagship accelerators balance multiple metrics such as computational power, memory bandwidth, and capacity, making them versatile but not optimal in every single metric.
 For instance, considering only bandwidth per dollar or bandwidth per watt, current GDDR and even LPDDR solutions can be an order of magnitude better than flagship accelerators.
-We are also particularly interested in new technologies that use process-in-memory [Yan20r, Lag21, Li23cim, Sri23x] or hybrid bonding [Akb24, Kor23s, Zha13o, Zha17o, Kim16n] techniques to implement memory-oriented devices that could offer both high bandwidth and high capacity in the near future.
+We are also particularly interested in new technologies that use process-in-memory [Yan20b, Lag21, Li23r, Sri23a] or hybrid bonding [Akb24, Kor23, Zha13, Zha17a, Kim16a] techniques to implement memory-oriented devices that could offer both high bandwidth and high capacity in the near future.
 These technologies would be ideal for reducing the cost of executing memory-bound operations in the decoding phase.
 
 Furthermore, in a heterogeneous accelerator environment that includes both computation-oriented and bandwidth-oriented accelerators, we can explore more advanced disaggregation architectures.
 For example, unlike other linear transformation operators, the arithmetic intensity of the attention operator in the decoding phase is only proportional to the number of attention heads divided by the number of key/value heads.
 This intensity cannot be increased by increasing the batch size and is typically more memory-bound than other operators.
 Therefore, it is possible to separate the attention operator from other linear operators to improve resource utilization further.
-According to our preliminary simulated results [Che24o], this architecture has great potential to increase overall throughput.
+According to our preliminary simulated results [Che24e], this architecture has great potential to increase overall throughput.
 Additionally, the recently proposed MLA operator by DeepSeek-v2 [Dee24] directly increases arithmetic intensity, solving this problem from another angle and showing great promise.
 
 As an orthogonal direction, many algorithms aim to reduce the size of KVCache, benefiting Mooncake in two important ways: 1) increasing the batch size for better utilization and 2) improving the KVCache cache hit ratio to reduce prefill costs.
-This is currently a very active area, including different methods for compressing KVCache [Yu24e, Cai24p, Liu24c, He24a, Liu24a, Liu24m], selecting important tokens by various metrics [Guo24a, Dev24, Yao24s, Yan24p, Adn24, Li24c, Zha23h], sharing KVCache across different layers [Zuh24, Wu24c, Cha23i], or using hybrid architectures with operators that do not use KVCache [Sun24b, Gu23, Pen23b, Dao24, Lie24, Bot24].
+This is currently a very active area, including different methods for compressing KVCache [Yu24, Cai24b, Liu24c, He24a, Liu24a, Liu24m], selecting important tokens by various metrics [Guo24a, Dev24, Yao24a, Yan24f, Adn24, Li24c, Zha23g], sharing KVCache across different layers [Zuh24, Wu24, Cha23b], or using hybrid architectures with operators that do not use KVCache [Sun24b, Gu23, Pen23b, Dao24, Lie24, Bot24].
 
 In terms of scheduling, we are developing an advanced policy that accounts for varying request priorities and scenarios with different TTFT/TBT SLOs.
 This policy is designed to enhance the responsiveness and efficiency of our system under diverse operational conditions.

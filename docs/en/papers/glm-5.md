@@ -184,7 +184,7 @@ Building upon the mid-training framework introduced in GLM-4.5, we scale up both
 
 **Efficient deferred weight gradient computation.** To reduce pipeline bubbles, we defer some weight gradient computation of the critical path [Qi23]. Fine-grained deferral with optimized storage and communication overlap improves throughput while keeping memory overhead bounded.
 
-**Efficient long-sequence training.** Longer sequences exacerbate load imbalance across data parallel and pipeline parallel groups. We address this through workload-aware sequence reordering, dynamic redistribution of attention computation, and flexible partitioning of data parallel ranks into context-parallel groups of varying sizes [Ge48, Wan25b]. A hierarchical all-to-all overlaps intra-node and inter-node communication for QKV tensors to reduce latency.
+**Efficient long-sequence training.** Longer sequences exacerbate load imbalance across data parallel and pipeline parallel groups. We address this through workload-aware sequence reordering, dynamic redistribution of attention computation, and flexible partitioning of data parallel ranks into context-parallel groups of varying sizes [Ge25, Wan25b]. A hierarchical all-to-all overlaps intra-node and inter-node communication for QKV tensors to reduce latency.
 
 #### 2.4.3 INT4 Quantization-aware training
 

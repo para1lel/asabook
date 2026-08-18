@@ -42,7 +42,7 @@ LMCache 的源代码见 [https://github.com/LMCache/LMCache](https://github.com/
 
 我们的真实使用统计证实了 KV cache 正在离开 GPU 内存. 第 [2.2 节](#section-02-02) 会详细讨论这一点: 用户存储的 KV cache 总量持续增长, 远超 GPU 内存容量. 随着请求增多, GPU 内存中的 KV cache 可能需要频繁驱逐. 要让另一个查询复用它, 还必须先把 cache 从 GPU 内存卸载出来, 再加载回 GPU 内存.
 
-要让这些思路真正可用, LLM 推理系统需要加入新的 KV cache 语义. 具体来说, 推理引擎应支持从一次普通推理调用中*提取* KV cache, 并按需把它*重新加载*到后续查询中. 系统还必须支持持久化存储提取出的 KV cache, 并在分布式推理引擎之间传输它. 更重要的是, KV cache 的提取, 重新加载, 存储和传输必须高效, 新接口也必须兼容快速演进的推理引擎, 例如 vLLM [Kwo23] 和 SGLang [Lm01].
+要让这些思路真正可用, LLM 推理系统需要加入新的 KV cache 语义. 具体来说, 推理引擎应支持从一次普通推理调用中*提取* KV cache, 并按需把它*重新加载*到后续查询中. 系统还必须支持持久化存储提取出的 KV cache, 并在分布式推理引擎之间传输它. 更重要的是, KV cache 的提取, 重新加载, 存储和传输必须高效, 新接口也必须兼容快速演进的推理引擎, 例如 vLLM [Kwo23] 和 SGLang [Zhe24].
 
 我们提出 **LMCache**, 一个高性能实现这些 KV cache 语义的开源库. 借助 LMCache, KV cache 可以高效地从推理引擎中提取并重新加载, 存放在分层存储设备中 (CPU 内存, 本地磁盘, 远程磁盘和 Redis), 也可以通过不同网络 (Ethernet, RDMA, NVLink) 传输.
 
@@ -106,8 +106,8 @@ LMCache 有三项贡献.
 
 根据真实部署统计, 我们看到 KV cache 有两个趋势. 第一, 无法放入 GPU 内存的 KV cache 持续增长, 可能是上下文变长或用户流量增加造成的. 第二, GPU 内存之外存储的 token 的复用次数也在增加. 两个趋势都说明 KV cache 需要离开 GPU 内存. 在当前业界, 主要有两种场景会把 KV cache 移出 GPU:
 
-1. *上下文缓存 (即跨查询 KV cache 复用)*: 保存一次查询中的 KV cache 片段, 并在后续共享相同前缀的查询中复用. 例子包括对同一文档 (或文档片段) 进行多次分析, 以及带固定 system prompt 或长前导文本的多轮对话. 前缀缓存能减少预填充阶段的重复计算, 直接降低 TTFT 和每次查询的 GPU-hours [Liu24d, Lm02, Lm03, Lm04, Qin24, Lm05, Lm06, Lm07].
-2. *预填充-解码 (PD) 分离 (即跨引擎 KV cache 传输)*: 把推理拆成预填充阶段 (处理完整输入 prompt) 和解码阶段 (自回归生成 token), 分别放在不同 GPU 或节点上. 这种方法让解码速度不被预填充打断, 因而降低尾延迟 [Zho24, Lm08, Lm09].
+1. *上下文缓存 (即跨查询 KV cache 复用)*: 保存一次查询中的 KV cache 片段, 并在后续共享相同前缀的查询中复用. 例子包括对同一文档 (或文档片段) 进行多次分析, 以及带固定 system prompt 或长前导文本的多轮对话. 前缀缓存能减少预填充阶段的重复计算, 直接降低 TTFT 和每次查询的 GPU-hours [Liu24d, Gao24a, Jin25, Ren25, Qin24, Jin24a, Che24d, Che25c].
+2. *预填充-解码 (PD) 分离 (即跨引擎 KV cache 传输)*: 把推理拆成预填充阶段 (处理完整输入 prompt) 和解码阶段 (自回归生成 token), 分别放在不同 GPU 或节点上. 这种方法让解码速度不被预填充打断, 因而降低尾延迟 [Zho24, Pat24, Shi25].
 
 不过, 由于后文将讨论的系统挑战 ([第 3 节](#section-03)), 目前还没有一个库能高效地从 GPU 内存提取和加载 KV cache.
 
@@ -123,19 +123,19 @@ LMCache 有三项贡献.
 
 ![表 1: RCCL 传输库中消息大小与传输吞吐量.](./lmcache/table-01.png)
 
-**表 1.** 使用 RCCL 传输库时, 传输消息大小与实际传输吞吐量的关系 [Lm10].
+**表 1.** 使用 RCCL 传输库时, 传输消息大小与实际传输吞吐量的关系 [Ucc25].
 
 #### 3.1.1 挑战 #1: 分页内存下的 I/O 低效
 
 KV cache 的存储和传输过去依赖 PyTorch 序列化 (`torch.save` / `torch.load`) 或简单的张量复制, 典型传输速度只有 1GB/s 以下. 处理 KV cache 这类大型数据结构时, 这些方法会引入明显的延迟开销; 它们也不支持多种存储设备 (本地或远程) 的 zero-copy, 因而需要额外的 CPU-GPU 数据复制.
 
-近年来的高吞吐推理引擎, 例如 vLLM [Kwo23] 和 SGLang [Lm01], 让 KV cache 的存储和传输更难. 它们使用分页注意力内存, 把注意力缓冲区分成小的定长 page (通常为 16-64 KB). 例如, Llama-3.1-8B-Instruct 中 vLLM 使用 62.5 KB 的 page. 分页内存架构之所以广泛使用, 是因为它能改善批处理和内存利用率.
+近年来的高吞吐推理引擎, 例如 vLLM [Kwo23] 和 SGLang [Zhe24], 让 KV cache 的存储和传输更难. 它们使用分页注意力内存, 把注意力缓冲区分成小的定长 page (通常为 16-64 KB). 例如, Llama-3.1-8B-Instruct 中 vLLM 使用 62.5 KB 的 page. 分页内存架构之所以广泛使用, 是因为它能改善批处理和内存利用率.
 
-然而, KV cache 的 page 不一定连续, 分页内存架构会大幅增加持久化或传输 KV cache 所需的小 I/O 操作数量. 已知传输这么小的数据块会造成网络带宽利用率不足, 降低吞吐量 [Lm11, Lm12, Lm13]. [表 1](#table-01) 所引用的工作显示, 在两台 AMD GPU 节点通过 8 个 Broadcom Thor-2 400Gbps 网卡连接的环境中, 传输块至少要达到 16 MB 才能占满网络带宽 [Lm14]. 另一项工作显示, 只有把传输大小提高到 MB 量级 (例如 1-2MB), 才能达到 PCIe 5.0 理论带宽的 75-80% [Lm15].
+然而, KV cache 的 page 不一定连续, 分页内存架构会大幅增加持久化或传输 KV cache 所需的小 I/O 操作数量. 已知传输这么小的数据块会造成网络带宽利用率不足, 降低吞吐量 [Kwo25, Nvi20d, Met24]. [表 1](#table-01) 所引用的工作显示, 在两台 AMD GPU 节点通过 8 个 Broadcom Thor-2 400Gbps 网卡连接的环境中, 传输块至少要达到 16 MB 才能占满网络带宽 [Zho25a]. 另一项工作显示, 只有把传输大小提高到 MB 量级 (例如 1-2MB), 才能达到 PCIe 5.0 理论带宽的 75-80% [Xie25a].
 
 #### 3.1.2 挑战 #2: 兼容快速演进的推理引擎
 
-随着 AI 普及, 新的 LLM 和硬件加速器不断出现. 2025 年, 平均每 4 天就会发布一个重要 LLM [Lm16]. 推理引擎也必须同样快速地演进.
+随着 AI 普及, 新的 LLM 和硬件加速器不断出现. 2025 年, 平均每 4 天就会发布一个重要 LLM [Exp25]. 推理引擎也必须同样快速地演进.
 
 为了支持新模型或硬件, 每次更新往往都会改变 GPU 内存分配方式, 从而改变 KV cache 接口. 例如, vLLM 采用新的注意力 kernel 后, 生成的 KV cache 可能具有不同维度; KV cache 库就必须把新的 kernel 输出格式转换为自身支持的格式. 面对快速变化的推理引擎, 持续跟进这些变化需要大量工作.
 
@@ -153,15 +153,15 @@ KV cache 成为 LLM 推理后端中的一等数据结构后, 除推理引擎外�
 
 已经有多种 KV cache 处理机制, 但它们都没有完全解决上面的挑战:
 
-**推理框架:** vLLM Production Stack [Lm17] 于 2025 年 1 月发布后, 出现了多个开源分布式推理栈, 包括 Nvidia 的 Dynamo [Lm18], AIBrix [Lm19], `llm-d` [Lm20], SGLang OME [Lm21] 和 KServe [Lm22]. 它们都关注在 Kubernetes 上简化推理引擎部署, 在技术上也都支持按负载或前缀 cache 感知的查询路由和 KV cache, LMCache 已被用于 vLLM production stack, Dynamo, llm-d 和 KServe.
+**推理框架:** vLLM Production Stack [Vll25] 于 2025 年 1 月发布后, 出现了多个开源分布式推理栈, 包括 Nvidia 的 Dynamo [Dyn25], AIBrix [Aib25], `llm-d` [Llm25], SGLang OME [Sgl25] 和 KServe [Kse25]. 它们都关注在 Kubernetes 上简化推理引擎部署, 在技术上也都支持按负载或前缀 cache 感知的查询路由和 KV cache, LMCache 已被用于 vLLM production stack, Dynamo, llm-d 和 KServe.
 
 **推理引擎原生的 KV cache:** vLLM 和 SGLang 等开源推理引擎也提供 GPU 到 CPU 的 KV cache 传输, 但它们面向单节点推理, 缺少跨节点传输优化和 KV cache 的分层存储支持. 第 [8 节](#section-08) 会评估它们的性能并与 LMCache 对比.
 
-**KV cache 存储层:** Mooncake [Qin24], Redis [Lm23], InfiniStore [Lm24] 和 3FS [Lm25] 提供分布式对象存储或缓存, 但缺少推理引擎与存储层之间的高效"胶水层", 无法频繁地在不同存储层之间移动小张量, 或者与某一个推理框架绑定得很紧.
+**KV cache 存储层:** Mooncake [Qin24], Redis [Red25], InfiniStore [Inf25] 和 3FS [Dee25b] 提供分布式对象存储或缓存, 但缺少推理引擎与存储层之间的高效"胶水层", 无法频繁地在不同存储层之间移动小张量, 或者与某一个推理框架绑定得很紧.
 
 **专有实现:** Fireworks AI, Together AI 等专有推理 API 在内部实现了前缀缓存, 但它们绑定自己的闭源服务栈, 不向自行部署基础设施的运维人员开放.
 
-**研究代码:** 一些研究工作开源了 KV cache 优化原型, 包括前缀缓存 [Kwo23, Lm01, Lm26, Lm27, Lm28, Lm29, Lm30, Lm05, Lm02, Lm07, Lm03, Lm31], PD 分离 [Zho24, Lm08, Lm09] 和 KV cache 压缩 [Liu24c, Lm32, Lm33, Xia24a, Li24c, Lm34, Lm35, Lm36, Lm37, Lm38, Lm39]. 不过, 这些原型通常基于 HuggingFace Transformers 等面向研究的推理框架, 尚未达到企业可用的程度, 也没有为 SGLang 和 vLLM 这样的快速变化的推理引擎生态设计.
+**研究代码:** 一些研究工作开源了 KV cache 优化原型, 包括前缀缓存 [Kwo23, Zhe24, Yu25b, Gim24, Ye24, Lee24c, Zha24i, Jin24a, Gao24a, Che25c, Jin25, Yan25c], PD 分离 [Zho24, Pat24, Shi25] 和 KV cache 压缩 [Liu24c, Jeg24, Xia24d, Xia24a, Li24c, Qin25, Tan24, Ge24, Li25b, Du25b, Zha25i]. 不过, 这些原型通常基于 HuggingFace Transformers 等面向研究的推理框架, 尚未达到企业可用的程度, 也没有为 SGLang 和 vLLM 这样的快速变化的推理引擎生态设计.
 
 <span id="section-04"></span>
 
@@ -197,7 +197,7 @@ KV cache 成为 LLM 推理后端中的一等数据结构后, 除推理引擎外�
 
 LMCache 的一个重点是提高 KV cache 在设备之间移动的效率. 在企业规模的 LLM 推理中, LMCache 处理三个主要问题:
 
-- 现代 LLM 推理引擎以 page 为粒度管理 KV cache [+2], 对 Llama, Qwen, GPT-OSS 等常见模型来说, page 通常只有 20 KB-63 KB. 这种小单元无法占满带宽, 传输效率很低 [Lm15, Lm14].
+- 现代 LLM 推理引擎以 page 为粒度管理 KV cache [+2], 对 Llama, Qwen, GPT-OSS 等常见模型来说, page 通常只有 20 KB-63 KB. 这种小单元无法占满带宽, 传输效率很低 [Xie25a, Zho25a].
 - KV cache 传输经常需要与 LLM 推理并行进行, 会产生两类开销. 第一, 如果传输和计算使用同一个 CUDA stream, 数据移动会阻塞推理. 第二, 启动内存复制 CUDA 函数需要 CPU 开销; 当层数和 page 数很多时, 每次调用都消耗 CPU 周期, 累积开销很大.
 - LLM 推理过程中, 大量查询会生成大量 KV cache. 在存储设备上复制这些 cache 会浪费空间并带来复制开销, 使推理变慢.
 
@@ -231,7 +231,7 @@ LMCache 采用多种优化, 让 LLM 推理计算与 I/O 重叠, 以提高 GPU �
 
 朴素的 KV cache 移动实现会在每个传输步骤创建额外副本, 异构存储尤其如此, 造成多余的内存使用和开销. LMCache 只保留必要的最少副本.
 
-**Zero-Copy 操作:** 同时把 KV cache 传给多个设备时, LMCache 用引用计数器减少数据复制. 例如, 同一份 KV cache 同时从本地 CPU 内存写到本地磁盘和远程对象存储时, LMCache 为每次传输增加共享数据的引用计数, 而不是创建副本. 每次读或写完成后计数减一, 计数归零时释放数据. 这样, 并发读写可以共享数据而不产生多余复制, 减少内存压力并提高效率. 这种技术与操作系统中的 PCB counter 类似 [Lm40].
+**Zero-Copy 操作:** 同时把 KV cache 传给多个设备时, LMCache 用引用计数器减少数据复制. 例如, 同一份 KV cache 同时从本地 CPU 内存写到本地磁盘和远程对象存储时, LMCache 为每次传输增加共享数据的引用计数, 而不是创建副本. 每次读或写完成后计数减一, 计数归零时释放数据. 这样, 并发读写可以共享数据而不产生多余复制, 减少内存压力并提高效率. 这种技术与操作系统中的 PCB counter 类似 [Str78].
 
 <span id="figure-07"></span>
 
@@ -345,7 +345,7 @@ KV cache controller 为跨节点 KV cache 共享, cache 感知的请求路由和
 
 **数据集:** LMCache 在多个数据集上评估, 包括模拟多轮问答, LongBench [Bai23] 的长上下文问答, 以及 vLLM 官方基准测试脚本的随机数据集 [Kwo23].
 
-**硬件:** 单节点评估在 GMI Cloud [Lm41] 提供的一台 $8\times$H100 服务器上运行 LMCache. 由于不同模型服务所需的 GPU 数量不同, 我们为每个模型分配能使其成功启动的最少 H100 GPU. 多节点评估使用与单节点设置相同数量的 GPU, 并配置一个集中式远程存储后端, 用 CPU 内存存储 KV cache. 在 PD 分离中, prefiller 和 decoder 实例的 GPU 数量也与单节点评估相同, 两个实例通过 NVLink 连接.
+**硬件:** 单节点评估在 GMI Cloud [Gmi25] 提供的一台 $8\times$H100 服务器上运行 LMCache. 由于不同模型服务所需的 GPU 数量不同, 我们为每个模型分配能使其成功启动的最少 H100 GPU. 多节点评估使用与单节点设置相同数量的 GPU, 并配置一个集中式远程存储后端, 用 CPU 内存存储 KV cache. 在 PD 分离中, prefiller 和 decoder 实例的 GPU 数量也与单节点评估相同, 两个实例通过 NVLink 连接.
 
 **指标:** 每项实验都报告 time-to-first-token (TTFT), 即预填充延迟, 以及 inter-token-latency (ITL), 即连续两个输出 token 生成之间的平均延迟. 对于分解 CPU 卸载或 PD 分离延迟的组件级分析, 我们分别报告各个组件的延迟.
 
@@ -469,7 +469,7 @@ LMCache 相对基线的性能收益来自更高效的 PD 分离设计. 具体而
 
 **从远程存储加载比预填充更快:** 传统观点认为, 从远程存储加载 KV cache 主要是通过使用更廉价的存储设备提高 cache 命中率并降低存储成本, 但会以提高推理延迟为代价, 因为人们认为从远程设备加载数据比做一次完整预填充更慢. 这个假设主要源于 Amazon S3 等远程对象存储历史上吞吐量很低, 加载速度最低只有 100 MBps. 不过, 近年远程存储性能大幅提高, 例如 Amazon S3 Express 的吞吐量已从 100 MBps 提高到接近 1 GBps. 公司 C 等用户已采用 LMCache 从自己的远程对象存储加载 KV cache, 与完整预填充相比, TTFT 降低 22%-32%. 这项经验说明, 远程后端可以同时提高 cache 命中率并降低 TTFT.
 
-**上下文截断会降低前缀 cache 命中率:** 许多业界用户采用滑动窗口机制, 处理受限于模型上下文窗口或 GPU 内存的长上下文输入. 例如, 当输入 token 超出上下文窗口上限时, 一些公司会截断输入, 只保留最近的 token. 但是, 由于截断后的输入不再匹配之前缓存上下文的前缀, 这种做法会显著降低前缀 cache 命中率. 在实际运行中, 我们使用公司 F 的真实 trace 发现, 截断输入上下文, 只保留最新 token 后, 前缀 cache 命中率从约 85% 降到 45%. 其他研究也讨论过这一现象, 指出应避免动态添加或删除上下文 token, 因为这会使前缀 KV cache 复用失效 [Lm42].
+**上下文截断会降低前缀 cache 命中率:** 许多业界用户采用滑动窗口机制, 处理受限于模型上下文窗口或 GPU 内存的长上下文输入. 例如, 当输入 token 超出上下文窗口上限时, 一些公司会截断输入, 只保留最近的 token. 但是, 由于截断后的输入不再匹配之前缓存上下文的前缀, 这种做法会显著降低前缀 cache 命中率. 在实际运行中, 我们使用公司 F 的真实 trace 发现, 截断输入上下文, 只保留最新 token 后, 前缀 cache 命中率从约 85% 降到 45%. 其他研究也讨论过这一现象, 指出应避免动态添加或删除上下文 token, 因为这会使前缀 KV cache 复用失效 [Ji25].
 
 **更受偏好的容器化代码:** 随着 LLM 推理规模增长, 大多数生产环境现在使用 Kubernetes 管理 GPU 集群. 因此, 通过容器化环境, 通常是 Docker 镜像, 部署 vLLM 或 SGLang 等推理引擎和 LMCache, 已成为业界用户的标准做法. 有趣的是, 许多用户只使用官方 Docker 镜像, 不会深入阅读 LMCache 源代码.
 

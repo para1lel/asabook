@@ -284,7 +284,7 @@ We need to find a suitable migration strength $\alpha$ (see Equation [4](#S4.E4 
 
 #### Large language models (LLMs).
 
-Pre-trained language models have achieved remarkable performance on various benchmarks by *scaling up*. GPT-3 [Bro77] is the first LLM beyond 100B parameters and achieves impressive few-shot/zero-shot learning results. Later works [Rae21, Smi22, Du22, Cho22a] continue to push the frontier of scaling, going beyond 500B parameters. However, as the language model gets larger, serving such models for inference becomes expensive and challenging. In this work, we show that our proposed method can quantize the three largest, openly available LLMs: OPT-175B [Zha22], BLOOM-176B [Les23] and GLM-130B [Zen22], and even MT-NLG 530B [Smi22] to reduce the memory cost and accelerate inference.
+Pre-trained language models have achieved remarkable performance on various benchmarks by *scaling up*. GPT-3 [Bro20c] is the first LLM beyond 100B parameters and achieves impressive few-shot/zero-shot learning results. Later works [Rae21, Smi22, Du22, Cho22a] continue to push the frontier of scaling, going beyond 500B parameters. However, as the language model gets larger, serving such models for inference becomes expensive and challenging. In this work, we show that our proposed method can quantize the three largest, openly available LLMs: OPT-175B [Zha22], BLOOM-176B [Les23] and GLM-130B [Zen22], and even MT-NLG 530B [Smi22] to reduce the memory cost and accelerate inference.
 
 #### Model quantization.
 

@@ -31,9 +31,12 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 ## Citations and Abbreviations
 
 - Write citations as the repository's compact keys, for example `[Hu21]` or `[Ope24a, Tou23]`.
+- Build each key from the first three Latin letters of the first author's surname and the final two digits of the publication year, capitalizing only the first letter of the prefix. Use the complete surname when it has fewer than three letters. If there is no personal author, use the first three Latin letters of the named project, falling back to the organization name only when no distinct project exists.
+- For different works with the same prefix and year, leave the first registered key unsuffixed and assign contiguous lowercase suffixes in registration order: no suffix, `a`, `b`, `c`, and so on. Reuse established assignments and take the next available suffix; do not use mnemonic suffixes, bibliography indices, page numbers, or paper-specific numbering.
+- Use the formal publication year recorded in the bibliography, or the source release year when no formal publication exists. Do not derive it from an access date, arXiv identifier, page range, or bibliography index.
 - Define every cited key in `paperAbbreviations` in `docs/.vuepress/config.ts`; this enables the visible dotted underline and hover explanation.
 - Include citations attached to expanded terms, for example `Low-Rank Adaptation (LoRA) [Hu21]`.
-- Preserve a paper's reference identity across languages. Never translate titles in bibliography definitions.
+- Preserve a paper's reference identity and citation keys across languages. Never translate titles in bibliography definitions.
 - Prefer the canonical paper page, DOI, conference page, or arXiv abstract as the bibliography link.
 - Do not render `References`, `参考文献`, or any other standalone reference-list section in a paper page. Keep inline citations and their `paperAbbreviations` definitions.
 
