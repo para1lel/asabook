@@ -266,9 +266,9 @@ Mooncake では KVCache のロードと保存を launch 操作と wait 操作で
 
 <span id="algorithm-01"></span>
 
-**アルゴリズム 1: KVCache 中心のスケジューリングアルゴリズム**
-
 <div class="paper-algorithm">
+
+**アルゴリズム 1: KVCache 中心のスケジューリングアルゴリズム**
 
 - **入力:** prefill インスタンスプール $P$、decoding インスタンスプール $D$、リクエスト $R$、キャッシュブロックサイズ $B$。
 - **出力:** $R$ を処理する prefill インスタンスと decoding インスタンス $(p,d)$。

@@ -265,9 +265,9 @@ In this section, we mainly discuss how Conductor schedules the requests and KVCa
 
 <span id="algorithm-01"></span>
 
-**Algorithm 1: KVCache-centric Scheduling Algorithm**
-
 <div class="paper-algorithm">
+
+**Algorithm 1: KVCache-centric Scheduling Algorithm**
 
 - **Input:** prefill instance pool $P$, decoding instance pool $D$, request $R$, cache block size $B$.
 - **Output:** the prefill and decoding instances $(p,d)$ to process $R$.
