@@ -135,8 +135,8 @@ Example:
 - Never typeset a paper table with Markdown or HTML table markup. Always crop the complete table directly from the published PDF, even when source TeX or extracted cell text is available.
 - Render every PDF-derived figure or table screenshot at scale 4 or higher (about 288 DPI). Keep `scripts/paper-crops/<slug>.json` so the crop is reproducible, and require every referenced local PNG to have a metadata entry.
 - Retain an original source image only when it supplies at least four pixels per PDF point at the size used in the paper. Never upscale or sharpen an existing low-resolution PNG in place of a fresh PDF render or a genuinely higher-resolution source.
-- Crop screenshots to the figure or table itself. Remove page headers, body text, captions that will be recreated in Markdown, and excessive white margins.
-- Retain a small safety margin so lines and labels at the boundary are not clipped.
+- Crop screenshots to the complete figure or table body. Preserve every panel, label, legend, axis, table footnote, border stroke, and subfigure description that belongs to the visual object.
+- Remove page headers, body text, printed captions or surrounding explanations that will be recreated in Markdown, and excessive white margins. Retain a small consistent safety margin on all four sides, and confirm that no meaningful stroke or glyph touches the crop edge.
 - Use lossless PNG for diagrams, plots, and tables. Avoid JPEG artifacts on text and thin lines.
 - Use stable two-digit numbering: `figure-01.png`, `table-01.png`.
 - Verify image dimensions against the scale-4 crop dimensions and inspect the actual pixels after cropping. File existence alone is not sufficient; pay special attention to low-confidence template matches and visually similar subfigures.
