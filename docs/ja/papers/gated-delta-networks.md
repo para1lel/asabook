@@ -346,7 +346,7 @@ $$
 
 である。これを数学的帰納法で証明する。
 
-**証明。**
+::: details 証明
 
 $$
 {\mathbf{S}}_{t+1}={\mathbf{S}}_t\left({\color{#ffd54f}\alpha_{t+1}}\left({\mathbf{I}}-\beta_{t+1}{\bm{k}}_{t+1}{\bm{k}}_{t+1}^\top\right)\right)+\beta_{t+1}{\bm{v}}_{t+1}{\bm{k}}_{t+1}^\top
@@ -368,7 +368,7 @@ $$
 =\sum_{i=1}^{t+1}{\color{#ffd54f}\frac{\gamma_{t+1}}{\gamma_i}}{\bm{u}}_i{\bm{k}}_i^\top
 $$
 
-∎
+:::
 
 ## 付録 B 実験の続き
 
