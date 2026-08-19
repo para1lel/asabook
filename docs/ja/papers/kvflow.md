@@ -6,7 +6,7 @@ permalink: /ja/papers/kvflow/
 
 > [Zaifeng Pan](https://panzaifeng.github.io/)、[Ajjkumar Patel](https://dblp.org/pid/412/9471)、[Zhengding Hu](https://dblp.org/pid/359/5899) [+corresponding-author]、[Yipeng Shen](https://dblp.org/pid/04/4092)、[Yue Guan](https://dblp.org/pid/54/7820-3)、[Wan-Lu Li](https://dblp.org/pid/412/8586)、[Lianhui Qin](https://lianhui.ucsd.edu/)、[Yida Wang](https://yidawang.org/)、[Yufei Ding](https://yufeiding.ucsd.edu/)。arXiv 初回投稿は 2025 年 7 月 10 日、現行版は v1。[NeurIPS 2025](https://neurips.cc/virtual/2025/loc/san-diego/poster/119883) 採択。[KVFlow: Efficient Prefix Caching for Accelerating LLM-Based Multi-Agent Workflows](https://arxiv.org/abs/2507.07400v1)。[原論文 PDF](/paper/kvflow.pdf)。[DOI](https://doi.org/10.48550/arXiv.2507.07400)。[TeX ソース](https://arxiv.org/src/2507.07400v1)。正確な印刷レイアウトと参考文献については、原論文 PDF を正本とする。
 
-## Abstract
+## 概要
 
 大規模言語モデル（LLM）ベースのエージェントワークフローは、複雑なタスクを解くために複数の専門エージェントを連携させる一般的なパラダイムとなっている。サービング効率を高めるため、既存の LLM システムは prefix caching を用いてエージェントの固定 prompt に対応する key-value（KV）tensor を再利用し、反復呼び出しでの冗長な計算を避ける。しかし、現在のシステムは通常 Least Recently Used（LRU）方針で KV cache を退避するため、将来のエージェント利用を予測できず、再利用の直前に KV cache を破棄することが多い。その結果、cache miss が頻発し、再計算または swapping の大きなオーバーヘッドが生じる。
 
@@ -14,7 +14,7 @@ permalink: /ja/papers/kvflow/
 
 <span id="section-01"></span>
 
-## 1 Introduction
+## 1 はじめに
 
 LLM ベースのエージェントワークフローは、固定 prompt で定義され特定の subtask を担う複数の専門エージェントを連携させ、複雑な問題をモジュール化され解釈可能な方法で解く [Cao23, Shi23b, Hon23, Li23s, Wan24l]。たとえば MetaGPT [Hon23] は、Product Manager や Engineer といった software engineering の役割を中心にエージェントの協調を構成する。この設計は再利用性と一貫性を高める一方、ワークフロー全体を通じて各エージェントの LLM を繰り返し呼び出す必要があるため、推論遅延も大きくなる。
 
@@ -40,7 +40,7 @@ LLM ベースのエージェントワークフローは、固定 prompt で定�
 
 <span id="section-02"></span>
 
-## 2 Background
+## 2 背景
 
 **LLM サービングシステムの prefix caching。** 細粒度な prefix 再利用を可能にし、冗長な保存をなくすため、現代の LLM サービングシステム [Kwo23, Zhe24] は GPU 上の KV cache を木構造に編成し、各 node に一連の token と対応する KV tensor を保存する。新しい request を受信すると、システムは木の root から prefix を照合し、照合した path 上の KV tensor を連結して、cache 済み prefix 全体を再構築する。GPU memory が不足すると、システムは LRU 方針に基づいて node を退避する。memory の枯渇には二つの原因がある。一般的な状況の一つは、大量の user request が並行してそれぞれ異なるエージェントワークフローを実行し、active な KV cache entry が多数生じる場合である。もう一つは、ハードウェア容量が限られる一方で、エージェントの prompt が非常に大きい場合である。[図 2(a)](#figure-02)に示すように、単一 request の KV cache size は prefix length とともに急速に増大し、context が長くなるほど memory pressure が高まる。さらに CPU memory を二次 cache layer として設定し、退避された KV tensor を backup することで、PCIe を介した cache swapping が可能になる。PCIe latency は生じるものの、swapping は KV tensor の再計算より大幅に高速である [Jin24a, Gao24a]。[図 2(b)](#figure-02)は、PCIe ベースの KV cache 転送に要する時間と prefill 計算時間を比較し、memory pressure 下では CPU memory への offload が効率的な方策であることを確認している。
 
@@ -54,13 +54,13 @@ LLM ベースのエージェントワークフローは、固定 prompt で定�
 
 <span id="section-03"></span>
 
-## 3 Design of KVFlow
+## 3 KVFlow の設計
 
 本節では、二つの主要な手法によってエージェントワークフローの prefix cache 管理を改善する KVFlow の設計を示す。第一に、将来の利用に基づいて KV node を優先付けし、既定の LRU 方針を改善するワークフロー対応退避方針を導入する。第二に、先行読み込みと状態対応 scheduling により CPU-GPU 転送 latency を隠す、overlap KV prefetching 機構を提案する。
 
 <span id="section-03-01"></span>
 
-### 3.1 Workflow-Aware Eviction Policy
+### 3.1 ワークフロー対応退避方針
 
 既存の LLM サービングシステムは通常 LRU 退避方針を採用するが、これはエージェントワークフローでは最適でなくなる。具体的には、まもなく実行されるエージェントが長時間 idle だった一方、実行を終えたばかりのエージェントは近い将来に再び必要とされないことがある。さらに、直前に実行されたエージェントが動的に生成した suffix はタスクの進行に伴って急速に変化することが多く、再利用されにくいにもかかわらず、一時的に cache に保持される。ワークフロー情報があれば、今後のエージェント実行系列を予測でき、より適切な退避判断を行って LRU による非効率を避けられる。
 
@@ -84,7 +84,7 @@ LLM ベースのエージェントワークフローは、固定 prompt で定�
 
 <span id="section-03-02"></span>
 
-### 3.2 Overlapped KV Prefetching
+### 3.2 オーバーラップ KV プリフェッチ
 
 ワークフロー対応退避方針は、まもなく実行されるエージェントの早すぎる退避を避けるが、KV cache が退避された後にエージェントを再実行する場合、cache miss はなお発生しうる。長い prompt では KV cache を一から再計算するオーバーヘッドが大きいため、このコストは特に高い。これを緩和するため、CPU memory を二次 cache として扱い、退避されたエージェントの固定 prompt KV を保存する。
 
@@ -106,7 +106,7 @@ CPU cache が利用できる場合、既存システムは通常、[図 4](#figu
 
 <span id="section-03-03"></span>
 
-### 3.3 Implementation
+### 3.3 実装
 
 KVFlow の prototype は、LLM 実行 backend と application development 用 frontend interface の両方を備えた効率的な LLM サービングシステム SGLang v0.4.4 [Zhe24] を基盤として実装した。SGLang の backend は radix tree を用いて prefix KV cache を管理する。この機構を拡張し、ワークフロー対応退避方針と完全に overlap した KV prefetching に対応させる。さらに、エージェントワークフロー情報を転送できるように、SGLang の frontend と backend の両方を変更する。現在の prototype は SGLang の frontend API に統合されているが、本手法は SGLang に限定されない。frontend が server へ送る HTTP request を変更すれば、ほかのエージェントワークフローフレームワークにも適用できる。
 
@@ -118,7 +118,7 @@ step graph topology の取得に加え、[図 3](#figure-03)に示す各エー�
 
 <span id="section-04"></span>
 
-## 4 Evaluation
+## 4 評価
 
 異なる caching 条件と実行条件での性能を把握するため、さまざまな microbenchmark で KVFlow を評価する。実験は次の重要な問いに答えることを目的とする。（1）大きな prompt prefix と限られた GPU memory を持つ個々のワークフローで、KVFlow は end-to-end latency を短縮できるか。（2）複数のワークフローが並行して動作する高並行環境で、KVFlow はどのような性能を示すか。これらに答えるため、まず[第 4.1 節](#section-04-01)で単一ワークフローの latency を分析し、続いて[第 4.2 節](#section-04-02)で複数ワークフローの実行を調べる。
 
@@ -126,7 +126,7 @@ KVFlow は model weight、prompt、decoding logic に影響を与えずシステ
 
 <span id="section-04-01"></span>
 
-### 4.1 Single-Workflow Latency
+### 4.1 単一ワークフローのレイテンシ
 
 まず batch size = 1 で単一のエージェントワークフローを実行したときの latency を評価する。この単一 request の latency は、notebook や development tool などで user がワークフローを個別に起動する対話的な利用状況を反映する。throughput のため batching に依存する online serving system と異なり、このような状況では個々の request に対する応答性が重視される。
 
@@ -156,7 +156,7 @@ SGLang w/ HiCache は一般に GPU-only の SGLang baseline より優れるこ�
 
 <span id="section-04-02"></span>
 
-### 4.2 High-Concurrency Workflow Performance
+### 4.2 高並行ワークフローの性能
 
 単一の H100 GPU 上で複数の独立したワークフローを同時に起動し、高並行環境でのシステム性能も評価する。これらのワークフローは相互作用せず、共有もないと仮定する。[図 6](#figure-06)に示すように、各エージェントの固定 prompt length と並行ワークフロー数で表した四つの構成を benchmark とする。動的 token と出力 token の length は 256 に固定する。各設定では、prefix caching 用 memory を枯渇させずに GPU が収容できる適切な並行度を選ぶ。並行度が高すぎると、active request が利用可能な memory をすべて消費し、システムは再利用可能な prefix cache を維持できなくなるため、本最適化の対象外となる。
 
@@ -186,7 +186,7 @@ PEER の Financial QA dataset をワークフロー入力として使用する�
 
 <span id="section-05"></span>
 
-## 5 Related Work
+## 5 関連研究
 
 **LLM サービング最適化。** 幅広い研究が request scheduling の最適化により online LLM serving を改善しており、continuous batching（iteration-level scheduling とも呼ばれる）[Yu22a]、head-of-line blocking を軽減する multi-level feedback queue [Wu23a]、streaming scenario 向けの quality-of-experience 対応 scheduler [Liu24r] などがある。別の一群の研究は KV cache 管理に焦点を当てる。vLLM は KV tensor の paged storage により memory fragmentation を減らす PagedAttention [Kwo23] を提案し、SGLang は prefix caching の冗長性をなくす RadixAttention [Zhe24] を導入する。chatbot scenario 向けの専用 prefix caching 方針を扱う研究もある [Gao24a, Yu25b]。InferCept [Abh24a] は tool calling duration を予測し、cost model を使って intercept された request の KV cache を保持、swap、破棄のいずれにするか決める。これらの最適化は、複数エージェントからなるワークフローに焦点を当てる KVFlow と直交する。Autellix [Luo25b] と ParrotServe [Qiu24] はエージェントワークフローの request scheduling を検討するが、prefix cache 管理を考慮しないため、目的は本研究と相補的である。
 
@@ -194,7 +194,7 @@ PEER の Financial QA dataset をワークフロー入力として使用する�
 
 <span id="section-06"></span>
 
-## 6 Conclusion
+## 6 結論
 
 本稿では、エージェントワークフローにおける LLM serving を最適化する、ワークフロー対応 KV cache 管理フレームワーク KVFlow を提示する。エージェント実行を Step Graph として抽象化し、各エージェントの steps-to-execution を計算することで、KVFlow は将来の利用を予測する原理的な退避方針を実現する。さらに、cache miss による停止を先行して除去する、完全に overlap した KV prefetching 機構を導入する。評価は、長い prompt または高い並行度を持つワークフローにおいて、KVFlow が既存システムよりサービング効率を大幅に改善することを示す。
 

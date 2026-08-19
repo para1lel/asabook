@@ -6,7 +6,7 @@ permalink: /ja/papers/continuum/
 
 > [Hanchen Li](https://hanchenli.github.io/), [Runyuan He](https://runyuanhe.github.io/), [Qiuyang Mang](https://joyemang33.github.io/), [Qizheng Zhang](https://alex-q-z.github.io/), [Huanzhi Mao](https://huanzhimao.com/), [Xiaokun Chen](https://dblp.org/pid/252/1625.html), [Hangrui Zhou](https://hehezhou.github.io/), [Alvin Cheung](https://people.eecs.berkeley.edu/~akcheung/), [Joseph Gonzalez](https://dblp.org/pid/61/8262), and [Ion Stoica](https://dblp.org/pid/s/IonStoica.html). arXiv 初回投稿は 2025 年 11 月 4 日、現行版は v6 で、2026 年 5 月 25 日改訂。[Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live](https://arxiv.org/abs/2511.02230v6)。[原論文 PDF](/paper/continuum.pdf)。[DOI](https://doi.org/10.48550/arXiv.2511.02230)。[TeX ソース](https://arxiv.org/src/2511.02230v6)。正確な印刷レイアウトと参考文献については、原論文 PDF を正本とする。
 
-## Abstract
+## 概要
 
 KV キャッシュ管理は、効率的な LLM 推論に不可欠である。利用率を最大化するため、既存の推論エンジンは、新しいリクエストが待機している場合、完了したリクエストの KV キャッシュを退避する。この方針は、LLM 呼び出しとツール呼び出しを交互に実行し、ターンをまたぐ効果的な KV 再利用を妨げる休止が生じるエージェント型ワークロードでは機能しない。多くのツール呼び出しは、人間が応答するマルチターンチャットよりもはるかに短いため、ツールの実行中に KV キャッシュを保持することには可能性がある。しかし、課題は多い。第一に、再計算または再読み込み（オフロードが有効な場合）の潜在コストと、GPU から退避した後に増大するキューイング遅延の両方を考慮する必要がある。第二に、ツール呼び出し時間には内在的なばらつきがあるため、持続時間の予測可能性が限られる状況でも、手法は堅牢でなければならない。
 
@@ -20,7 +20,7 @@ KV キャッシュ管理は、効率的な LLM 推論に不可欠である。利
 
 <span id="section-01"></span>
 
-## 1 Introduction
+## 1 はじめに
 
 KV キャッシュ管理は大規模言語モデル推論の鍵であり、入力処理（prefill）と出力生成（decoding）の両段階に影響する [Kwo23, She24, Che25e]。KV キャッシュ管理の重要な構成要素は退避方針である。理想的には、近い将来に参照される token の退避を避けるべきである。従来のキャッシュシステムと同様に、既存の推論エンジンは、デコード終了後の KV キャッシュは重要性が低いと仮定する。そのため、利用率を最大化すべく、待機キューに別の新規リクエストがあれば破棄する。本稿では、この方針を**ターン終了時退避**と呼ぶ。
 
@@ -45,7 +45,7 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
 
 <span id="section-02"></span>
 
-## 2 Background
+## 2 背景
 
 <span id="figure-02"></span>
 
@@ -53,13 +53,13 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
 
 **図 2。** SWE-Agent の例。エージェントは途中でツールを呼び出しながら、ソフトウェア工学上のバグを段階的に解決する。これらのツール呼び出しは持続時間が異なり、LLM 推論の連続性を断つ。
 
-### 2.1 ReAct Paradigm for Agents
+### 2.1 エージェントの ReAct パラダイム
 
 現代のエージェント型ワークロードの多くは *ReAct* エージェントループ [Cao23] に従い、LLM がコンテキストを解釈して思考を出力する推論ステップと、外部ツールを呼び出すアクションステップを交互に行う。このパラダイムは事実上の標準となっている。Claude Code [Cod26] や Cursor [Cur25] などのコーディングエージェントは明快さと性能のために採用し、LangChain [Lan25] や LangGraph [Lan25a] などのフレームワークは広く利用可能にし、GPT-OSS [Ope25c] や Kimi-K2 [Kim25a] など最近のオープンウェイトモデルはツール呼び出し能力を基盤モデルへ直接組み込んでいる。
 
 重要な傾向として、エージェントアプリケーションはこのループを*長期・マルチターン*の反復へ拡張し、数十から数百ターンにわたって思考、ツール呼び出し、コンテキスト更新を繰り返し交互に行うようになっている。この傾向は、ツール・エージェント・ユーザー間の対話を対象とする $\tau$-bench [Yao24]、マルチターンのツール拡張対話を対象とする MINT [Wan23a]、マルチターンの意思決定とツール利用シナリオを対象とする AgentBench [Liu23a] など、最近のベンチマークに現れている。
 
-### 2.2 Limitations of Existing Methods
+### 2.2 既存手法の限界
 
 従来研究は、主に三つの理由からこの新しい複雑なワークロードを処理できない。
 
@@ -77,7 +77,7 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
 
 <span id="section-03"></span>
 
-## 3 Motivation
+## 3 動機
 
 <span id="figure-03"></span>
 
@@ -85,7 +85,7 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
 
 **図 3。** 評価で使用する SWE-Bench と BFCL のエージェント型ワークロードの特性。ステップ数が増えるほど、リクエストは完了へ近づく。
 
-### 3.1 Agentic Traces
+### 3.1 エージェント実行トレース
 
 まず、現代のエージェント型ワークロードの特性を分析する。SWE-Bench [Nar24] 上で mini-swe-agent [Lie25] を実行した 100 trace と、BFCL V4 Web Search [Mao25] の 100 trace を収集・分析し、いずれも基盤モデルとして GPT-5 を用いた。[図 2](#figure-02)は SWE-Bench の短縮された代表 trace を示し、エージェントがソフトウェア工学タスクを段階的に解決する過程を説明する。
 
@@ -111,7 +111,7 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
 
 **図 5。** 関数の実行時間は極端なロングテールになりうる。fetch_url の最も遅い 10% が総遅延の 52.5% を占め、cd の最も遅い 10% は 94.1% を占める。
 
-### 3.2 Challenges for Agentic Workloads
+### 3.2 エージェントワークロードの課題
 
 **ターン単位の退避。** ツール呼び出しが短い場合でも、推論エンジンは LLM リクエスト間の一様な空白として扱う。vLLM や SGLang は、デコードが終了するとリクエストの KV キャッシュを即座に退避し、暗黙にリクエスト完了と仮定する。しかし KV キャッシュが退避されていると、エンジンは完全な prefill を再実行するか、オフロードが有効なら DRAM から KV キャッシュを再読み込みする必要があり、追加遅延が生じる。大半のシステムはこのシナリオを効率的に処理できない。[図 1](#figure-01)はこの影響を示す。ツール呼び出しによる休止が KV キャッシュ退避を引き起こし、復帰時に prefill または KV 再読み込みが必要になる。したがって、このオーバーヘッドを避けるにはツール呼び出しを考慮する KV キャッシュ保持方針が重要である。
 
@@ -127,7 +127,7 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
 
 <span id="section-04"></span>
 
-## 4 Continuum Scheduling Algorithm
+## 4 Continuum のスケジューリングアルゴリズム
 
 従来研究の失敗を踏まえ、エージェント型ワークロードのサービングにおける中心的な問いを特定する。すなわち、マルチターンシナリオで KV キャッシュをいかに効率的かつ堅牢に保持するかである。
 
@@ -179,7 +179,7 @@ Continuum の性能を評価するため、関数呼び出し [Mao24b] とコー
     - **もし** $id \in P.\mathrm{keys}$ なら：
       - $P \leftarrow P \setminus (id, P[id])$
 
-### 4.1 Utility Model
+### 4.1 効用モデル
 
 <span id="table-03"></span>
 
@@ -227,7 +227,7 @@ $$\eta = -\mathrm{Corr}(k, N - k).$$
 
 $$\mathrm{OutofOrderCost}(r) = \frac{\mathcal{T}}{\mathcal{M}}\times \mathrm{MemUsage}(r) \times \eta.$$
 
-### 4.2 Setting the TTL Value
+### 4.2 TTL 値の設定
 
 本節では、上のコスト・利益モデルと過去のツール呼び出し情報に基づき、Continuum が KV キャッシュの TTL 値を設定する方法を述べる。アルゴリズム 1（`CalcTTL` 行）のとおり、Continuum は KV キャッシュ保持の期待純利益を最大化する最適 TTL 値 $\tau^{*}$ を決定する。
 
@@ -253,7 +253,7 @@ $$\mathcal{P}(\tau, f) = \frac{1}{|S[f]|} \cdot \sum_{t \in S[f]} \mathbb{I}[t \
 
 また、エージェントは通常、本番前にツールを用いて post-training されるため [Cao25, Che25b, Luo25a]、ユーザーは学習中にこれらのコストモデル統計を得ることもできる。
 
-### 4.3 Scheduling Priority
+### 4.3 スケジューリング優先度
 
 スケジューリングを TTL アルゴリズムと互換にするため、推論エンジンのリクエスト優先度を再定義する必要がある。Continuum は TTL-aware priority を導入し、プログラムレベル FCFS 順序を保ちながら、TTL 内の固定リクエストを昇格して連続性を維持する。具体的には、待機キュー $Q$ の各リクエスト $r$ に multi-key priority tuple を割り当て、以下の基準を順に用いて順位付けする。
 
@@ -263,7 +263,7 @@ $$\mathcal{P}(\tau, f) = \frac{1}{|S[f]|} \cdot \sum_{t \in S[f]} \mathbb{I}[t \
 
 <span id="section-05"></span>
 
-## 5 Continuum System Design
+## 5 Continuum のシステム設計
 
 <span id="figure-07"></span>
 
@@ -275,7 +275,7 @@ Continuum の設計目標は、推論エンジンのスケジューラ中核ル�
 
 サービングエンジンへ到着すると、リクエストは既存のスケジューラループへ入る。Continuum は、リクエスト到着時と完了時に呼ばれる薄い Tool-Call Handler を追加する。ハンドラは LLM 出力からツール呼び出しを解析し、同じ `program_id` 内で観測したリクエスト間隔を用いてツールごとの遅延を追跡し、TTL をスケジューラへ返す。スケジューラはこのヒントを使って次ステップで再利用できるよう KV キャッシュを固定し、TTL 値が期限切れになるかプログラムが終了すると固定を解除する。
 
-### 5.1 Tool Call Handler
+### 5.1 ツール呼び出しハンドラ
 
 ツール呼び出しハンドラは、リクエスト到着後または完了時にメインスケジューラから呼ばれる独立クラスである。この分離構造により、ツール処理ロジックは中核スケジューリングループから隔離され、将来の parser や tool-aware policy へ拡張しやすい。
 
@@ -297,7 +297,7 @@ Continuum の設計目標は、推論エンジンのスケジューラ中核ル�
 
 **ツール完了時刻の記録。** プログラム ID $p$ で識別されるプログラム内の各 LLM リクエスト $i$ について、ツール呼び出し出力を持つ完了リクエストをスケジューラが記録した際、ハンドラはサーバー側完了 timestamp $t_{\mathrm{finish}}^{p,i}$ とツール呼び出し名を記録する。同じ $p$ を持つ次のリクエスト $i+1$ が到着すると、サーバー側到着 timestamp $t_{\mathrm{arrive}}^{p,i+1}$ を観測し、リクエスト間隔 $t_{\mathrm{arrive}}^{p,i+1}-t_{\mathrm{finish}}^{p,i}$ を計算する。この間隔を今回のツール呼び出し実行時間として記録し、将来の TTL 計算に保存する。
 
-### 5.2 Efficient Pin with TTL in Scheduler
+### 5.2 スケジューラにおける TTL による効率的な固定
 
 ツール呼び出しハンドラが TTL 値を返した後、スケジューラは固定操作を実行する必要がある。
 
@@ -323,7 +323,7 @@ Continuum の設計目標は、推論エンジンのスケジューラ中核ル�
 
 **図 9。** H100 上で Llama-8B を用いた OpenHands において、Continuum は平均遅延と P95 遅延で最高性能を達成する。
 
-### 5.3 Implementation
+### 5.3 実装
 
 Continuum は約 1,000 行の Python により vLLM 上へ実装した。スケジューラクラスへ追加した上記の固定操作に加え、vLLM の元のスケジューラでツール呼び出しハンドラの三つの関数を使う。
 
@@ -333,7 +333,7 @@ Continuum は約 1,000 行の Python により vLLM 上へ実装した。スケ�
 
 <span id="section-06"></span>
 
-## 6 Evaluation
+## 6 評価
 
 <span id="figure-10"></span>
 
@@ -347,7 +347,7 @@ Continuum は約 1,000 行の Python により vLLM 上へ実装した。スケ�
 - **堅牢な改善。** Continuum はターン数や異なるオフロードシナリオを通じてベースラインを上回る。
 - **すぐに使える有用性。** Continuum は品質を低下させずに実際のエージェントを高速化できる。
 
-### 6.1 Setup
+### 6.1 実験設定
 
 **モデルとハードウェア。** Llama-3.1-8B、Llama-3.1-70B、Gemma-3-12B を用いて Continuum を評価する。Runpod の A100-SXM GPU、AWS および Tensormesh の H100、オンプレミスサーバーの B200 GPU を使用する。
 
@@ -377,7 +377,7 @@ Continuum は約 1,000 行の Python により vLLM 上へ実装した。スケ�
 
 **図 12。** 分散環境の実 SWE-agent において、Continuum は同じ pass rate で遅延を改善する。
 
-### 6.2 End-to-End Experiments
+### 6.2 エンドツーエンド実験
 
 SWE-Bench、BFCL、OpenHands のワークロードで trace replay 実験を行う。[図 8](#figure-08)、[図 10](#figure-10)、[図 9](#figure-09)は Continuum の end-to-end 改善を示す。BFCL と SWE-Bench の両ワークロードで、平均応答時間とスループットが大幅に改善する。例えば Llama-3.1-8B モデルでは、vanilla vLLM ベースラインに対して平均応答時間を最大 2 倍削減する。性能向上は異なるモデル規模とハードウェア構成を通じて一貫し、多様なシナリオでの有効性を示す。Autellix は BFCL でベースラインを上回るが、実行時間が長いリクエストは期待終了時間も長いという誤った仮定のため、SWE-Bench では下回る。
 
@@ -399,7 +399,7 @@ SWE-Bench、BFCL、OpenHands のワークロードで trace replay 実験を行�
 
 [図 12](#figure-12)に示すように、pass rate が等しいとき、Continuum は平均遅延で一貫してベースラインを上回る。Continuum の pass rate は実際にはベースラインより高い。SWE-Bench が環境 docker の hang を防ぐ制限時間を持つためである。ベースラインの実行時間が 15 分を超えると preempt され、失敗として扱われる。この結果は、実際の本番環境における Continuum の有用性を示す。
 
-### 6.3 Sensitivity Analysis
+### 6.3 感度分析
 
 **推論エンジン構成の変更。** Continuum が推論エンジン構成の変化に堅牢であることを示すため、異なる構成で評価する。[図 13](#figure-13)では 1 秒当たりのジョブ数を 0.13 とし、最大 batch size を変えて Continuum と各ベースラインを比較する。Continuum の改善は異なる batch size でも安定している。さらに[図 13](#figure-13)では chunk size を 256 から 4096 まで変え、異なるサイズで同様の改善を観測する。これは、異なる推論エンジン構成に対する手法の堅牢性を示す。
 
@@ -419,7 +419,7 @@ SWE-Bench、BFCL、OpenHands のワークロードで trace replay 実験を行�
 
 **図 15。** オフロード先を CPU から SSD へ拡張した場合も、Continuum は遅延を削減する。
 
-### 6.4 Ablation Studies and Microbenchmarking
+### 6.4 アブレーション研究とマイクロベンチマーク
 
 **アブレーション研究。** コストモデルが Continuum 全体の性能へ与える影響を分析する。[図 16](#figure-16)では、Continuum を一部の最適化だけを適用するベースラインと比較する。Program-Level FCFS は、vLLM の元の request-level FCFS を、プログラム到着に基づく優先度へ変更する。Static TTL は Program-Level FCFS 上に構築し、cold-start handling で推定した固定 TTL 閾値を使用する。結果のとおり、Continuum の各アイデアが段階的に性能を改善する。
 
@@ -447,7 +447,7 @@ SWE-Bench、BFCL、OpenHands のワークロードで trace replay 実験を行�
 
 <span id="section-07"></span>
 
-## 7 Related Work
+## 7 関連研究
 
 **LLM 推論システム。** LLM 推論改善に関する研究は多い。vLLM [Kwo23] や SGLang [She24] などのサービングエンジンは、paged attention design と最適化 kernel を採用して最先端の推論を達成する。GPU 実行速度を改善する広範な kernel-level optimization [Ye25, Dao22, Zhu25a] に加え、resource management にも continuous batching [Yu22a]、chunked prefill [Ram24]、skip-join multi-level scheduling [Wu23a] など多くの最適化が提案されている。その多くが推論エンジンへ移植されている。
 
@@ -459,13 +459,13 @@ SWE-Bench、BFCL、OpenHands のワークロードで trace replay 実験を行�
 
 <span id="section-08"></span>
 
-## 8 Conclusion
+## 8 結論
 
 頻繁なツール呼び出し、ステップ間遅延の大きな変動、マルチターン連続性を保つ必要性により、エージェント型ワークロードは LLM サービングシステムへ新たなスケジューリング課題をもたらす。本稿では、time-to-live 機構によりキャッシュ再利用の利益と GPU メモリ阻害コストを両立する KV キャッシュ保持・スケジューリングシステム Continuum を提示した。TTL ベースの固定をプログラムレベル FCFS と統合し、Continuum は不要な prefill を減らし、ターンごとのキューイング遅延を緩和し、予測不能なツール呼び出し遅延へ堅牢に適応する。vLLM 上の実装は、モデル規模、ハードウェア構成、実世界のエージェントワークロードを通じて、end-to-end ジョブ完了時間を一貫して改善する。Continuum は、原則に基づく tool-aware KV management が効率的なマルチターンエージェントサービングに不可欠であることを示す。将来のシステムがエージェントワークロードを LLM 推論エンジンへ深く統合する基礎となることを期待する。
 
 <span id="section-appendix-a"></span>
 
-## Appendix A Tool Call Parser Implementation Example
+## 付録 A ツール呼び出しパーサの実装例
 
 mini-SWE-agent 用ツール parser の実装を以下に示す。
 
@@ -505,7 +505,7 @@ class ToolCallParser:
 
 <span id="section-appendix-b"></span>
 
-## Appendix B More Function Call Examples
+## 付録 B その他の関数呼び出し例
 
 内部では、モデルごとに chat template と生成におけるツール呼び出しの表現が異なる。例えば Llama-3 系は function-style string `func_name(param_1=val_1, param_2=val_2, ...)` を出力しうる一方、Qwen-3 系は `{"name": "func_name", "arguments": {...}}` を使う。形式にかかわらず、サービングエンジン（例えば vLLM、SGLang）はモデル固有で template-aware な parser を持ち、生成された長い文字列から関数名と引数を復元し、OpenAI-style schema に正規化して downstream で統一的に扱えるようにする。したがって、サービングエンジンが提供する一般的な function calling interface を使うなら、モデル固有の parsing を気にする必要はない。
 
@@ -531,11 +531,11 @@ Terminal Bench では、structured format が command splitting をすでに処�
 
 <span id="section-appendix-c"></span>
 
-## Appendix C Extended Discussions of Related Work
+## 付録 C 関連研究に関する拡張議論
 
 <span id="section-appendix-c1"></span>
 
-### C.1 Novel Tool-Calling Styles
+### C.1 新しいツール呼び出し形式
 
 **ツールを用いた思考。** このパターンは planning と execution を交互に行う。モデルは構造化された中間 plan を出力し、ツールを呼び出し、feedback を統合し、chain of thought を継続する [Ope25c, Gao24c, Wu25a, Che23a]。Continuum ではツール呼び出しが出力されると現在のリクエストを完了とみなし、ツール完了後、更新されたコンテキストを持つ後続リクエストを enqueue する。[付録 A](#section-appendix-a)に示すツール parser を実装すれば、このシナリオへ Continuum を拡張できる。
 
@@ -543,13 +543,13 @@ Terminal Bench では、structured format が command splitting をすでに処�
 
 **非同期ツール。** 非同期ツール呼び出しは実行を non-blocking にする。各呼び出しはモデルが後で await できる handle（*future*/promise）を返し、ツールが background で動く間も生成を続けられる [Gim24a, Gin24, Ope25d]。これは breadth-first または tree-search behavior（例えば複数の probe を並行して fan-out する deep-research や browsing agent）に特に有用である。このワークロードは Continuum に適している。モデルは await 間に active computation をほぼ行わないため、早すぎる退避を避ければ KV-cache reuse は高い。
 
-### C.2 Model Architecture
+### C.2 モデルアーキテクチャ
 
 従来の decode-only transformer を超える新しい LLM architecture が提案されている。Mix-of-Experts（MoE）[Sha17, Fed22, Cho22b] は、入力 token ごとに一部の parameter だけを activate して sparsity を導入し、低い推論コストで大きなモデルを実現する。Sliding-window transformer [Bel20, Zah20] は attention scope を全コンテキストでなく local window に制限し、推論時の memory footprint を削減する。Hybrid Model は full attention と、linear attention [Cho20a, Kat20]、SSM [Gu23, Gu22, Gu20, Gu21]、low-rank attention [Wan20a] などの高効率 attention mechanism を組み合わせ、memory footprint を削減して推論速度を高める。これらの architecture は推論時の memory bottleneck を緩和してスループットを高めるが、本稿で議論したスケジューリング問題、特に異なるジョブが GPU 空間を継続的に競合することによる scheduling bubble は依然として発生する。
 
 <span id="section-appendix-d"></span>
 
-## Appendix D Limitations and Future Work
+## 付録 D 制約と今後の課題
 
 **TTL コストモデルの感度。** Continuum は、経験的なツール呼び出し CDF、memory usage estimate、「memoryfulness」factor を組み合わせて最適 TTL 値を導出する cost-benefit model に依存する。この設計は原則に基づくものの、過去 sample が予測に有効な程度にツール呼び出し分布とワークロード特性が安定していると仮定する。backend contention や外部 API の変動でツール遅延が急変するエージェントなど、高度に変動的または adversarial なワークロードでは、モデルが最適でない TTL を生成し、一時的にスケジューリング効率を低下させる場合がある。さらに memoryfulness factor $\eta$ や $\mathrm{CacheMissCost}()$ と $\mathrm{OutOfOrderCost}()$ の近似などの主要 parameter は、同じワークロードの過去ターンでの観測に依存し、未知のエージェント挙動へ generalize できない可能性がある。エージェントは通常事前に post-training されるため、Continuum は学習中の分布を cold start 処理に使って緩和できる。エージェントにおける突然の分布変化への対処は今後の課題とする。
 
