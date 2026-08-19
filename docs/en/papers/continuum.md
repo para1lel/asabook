@@ -205,11 +205,11 @@ $$\mathrm{Benefit}(r) = \mathrm{CacheMissCost}(r) + \mathrm{OutofOrderCost}(r)$$
 
 Here, $\mathrm{CacheMissCost}(r)$ measures the cost of reloading or prefilling the KV cache for request $r$ and $\mathrm{OutofOrderCost}(r)$ measures the expected queueing delay for the request due to waiting for other requests to free GPU memory. We use the sum of cost prevented as the benefit.
 
-Similar to $\mathrm{Cost}(\tau, r)$, we can measure $\mathrm{CacheMissCost}(r)$ by (1) the context reconstruct overhead $\mathrm{Prefill\!-\!Reload}(r)$; and (2) the approximate number of requests will experience the additional latency overhead $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$. The cost is formally defined as follows:
+Similar to $\mathrm{Cost}(\tau, r)$, we can measure $\mathrm{CacheMissCost}(r)$ by (1) the context reconstruct overhead $\text{Prefill-Reload}(r)$; and (2) the approximate number of requests will experience the additional latency overhead $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$. The cost is formally defined as follows:
 
-$$\mathrm{CacheMissCost}(r) = \frac{\mathrm{MemUsage}(r)\times\mathrm{Prefill\!-\!Reload}(r)}{\mathcal{M}}$$
+$$\mathrm{CacheMissCost}(r) = \frac{\mathrm{MemUsage}(r)\times\text{Prefill-Reload}(r)}{\mathcal{M}}$$
 
-$\mathrm{Prefill\!-\!Reload}(r)$ is the time cost for prefill or reloading depending on whether CPU offloading is turned on. This is based on a quick offline profiling described in [Section 5.3](#section-05).
+$\text{Prefill-Reload}(r)$ is the time cost for prefill or reloading depending on whether CPU offloading is turned on. This is based on a quick offline profiling described in [Section 5.3](#section-05).
 
 **Measuring the expected queuing delay.** As discussed in [Section 3.2](#section-03), retaining KV cache also eliminates the queueing delay that a returning program would experience if evicted—even when CPU offloading makes reload itself fast. This $\mathrm{OutofOrderCost}$ component is the key term absent from prior retention policies such as InferCept [Abh24a], which only considers the reload cost. By modeling this term, Continuum can justify retaining KV cache even when reload is cheap, as long as the queueing delay savings outweigh the GPU memory occupation cost.
 
@@ -235,7 +235,7 @@ $$\tau^{*} = \mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \mathrm{Benefit
 
 where $\mathcal{P}(\tau, f)$ estimates the probability that the tool call $f$ completes within time $\tau$. This formula captures the expected net benefit, in terms of total job latency, of retaining the KV cache of $r$ for a duration of $\tau$. By eliminating the shared $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$, the formula above can be transformed to
 
-$$\mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \big(\mathcal{T}\cdot\eta + \mathrm{Prefill\!-\!Reload}(r)\big) - \tau,$$
+$$\mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \big(\mathcal{T}\cdot\eta + \text{Prefill-Reload}(r)\big) - \tau,$$
 
 indicating that we only need to additionally compute $\mathcal{T}$ and $\mathcal{P}(\tau, f)$ in our implementation. $\mathcal{T}$ can be estimated as the sliding window average for queueing delay experienced by requests who was evicted. Since we cannot fully predict the duration of the next tool call, we estimate $\mathcal{P}(\tau, f)$ using the empirical CDF derived from historical tool-call records $S[f]$. Specifically, we calculate it as the following:
 
@@ -309,7 +309,7 @@ After the tool call handler gives the TTL value, the scheduler will need to exec
 
 Thus, we need a mechanism to unpin the requests when the such a deadlock occurs. In Continuum, when the scheduling logic fails to schedule a new request due to space contention, it will check if there are any pinned requests in `pinned_requests`. If there are, we iteratively selects victims from `pinned_requests` with the latest program arrival time to unpin and free the space until the first request can be scheduled to run. The chosen request will be removed from its queue, its KV cache is freed, and it is re-queued as needed, ensuring that subsequent allocations can proceed to run. This prevents deadlock even when many pins are present.
 
-**Offline Profile.** In order to predict the prefill time and reloading time ($\mathrm{Prefill\!-\!Reload}(r)$) based on context size as needed in [Section 4.1](#section-04), we perform an offline profile on each hardware and model pair for online estimation. We profile for two purposese: **(1)** GPU-CPU bandwidth for CPU offloading cases. We measure by taking the average CPU offloading throughput. **(2)** Prefill vs context length curve for estimating prefill cost. We measure this by doing prefill for chunk sizes $\{1000, 2000, 4000,... \mathrm{max\_context\_length}\}$ and fit a quadratic curve on the data. Admittedly, there could be some pages for the request remaining in GPU memory that does not need recomputation. But these remaining pages are usually small when memory is contended and we approximate by the full prefill time with little error. Profiling takes less than 10 minutes for each hardware model pair.
+**Offline Profile.** In order to predict the prefill time and reloading time ($\text{Prefill-Reload}(r)$) based on context size as needed in [Section 4.1](#section-04), we perform an offline profile on each hardware and model pair for online estimation. We profile for two purposese: **(1)** GPU-CPU bandwidth for CPU offloading cases. We measure by taking the average CPU offloading throughput. **(2)** Prefill vs context length curve for estimating prefill cost. We measure this by doing prefill for chunk sizes $\{1000, 2000, 4000,... \mathrm{max\_context\_length}\}$ and fit a quadratic curve on the data. Admittedly, there could be some pages for the request remaining in GPU memory that does not need recomputation. But these remaining pages are usually small when memory is contended and we approximate by the full prefill time with little error. Profiling takes less than 10 minutes for each hardware model pair.
 
 <span id="figure-08"></span>
 

@@ -205,11 +205,11 @@ $$\mathrm{Benefit}(r) = \mathrm{CacheMissCost}(r) + \mathrm{OutofOrderCost}(r)$$
 
 这里, $\mathrm{CacheMissCost}(r)$ 衡量请求 $r$ 重新加载或 prefill KV 缓存的成本, $\mathrm{OutofOrderCost}(r)$ 衡量请求因等待其他请求释放 GPU 内存而产生的预期排队延迟. 我们将避免的成本之和作为收益.
 
-与 $\mathrm{Cost}(\tau, r)$ 类似, 我们可以通过 (1) 上下文重建开销 $\mathrm{Prefill\!-\!Reload}(r)$, 以及 (2) 将承受额外延迟开销的近似请求数 $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$, 来测量 $\mathrm{CacheMissCost}(r)$. 成本形式化定义如下:
+与 $\mathrm{Cost}(\tau, r)$ 类似, 我们可以通过 (1) 上下文重建开销 $\text{Prefill-Reload}(r)$, 以及 (2) 将承受额外延迟开销的近似请求数 $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$, 来测量 $\mathrm{CacheMissCost}(r)$. 成本形式化定义如下:
 
-$$\mathrm{CacheMissCost}(r) = \frac{\mathrm{MemUsage}(r)\times\mathrm{Prefill\!-\!Reload}(r)}{\mathcal{M}}$$
+$$\mathrm{CacheMissCost}(r) = \frac{\mathrm{MemUsage}(r)\times\text{Prefill-Reload}(r)}{\mathcal{M}}$$
 
-$\mathrm{Prefill\!-\!Reload}(r)$ 是 prefill 或重新加载的时间成本, 具体取决于是否启用 CPU 卸载. 它基于[第 5.3 节](#section-05)所述的快速离线剖析.
+$\text{Prefill-Reload}(r)$ 是 prefill 或重新加载的时间成本, 具体取决于是否启用 CPU 卸载. 它基于[第 5.3 节](#section-05)所述的快速离线剖析.
 
 **测量预期排队延迟.** 如[第 3.2 节](#section-03)所述, 保留 KV 缓存还会消除程序在被驱逐后返回时经历的排队延迟, 即使 CPU 卸载使重新加载本身很快也是如此. $\mathrm{OutofOrderCost}$ 是 InferCept [Abh24a] 等先前保留策略缺少的关键项, 它们只考虑重新加载成本. 通过建模这一项, 只要节省的排队延迟超过占用 GPU 内存的成本, 即使重新加载很便宜, Continuum 也可以合理地保留 KV 缓存.
 
@@ -235,7 +235,7 @@ $$\tau^{*} = \mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \mathrm{Benefit
 
 其中, $\mathcal{P}(\tau, f)$ 估计工具调用 $f$ 在时间 $\tau$ 内完成的概率. 该公式表示将 $r$ 的 KV 缓存保留 $\tau$ 时长对作业总延迟的预期净收益. 消去公共项 $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$ 后, 上式可以变换为:
 
-$$\mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \big(\mathcal{T}\cdot\eta + \mathrm{Prefill\!-\!Reload}(r)\big) - \tau,$$
+$$\mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \big(\mathcal{T}\cdot\eta + \text{Prefill-Reload}(r)\big) - \tau,$$
 
 这表明我们的实现只需额外计算 $\mathcal{T}$ 和 $\mathcal{P}(\tau, f)$. $\mathcal{T}$ 可以估计为已被驱逐请求所经历排队延迟的滑动窗口平均值. 由于无法完全预测下一次工具调用的持续时间, 我们使用历史工具调用记录 $S[f]$ 得到的经验 CDF 估计 $\mathcal{P}(\tau, f)$. 具体计算如下:
 
@@ -309,7 +309,7 @@ $$\mathcal{P}(\tau, f) = \frac{1}{|S[f]|} \cdot \sum_{t \in S[f]} \mathbb{I}[t \
 
 因此, 当这种死锁发生时, 我们需要一种解除请求固定的机制. 在 Continuum 中, 当调度逻辑因空间争用无法调度新请求时, 它会检查 `pinned_requests` 中是否存在已固定请求. 如果存在, 我们会从 `pinned_requests` 中按程序到达时间最晚的顺序迭代选择牺牲请求, 解除固定并释放空间, 直到第一个请求可以被调度运行. 选中的请求会从队列中移除, 释放其 KV 缓存, 并按需重新入队, 确保后续分配能够继续. 这即使在存在许多固定请求时也能防止死锁.
 
-**离线剖析.** 为了根据上下文大小预测[第 4.1 节](#section-04)所需的 prefill 时间和重新加载时间 ($\mathrm{Prefill\!-\!Reload}(r)$), 我们对每个硬件和模型组合进行离线剖析, 以便在线估计. 剖析有两个目的: **(1)** CPU 卸载场景下的 GPU-CPU 带宽. 我们通过取平均 CPU 卸载吞吐量来测量. **(2)** 用于估计 prefill 成本的 prefill 与上下文长度曲线. 我们对分块大小 $\{1000, 2000, 4000,... \mathrm{max\_context\_length}\}$ 执行 prefill, 并对数据拟合二次曲线. 诚然, 请求可能还有一些页面留在 GPU 内存中, 不需要重新计算. 但内存争用时这些剩余页面通常很少, 因此我们用完整 prefill 时间近似, 误差很小. 每个硬件模型组合的剖析耗时不到 10 分钟.
+**离线剖析.** 为了根据上下文大小预测[第 4.1 节](#section-04)所需的 prefill 时间和重新加载时间 ($\text{Prefill-Reload}(r)$), 我们对每个硬件和模型组合进行离线剖析, 以便在线估计. 剖析有两个目的: **(1)** CPU 卸载场景下的 GPU-CPU 带宽. 我们通过取平均 CPU 卸载吞吐量来测量. **(2)** 用于估计 prefill 成本的 prefill 与上下文长度曲线. 我们对分块大小 $\{1000, 2000, 4000,... \mathrm{max\_context\_length}\}$ 执行 prefill, 并对数据拟合二次曲线. 诚然, 请求可能还有一些页面留在 GPU 内存中, 不需要重新计算. 但内存争用时这些剩余页面通常很少, 因此我们用完整 prefill 时间近似, 误差很小. 每个硬件模型组合的剖析耗时不到 10 分钟.
 
 <span id="figure-08"></span>
 

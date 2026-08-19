@@ -205,11 +205,11 @@ $$\mathrm{Benefit}(r) = \mathrm{CacheMissCost}(r) + \mathrm{OutofOrderCost}(r)$$
 
 ここで $\mathrm{CacheMissCost}(r)$ はリクエスト $r$ の KV キャッシュを再読み込みまたは prefill するコスト、$\mathrm{OutofOrderCost}(r)$ は、ほかのリクエストが GPU メモリを解放するまで待つためにリクエストが被る期待キューイング遅延を測る。防止されるコストの和を利益とする。
 
-$\mathrm{Cost}(\tau,r)$ と同様に、$\mathrm{CacheMissCost}(r)$ は、(1) コンテキスト再構築オーバーヘッド $\mathrm{Prefill\!-\!Reload}(r)$ と、(2) 追加遅延を受けるリクエスト数の近似 $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$ によって測定できる。コストを形式的に次のように定義する。
+$\mathrm{Cost}(\tau,r)$ と同様に、$\mathrm{CacheMissCost}(r)$ は、(1) コンテキスト再構築オーバーヘッド $\text{Prefill-Reload}(r)$ と、(2) 追加遅延を受けるリクエスト数の近似 $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$ によって測定できる。コストを形式的に次のように定義する。
 
-$$\mathrm{CacheMissCost}(r) = \frac{\mathrm{MemUsage}(r)\times\mathrm{Prefill\!-\!Reload}(r)}{\mathcal{M}}$$
+$$\mathrm{CacheMissCost}(r) = \frac{\mathrm{MemUsage}(r)\times\text{Prefill-Reload}(r)}{\mathcal{M}}$$
 
-$\mathrm{Prefill\!-\!Reload}(r)$ は、CPU オフロードが有効かに応じた prefill または再読み込みの時間コストである。[第 5.3 節](#section-05)で述べる短いオフラインプロファイリングに基づく。
+$\text{Prefill-Reload}(r)$ は、CPU オフロードが有効かに応じた prefill または再読み込みの時間コストである。[第 5.3 節](#section-05)で述べる短いオフラインプロファイリングに基づく。
 
 **期待キューイング遅延の測定。** [第 3.2 節](#section-03)で述べたように、KV キャッシュ保持は、CPU オフロードにより再読み込み自体が高速でも、退避されたプログラムが復帰するときのキューイング遅延も解消する。この $\mathrm{OutofOrderCost}$ 成分は、再読み込みコストしか考慮しない InferCept [Abh24a] など、従来の保持方針に欠ける重要な項である。この項をモデル化することで、キューイング遅延の削減が GPU メモリ占有コストを上回る限り、再読み込みが安価でも Continuum は KV キャッシュ保持を正当化できる。
 
@@ -235,7 +235,7 @@ $$\tau^{*} = \mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \mathrm{Benefit
 
 ここで $\mathcal{P}(\tau,f)$ はツール呼び出し $f$ が時間 $\tau$ 以内に完了する確率を推定する。この式は、$r$ の KV キャッシュを $\tau$ の間保持することの、総ジョブ遅延に関する期待純利益を表す。共通項 $\frac{\mathrm{MemUsage}(r)}{\mathcal{M}}$ を消去すると、上式は次に変形できる。
 
-$$\mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \big(\mathcal{T}\cdot\eta + \mathrm{Prefill\!-\!Reload}(r)\big) - \tau,$$
+$$\mathrm{argmax}_{\tau}\ \mathcal{P}(\tau, f) \times \big(\mathcal{T}\cdot\eta + \text{Prefill-Reload}(r)\big) - \tau,$$
 
 したがって実装では $\mathcal{T}$ と $\mathcal{P}(\tau,f)$ だけを追加計算すればよい。$\mathcal{T}$ は、退避されたリクエストが経験したキューイング遅延の sliding-window average として推定できる。次のツール呼び出し時間を完全には予測できないため、過去のツール呼び出し記録 $S[f]$ から得た経験 CDF で $\mathcal{P}(\tau,f)$ を推定する。具体的には次のように計算する。
 
@@ -309,7 +309,7 @@ Continuum の設計目標は、推論エンジンのスケジューラ中核ル�
 
 したがって、このようなデッドロックが起きたときに固定を解除する機構が必要である。Continuum では、空間競合で新しいリクエストをスケジュールできない場合、`pinned_requests` に固定リクエストがあるか確認する。存在すれば、最初のリクエストを実行可能になるまで、プログラム到着時刻が最も遅いものから victim を反復的に選び、固定を解除して空間を解放する。選択されたリクエストはキューから取り除かれ、KV キャッシュを解放し、必要に応じて再度キューへ入るため、後続割り当てを続行できる。これにより、多数の固定が存在してもデッドロックを防ぐ。
 
-**オフラインプロファイル。** [第 4.1 節](#section-04)で必要な、コンテキストサイズに基づく prefill 時間と再読み込み時間（$\mathrm{Prefill\!-\!Reload}(r)$）を予測するため、各ハードウェア・モデル組についてオフラインプロファイルを行い、オンライン推定に用いる。目的は二つある。**(1)** CPU オフロード時の GPU-CPU 帯域幅。CPU オフロードの平均スループットを測定する。**(2)** prefill コスト推定用の prefill 対コンテキスト長曲線。chunk size $\{1000,2000,4000,... \mathrm{max\_context\_length}\}$ で prefill を実行し、データへ二次曲線を fitting する。リクエストの一部 page が GPU メモリに残り、再計算不要な場合があることは認める。しかし、メモリ競合時に残る page は通常少ないため、完全な prefill 時間で近似しても誤差は小さい。各ハードウェア・モデル組のプロファイリングは 10 分未満で完了する。
+**オフラインプロファイル。** [第 4.1 節](#section-04)で必要な、コンテキストサイズに基づく prefill 時間と再読み込み時間（$\text{Prefill-Reload}(r)$）を予測するため、各ハードウェア・モデル組についてオフラインプロファイルを行い、オンライン推定に用いる。目的は二つある。**(1)** CPU オフロード時の GPU-CPU 帯域幅。CPU オフロードの平均スループットを測定する。**(2)** prefill コスト推定用の prefill 対コンテキスト長曲線。chunk size $\{1000,2000,4000,... \mathrm{max\_context\_length}\}$ で prefill を実行し、データへ二次曲線を fitting する。リクエストの一部 page が GPU メモリに残り、再計算不要な場合があることは認める。しかし、メモリ競合時に残る page は通常少ないため、完全な prefill 時間で近似しても誤差は小さい。各ハードウェア・モデル組のプロファイリングは 10 分未満で完了する。
 
 <span id="figure-08"></span>
 
