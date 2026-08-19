@@ -2489,7 +2489,17 @@ export default defineUserConfig({
   },
 
   theme: plumeTheme({
+    hostname: 'https://www.asabook.cc',
     docsRepo: 'https://github.com/para1lel/asabook',
+    comment: {
+      provider: 'Giscus',
+      comment: true,
+      repo: 'para1lel/asabook',
+      repoId: 'R_kgDOS_TuFQ',
+      category: 'Announcements',
+      categoryId: 'DIC_kwDOS_TuFc4DDtHK',
+      mapping: 'pathname',
+    },
     social: [
       { icon: 'github', link: 'https://github.com/para1lel/asabook' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/349394806' },
@@ -2558,7 +2568,7 @@ export default defineUserConfig({
               {
                 text: 'Agent 工程',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'manus-ai', 'kvflow', 'continuum'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum'],
               },
               {
                 text: '分布式训练',
@@ -2675,7 +2685,7 @@ export default defineUserConfig({
               {
                 text: 'Agent Engineering',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'manus-ai', 'kvflow', 'continuum'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum'],
               },
               {
                 text: 'Distributed Training',
@@ -2902,7 +2912,7 @@ export default defineUserConfig({
               {
                 text: 'エージェント工学',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'manus-ai', 'kvflow', 'continuum'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum'],
               },
               {
                 text: '分散学習',
@@ -2962,7 +2972,11 @@ export default defineUserConfig({
     editLink: false,
     changelog: true,
     contributors: false,
-    plugins: { git: true },
+    llmstxt: true,
+    plugins: {
+      git: true,
+      seo: {},
+    },
     codeHighlighter: {
       langs: [pseudocodeLanguage],
       renderIndentGuides: true,
