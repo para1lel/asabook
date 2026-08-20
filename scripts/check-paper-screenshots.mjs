@@ -77,9 +77,10 @@ for (const slug of paperSlugs()) {
     }
     const image = await loadImage(imagePath)
 
-    if (crop.page !== undefined) {
-      const requiredWidth = Math.round(crop.width * 4)
-      const requiredHeight = Math.round(crop.height * 4)
+    if (crop.page !== undefined || crop.parts?.length > 0) {
+      const parts = crop.parts ?? [crop]
+      const requiredWidth = Math.max(...parts.map((part) => Math.round(part.width * 4)))
+      const requiredHeight = parts.reduce((sum, part) => sum + Math.round(part.height * 4), 0)
       if (image.width < requiredWidth || image.height < requiredHeight) {
         fail(`${slug}: ${imageName} is ${image.width}x${image.height}, below the scale-4 requirement ${requiredWidth}x${requiredHeight}`)
       }

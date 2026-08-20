@@ -520,23 +520,48 @@ async function locateCrops(pdf, files, existingCrops) {
 async function writeCrops(pdf, files, crops, scale) {
   mkdirSync(files.outputDir, { recursive: true })
   const screenshotCrops = crops.filter((crop) => !crop.preserveSource)
-  const pageNumbers = [...new Set(screenshotCrops.map((crop) => crop.page))].sort((left, right) => left - right)
+  const pageNumbers = [...new Set(screenshotCrops.flatMap((crop) => (
+    crop.parts?.map((part) => part.page) ?? [crop.page]
+  )))].sort((left, right) => left - right)
+  const pages = new Map()
 
   for (const pageNumber of pageNumbers) {
     const page = await pdf.getPage(pageNumber)
-    const source = (await renderPage(page, scale)).canvas
-    for (const crop of screenshotCrops.filter((item) => item.page === pageNumber)) {
-      const x = Math.round(crop.x * scale)
-      const y = Math.round(crop.y * scale)
-      const width = Math.round(crop.width * scale)
-      const height = Math.round(crop.height * scale)
-      const canvas = createCanvas(width, height)
-      const context = canvas.getContext('2d')
-      context.fillStyle = '#fff'
-      context.fillRect(0, 0, width, height)
-      context.drawImage(source, x, y, width, height, 0, 0, width, height)
-      writeFileSync(join(files.outputDir, `${crop.name}.png`), canvas.toBuffer('image/png'))
+    pages.set(pageNumber, (await renderPage(page, scale)).canvas)
+  }
+
+  for (const crop of screenshotCrops) {
+    const parts = crop.parts ?? [crop]
+    const renderedParts = parts.map((part) => ({
+      ...part,
+      height: Math.round(part.height * scale),
+      width: Math.round(part.width * scale),
+      x: Math.round(part.x * scale),
+      y: Math.round(part.y * scale),
+    }))
+    const width = Math.max(...renderedParts.map((part) => part.width))
+    const height = renderedParts.reduce((sum, part) => sum + part.height, 0)
+    const canvas = createCanvas(width, height)
+    const context = canvas.getContext('2d')
+    context.fillStyle = '#fff'
+    context.fillRect(0, 0, width, height)
+    let offsetY = 0
+    for (const part of renderedParts) {
+      const offsetX = Math.floor((width - part.width) / 2)
+      context.drawImage(
+        pages.get(part.page),
+        part.x,
+        part.y,
+        part.width,
+        part.height,
+        offsetX,
+        offsetY,
+        part.width,
+        part.height,
+      )
+      offsetY += part.height
     }
+    writeFileSync(join(files.outputDir, `${crop.name}.png`), canvas.toBuffer('image/png'))
   }
 }
 
