@@ -1,0 +1,21 @@
+[
+  { "name": "figure-01", "page": 4, "x": 70, "y": 75, "width": 475, "height": 525, "preserveSource": false },
+  { "name": "figure-02", "page": 5, "x": 75, "y": 75, "width": 470, "height": 255, "preserveSource": false },
+  { "name": "table-01", "page": 6, "x": 70, "y": 102, "width": 475, "height": 110, "preserveSource": false },
+  { "name": "figure-03", "page": 9, "x": 80, "y": 80, "width": 455, "height": 180, "preserveSource": false },
+  { "name": "table-02", "page": 10, "x": 70, "y": 124, "width": 475, "height": 500, "preserveSource": false },
+  { "name": "figure-04", "page": 12, "x": 110, "y": 75, "width": 440, "height": 135, "preserveSource": false },
+  { "name": "table-03", "page": 14, "x": 70, "y": 125, "width": 475, "height": 280, "preserveSource": false },
+  { "name": "figure-05", "page": 18, "x": 70, "y": 75, "width": 475, "height": 255, "preserveSource": false },
+  { "name": "figure-06", "page": 21, "x": 70, "y": 75, "width": 475, "height": 305, "preserveSource": false },
+  { "name": "table-04", "page": 22, "x": 70, "y": 102, "width": 475, "height": 288, "preserveSource": false },
+  { "name": "figure-07", "page": 24, "x": 75, "y": 75, "width": 470, "height": 245, "preserveSource": false },
+  { "name": "table-05", "page": 25, "x": 70, "y": 103, "width": 475, "height": 310, "preserveSource": false },
+  { "name": "figure-08", "page": 30, "x": 80, "y": 280, "width": 460, "height": 240, "preserveSource": false },
+  { "name": "table-06", "page": 31, "x": 75, "y": 102, "width": 465, "height": 350, "preserveSource": false },
+  { "name": "table-07", "page": 33, "x": 85, "y": 103, "width": 440, "height": 295, "preserveSource": false },
+  { "name": "table-08", "page": 36, "x": 70, "y": 135, "width": 475, "height": 312, "preserveSource": false },
+  { "name": "table-09", "page": 38, "x": 105, "y": 75, "width": 405, "height": 125, "preserveSource": false },
+  { "name": "table-10", "page": 39, "x": 70, "y": 126, "width": 475, "height": 385, "preserveSource": false },
+  { "name": "table-11", "page": 42, "x": 75, "y": 103, "width": 465, "height": 338, "preserveSource": false }
+]
