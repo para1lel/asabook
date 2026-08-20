@@ -389,3 +389,5 @@ $$
 [+3]: [https://www.felixcloutier.com/x86/pmaddubsw](https://www.felixcloutier.com/x86/pmaddubsw)
 
 [+4]: [https://commoncrawl.org/](https://commoncrawl.org/)
+
+[+author-note]: 大部分研究是在 Facebook AI Research 担任访问研究员期间完成的.
