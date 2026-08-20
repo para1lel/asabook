@@ -180,7 +180,9 @@ pre * {
 }
 
 .vp-doc ol:has(> li > .paper-alpha-label),
-.vp-doc ol:has(> li > p > .paper-alpha-label) {
+.vp-doc ol:has(> li > p > .paper-alpha-label),
+.vp-doc ul:has(> li > .paper-alpha-label),
+.vp-doc ul:has(> li > p > .paper-alpha-label) {
   list-style: none;
 }
 
@@ -222,6 +224,27 @@ pre * {
   margin: 0;
 }
 
+.vp-doc img.paper-figure-half {
+  display: block;
+  width: min(100%, 30rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.vp-doc img.paper-table-narrow {
+  display: block;
+  width: min(60%, 30rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.vp-doc img.paper-table-compact {
+  display: block;
+  width: min(42%, 21rem);
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .paper-reading {
   --paper-formula-accent: #8a6a00;
 }
@@ -235,6 +258,11 @@ pre * {
 }
 
 @media (max-width: 719px) {
+  .vp-doc img.paper-table-narrow,
+  .vp-doc img.paper-table-compact {
+    width: 100%;
+  }
+
   .paper-reading .vp-doc div[class*="language-"] pre,
   .paper-reading .vp-doc div[class*="language-"] pre * {
     white-space: pre-wrap;

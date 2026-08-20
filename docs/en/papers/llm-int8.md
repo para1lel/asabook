@@ -2,9 +2,10 @@
 title: 'LLM.int8()'
 createTime: 2026/08/04 23:48:22
 permalink: /en/papers/llm-int8/
+pageClass: paper-reading
 ---
 
-> [Tim Dettmers](https://timdettmers.com/), [Mike Lewis](https://x.com/ml_perception), [Younes Belkada](https://younesbelkada.github.io/), and [Luke Zettlemoyer](https://www.cs.washington.edu/people/faculty/lsz). First submitted to arXiv on August 15, 2022; current version v2. [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](https://arxiv.org/abs/2208.07339). [Original PDF](/paper/llm-int8.pdf). [TeX source](https://export.arxiv.org/e-print/2208.07339). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Tim Dettmers](https://timdettmers.com/) [+author-note], [Mike Lewis](https://x.com/ml_perception), [Younes Belkada](https://younesbelkada.github.io/), and [Luke Zettlemoyer](https://www.cs.washington.edu/people/faculty/lsz). First submitted to arXiv on August 15, 2022; revised as v2 on November 10, 2022; published at [NeurIPS 2022](https://proceedings.neurips.cc/paper_files/paper/2022/hash/c3ba4962c05c49636d4c6206a97e9c8a-Abstract-Conference.html). [LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale](https://arxiv.org/abs/2208.07339). [Original PDF](/paper/llm-int8.pdf). [DOI](https://doi.org/10.52202/068431-2198). [TeX source](https://export.arxiv.org/e-print/2208.07339v2). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 
@@ -14,11 +15,11 @@ Large language models have been widely adopted but require significant GPU memor
 
 Large pretrained language models are widely adopted in NLP [Vas17c, Rad19a, Bro20c, Zha22] but require significant memory for inference. For large transformer language models at and beyond 6.7B parameters, the feed-forward and attention projection layers and their matrix multiplication operations are responsible for 95% [+1] of consumed parameters and 65-85% of all computation [Ilh20]. One way to reduce the size of the parameters is to quantize them to less bits and use low-bit-precision matrix multiplication. With this goal in mind, 8-bit quantization methods for transformers have been developed [Che20, Lin20a, Zaf19, She20]. While these methods reduce memory use, they degrade performance, usually require tuning quantization further after training, and have only been studied for models with less than 350M parameters. Degradation-free quantization up to 350M parameters is poorly understood, and multi-billion parameter quantization remains an open challenge.
 
-In this paper, we present the first multi-billion-scale Int8 quantization procedure for transformers that does not incur any performance degradation. Our procedure makes it possible to load a 175B parameter transformer with 16 or 32-bit weights, convert the feed-forward and attention projection layers to 8-bit, and use the resulting model immediately for inference without any performance degradation. We achieve this result by solving two key challenges: the need for higher quantization precision at scales beyond 1B parameters and the need to explicitly represent the sparse but systematic large magnitude outlier features that ruin quantization precision once they emerge in all transformer layers starting at scales of 6.7B parameters. This loss of precision is reflected in C4 evaluation perplexity (Section [3](#S3 "3 Int8 Matrix Multiplication at Scale ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale")) as well as zeroshot accuracy as soon as these outlier features emerge, as shown in [Figure 1](#figure-01).
+In this paper, we present the first multi-billion-scale Int8 quantization procedure for transformers that does not incur any performance degradation. Our procedure makes it possible to load a 175B parameter transformer with 16 or 32-bit weights, convert the feed-forward and attention projection layers to 8-bit, and use the resulting model immediately for inference without any performance degradation. We achieve this result by solving two key challenges: the need for higher quantization precision at scales beyond 1B parameters and the need to explicitly represent the sparse but systematic large magnitude outlier features that ruin quantization precision once they emerge in *all* transformer layers starting at scales of 6.7B parameters. This loss of precision is reflected in C4 evaluation perplexity (Section [3](#section-03)) as well as zeroshot accuracy as soon as these outlier features emerge, as shown in [Figure 1](#figure-01).
 
 <span id="figure-01"></span>
 
-![Refer to caption](../../papers/llm-int8/figure-01.png)
+<img class="paper-figure-half" src="../../papers/llm-int8/figure-01.png" alt="OPT zeroshot accuracy under 16-bit, vector-wise Int8, and LLM.int8() inference">
 
 **Figure 1.** OPT model mean zeroshot accuracy for WinoGrande, HellaSwag, PIQA, and LAMBADA datasets. Shown is the 16-bit baseline, the most precise previous 8-bit quantization method as a baseline, and our new 8-bit quantization method, LLM.int8(). We can see once systematic outliers occur at a scale of 6.7B parameters, regular quantization methods fail, while LLM.int8() maintains 16-bit accuracy.
 
@@ -26,13 +27,13 @@ We show that with the first part of our method, vector-wise quantization, it is 
 
 To scale beyond 6.7B parameters without performance degradation, it is critical to understand the emergence of extreme outliers in the feature dimensions of the hidden states during inference. To this end, we provide a new descriptive analysis which shows that large features with magnitudes up to 20x larger than in other dimensions first appear in about 25% of all transformer layers and then gradually spread to other layers as we scale transformers to 6B parameters. At around 6.7B parameters, a phase shift occurs, and all transformer layers and 75% of all sequence dimensions are affected by extreme magnitude features. These outliers are highly systematic: at the 6.7B scale, 150,000 outliers occur per sequence, but they are concentrated in only 6 feature dimensions across the entire transformer. Setting these outlier feature dimensions to zero decreases top-1 attention softmax probability mass by more than 20% and degrades validation perplexity by 600-1000% despite them only making up about 0.1% of all input features. In contrast, removing the same amount of random features decreases the probability by a maximum of 0.3% and degrades perplexity by about 0.1%.
 
-To support effective quantization with such extreme outliers, we develop mixed-precision decomposition, the second part of our method. We perform 16-bit matrix multiplication for the outlier feature dimensions and 8-bit matrix multiplication for the other 99.9% of the dimensions. We name the combination of vector-wise quantization and mixed precision decomposition, LLM.int8(). We show that by using LLM.int8(), we can perform inference in LLMs with up to 175B parameters without any performance degradation. Our method not only provides new insights into the effects of these outliers on model performance but also makes it possible for the first time to use very large models, for example, OPT-175B/BLOOM, on a single server with consumer GPUs. While our work focuses on making large language models accessible without degradation, we also show in Appendix [D](#A4 "Appendix D Inference Speedups and Slowdowns ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale") that we maintain end-to-end inference runtime performance for large models, such as BLOOM-176B and provide modest matrix multiplication speedups for GPT-3 models of size 6.7B parameters or larger. We open-source our software [+2] and release a Hugging Face Transformers [Wol19] integration making our method available to all hosted Hugging Face Models that have linear layers.
+To support effective quantization with such extreme outliers, we develop mixed-precision decomposition, the second part of our method. We perform 16-bit matrix multiplication for the outlier feature dimensions and 8-bit matrix multiplication for the other 99.9% of the dimensions. We name the combination of vector-wise quantization and mixed precision decomposition, LLM.int8(). We show that by using LLM.int8(), we can perform inference in LLMs with up to 175B parameters without any performance degradation. Our method not only provides new insights into the effects of these outliers on model performance but also makes it possible for the first time to use very large models, for example, OPT-175B/BLOOM, on a single server with consumer GPUs. While our work focuses on making large language models accessible without degradation, we also show in Appendix [D](#appendix-d) that we maintain end-to-end inference runtime performance for large models, such as BLOOM-176B and provide modest matrix multiplication speedups for GPT-3 models of size 6.7B parameters or larger. We open-source our software [+2] and release a Hugging Face Transformers [Wol19] integration making our method available to all hosted Hugging Face Models that have linear layers.
 
 <span id="figure-02"></span>
 
 ![Refer to caption](../../papers/llm-int8/figure-02.png)
 
-**Figure 2.** Schematic of LLM.int8(). Given 16-bit floating-point inputs $\mathbf{X}_{f16}$ and weights $\mathbf{W}_{f16}$, the features and weights are decomposed into sub-matrices of large magnitude features and other values. The outlier feature matrices are multiplied in 16-bit. All other values are multiplied in 8-bit. We perform 8-bit vector-wise multiplication by scaling by row and column-wise absolute maximum of $\mathbf{C}_{x}$ and $\mathbf{C}_{w}$ and then quantizing the outputs to Int8. The Int32 matrix multiplication outputs $\mathbf{ {\mathrm{Out}}}_{i32}$ are dequantization by the outer product of the normalization constants $\mathbf{C}_{x}\otimes\mathbf{C}_{w}$. Finally, both outlier and regular outputs are accumulated in 16-bit floating point outputs.
+**Figure 2.** Schematic of LLM.int8(). Given 16-bit floating-point inputs $\mathbf{X}_{\mathrm{f16}}$ and weights $\mathbf{W}_{\mathrm{f16}}$, the features and weights are decomposed into sub-matrices of large magnitude features and other values. The outlier feature matrices are multiplied in 16-bit. All other values are multiplied in 8-bit. We perform 8-bit vector-wise multiplication by scaling by row and column-wise absolute maximum of $\mathbf{C}_{x}$ and $\mathbf{C}_{w}$ and then quantizing the outputs to Int8. The Int32 matrix multiplication outputs $\mathbf{\mathrm{Out}}_{\mathrm{i32}}$ are dequantization by the outer product of the normalization constants $\mathbf{C}_{x}\otimes\mathbf{C}_{w}$. Finally, both outlier and regular outputs are accumulated in 16-bit floating point outputs.
 
 ## 2 Background
 
@@ -40,67 +41,69 @@ In this work, push quantization techniques to their breaking point by scaling tr
 
 ### 2.1 8-bit Data Types and Quantization
 
-Absmax quantization scales inputs into the 8-bit range $[-127,127]$ by multiplying with $s_{x_{f16}}$ which is 127 divided by the absolute maximum of the entire tensor. This is equivalent to dividing by the infinity norm and multiplying by 127. As such, for an FP16 input matrix $\mathbf{X}_{f16}\in\mathbb{R}^{s\times h}$ Int8 absmax quantization is given by:
+**Absmax quantization** scales inputs into the 8-bit range $[-127,127]$ by multiplying with $s_{x_{\mathrm{f16}}}$ which is 127 divided by the absolute maximum of the entire tensor. This is equivalent to dividing by the infinity norm and multiplying by 127. As such, for an FP16 input matrix $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{s\times h}$ Int8 absmax quantization is given by:
 
 $$
-\mathbf{X}_{i8}=\Biggl{\lfloor}{\dfrac{127\cdot\mathbf{X}_{f16}}{\max\limits_{\mathrm{ij}}(|\mathbf{X}_{f16_{\mathrm{ij}}}|)}}\Biggr{\rceil}=\Biggl{\lfloor}{\dfrac{127}{\|\mathbf{X}_{f16}\rVert_{\infty}}\mathbf{X}_{f16}}\Biggr{\rceil}=\Bigl{\lfloor}{s_{x_{f16}}\mathbf{X}_{f16}}\Bigr{\rceil},
+\mathbf{X}_{\mathrm{i8}}=\left\lfloor\dfrac{127\cdot\mathbf{X}_{\mathrm{f16}}}{\max\limits_{ij}(|\mathbf{X}_{\mathrm{f16}_{ij}}|)}\right\rceil=\left\lfloor\dfrac{127}{\|\mathbf{X}_{\mathrm{f16}}\|_{\infty}}\mathbf{X}_{\mathrm{f16}}\right\rceil=\left\lfloor s_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil,
 $$
 
 where $\lfloor{}\rceil{}$ indicates rounding to the nearest integer.
 
-Zeropoint quantization shifts the input distribution into the full range $[-127,127]$ by scaling with the normalized dynamic range $\mathrm{nd}_{x}$ and then shifting by the zeropoint $\mathrm{zp}_{x}$. With this affine transformation, any input tensors will use all bits of the data type, thus reducing the quantization error for asymmetric distributions. For example, for ReLU outputs, in absmax quantization all values in $[-127,0)$ go unused, whereas in zeropoint quantization the full $[-127,127]$ range is used. Zeropoint quantization is given by the following equations:
+**Zeropoint quantization** shifts the input distribution into the full range $[-127,127]$ by scaling with the normalized dynamic range $\mathit{nd}_{x}$ and then shifting by the zeropoint $\mathit{zp}_{x}$. With this affine transformation, any input tensors will use all bits of the data type, thus *reducing the quantization error for asymmetric distributions*. For example, for ReLU outputs, in absmax quantization all values in $[-127,0)$ go unused, whereas in zeropoint quantization the full $[-127,127]$ range is used. Zeropoint quantization is given by the following equations:
 
 $$
-\mathrm{nd}_{x_{f16}}=\dfrac{2\cdot 127}{\max\limits_{\mathrm{ij}}(\mathbf{X}_{f16}^{\mathrm{ij}})-\min\limits_{\mathrm{ij}}(\mathbf{X}_{f16}^{\mathrm{ij}})}\tag{1}
-$$
-
-$$
-\mathrm{zp}_{x_{i16}}=\bigl{\lfloor}{\mathbf{X}_{f16}\cdot\min\limits_{\mathrm{ij}}(\mathbf{X}_{f16}^{\mathrm{ij}})\bigr{\rceil}}\tag{2}
+\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}\tag{1}
 $$
 
 $$
-\mathbf{X}_{i8}=\bigl{\lfloor}{ {\mathrm{nd}_{x_{f16}}\mathbf{X}_{f16}}\bigr{\rceil}}\tag{3}
+\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil\tag{2}
 $$
 
-To use zeropoint quantization in an operation we feed both the tensor $\mathbf{X}_{i8}$ and the zeropoint $\mathrm{zp}_{x_{i16}}$ into a special instruction [+3] which adds $\mathrm{zp}_{x_{i16}}$ to each element of $\mathbf{X}_{i8}$ before performing a 16-bit integer operation. For example, to multiply two zeropoint quantized numbers $A_{i8}$ and $B_{i8}$ along with their zeropoints $\mathrm{zp}_{a_{i16}}$ and $\mathrm{zp}_{b_{i16}}$ we calculate:
+$$
+\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil\tag{3}
+$$
+
+To use zeropoint quantization in an operation we feed both the tensor $\mathbf{X}_{\mathrm{i8}}$ and the zeropoint $\mathit{zp}_{x_{\mathrm{i16}}}$ into a special instruction [+3] which adds $\mathit{zp}_{x_{\mathrm{i16}}}$ to each element of $\mathbf{X}_{\mathrm{i8}}$ before performing a 16-bit integer operation. For example, to multiply two zeropoint quantized numbers $A_{\mathrm{i8}}$ and $B_{\mathrm{i8}}$ along with their zeropoints $\mathit{zp}_{a_{\mathrm{i16}}}$ and $\mathit{zp}_{b_{\mathrm{i16}}}$ we calculate:
 
 $$
-C_{i32}=\mathrm{multiply}_{i16}({A}_{\mathrm{zp}_{a_{i16}}},{B}_{\mathrm{zp}_{b_{i16}}})=({A}_{i8}+\mathrm{zp}_{a_{i16}})({B}_{i8}+\mathrm{zp}_{b_{i16}})\tag{4}
+C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})\tag{4}
 $$
 
 where unrolling is required if the instruction multiplyi16 is not available such as on GPUs or TPUs:
 
 $$
-C_{i32}={A}_{i8}{B}_{i8}+{A}_{i8}\mathrm{zp}_{b_{i16}}+{B}_{i8}\mathrm{zp}_{a_{i16}}+\mathrm{zp}_{a_{i16}}\mathrm{zp}_{b_{i16}},\tag{5}
+C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},\tag{5}
 $$
 
-where $A_{i8}B_{i8}$ is computed with Int8 precision while the rest is computed in Int16/32 precision. As such, zeropoint quantization can be slow if the multiplyi16 instruction is not available. In both cases, the outputs are accumulated as a 32-bit integer $C_{i32}$. To dequantize $C_{i32}$, we divide by the scaling constants $\mathrm{nd}_{a_{f16}}$ and $\mathrm{nd}_{b_{f16}}$.
+where $A_{\mathrm{i8}}B_{\mathrm{i8}}$ is computed with Int8 precision while the rest is computed in Int16/32 precision. As such, zeropoint quantization can be slow if the multiply$_{\mathrm{i16}}$ instruction is not available. In both cases, the outputs are accumulated as a 32-bit integer $C_{\mathrm{i32}}$. To dequantize $C_{\mathrm{i32}}$, we divide by the scaling constants $\mathit{nd}_{a_{\mathrm{f16}}}$ and $\mathit{nd}_{b_{\mathrm{f16}}}$.
 
-#### Int8 Matrix Multiplication with 16-bit Float Inputs and Outputs.
-
-Given hidden states ${\mathbf{X}_{f16}\in\mathbb{R}^{s\times h}}$ and weights $\mathbf{W}_{f16}\in\mathbb{R}^{h\times o}$ with sequence dimension $s$, feature dimension $h$, and output dimension $o$ we perform 8-bit matrix multiplication with 16-bit inputs and outputs as follows:
+**Int8 Matrix Multiplication with 16-bit Float Inputs and Outputs.** Given hidden states ${\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{s\times h}}$ and weights $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$ with sequence dimension $s$, feature dimension $h$, and output dimension $o$ we perform 8-bit matrix multiplication with 16-bit inputs and outputs as follows:
 
 $$
-\begin{split}\mathbf{X}_{f16}\mathbf{W}_{f16}=\mathbf{C}_{f16}&\approx\frac{1}{c_{x_{f16}}c_{w_{f16}}}\mathbf{C}_{i32}=S_{f16}\cdot\mathbf{C}_{i32}\\
-&\approx S_{f16}\cdot\mathbf{A}_{i8}\mathbf{B}_{i8}=S_{f16}\cdot Q(\mathbf{A}_{f16})\phantom{.}Q(\mathbf{B}_{f16}),\end{split}\tag{6}
+\begin{aligned}
+\mathbf{X}_{\mathrm{f16}}\mathbf{W}_{\mathrm{f16}}=\mathbf{C}_{\mathrm{f16}}&\approx\frac{1}{c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S_{\mathrm{f16}}\cdot\mathbf{C}_{\mathrm{i32}}\\
+&\approx S_{\mathrm{f16}}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=S_{\mathrm{f16}}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
+\end{aligned}\tag{6}
 $$
 
-Where $Q(\cdot)$ is either absmax or zeropoint quantization and $c_{x_{f16}}$ and $c_{w_{f16}}$ are the respective tensor-wise scaling constants $s_{x}$ and $s_{w}$ for absmax or $\mathrm{nd}_{x}$ and $\mathrm{nd}_{w}$ for zeropoint quantization.
+Where $Q(\cdot)$ is either absmax or zeropoint quantization and $c_{x_{\mathrm{f16}}}$ and $c_{w_{\mathrm{f16}}}$ are the respective tensor-wise scaling constants $s_{x}$ and $s_{w}$ for absmax or $\mathit{nd}_{x}$ and $\mathit{nd}_{w}$ for zeropoint quantization.
+
+<span id="section-03"></span>
 
 ## 3 Int8 Matrix Multiplication at Scale
 
 The main challenge with quantization methods that use a single scaling constant per tensor is that a single outlier can reduce the quantization precision of all other values. As such, it is desirable to have multiple scaling constants per tensor, such as block-wise constants [Det22a], so that the effect of that outliers is confined to each block. We improve upon one of the most common ways of blocking quantization, row-wise quantization [Khu21], by using vector-wise quantization, as described in more detail below.
 
-To handle the large magnitude outlier features that occur in all transformer layers beyond the 6.7B scale, vector-wise quantization is no longer sufficient. For this purpose, we develop mixed-precision decomposition, where the small number of large magnitude feature dimensions ($\approx$0.1%) are represented in 16-bit precision while the other 99.9% of values are multiplied in 8-bit. Since most entries are still represented in low-precision, we retain about 50% memory reduction compared to 16-bit. For example, for BLOOM-176B, we reduce the memory footprint of the model by 1.96x.
+To handle the large magnitude outlier features that occur in all transformer layers beyond the 6.7B scale, vector-wise quantization is no longer sufficient. For this purpose, we develop mixed-precision decomposition, where the small number of large magnitude feature dimensions ($\approx$0.1\%) are represented in 16-bit precision while the other 99.9% of values are multiplied in 8-bit. Since most entries are still represented in low-precision, we retain about 50% memory reduction compared to 16-bit. For example, for BLOOM-176B, we reduce the memory footprint of the model by 1.96x.
 
 Vector-wise quantization and mixed-precision decomposition are shown in [Figure 2](#figure-02). The LLM.int8() method is the combination of absmax vector-wise quantization and mixed precision decomposition.
 
 ### 3.1 Vector-wise Quantization
 
-One way to increase the number of scaling constants for matrix multiplication is to view matrix multiplication as a sequence of independent inner products. Given the hidden states $\mathbf{X}_{f16}\in\mathbb{R}^{b\times h}$ and weight matrix $\mathbf{W}_{f16}\in\mathbb{R}^{h\times o}$, we can assign a different scaling constant $c_{x_{f16}}$to each row of $\mathbf{X}_{f16}$ and $c_{w}$ to each column of $\mathbf{W}_{f16}$. To dequantize, we denormalize each inner product result by $1/(c_{x_{f16}}c_{w_{f16}})$. For the whole matrix multiplication this is equivalent to denormalization by the outer product $\mathbf{c}_{x_{f16}}\otimes\mathbf{c}_{w_{f16}}$, where $\mathbf{c}_{x}\in\mathbb{R}^{s}$ and $\mathbf{c}_{w}\in\mathbb{R}^{o}$. As such the full equation for matrix multiplication with row and column constants is given by:
+One way to increase the number of scaling constants for matrix multiplication is to view matrix multiplication as a sequence of independent inner products. Given the hidden states $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{b\times h}$ and weight matrix $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$, we can assign a different scaling constant $c_{x_{\mathrm{f16}}}$to each row of $\mathbf{X}_{\mathrm{f16}}$ and $c_{w}$ to each column of $\mathbf{W}_{\mathrm{f16}}$. To dequantize, we denormalize each inner product result by $1/(c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}})$. For the whole matrix multiplication this is equivalent to denormalization by the outer product $\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}$, where $\mathbf{c}_{x}\in\mathbb{R}^{s}$ and $\mathbf{c}_{w}\in\mathbb{R}^{o}$. As such the full equation for matrix multiplication with row and column constants is given by:
 
 $$
-\mathbf{C}_{f_{16}}\approx\frac{1}{\mathbf{c}_{x_{f16}}\otimes\mathbf{c}_{w_{f16}}}\mathbf{C}_{i32}=S\cdot\mathbf{C}_{i32}=\mathbf{S}\cdot\mathbf{A}_{i8}\mathbf{B}_{i8}=\mathbf{S}\cdot Q(\mathbf{A}_{f16})\phantom{.}Q(\mathbf{B}_{f16}),\tag{7}
+\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),\tag{7}
 $$
 
 which we term vector-wise quantization for matrix multiplication.
@@ -109,13 +112,13 @@ which we term vector-wise quantization for matrix multiplication.
 
 In our analysis, we demonstrate that a significant problem for billion-scale 8-bit transformers is that they have large magnitude features (columns), which are important for transformer performance and require high precision quantization. However, vector-wise quantization, our best quantization technique, quantizes each row for the hidden state, which is ineffective for outlier features. Luckily, we see that these outlier features are both incredibly sparse and systematic in practice, making up only about 0.1% of all feature dimensions, thus allowing us to develop a new decomposition technique that focuses on high precision multiplication for these particular dimensions.
 
-We find that given input matrix $\mathbf{X}_{f16}\in\mathbb{R}^{s\times h}$, these outliers occur systematically for almost all sequence dimensions $s$ but are limited to specific feature/hidden dimensions $h$. As such, we propose mixed-precision decomposition for matrix multiplication where we separate outlier feature dimensions into the set ${O=\{i|i\in\mathbb{Z},0\leq i\leq h\}}$, which contains all dimensions of $h$ which have at least one outlier with a magnitude larger than the threshold $\alpha$. In our work, we find that $\alpha=6.0$ is sufficient to reduce transformer performance degradation close to zero. Using Einstein notation where all indices are superscripts, given the weight matrix $\mathbf{W}_{f16}\in\mathbb{R}^{h\times o}$, mixed-precision decomposition for matrix multiplication is defined as follows:
+We find that given input matrix $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{s\times h}$, these outliers occur systematically for almost all sequence dimensions $s$ but are limited to specific feature/hidden dimensions $h$. As such, we propose mixed-precision decomposition for matrix multiplication where we separate outlier feature dimensions into the set ${O=\{i\mid i\in\mathbb{Z},0\leq i\leq h\}}$, which contains all dimensions of $h$ which have at least one outlier with a magnitude larger than the threshold $\alpha$. In our work, we find that $\alpha=6.0$ is sufficient to reduce transformer performance degradation close to zero. Using Einstein notation where all indices are superscripts, given the weight matrix $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$, mixed-precision decomposition for matrix multiplication is defined as follows:
 
 $$
-\mathbf{C}_{f16}\approx\sum\limits_{h\in O}\mathbf{X}_{f16}^{h}\mathbf{W}_{f16}^{h}+\mathbf{S}_{f16}\cdot\sum\limits_{h\not\in O}\mathbf{X}_{i8}^{h}\mathbf{W}_{i8}^{h}\tag{8}
+\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}\tag{8}
 $$
 
-where $\mathbf{S}_{f16}$ is the denormalization term for the Int8 inputs and weight matrices $\mathbf{X}_{i8}$ and $\mathbf{W}_{i8}$.
+where $\mathbf{S}_{\mathrm{f16}}$ is the denormalization term for the Int8 inputs and weight matrices $\mathbf{X}_{\mathrm{i8}}$ and $\mathbf{W}_{\mathrm{i8}}$.
 
 This separation into 8-bit and 16-bit allows for high-precision multiplication of outliers while using memory-efficient matrix multiplication with 8-bit weights of more than 99.9% of values. Since the number of outlier feature dimensions is not larger than 7 ($|O|\leq 7$) for transformers up to 13B parameters, this decomposition operation only consumes about 0.1% additional memory.
 
@@ -143,7 +146,7 @@ When we look at the scaling trends of zeroshot performance of OPT models on the 
 
 **Table 1.** C4 validation perplexities of quantization methods for different transformer sizes ranging from 125M to 13B parameters. We see that absmax, row-wise, zeropoint, and vector-wise quantization leads to significant performance degradation as we scale, particularly at the 13B mark where 8-bit 13B perplexity is worse than 8-bit 6.7B perplexity. If we use LLM.int8(), we recover full perplexity as we scale. Zeropoint quantization shows an advantage due to asymmetric quantization but is no longer advantageous when used with mixed-precision decomposition.
 
-Although our primary focus is on saving memory, we also measured the run time of LLM.int8(). The quantization overhead can slow inference for models with less than 6.7B parameters, as compared to a FP16 baseline. However, models of 6.7B parameters or less fit on most GPUs and quantization is less needed in practice. LLM.int8() run times is about two times faster for large matrix multiplications equivalent to those in 175B models. Appendix [D](#A4 "Appendix D Inference Speedups and Slowdowns ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale") provides more details on these experiments.
+Although our primary focus is on saving memory, we also measured the run time of LLM.int8(). The quantization overhead can slow inference for models with less than 6.7B parameters, as compared to a FP16 baseline. However, models of 6.7B parameters or less fit on most GPUs and quantization is less needed in practice. LLM.int8() run times is about two times faster for large matrix multiplications equivalent to those in 175B models. Appendix [D](#appendix-d) provides more details on these experiments.
 
 ## 4 Emergent Large Magnitude Features in Transformers at Scale
 
@@ -159,7 +162,7 @@ More formally, given a transformer with $L$ layers and hidden state $\mathbf{X}_
 
 Our reasoning for these thresholds is as follows. We find that using mixed-precision decomposition, perplexity degradation stops if we treat any feature with a magnitude 6 or larger as an outlier feature. For the number of layers affected by outliers, we find that outlier features are systematic in large models: they either occur in most layers or not at all. On the other hand, they are probabilistic in small models: they occur sometimes in some layers for each sequence. As such, we set our threshold for how many layers need to be affected to detect an outlier feature in such a way as to limit detection to a single outlier in our smallest model with 125M parameters. This threshold corresponds to that at least 25% of transformer layers are affected by an outlier in the same feature dimension. The second most common outlier occurs in only a single layer ( 2% of layers), indicating that this is a reasonable threshold. We use the same procedure to find the threshold for how many sequence dimensions are affected by outlier features in our 125M model: outliers occur in at least 6% of sequence dimensions.
 
-We test models up to a scale of 13B parameters. To make sure that the observed phenomena are not due to bugs in software, we evaluate transformers that were trained in three different software frameworks. We evaluate four GPT-2 models which use OpenAI software, five Meta AI models that use Fairseq [Ott19], and one EleutherAI model GPT-J that uses Tensorflow-Mesh [Sha18a]. More details can be found in Appendix [C](#A3 "Appendix C Detailed Outlier Feature Data ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale"). We also perform our analysis in two different inference software frameworks: Fairseq and Hugging Face Transformers [Wol19].
+We test models up to a scale of 13B parameters. To make sure that the observed phenomena are not due to bugs in software, we evaluate transformers that were trained in three different software frameworks. We evaluate four GPT-2 models which use OpenAI software, five Meta AI models that use Fairseq [Ott19], and one EleutherAI model GPT-J that uses Tensorflow-Mesh [Sha18a]. More details can be found in Appendix [C](#appendix-c). We also perform our analysis in two different inference software frameworks: Fairseq and Hugging Face Transformers [Wol19].
 
 ### 4.2 Measuring the Effect of Outlier Features
 
@@ -167,17 +170,19 @@ To demonstrate that the outlier features are essential for attention and predict
 
 <span id="figure-03"></span>
 
-![Refer to caption](../../papers/llm-int8/figure-03a.png)
-
-![Refer to caption](../../papers/llm-int8/figure-03b.png)
+<div class="paper-figure-pair">
+  <img src="../../papers/llm-int8/figure-03a.png" alt="Outlier frequency by transformer model size">
+  <img src="../../papers/llm-int8/figure-03b.png" alt="Outlier frequency by C4 perplexity">
+</div>
 
 **Figure 3.** Percentage of layers and all sequence dimensions affected by large magnitude outlier features across the transformer by (a) model size or (b) C4 perplexity. Lines are B-spline interpolations of 4 and 9 linear segments for (a) and (b). Once the phase shift occurs, outliers are present in all layers and in about 75% of all sequence dimensions. While (a) suggest a sudden phase shift in parameter size, (b) suggests a gradual exponential phase shift as perplexity decreases. The stark shift in (a) co-occurs with the sudden degradation of performance in quantization methods.
 
 <span id="figure-04"></span>
 
-![Refer to caption](../../papers/llm-int8/figure-04a.png)
-
-![Refer to caption](../../papers/llm-int8/figure-04b.png)
+<div class="paper-figure-pair">
+  <img src="../../papers/llm-int8/figure-04a.png" alt="Largest outlier magnitude by model size">
+  <img src="../../papers/llm-int8/figure-04b.png" alt="Number of outliers by C4 perplexity">
+</div>
 
 **Figure 4.** The median magnitude of the largest outlier feature in (a) indicates a sudden shift in outlier size. This appears to be the prime reason why quantization methods fail after emergence. While the number of outlier feature dimensions is only roughly proportional to model size, (b) shows that the number of outliers is strictly monotonic with respect to perplexity across all models analyzed. Lines are B-spline interpolations of 9 linear segments.
 
@@ -199,19 +204,19 @@ These outliers are critical for transformer performance. If the outliers are rem
 
 Our analysis shows that outliers in particular feature dimensions are ubiquitous in large transformers, and these feature dimensions are critical for transformer performance. Since row-wise and vector-wise quantization scale each hidden state sequence dimension $s$ (rows) and because outliers occur in the feature dimension $h$ (columns), both methods cannot deal with these outliers effectively. This is why absmax quantization methods fail quickly after emergence.
 
-However, almost all outliers have a strict asymmetric distribution: they are either solely positive or negative (see Appendix [C](#A3 "Appendix C Detailed Outlier Feature Data ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale")). This makes zeropoint quantization particularly effective for these outliers, as zeropoint quantization is an asymmetric quantization method that scales these outliers into the full $[-127,127]$ range. This explains the strong performance in our quantization scaling benchmark in [Table 1](#table-01). However, at the 13B scale, even zeropoint quantization fails due to accumulated quantization errors and the quick growth of outlier magnitudes, as seen in [Figure 4(a)](#figure-04).
+However, almost all outliers have a strict asymmetric distribution: they are either solely positive or negative (see Appendix [C](#appendix-c)). This makes zeropoint quantization particularly effective for these outliers, as zeropoint quantization is an asymmetric quantization method that scales these outliers into the full $[-127,127]$ range. This explains the strong performance in our quantization scaling benchmark in [Table 1](#table-01). However, at the 13B scale, even zeropoint quantization fails due to accumulated quantization errors and the quick growth of outlier magnitudes, as seen in [Figure 4(a)](#figure-04).
 
 If we use our full LLM.int8() method with mixed-precision decomposition, the advantage of zeropoint quantization disappears indicating that the remaining decomposed features are symmetric. However, vector-wise still has an advantage over row-wise quantization, indicating that the enhanced quantization precision of the model weights is needed to retain full precision predictive performance.
 
 ## 5 Related work
 
-There is closely related work on quantization data types and quantization of transformers, as described below. Appendix [B](#A2 "Appendix B Additional Related Work ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale") provides further related work on quantization of convolutional networks.
+There is closely related work on quantization data types and quantization of transformers, as described below. Appendix [B](#appendix-b) provides further related work on quantization of convolutional networks.
 
-8-bit Data Types. Our work studies quantization techniques surrounding the Int8 data type, since it is currently the only 8-bit data type supported by GPUs. Other common data types are fixed point or floating point 8-bit data types (FP8). These data types usually have a sign bit and different exponent and fraction bit combinations. For example, a common variant of this data type has 5 bits for the exponent and 2 bits for the fraction [Wan18, Sun19, Cam20, Mel19] and uses either no scaling constants or zeropoint scaling. These data types have large errors for large magnitude values since they have only 2 bits for the fraction but provide high accuracy for small magnitude values. [Jin22] provide an excellent analysis of when certain fixed point exponent/fraction bit widths are optimal for inputs with a particular standard deviation. We believe FP8 data types offer superior performance compared to the Int8 data type, but currently, neither GPUs nor TPUs support this data type.
+**8-bit Data Types.** Our work studies quantization techniques surrounding the Int8 data type, since it is currently the only 8-bit data type supported by GPUs. Other common data types are fixed point or floating point 8-bit data types (FP8). These data types usually have a sign bit and different exponent and fraction bit combinations. For example, a common variant of this data type has 5 bits for the exponent and 2 bits for the fraction [Wan18, Sun19, Cam20, Mel19] and uses either no scaling constants or zeropoint scaling. These data types have large errors for large magnitude values since they have only 2 bits for the fraction but provide high accuracy for small magnitude values. [Jin22] provide an excellent analysis of when certain fixed point exponent/fraction bit widths are optimal for inputs with a particular standard deviation. We believe FP8 data types offer superior performance compared to the Int8 data type, but currently, neither GPUs nor TPUs support this data type.
 
-Outlier Features in Language Models. Large magnitude outlier features in language models have been studied before [Tim21, Bon21, Wei22, Luo20]. Previous work proved the theoretical relationship between outlier appearance in transformers and how it relates to layer normalization and the token frequency distribution [Gao19b]. Similarly, [Kov21] attribute the appearance of outliers in BERT model family to LayerNorm, and [Puc22] show empirically that outlier emergence is related to the frequency of tokens in the training distribution. We extend this work further by showing how the scale of autoregressive models relates to the emergent properties of these outlier features, and showing how appropriately modeling outliers is critical to effective quantization.
+**Outlier Features in Language Models.** Large magnitude outlier features in language models have been studied before [Tim21, Bon21, Wei22, Luo20]. Previous work proved the theoretical relationship between outlier appearance in transformers and how it relates to layer normalization and the token frequency distribution [Gao19b]. Similarly, [Kov21] attribute the appearance of outliers in BERT model family to LayerNorm, and [Puc22] show empirically that outlier emergence is related to the frequency of tokens in the training distribution. We extend this work further by showing how the scale of autoregressive models relates to the emergent properties of these outlier features, and showing how appropriately modeling outliers is critical to effective quantization.
 
-Multi-billion Scale Transformer Quantization. There are two methods that were developed in parallel to ours: nuQmm [Par22] and ZeroQuant [Yao22]. Both use the same quantization scheme: group-w2ise quantization, which has even finer quantization normalization constant granularity than vector-wise quantization. This scheme offers higher quantization precision but also requires custom CUDA kernels. Both nuQmm and ZeroQuant aim to accelerate inference and reduce the memory footprint while we focus on preserving predictive performance under an 8-bit memory footprint. The largest models that nuQmm and ZeroQuant evaluate are 2.7B and 20B parameter transformers, respectively. ZeroQuant achieves zero-degradation performance for 8-bit quantization of a 20B model. We show that our method allows for zero-degradation quantization of models up to 176B parameters. Both nuQmm and ZeroQuant suggest that finer quantization granularity can be an effective means to quantize large models. These methods are complementary with LLM.int8(). Another parallel work is GLM-130B which uses insights from our work to achieve zero-degradation 8-bit quantization [Zen22]. GLM-130B performs full 16-bit precision matrix multiplication with 8-bit weight storage.
+**Multi-billion Scale Transformer Quantization.** There are two methods that were developed in parallel to ours: nuQmm [Par22] and ZeroQuant [Yao22]. Both use the same quantization scheme: group-w2ise quantization, which has even finer quantization normalization constant granularity than vector-wise quantization. This scheme offers higher quantization precision but also requires custom CUDA kernels. Both nuQmm and ZeroQuant aim to accelerate inference and reduce the memory footprint while we focus on preserving predictive performance under an 8-bit memory footprint. The largest models that nuQmm and ZeroQuant evaluate are 2.7B and 20B parameter transformers, respectively. ZeroQuant achieves zero-degradation performance for 8-bit quantization of a 20B model. We show that our method allows for zero-degradation quantization of models up to 176B parameters. Both nuQmm and ZeroQuant suggest that finer quantization granularity can be an effective means to quantize large models. These methods are complementary with LLM.int8(). Another parallel work is GLM-130B which uses insights from our work to achieve zero-degradation 8-bit quantization [Zen22]. GLM-130B performs full 16-bit precision matrix multiplication with 8-bit weight storage.
 
 ## 6 Discussion and Limitations
 
@@ -221,11 +226,11 @@ The main limitation of our work is that our analysis is solely on the Int8 data 
 
 A third limitation is that we do not use Int8 multiplication for the attention function. Since our focus is on reducing the memory footprint and the attention function does not use any parameters, it was not strictly needed. However, an initial exploration of this problem indicated that a solution required additional quantization methods beyond those we developed here, and we leave this for future work.
 
-A final limitation is that we focus on inference but do not study training or finetuning. We provide an initial analysis of Int8 finetuning and training at scale in Appendix [E](#A5 "Appendix E Training Results ‣ LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale"). Int8 training at scale requires complex trade-offs between quantization precision, training speed, and engineering complexity and represents a very difficult problem. We again leave this to future work.
+A final limitation is that we focus on inference but do not study training or finetuning. We provide an initial analysis of Int8 finetuning and training at scale in Appendix [E](#appendix-e). Int8 training at scale requires complex trade-offs between quantization precision, training speed, and engineering complexity and represents a very difficult problem. We again leave this to future work.
 
 <span id="table-02"></span>
 
-![Original paper Table 2](../../papers/llm-int8/table-02.png)
+<img class="paper-table-narrow" src="../../papers/llm-int8/table-02.png" alt="Hardware configurations and supported model sizes">
 
 **Table 2.** Different hardware setups and which methods can be run in 16-bit vs. 8-bit precision. We can see that our 8-bit method makes many models accessible that were not accessible before, in particular, OPT-175B/BLOOM.
 
@@ -235,9 +240,7 @@ The main impact of our work is enabling access to large models that previously c
 
 In particular, we believe that the public release of large pretrained models, for example, the recent Open Pretrained Transformers (OPT) [Zha22], along with our new Int8 inference for zero- and few-shot prompting, will enable new research for academic institutions that was not possible before due to resource constraints. The widespread accessibility of such large-scale models will likely have both beneficial and detrimental effects on society that are difficult to predict.
 
-#### Acknowledgments
-
-We thank Ofir Press, Gabriel Ilharco, Daniel Jiang, Mitchell Wortsman, Ari Holtzman, Mitchell Gordon for their feedback on drafts of this work. We thank JustHeuristic (Yozh) and Titus von Köller for help with Hugging Face Transformers integration.
+**Acknowledgments.** We thank Ofir Press, Gabriel Ilharco, Daniel Jiang, Mitchell Wortsman, Ari Holtzman, Mitchell Gordon for their feedback on drafts of this work. We thank JustHeuristic (Yozh) and Titus von Köller for help with Hugging Face Transformers integration.
 
 ## Checklist
 
@@ -250,37 +253,30 @@ The checklist follows the references. Please read the checklist guidelines caref
 Please do not modify the questions and only use the provided macros for your answers. Note that the Checklist section does not count towards the page limit. In your paper, please delete this instructions block and only keep the Checklist section heading above along with the questions/answers below.
 
 1. For all authors…
-
-    1. <span class="paper-alpha-label">(a)</span> Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? \[Yes\]
-    1. <span class="paper-alpha-label">(b)</span> Did you describe the limitations of your work? \[Yes\] See the limitation section
-    1. <span class="paper-alpha-label">(c)</span> Did you discuss any potential negative societal impacts of your work?\[Yes\] See the Broader Impacts section
-    1. <span class="paper-alpha-label">(d)</span> Have you read the ethics review guidelines and ensured that your paper conforms to them?\[Yes\] Yes, we believe our work conforms to these guidelines.
-
+   - <span class="paper-alpha-label">(a)</span> Do the main claims made in the abstract and introduction accurately reflect the paper’s contributions and scope? \[Yes\]
+   - <span class="paper-alpha-label">(b)</span> Did you describe the limitations of your work? \[Yes\] See the limitation section
+   - <span class="paper-alpha-label">(c)</span> Did you discuss any potential negative societal impacts of your work?\[Yes\] See the Broader Impacts section
+   - <span class="paper-alpha-label">(d)</span> Have you read the ethics review guidelines and ensured that your paper conforms to them?\[Yes\] Yes, we believe our work conforms to these guidelines.
 2. If you are including theoretical results…
-
-    1. <span class="paper-alpha-label">(a)</span> Did you state the full set of assumptions of all theoretical results? \[N/A\]
-    1. <span class="paper-alpha-label">(b)</span> Did you include complete proofs of all theoretical results? \[N/A\]
-
+   - <span class="paper-alpha-label">(a)</span> Did you state the full set of assumptions of all theoretical results? \[N/A\]
+   - <span class="paper-alpha-label">(b)</span> Did you include complete proofs of all theoretical results? \[N/A\]
 3. If you ran experiments…
-
-    1. <span class="paper-alpha-label">(a)</span> Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)? \[Yes\] We will include our code in the supplemental material.
-    1. <span class="paper-alpha-label">(b)</span> Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?\[Yes\] See the experimental setup section
-    1. <span class="paper-alpha-label">(c)</span> Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)? \[No\] Our experiments are deterministic for each model. Instead of running the same model multiple times, we run multiple models at different scales. We are unable to compute error bars for these experiments.
-    1. <span class="paper-alpha-label">(d)</span> Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)? \[Yes\] See the exper2imental setup section
-
+   - <span class="paper-alpha-label">(a)</span> Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)? \[Yes\] We will include our code in the supplemental material.
+   - <span class="paper-alpha-label">(b)</span> Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?\[Yes\] See the experimental setup section
+   - <span class="paper-alpha-label">(c)</span> Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)? \[No\] Our experiments are deterministic for each model. Instead of running the same model multiple times, we run multiple models at different scales. We are unable to compute error bars for these experiments.
+   - <span class="paper-alpha-label">(d)</span> Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)? \[Yes\] See the experimental setup section
 4. If you are using existing assets (e.g., code, data, models) or curating/releasing new assets…
-
-    1. <span class="paper-alpha-label">(a)</span> If your work uses existing assets, did you cite the creators? \[Yes\] See experimental setup section
-    1. <span class="paper-alpha-label">(b)</span> Did you mention the license of the assets? \[No\] The license is permissible for all the assets that we use. The individual licenses can easily be looked up.
-    1. <span class="paper-alpha-label">(c)</span> Did you include any new assets either in the supplemental material or as a URL? \[N/A\] We only use existing datasets.
-    1. <span class="paper-alpha-label">(d)</span> Did you discuss whether and how consent was obtained from people whose data you’re using/curating? \[N/A\]
-    1. <span class="paper-alpha-label">(e)</span> Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content? \[N/A\]
-
+   - <span class="paper-alpha-label">(a)</span> If your work uses existing assets, did you cite the creators? \[Yes\] See experimental setup section
+   - <span class="paper-alpha-label">(b)</span> Did you mention the license of the assets? \[No\] The license is permissible for all the assets that we use. The individual licenses can easily be looked up.
+   - <span class="paper-alpha-label">(c)</span> Did you include any new assets either in the supplemental material or as a URL? \[N/A\] We only use existing datasets.
+   - <span class="paper-alpha-label">(d)</span> Did you discuss whether and how consent was obtained from people whose data you’re using/curating? \[N/A\]
+   - <span class="paper-alpha-label">(e)</span> Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content? \[N/A\]
 5. If you used crowdsourcing or conducted research with human subjects…
+   - <span class="paper-alpha-label">(a)</span> Did you include the full text of instructions given to participants and screenshots, if applicable? \[N/A\]
+   - <span class="paper-alpha-label">(b)</span> Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable? \[N/A\]
+   - <span class="paper-alpha-label">(c)</span> Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation? \[N/A\]
 
-    1. <span class="paper-alpha-label">(a)</span> Did you include the full text of instructions given to participants and screenshots, if applicable? \[N/A\]
-    1. <span class="paper-alpha-label">(b)</span> Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable? \[N/A\]
-    1. <span class="paper-alpha-label">(c)</span> Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation? \[N/A\]
+<span id="appendix-a"></span>
 
 ## Appendix A Memory usage compared to 16-bit precision
 
@@ -288,23 +284,23 @@ Please do not modify the questions and only use the provided macros for your ans
 
 <span id="table-03"></span>
 
-![Original paper Table 3](../../papers/llm-int8/table-03.png)
+<img class="paper-table-narrow" src="../../papers/llm-int8/table-03.png" alt="Memory requirements by model and hardware configuration">
 
 **Table 3.** Different hardware setups and which methods can be run in 16-bit vs. 8-bit precision. We can see that our 8-bit method makes many models accessible that were not accessible before, in particular, OPT-175B/BLOOM.
 
+<span id="appendix-b"></span>
+
 ## Appendix B Additional Related Work
 
-#### Quantization of Transformers with fewer than 1B Parameters
-
-Quantization of transformers has been focused on sub-billion parameter masked language model (MLMs), including BERT [Dev18] and RoBERTa [Liu19a]. Versions of 8-bit BERT/RoBERTa include Q8BERT [Zaf19], QBERT [She20], product quantization with quantization noise [Fan20], TernaryBERT [Zha20], and BinaryBERT [Bai21]. Work by [Zha21a] performs both quantization and pruning. All these models require either quantization-aware finetuning or post-training quantization to make the model usable in low-precision. In contrast with our methods, the model can be used directly without performance degradation.
+**Quantization of Transformers with fewer than 1B Parameters.** Quantization of transformers has been focused on sub-billion parameter masked language model (MLMs), including BERT [Dev18] and RoBERTa [Liu19a]. Versions of 8-bit BERT/RoBERTa include Q8BERT [Zaf19], QBERT [She20], product quantization with quantization noise [Fan20], TernaryBERT [Zha20], and BinaryBERT [Bai21]. Work by [Zha21a] performs both quantization and pruning. All these models require either quantization-aware finetuning or post-training quantization to make the model usable in low-precision. In contrast with our methods, the model can be used directly without performance degradation.
 
 If one views matrix multiplication as 1x1 convolution, vector-wise quantization is equivalent to channel-wise quantization for convolution combined with row quantization [Khu21]. For matrix multiplication, this was used by [Wu20] for BERT-sized transformers (350M parameters), while we are the first to study vector-wise quantization for autoregressive and large-scale models. The only other work that we are aware of that quantizes transformers other than BERT is [Che20], which uses post-training quantization with zeropoint quantization in the forward pass and zeropoint-row-wise quantization in the backward pass. However, this work is still for sub-billion parameter transformers. We compare with both zeropoint and row-wise quantization in our evaluations and do not require post-training quantization.
 
-#### Low-bitwidth and Convolutional Network Quantization
-
-Work that uses less than 8-bits for data types is usually for convolutional networks (CNNs) to reduce their memory footprint and increase inference speed for mobile devices while minimizing model degradation. Methods for different bit-widths have been studied: 1-bit methods [Cou16, Ras16, Cou15], 2 to 3-bit [Zhu17, Cho19a], 4-bits [Li19], more bits [Cou14], or a variable amount of bits [Gon19]. For additional related work, please see the survey of [Qin20]. While we believe that lower than 8-bit width with some performance degradation is possible for billion-scale transformers, we focus on 8-bit transformers that do not degrade performance and that can benefit from commonly used GPUs that accelerates inference through Int8 tensor cores.
+**Low-bitwidth and Convolutional Network Quantization.** Work that uses less than 8-bits for data types is usually for convolutional networks (CNNs) to reduce their memory footprint and increase inference speed for mobile devices while minimizing model degradation. Methods for different bit-widths have been studied: 1-bit methods [Cou16, Ras16, Cou15], 2 to 3-bit [Zhu17, Cho19a], 4-bits [Li19], more bits [Cou14], or a variable amount of bits [Gon19]. For additional related work, please see the survey of [Qin20]. While we believe that lower than 8-bit width with some performance degradation is possible for billion-scale transformers, we focus on 8-bit transformers that do not degrade performance and that can benefit from commonly used GPUs that accelerates inference through Int8 tensor cores.
 
 Another line of work that focuses on convolutional network quantization is to learn adjustments to the quantization procedure to improve quantization errors. For example, using Hessian information [Don19a], step-size quantization [Ess19], soft quantization [Gon19], mixed-precision via linear programming optimization [Yao21], and other learned quantization methods [Zha18, Gho21a].
+
+<span id="appendix-c"></span>
 
 ## Appendix C Detailed Outlier Feature Data
 
@@ -315,6 +311,8 @@ Another line of work that focuses on convolutional network quantization is to le
 ![Original paper Table 4](../../papers/llm-int8/table-04.png)
 
 **Table 4.** Summary statistics of outliers with a magnitude of at least 6 that occur in at least 25% of all layers and at least 6% of all sequence dimensions. We can see that the lower the C4 validation perplexity, the more outliers are present. Outliers are usually one-sided, and their quartiles with maximum range show that the outlier magnitude is 3-20x larger than the largest magnitude of other feature dimensions, which usually have a range of \[-3.5, 3.5\]. With increasing scale, outliers become more and more common in all layers of the transformer, and they occur in almost all sequence dimensions. A phase transition occurs at 6.7B parameters when the same outlier occurs in all layers in the same feature dimension for about 75% of all sequence dimensions (SDim). Despite only making up about 0.1% of all features, the outliers are essential for large softmax probabilities. The mean top-1 softmax probability shrinks by about 20% if outliers are removed. Because the outliers have mostly asymmetric distributions across the sequence dimension $s$, these outlier dimensions disrupt symmetric absmax quantization and favor asymmetric zeropoint quantization. This explains the results in our validation perplexity analysis. These observations appear to be universal as they occur for models trained in different software frameworks (fairseq, OpenAI, Tensorflow-mesh), and they occur in different inference frameworks (fairseq, Hugging Face Transformers). These outliers also appear robust to slight variations of the transformer architecture (rotary embeddings, embedding norm, residual scaling, different initializations).
+
+<span id="appendix-d"></span>
 
 ## Appendix D Inference Speedups and Slowdowns
 
@@ -340,9 +338,11 @@ We benchmark vs. 16-bit and try settings that use a larger batch size or fewer G
 
 <span id="table-06"></span>
 
-![Original paper Table 6](../../papers/llm-int8/table-06.png)
+<img class="paper-table-compact" src="../../papers/llm-int8/table-06.png" alt="BLOOM-176B multi-GPU inference ablation">
 
 **Table 6.** Ablation study on the number of GPUs used to run several types of inferences of BLOOM-176B model. We compare the number of GPUs used by our quantized BLOOM-176B model together with the native BLOOM-176B model. We also report the per-token generation speed in milliseconds for different batch sizes. We use our method integrated into transformers[Wol19] powered by accelerate library from HuggingFace to deal with multi-GPU inference. Our method reaches a similar performance to the native model by fitting into fewer GPUs than the native model.
+
+<span id="appendix-e"></span>
 
 ## Appendix E Training Results
 
@@ -352,15 +352,17 @@ The results are shown in [Table 7](#table-07) and [Table 8](#table-08). We can s
 
 <span id="table-07"></span>
 
-![Original paper Table 7](../../papers/llm-int8/table-07.png)
+<img class="paper-table-compact" src="../../papers/llm-int8/table-07.png" alt="Language modeling training results">
 
 **Table 7.** Initial results on small and large-scale language modeling. Doing attention in 8-bit severely degrades performance and performance cannot fully recovered with mixed-precision decomposition. While small-scale language models is close to baseline performance for both 8-bit FFN and 8-bit linear projects in the attention layers performance degrades at the large scale.
 
 <span id="table-08"></span>
 
-![Original paper Table 8](../../papers/llm-int8/table-08.png)
+<img class="paper-table-compact" src="../../papers/llm-int8/table-08.png" alt="Neural machine translation training results">
 
 **Table 8.** Neural machine translation results for 8-bit FFN and linear attention layers for WMT14+16. Decomp indicates the percentage that is computed in 16-bit instead of 8-bit. The BLEU score is the median of three random seeds.
+
+<span id="appendix-f"></span>
 
 ## Appendix F Fine-tuning Results
 
@@ -387,3 +389,5 @@ We also test 8-bit finetuning on RoBERTa-large finetuned on GLUE. We run two dif
 [+3]: [https://www.felixcloutier.com/x86/pmaddubsw](https://www.felixcloutier.com/x86/pmaddubsw)
 
 [+4]: [https://commoncrawl.org/](https://commoncrawl.org/)
+
+[+author-note]: Majority of research done as a visiting researcher at Facebook AI Research.
