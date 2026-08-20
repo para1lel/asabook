@@ -81,15 +81,15 @@ Transformer [Vas17b] 架构已被广泛用于自然语言处理. 它已成为许
 我们模型中使用的专家混合 (MoE) 层基于 [Sha17], 并在稀疏门控函数和使用的辅助损失上有所变化. Transformer 的 MoE 层由 $E$ 个前馈网络组成 $\mathrm{FFN}_{1}\dots\mathrm{FFN}_{E}$:
 
 $$
-\mathcal{G}_{s,E}=\mathrm{GATE}(x_s)\tag{1}
+\mathcal{G}_{s,E}=\mathrm{GATE}(x_s)
 $$
 
 $$
-\mathrm{FFN}_e(x_s)=\mathit{wo}_e\cdot\mathrm{ReLU}(\mathit{wi}_e\cdot x_s)\tag{2}
+\mathrm{FFN}_e(x_s)=\mathit{wo}_e\cdot\mathrm{ReLU}(\mathit{wi}_e\cdot x_s)
 $$
 
 $$
-y_s=\sum^E_{e=1}\mathcal{G}_{s,e}\cdot\mathrm{FFN}_e(x_s)\tag{3}
+y_s=\sum^E_{e=1}\mathcal{G}_{s,e}\cdot\mathrm{FFN}_e(x_s)
 $$
 
 其中 $x_s$ 是 MoE 层的输入 token, $\mathit{wi}$ 和 $\mathit{wo}$ 分别是前馈层 (即一个专家) 的输入和输出投影矩阵. 向量 $\mathcal{G}_{s,E}$ 由门控网络计算. $\mathcal{G}_{s,E}$ 为每个专家给出一个非负值; 大部分值为零, 表示不会把该 token 分派给相应专家. 每个 token 只会分派给极少数专家, 本文最多选择两个. $\mathcal{G}_{s,E}$ 中对应的非零项表示各专家对网络最终输出的贡献. 每个专家 $\mathrm{FFN}_e$ 都对 $x_s$ 应用一个使用 ReLU [Nai10] 激活函数的两层全连接网络. MoE 层的输出 $y_s$ 是所有选中专家输出的加权平均.

@@ -58,7 +58,7 @@ LLM の中核には、自己回帰型 Transformer モデル [Vas17] がある。
 <span id="S2.E1"></span>
 
 $$
-P(x)=P(x_{1})\cdot P(x_{2}\mid x_{1})\cdots P(x_{n}\mid x_{1},\ldots,x_{n-1}).\tag{1}
+P(x)=P(x_{1})\cdot P(x_{2}\mid x_{1})\cdots P(x_{n}\mid x_{1},\ldots,x_{n-1}).
 $$
 
 Transformer [Vas17] は、上記の確率を大規模にモデル化する際の事実上の標準アーキテクチャとなっている。Transformer ベースの言語モデルで最も重要な構成要素は、*自己注意*層である。入力隠れ状態列 $(x_{1},\ldots,x_{n})\in\mathbb{R}^{n\times d}$ に対し、自己注意層はまず各位置 $i$ に線形変換を適用し、クエリ、キー、バリューの各ベクトルを得る。
@@ -66,7 +66,7 @@ Transformer [Vas17] は、上記の確率を大規模にモデル化する際の
 <span id="S2.E2"></span>
 
 $$
-q_{i}=W_{q}x_{i},\ k_{i}=W_{k}x_{i},\ v_{i}=W_{v}x_{i}.\tag{2}
+q_{i}=W_{q}x_{i},\ k_{i}=W_{k}x_{i},\ v_{i}=W_{v}x_{i}.
 $$
 
 次に、自己注意層は、ある位置のクエリベクトルとそれ以前の全キーベクトルとの積から注意スコア $a_{ij}$ を計算し、バリューベクトルの加重平均として出力 $o_{i}$ を求める。
@@ -74,7 +74,7 @@ $$
 <span id="S2.E3"></span>
 
 $$
-a_{ij}=\frac{\exp(q_{i}^{\top}k_{j}/\sqrt{d})}{\sum_{t=1}^{i}\exp(q_{i}^{\top}k_{t}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{i}a_{ij}v_{j}.\tag{3}
+a_{ij}=\frac{\exp(q_{i}^{\top}k_{j}/\sqrt{d})}{\sum_{t=1}^{i}\exp(q_{i}^{\top}k_{t}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{i}a_{ij}v_{j}.
 $$
 
 [式 3](#S2.E3) の計算を除き、埋め込み層、フィードフォワード層、層正規化 [Ba16]、残差接続 [He16]、出力ロジット計算、[式 2](#S2.E2) のクエリ、キー、バリュー変換を含む Transformer の他のすべての構成要素は、$y_{i}=f(x_{i})$ の形で位置ごとに独立して適用される。
@@ -144,7 +144,7 @@ $$
 <span id="S4.E4"></span>
 
 $$
-A_{ij}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf{1}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{ij}^{\top},\tag{4}
+A_{ij}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf{1}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{ij}^{\top},
 $$
 
 ここで $A_{ij}=(a_{i,(j-1)B+1},\ldots,a_{i,jB})$ は、第 $j$ KV ブロックに対するアテンションスコアの行ベクトルである。

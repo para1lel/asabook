@@ -73,7 +73,6 @@ The Markov decision process (MDP) for the RL fine-tuning process can be formaliz
 
 $$
 \langle\mathcal{S}_{\mathrm{trad}},\mathcal{A}_{\mathrm{trad}},\mathcal{P}_{\mathrm{trad}},\mathcal{R}_{\mathrm{trad}},T=1,\gamma=1\rangle.
-\tag{1}
 $$
 
 **Agentic RL.** The RL training process of Agentic RL is modeled as a POMDP:
@@ -82,7 +81,6 @@ $$
 
 $$
 \langle\mathcal{S}_{\mathrm{agent}},\mathcal{A}_{\mathrm{agent}},\mathcal{P}_{\mathrm{agent}},\mathcal{R}_{\mathrm{agent}},\gamma,\mathcal{O}\rangle.
-\tag{2}
 $$
 
 where the agent receives observations $o_{t}=O(s_{t})$ based on the state $s_{t}\in\mathcal{S}_{\mathrm{agent}}$. The primary distinctions between PBRFT and Agentic RL are delineated in [Table 1](#table-01). In summary, PBRFT optimizes sequences of output sentences within a fixed dataset under full observations, whereas Agentic RL optimizes semantic-level behaviors in variable environments characterized by partial observations.
@@ -103,7 +101,6 @@ where the agent receives observations $o_{t}=O(s_{t})$ based on the state $s_{t}
 
 $$
 \mathcal{S}_{\mathrm{trad}}=\{\mathrm{prompt}\}.
-\tag{3}
 $$
 
 **Agentic RL.** The LLM agent acts over multiple time-steps in a POMDP. Let $s_{t}\in\mathcal{S}_{\mathrm{agent}}$ denote the full world state and the LLM agent gets observation $O_{t}$ based on the current state $o_{t}=\mathcal{O}(s_{t})$. The LLM agent chooses an action $a_{t}$ based on the current observation $o_{t}$, and the state evolves over time:
@@ -112,7 +109,6 @@ $$
 
 $$
 s_{t+1}\sim P(s_{t+1}\mid s_{t},a_{t}).
-\tag{4}
 $$
 
 as the agent accumulates intermediate signals such as retrieved tool results, user messages, or environment feedback. The interaction is thus inherently dynamic and temporally extended.
@@ -127,7 +123,6 @@ In the Agentic RL setting, the LLM’s action space comprises two distinct subsp
 
 $$
 \mathcal{A}_{\mathrm{agent}}=\mathcal{A}_{\mathrm{text}}\cup\mathcal{A}_{\mathrm{action}}.
-\tag{5}
 $$
 
 Here, $\mathcal{A}_{\mathrm{text}}$ denotes the space of free-form natural language tokens emitted via autoregressive decoding, while $\mathcal{A}_{\mathrm{action}}$ denotes the space of abstract, non-linguistic actions, which is usually delimited in the output stream by special tokens `<action_start>` and `<action_end>`. These actions may invoke external tools (e.g., `call("search", "Einstein")`) or interact with an environment (e.g., `move("north")`), depending on task requirements.
@@ -146,7 +141,6 @@ Formally, the two subspaces differ in semantics and functional role: $\mathcal{A
 
 $$
 \mathcal{P}(s_{1}\mid s_{0},a)=1,\quad\mathrm{where\ there\ is\ no\ uncertainty.}
-\tag{6}
 $$
 
 **Agentic RL.** In Agentic RL, the environment evolves under uncertainty according to
@@ -155,7 +149,6 @@ $$
 
 $$
 s_{t+1}\sim\mathcal{P}(s_{t+1}\mid s_{t},a_{t}),\quad a_{t}\in\mathcal{A}_{\mathrm{text}}\cup\mathcal{A}_{\mathrm{action}}.
-\tag{7}
 $$
 
 Text actions $(\mathcal{A}_{\mathrm{text}})$ generate natural language outputs without altering the environmental state. Structured actions $(\mathcal{A}_{\mathrm{action}})$, delimited by `<action_start>` and `<action_end>`, can either query external tools or directly modify the environment. This sequential formulation contrasts with the one-shot mapping of PBRFT, enabling policies that iteratively combine communication, information acquisition, and environment manipulation.
@@ -170,7 +163,6 @@ Text actions $(\mathcal{A}_{\mathrm{text}})$ generate natural language outputs w
 
 $$
 \mathcal{R}_{\mathrm{trad}}(s_{0},a)=r(a).
-\tag{8}
 $$
 
 where $r:\mathcal{A}\!\to\!\mathbb{R}$ is a scalar score supplied by a human- or AI-preference model, with no intermediate feedback.
@@ -183,7 +175,6 @@ $$
 \mathcal{R}_{\mathrm{agent}}(s_{t},a_{t})=\begin{cases}r_{\mathrm{task}}&\mathrm{on\ task\ completion},\\[2.0pt]
 r_{\mathrm{sub}}(s_{t},a_{t})&\mathrm{for\ step\!-\!level\ progress},\\[2.0pt]
 0&\mathrm{otherwise}.\end{cases}
-\tag{9}
 $$
 
 allowing dense, sparse, or learned rewards (*e.g.*, unit-test passes, symbolic verifier success).
@@ -198,7 +189,6 @@ allowing dense, sparse, or learned rewards (*e.g.*, unit-test passes, symbolic v
 
 $$
 J_{\mathrm{trad}}(\theta)=\mathbb{E}_{a\sim\pi_{\theta}}\bigl[r(a)\bigr].
-\tag{10}
 $$
 
 No discount factor is required; optimization resembles maximum-expected-reward sequence modeling.
@@ -209,7 +199,6 @@ No discount factor is required; optimization resembles maximum-expected-reward s
 
 $$
 J_{\mathrm{agent}}(\theta)=\mathbb{E}_{\tau\sim\pi_{\theta}}\left[\,\sum_{t=0}^{T-1}\gamma^{t}R_{\mathrm{agent}}(s_{t},a_{t})\right],\qquad 0\lt\gamma\lt1.
-\tag{11}
 $$
 
 This objective is optimized via policy-gradient or value-based methods with exploration and long-term credit assignment.
@@ -228,7 +217,6 @@ In contemporary research, RL algorithms constitute a pivotal component in both P
 
 $$
 \nabla_{\theta}J(\theta)=\mathbb{E}_{s_{0}}\left[\frac{1}{N}\sum_{i=1}^{N}\left(\mathcal{R}(s_{0},a^{(i)})-b(s_{0})\right)\nabla_{\theta}\log\pi_{\theta}(a^{(i)}|s_{0})\right].
-\tag{12}
 $$
 
 where $a^{(i)}\sim\pi_{\theta}(a|s_{0})$ is the $i$-th sampled response, $\mathcal{R}(s_{0},a)$ denotes the final rewards received on task completion, and $b(s)$ is a baseline function to reduce the variance of the policy gradient estimate. In general, $b(s)$ can be any function, including random variables. In practice, $b(s)$ is commonly instantiated as the value function $V(s)$. Despite with advantages of the concise formula and easy implementation, REINFORCE suffers from drawbacks such as high variance in gradient estimates, sample inefficiency, sensitivity to learning rate and the lack of a critic (value estimator).
@@ -239,7 +227,6 @@ where $a^{(i)}\sim\pi_{\theta}(a|s_{0})$ is the $i$-th sampled response, $\mathc
 
 $$
 L_{\mathrm{PPO}}(\theta)=\frac{1}{N}\sum_{i=1}^{N}\min\left(\frac{\pi_{\theta}(a_{t}^{(i)}|s_{t})}{\pi_{\theta_{old}}(a_{t}^{(i)}|s_{t})}A(s_{t},a_{t}^{(i)}),\;\;\mathrm{clip}\left(\frac{\pi_{\theta}(a_{t}^{(i)}|s_{t})}{\pi_{\theta_{old}}(a_{t}^{(i)}|s_{t})},1-\epsilon,1+\epsilon\right)A(s_{t},a_{t}^{(i)})\right).
-\tag{13}
 $$
 
 where $a_{t}^{(i)}\sim\pi_{\theta_{old}}(a|s_{t})$ is the $i$-th sampled response from the old policy $\pi_{\theta_{old}}$, whose update is delayed. $A_{t}$ is the estimated advantage given by
@@ -248,7 +235,6 @@ where $a_{t}^{(i)}\sim\pi_{\theta_{old}}(a|s_{t})$ is the $i$-th sampled respons
 
 $$
 A(s_{t},a_{t})=\mathcal{R}(s_{t},a_{t})-V(s_{t}).
-\tag{14}
 $$
 
 where $V_{\theta}(s)$ is the learned value function, i.e., the expectation $\mathbb{E}_{a\sim\pi_{\theta}(a|s)}[\mathcal{R}(s,a)]$, which is typically, but not necessarily, derived from a critic network that is of the same size as the policy network. The clip term prevents the probability ratio from moving too far from 1, ensuring stable updates. The estimation of the advantage function plays a predominant role in the performance of PPO. Recent variants have concentrated on reducing the bias [Kaz24] or variance [Yue25a] in the advantage estimation. Meanwhile, some other variants make improvements from the perspectives of stable policy update mechanisms [Liu25s] or mitigating sparse rewards [Dai25]. Despite these improvements, a remaining drawback is its reliance on a separate critic network for advantage estimation, which substantially increases the parameter count during training.
@@ -259,7 +245,6 @@ where $V_{\theta}(s)$ is the learned value function, i.e., the expectation $\mat
 
 $$
 L_{\mathrm{DPO}}(\pi_{\theta};\pi_{ref})=-\mathbb{E}_{(x,y_{w},y_{l})\sim D}\left[\log\sigma\left(\beta\log\frac{\pi_{\theta}(y_{w}|x)}{\pi_{ref}(y_{w}|x)}-\beta\log\frac{\pi_{\theta}(y_{l}|x)}{\pi_{ref}(y_{l}|x)}\right)\right].
-\tag{15}
 $$
 
 where $\pi_{ref}$ is a reference policy (usually the initial SFT model), and $\beta$ is a hyperparameter. While DPO eliminates the critic, its performance is intrinsically tied to the quality and coverage of its static preference dataset. Variants have emerged to address its limitations via involving external or online data [Eth24, Hon24]. In addition, some other work attempts to improve by introducing generalized optimization objectives [Aza24] or sophisticated implicit reward mechanisms [Men24, Lai24, Hon25].
@@ -270,7 +255,6 @@ where $\pi_{ref}$ is a reference policy (usually the initial SFT model), and $\b
 
 $$
 L_{\mathrm{GRPO}}=\frac{1}{G}\sum_{g=1}^{G}\min\left(\frac{\pi_{\theta}(a_{t}^{(g)}|s_{t}^{(g)})}{\pi_{\theta_{old}}(a_{t}^{(g)}|s_{t}^{(g)})}\hat{A}(s_{t}^{(g)},a_{t}^{(g)}),\;\;\mathrm{clip}\left(\frac{\pi_{\theta}(a_{t}^{(g)}|s_{t}^{(g)})}{\pi_{\theta_{old}}(a_{t}^{(g)}|s_{t}^{(g)})},1-\epsilon,1+\epsilon\right)\hat{A}(s_{t}^{(g)},a_{t}^{(g)})\right).
-\tag{16}
 $$
 
 where a group of outputs $\{(s_{0}^{(g)},a_{0}^{(g)},\ldots,s_{T-1}^{(g)},a_{T-1}^{(g)})\}_{g=1}^{G}$ is sampled from the old policy $\pi_{\theta_{old}}$. The advantage function is estimated by
@@ -279,7 +263,6 @@ where a group of outputs $\{(s_{0}^{(g)},a_{0}^{(g)},\ldots,s_{T-1}^{(g)},a_{T-1
 
 $$
 \hat{A}(s_{t},a_{t})=\frac{\mathcal{R}(s_{t},a_{t})-\mathrm{mean}(\mathcal{R}(s_{t}^{(1)},a_{t}^{(1)}),\ldots,\mathcal{R}(s_{t}^{(G)},a_{t}^{(G)}))}{\mathrm{std}(\mathcal{R}(s_{t}^{(1)},a_{t}^{(1)}),\ldots,\mathcal{R}(s_{t}^{(G)},a_{t}^{(G)}))}.
-\tag{17}
 $$
 
 This group-relative approach is highly sample-efficient and reduces computational overhead. However, the group-based advantage estimation is vulnerable to high variance and low accuracy. Consequently, a series of novel algorithms derived from the GRPO framework have been subsequently proposed (see [Table 2](#table-02)), aiming to substantially improve its advantage estimation.

@@ -251,7 +251,6 @@ r_{i,t},
 \right)
 \Bigg].
 \end{aligned}
-\tag{1}
 $$
 
 其中, 训练-推理不一致比率定义为
@@ -309,7 +308,6 @@ $$
 
 $$
 \hat{A}_{i,t}=\mathrm{sg}\left[\log\frac{\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
-\tag{2}
 $$
 
 目前, 我们使用推理引擎获取教师模型的 logit. 未来计划将推理后端迁移至训练引擎, 并统一采用 MLA 的多查询注意力 (MQA) 模式进行推理 ($\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}\rightarrow\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{train}}$). 训练期间, GRPO 算法的 group size 设为 1 以提高数据吞吐量, batch size 设为 1024. 这一设置之所以可行, 是因为该阶段不再需要为每个提示词维持大组样本来估计优势; 优势可直接根据与教师模型的差距计算.
@@ -374,14 +372,12 @@ $$
 
 $$
 L(\theta)=\mathbb{E}_{t}\left[f(r_{t}(\theta),\epsilon_{l},\epsilon_{h})\hat{A}_{t}\log\pi_{\theta}(a_{t}|s_{t})\right]
-\tag{3}
 $$
 
 其中, 重要性采样比率 $r_{t}(\theta)$ 的计算方式为:
 
 $$
 r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\mathrm{rollout}}(a_{t}|s_{t})\right)
-\tag{4}
 $$
 
 校准函数 $f(x;\epsilon_{\ell},\epsilon_{h})$ 进一步保证稳定性:
@@ -389,7 +385,6 @@ $$
 $$
 f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\mathrm{if}\ 1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
 0,&\mathrm{otherwise}\end{cases}
-\tag{5}
 $$
 
 实验发现, 复用 rollout log-probability 会接受一定程度且可控的离策略偏差, 以此免去历史策略跟踪, 同时提升训练稳定性.

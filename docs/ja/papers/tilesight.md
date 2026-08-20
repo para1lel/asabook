@@ -99,7 +99,6 @@ $$
 \mathbf{u}(o)=
 \langle t_{\mathrm{TC}}, t_{\mathrm{CUDA}}, t_{\mathrm{SFU}}, t_{\mathrm{TMEM}},
 t_{\mathrm{SMEM}}, t_{\mathrm{L1.5}}, t_{\mathrm{L2}}, t_{\mathrm{DDR}}, t_{\mathrm{Net}}\rangle .
-\tag{1}
 $$
 
 これは tile の operation、footprint、src/dst placement、および one-shot microbenchmark で calibration した rate から計算されます。Pure tensor-core matmul tile は TC entry のみを埋めます。Blackwell attention tile は softmax と correction の load/store について明示的な TMEM traffic も加算します。DDR からの load tile は DDR を埋めます (access が cache に hit する場合は L1.5/L2 も埋めます)。remote-load tile は Net を埋めます。この vector は Roofline scalar より表現力があります。異なる pipeline 上の tile は overlap できる一方、同じ pipeline を競合する tile は serialize され、remote movement は同じ仕組みによって local compute と合成されるためです。$\mathbf{u}(o)$ のうち 2 つの entry は、単独の tile では固定されません。Memory tile の L1.5/L2/DDR split は access が cache に hit するかどうかに依存し、第 3.5 節の tile reuse distance から導出されます。Remote tile の `Net` entry は、基礎となる communication stage の routed cost に依存し、第 3.6 節で導出されます。Algorithm 1 は、すべての component が master loop に接続される方法を概略します。以降の subsection で各 block を詳述します。
@@ -144,14 +143,12 @@ T =
 T_{\mathrm{pro}} +
 \max(N-d,0)\,T_{\mathrm{steady}} +
 T_{\mathrm{epi}},
-\tag{2}
 $$
 
 ここで $T_{\mathrm{pro}}$ は fill cost、$T_{\mathrm{steady}}$ は repeated unit ごとの overlapped cost、$T_{\mathrm{epi}}$ は drain cost です。同じ envelope が tile execution plan の各 level に再帰的に適用されます。outer envelope (tile-block wave 全体) の steady-state body 自体が pipeline ($K$-loop 全体) となり、その steady body がさらに inner action sequence 全体の pipeline となり得ます。Effective depth は、明示的 software-pipeline stage と resident tile interleaving を組み合わせます。
 
 $$
 d = \mathrm{stages} \times \mathrm{resident\_tiles\_per\_SM} - 1 .
-\tag{3}
 $$
 
 したがって、SM あたり 2 block の schedule は特別な case ではありません。1 つの resident tile-block が memory を待っている間に、SM が別の tile-block から work を issue できるため、pipeline を深くします。
@@ -163,7 +160,6 @@ T_{\mathrm{steady}}(\sigma)
 =
 \max_{r}
 \sum_{o \in \sigma} u_r(o),
-\tag{4}
 $$
 
 これは DAG 内のすべての data-dependency edge に従います。選択される steady state は最良の合法的 ordering です。
@@ -171,7 +167,6 @@ $$
 $$
 T_{\mathrm{steady}} =
 \min_{\sigma \in \mathrm{Topo}(D)} T_{\mathrm{steady}}(\sigma).
-\tag{5}
 $$
 
 実際には、real fused-kernel DAG は強く制約されるため、この search は小規模です。MLA decode の 11 tile action は、制約なしの $11!$ permutation から 132 の合法的 topological order へ減少します。この search は autotuning run ではありません。Tile plan 上の analytical scheduling step であるため、cost model 内で実行できるほど低 cost のままです。
@@ -232,7 +227,6 @@ TileSight は、tile grid に関連する各 tensor について *tensor access*
 
 $$
 \mathrm{key}(\mathbf{x}, R)=\mathrm{Linearize}\bigl(x_d\mid d\notin R\bigr),
-\tag{6}
 $$
 
 ここで $\mathbf{x}$ は tile coordinate、$R$ は reuse dimension の集合です。GEMM の A matrix について $R=\{N_t\}$ であり、同じ M-row の全 tile が同じ A key を共有します。B については、同じ N-column の全 tile が同じ B key を共有します。Swizzle と row-panel traversal を含む具体的 tile execution order が、これらの key が現れる sequence、したがって reuse distance を決めます。
@@ -247,7 +241,6 @@ P(h \mid D_T) =
 \binom{D_T}{a}
 \left(\frac{A}{B_T}\right)^a
 \left(\frac{B_T-A}{B_T}\right)^{D_T-a},
-\tag{7}
 $$
 
 ここで $A$ は cache associativity、$B_T$ は tile 単位の cache capacity です。この binomial form は正確ですが、大規模 tile grid の各 tensor key について計算すると高 cost です。
@@ -260,7 +253,6 @@ P(h \mid D_T)_{\mathrm{approx}}
 1 - Q\!\left(
 \frac{|A-1-\mu|}{\sqrt{\sigma^2}}
 \right),
-\tag{8}
 $$
 
 ここで
@@ -272,7 +264,6 @@ $$
 D_T \cdot \frac{A}{B_T}
 \cdot
 \left(1-\frac{A}{B_T}\right).
-\tag{9}
 $$
 
 $Q(x)$ は standard normal distribution の complementary cumulative distribution function (CDF) です。Overhead をさらに減らすため、CDF $\Phi(x)$ に Zelen-Severo approximation [Abr65] を適用します。
@@ -283,7 +274,6 @@ $$
 1 -
 \left(a_1t-a_2t^2+a_3t^3\right)
 \frac{e^{-x^2/2}}{\sqrt{2\pi}},
-\tag{10}
 $$
 
 ここで $t=(1+0.33267x)^{-1}$、$a_1,a_2,a_3$ は constant です。
@@ -313,7 +303,6 @@ T_k
 \underbrace{
 \max_{l\in\mathcal{L}} \beta_l B_{l,k}
 }_{\mathrm{bottleneck\ link\ serialization}},
-\tag{11}
 $$
 
 ここで $\mathcal{E}_k$ は stage $k$ の logical exchange 集合、$\mathcal{P}_{sd}$ は $(s,d,b)$ の physical route、$B_{l,k}$ は link $l$ を通って routing される byte、$\alpha_l,\beta_l$ は link $l$ の calibration 済み startup latency と inverse bandwidth です。推定された communication sequence の cost は stage の ordered sum、$T_c=\sum_{k\in\mathcal{K}_c}T_k$ です。Ring collective のように同一 stage を反復する algorithm では、TileSight は 1 stage を評価して stage count を乗じます。結果は式 1 の `Net` dimension に入り、device 間 movement は tile 内 resource requirement として表現され、他のすべてと同じ steady-state machinery により local compute と overlap します。

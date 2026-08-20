@@ -42,7 +42,7 @@ $$
 \begin{aligned}
 X_{\mathrm{FP}k} = {(-1)}^{s}2^{p-\mathrm{bias}}(1.\mathrm{mantissa})={(-1)}^{s}2^{p-\mathrm{bias}} \\
 \left(1+\frac{d_{1}}{2}+\frac{d_{2}}{2^{2}}+\ldots+\frac{d_{m}}{2^{m}}\right),
-\end{aligned}\tag{1}
+\end{aligned}
 $$
 
 ここで、$s$ は符号ビット、$p$ は指数の整数値、$\mathrm{bias}$ は指数に加えるバイアス、$m$ は仮数部の総ビット数、$d_{1},d_{2},\ldots,d_{m}$ は二進形式の仮数部を構成する各桁です。$\mathrm{FP}k$ では、$s$、$p$、$m$ のビット数の合計が $k$ になります。
@@ -55,7 +55,7 @@ $$
 \begin{aligned}
 X^{\mathrm{NF}}_{i} =\frac{1}{2}\Bigl(\mathrm{quantile}\!\left(N(0,1),\frac{i}{2^{k}+1}\right) \\
 \quad+\,\mathrm{quantile}\!\left(N(0,1),\frac{i+1}{2^{k}+1}\right)\Bigr),
-\end{aligned}\tag{2}
+\end{aligned}
 $$
 
 ここで、$\mathrm{quantile}(\cdot,q)$ は入力の第 $q$ 分位点、$N(0,1)$ は標準正規分布です。テンソルが $[-1,1]$ に収まらない場合は、まず最大絶対値でスケーリングします。0 を厳密に表現するため、負側に $2^{k-1}$ 個、正側に $2^{k-1}-1$ 個の $X^{\mathrm{NF}}_{i}$ を推定して非対称に分割し、双方に含まれる 0 の片方を取り除きます。NF では各量子化ビンに入る値の期待数がほぼ等しくなり、量子化形式にできるだけ多くの情報を保持できます。
@@ -65,7 +65,7 @@ $$
 **整数。** 整数量子化は、量子化技術の登場以来、最も広く研究されてきたデータ形式です。浮動小数点値を等間隔の $2^{k}$ 個の離散整数へ分割します。
 
 $$
-X_{\mathrm{INT}_{k}}=(-1)^{s}(d_{1}2^{m}+d_{2}2^{m-1}+\cdots+d_{m}2^{0}),\quad x\in\mathbb{N}^{+},\tag{3}
+X_{\mathrm{INT}_{k}}=(-1)^{s}(d_{1}2^{m}+d_{2}2^{m-1}+\cdots+d_{m}2^{0}),\quad x\in\mathbb{N}^{+},
 $$
 
 符号付き整数では $m=k-1$、$s\in\{0,1\}$ です。符号なし整数では $m=k$ とし、$s=0$ とみなします。したがって、符号付き整数の範囲は $[-2^{k-1},2^{k-1}-1]$、符号なし整数の範囲は $[0,2^{k}-1]$ です。LLM の登場以前にも、[She20] が示すように BERT 系言語モデルへ整数量子化が適用されていました。
@@ -93,7 +93,7 @@ p&=\begin{cases}
 4+\mathrm{LZD}(b_{2}b_{1}b_{0}),&b_{3}=1,
 \end{cases}\\
 \mathrm{mantissa}&=b_{2}b_{1}b_{0}\mathbin{\texttt{<<}}(\mathrm{LZD}(b_{2}b_{1}b_{0})+1),
-\end{aligned}\tag{4}
+\end{aligned}
 $$
 
 `LZD` はビット列の左端から先頭の 0 を数える `L`eading `Z`ero `D`etector [Okl94]、`<<` は左シフト演算を表し、浮動小数点ベースの Flint4 では $\mathrm{bias}=1$ です。Flint は整数に指数を組み込んで範囲を広げます。したがって、純粋な整数より少ないビット数で広い範囲を表現でき、LLM パラメーターの分布に適しています。
@@ -101,7 +101,7 @@ $$
 **Adaptive Biased Float（Abfloat）** は Outlier-Victim Pair Quantization（OVP）[Guo23] で離群値に対処するため初めて提案されました。Flint と異なり、Abfloat は指数に大きな $\mathrm{bias}$ を適用し、$m$ ビットを左シフトして `mantissa` の前の $1$ を拡大することで、離群値を覆えるほど値域を広げます。$\mathrm{E}e\mathrm{M}m$ Abfloat の値は次のように表されます。
 
 $$
-X_{\mathrm{Abfloat}}=(-1)^{s}\times 2^{p+\mathrm{bias}}\times(2^{m}+\mathrm{mantissa}).\tag{5}
+X_{\mathrm{Abfloat}}=(-1)^{s}\times 2^{p+\mathrm{bias}}\times(2^{m}+\mathrm{mantissa}).
 $$
 
 $\mathrm{bias}=0$ では $\mathrm{Flint}4$ と同程度の範囲になります。E2M1 で $\mathrm{bias}=2$ とすると範囲は $\{12,\dots,96\}$、$\mathrm{bias}=3$ とすると $\{24,\dots,192\}$ まで広がります。Flint とのもう一つの違いは、Abfloat を離群値だけに適用し、通常値は INT4/8 または Flint4 で保存する点です。どちらの形式も、加算や乗算など基本演算の挙動を定義するカスタムシステム支援を必要とします。
@@ -109,13 +109,13 @@ $\mathrm{bias}=0$ では $\mathrm{Flint}4$ と同程度の範囲になります�
 **Student Float（SF）** [Dot24] は浮動小数点形式に従いながら、量子化に固有の固定点を持つ形式であり、前述の二種類とは異なります。SF は第 2.1.1 節の NF を改良したもので、パラメーターが Student の t 分布 $S(t;\nu)$ に従うと仮定します。その確率密度関数は次のとおりです。
 
 $$
-S(t;\nu)=\frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{t^{2}}{\nu}\right)^{-\frac{\nu+1}{2}},\tag{6}
+S(t;\nu)=\frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{t^{2}}{\nu}\right)^{-\frac{\nu+1}{2}},
 $$
 
 ここで、$t$ は独立変数、$\nu$ は自由度、$\Gamma$ は一般化階乗です。
 
 $$
-\tilde{X}^{\mathrm{SF}}_{i}=\mathrm{quantile}\left(S(t;\nu),q_{i}\right),\quad q_{i}=\begin{cases}\omega+(\frac{1}{2}-\omega)\frac{i-1}{7}&i\in\{1,\dots,8\}\\ \frac{1}{2}+(\frac{1}{2}-\omega)\frac{i-8}{8}&i\in\{9,\dots,16\}\end{cases},\tag{7}
+\tilde{X}^{\mathrm{SF}}_{i}=\mathrm{quantile}\left(S(t;\nu),q_{i}\right),\quad q_{i}=\begin{cases}\omega+(\frac{1}{2}-\omega)\frac{i-1}{7}&i\in\{1,\dots,8\}\\ \frac{1}{2}+(\frac{1}{2}-\omega)\frac{i-8}{8}&i\in\{9,\dots,16\}\end{cases},
 $$
 
 ここで、$\omega=\frac{1}{2}(\frac{1}{32}+\frac{1}{30})$、$\{q_{1},\dots,q_{8}\}$ と $\{q_{9},\dots,q_{16}\}$ は等間隔の分位点からなる二群です。続いて、${X}^{\mathrm{SF}}_{i}=\frac{\tilde{X}^{\mathrm{SF}}_{i}}{\max_{i}|\tilde{X}^{\mathrm{SF}}_{i}|}$ により $\tilde{X}^{\mathrm{SF}}$ を $[-1,1]$ へ正規化します。$\nu$ が大きくなるほど t 分布のピークは低く幅広くなり、SF4 の点も広がります。$\nu\to\infty$ では標準正規分布（NF）へ収束します。SF は NF と同様に重みのみの量子化（第 3.2.1 節）で使われます。そのため、基本演算を低レベルで定義する必要はありませんが、SF から標準形式へのカスタム逆量子化が必要です。
@@ -336,7 +336,7 @@ KV キャッシュ量子化には主に四種類の技術があります。
 まず浮動小数点数をスケーリング係数 $s\in\mathbb{R}^{+}$ で割り、$\mathrm{INT}k$ の表現範囲へ合わせます。さらにゼロ点 $z\in\mathbb{Z}$ を加えて、クリップする範囲を移動します [Wu20]。$\mathrm{round}(\cdot)$ は最近接丸め、$\mathrm{clamp}(\cdot,q^{\min},q^{\max})$ は値を $k$ ビットの表現範囲へ制限する関数です。対称量子化では $q^{\min}=-2^{k-1},q^{\max}=2^{k-1}-1$、非対称量子化では $q^{\min}=0,q^{\max}=2^{k}-1$ です。量子化全体は次式で表されます。
 
 $$
-X_{\mathrm{INT}_{k}}=\mathrm{clamp}\left(\mathrm{round}\left(\frac{X_{\mathrm{FP}}}{s}\right)+z,q^{\min},q^{\max}\right),\tag{8}
+X_{\mathrm{INT}_{k}}=\mathrm{clamp}\left(\mathrm{round}\left(\frac{X_{\mathrm{FP}}}{s}\right)+z,q^{\min},q^{\max}\right),
 $$
 
 スケーリング係数は $s_{0}=({X_{\mathrm{FP}}^{\max}-X_{\mathrm{FP}}^{\min}})/$ $({q^{\max}-q^{\min}}),$ と初期化できます。$X_{\mathrm{FP}}^{\max}$ と $X_{\mathrm{FP}}^{\min}$ はそれぞれ最大値と最小値です。
@@ -370,17 +370,17 @@ $$
 整数にスケーリング係数を掛け、実数へ戻します。
 
 $$
-\hat{X}_{\mathrm{FP}}=s\cdot(X_{\mathrm{INT}x}-z)\approx X_{\mathrm{FP}}.\tag{9}
+\hat{X}_{\mathrm{FP}}=s\cdot(X_{\mathrm{INT}x}-z)\approx X_{\mathrm{FP}}.
 $$
 
 そのため、多くの研究では候補の中から最適な $s$ を探索して初期化できます [Wei23]。
 
 $$
-s_{\mathrm{candidate}} =\frac{i}{\mathrm{num}_{i}}s_{0},\qquad i\in\mathbb{Z}^{+},i\in(0,\mathrm{num}_{i}).\tag{10}
+s_{\mathrm{candidate}} =\frac{i}{\mathrm{num}_{i}}s_{0},\qquad i\in\mathbb{Z}^{+},i\in(0,\mathrm{num}_{i}).
 $$
 
 $$
-\mathrm{s.t.}\;\min\|{X}_{\mathrm{FP}}-\hat{X}_{\mathrm{FP}}\|_{p}.\tag{11}
+\mathrm{s.t.}\;\min\|{X}_{\mathrm{FP}}-\hat{X}_{\mathrm{FP}}\|_{p}.
 $$
 
 $\mathrm{num}_{i}$ は候補数で、通常は 50 や 100 などに設定します [Yua24a, Wei23]。$s$ を学習可能なパラメーターにすることもできます [Wei23, Sha23]。より良い $s$ の探索は LLM の登場以前から広く研究されています [Din24, Wei23a, Tia24a]。
@@ -392,7 +392,7 @@ $\mathrm{num}_{i}$ は候補数で、通常は 50 や 100 などに設定しま�
 `sign` または `bool` 関数で符号を抽出します。
 
 $$
-X_{\mathrm{sign}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ -1,&X_{\mathrm{FP}}<0,\end{cases}\quad X_{\mathrm{bool}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ 0,&X_{\mathrm{FP}}<0.\end{cases}\tag{12}
+X_{\mathrm{sign}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ -1,&X_{\mathrm{FP}}<0,\end{cases}\quad X_{\mathrm{bool}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ 0,&X_{\mathrm{FP}}<0.\end{cases}
 $$
 
 `sign` と `bool` のどちらを使うかは、ビットに何を表現させたいかというアルゴリズム設計によります。例えば二値 Transformer は、注意スコアと ReLU 後の活性化に `bool`、線形関数の重みと活性化に `sign` を使います。ハードウェアはビットを常に 0 または 1 とみなすため、命令を組み合わせれば任意の行列乗算を実現できます（[リンク](https://github.com/yifu-ding/BGEMM-CUDA)）。例えば NVIDIA GPU の `mma` 命令は 0/1 ビット行列を入力し、ビット単位の累積演算 `popcount` で 0 と 1 として扱います。正しい累積値を得るため、`popcount` には異なる算術規則を設定できます。0 ごとに 1 を引けば `sign` 関数の結果が得られます。ルックアップテーブル（[リンク](https://github.com/WojciechMula)）、nifty popcnt [Wil58]、hacker popcnt [War12]、hakmem popcnt（[リンク](https://en.wikipedia.org/w/index.php?title=HAKMEM&oldid=1228234783)）など、多数の高速実装があります。
@@ -423,15 +423,15 @@ $$
 **FP8 学習。** NVIDIA や AMD などのハードウェアベンダーは、FP8 または FP4 に対応する新しいアーキテクチャを設計しています。少ない変更で十分な高速化を得るには、ベンダーが提供する Transformer Engine を利用できます。FP8 のダイナミックレンジは個々の活性化や勾配を保存するには十分ですが、そのすべてを同時に覆うことはできません。そのため、FP16 で機能した単一の損失スケーリング係数は FP8 学習に適用できず、FP8 テンソルごとに異なる係数が必要です。スケーリングは次のように表されます。
 
 $$
-\mathrm{FP8\_MAX}=\mathrm{maximum\_representable\_value}(\mathrm{fp8\_format}),\tag{13}
+\mathrm{FP8\_MAX}=\mathrm{maximum\_representable\_value}(\mathrm{fp8\_format}),
 $$
 
 $$
-\mathrm{exp}=\mathrm{get\_exponent}(\mathrm{FP8\_MAX}/\mathrm{amax}),\tag{14}
+\mathrm{exp}=\mathrm{get\_exponent}(\mathrm{FP8\_MAX}/\mathrm{amax}),
 $$
 
 $$
-\mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.\tag{15}
+\mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.
 $$
 
 $\mathrm{fp8\_format}$ は E4M3 や E5M2 などの形式、$\mathrm{FP8\_MAX}$ はその形式での最大値、$\mathrm{amax}$ はテンソルの最大絶対値を示します。これらから $\mathrm{exp}$ を求め、$\mathrm{new\_scaling\_factor}$ を計算します。ただし、オンラインでの計算は大量の追加メモリアクセスを生むため、遅延スケーリングが最適です。この方法は過去数回の反復で観測した絶対値の最大値に基づいて係数を選びます。FP8 演算の性能を最大限に引き出せますが、最大値の履歴を FP8 演算子の追加パラメーターとして保存する必要があります。最先端モデルの一つである DeepSeek V3 [Dee24a] は、細粒度なブロック単位 FP8 量子化によって高精度な FP8 学習を実現します。[表 3](#table-03) には、Microsoft の DeepSpeed（[リンク](https://github.com/microsoft/DeepSpeed)）、NVIDIA の Megatron-LM（[リンク](https://github.com/NVIDIA/Megatron-LM)）、Graphcore の UnitScaling（[リンク](https://github.com/graphcore-research/unit-scaling)）など、低ビット浮動小数点学習に対応する主要なフレームワークとエンジンを示します。
@@ -465,7 +465,7 @@ Low-Rank Adaptation（LoRA）[Hu21] は事前学習済み重みを固定し、�
 QLoRA [Det24] などは、量子化した LLM に対して LoRA をファインチューニングし、低ビット量子化でメモリ使用量をさらに削減します。まず PTQ により、事前学習済み LLM を低ビットへ量子化します。
 
 $$
-\textbf{W}_{q}\leftarrow \mathrm{quant}(\textbf{W}),\tag{16}
+\textbf{W}_{q}\leftarrow \mathrm{quant}(\textbf{W}),
 $$
 
 **W** は各層の重みです。
@@ -473,7 +473,7 @@ $$
 続いて全重みパラメーターを固定し、ファインチューニング時には LoRA だけを更新します。前向き計算は次式です。
 
 $$
-\textbf{Y}=\textbf{X}\cdot \mathrm{dequant}(\textbf{W}_{q})+\textbf{X}\cdot\textbf{A}\textbf{B},\tag{17}
+\textbf{Y}=\textbf{X}\cdot \mathrm{dequant}(\textbf{W}_{q})+\textbf{X}\cdot\textbf{A}\textbf{B},
 $$
 
 **X** は各層の入力です。
@@ -531,13 +531,13 @@ LoRA のファインチューニング後に、量子化・統合済みでその
 離群値へ対処するアルゴリズムの中でも、等価変換は最も代表的かつ有効な方法の一つです。Outlier Suppression（OS）[Wei22] は、言語モデルへ等価変換を適用した初期の研究です。OS は LayerNorm 関数を分割し、LayerNorm のパラメーター $\gamma$ を移動して離群値を回避します。
 
 $$
-\textbf{X}_{j}=\textbf{X}^{\prime}_{j}\cdot\gamma_{j}\tag{18}
+\textbf{X}_{j}=\textbf{X}^{\prime}_{j}\cdot\gamma_{j}
 $$
 
 これにより LayerNorm はスケーリングを行わなくなり、次の層の重みが $\gamma$ を吸収できます。
 
 $$
-\textbf{W}(x\odot\begin{bmatrix}\gamma_{1}\\ \gamma_{2}\\ \cdots\\ \gamma_{n}\end{bmatrix})=(\textbf{W}\odot\begin{bmatrix}\gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \cdots\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\end{bmatrix})x\tag{19}
+\textbf{W}(x\odot\begin{bmatrix}\gamma_{1}\\ \gamma_{2}\\ \cdots\\ \gamma_{n}\end{bmatrix})=(\textbf{W}\odot\begin{bmatrix}\gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \cdots\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\end{bmatrix})x
 $$
 
 この処理により、OS は離群値を抑制できます。OS を起点として、その後多数の等価変換手法が現れました。多くは重みまたは活性化の離群値分布を対称かつ滑らかにし、量子化への影響を軽減します。これは次式で表せます。
@@ -546,7 +546,7 @@ $$
 \begin{aligned}
 \textbf{Y}&=\textbf{X}\textbf{W}+\textbf{B} \\
 &=[(\textbf{X}-\Delta)\cdot\textbf{M}^{-1}]\cdot[\textbf{M}\cdot\textbf{W}]+(\textbf{B}+\Delta\cdot\textbf{W}),
-\end{aligned}\tag{20}
+\end{aligned}
 $$
 
 $\Delta$ は入力の離群値分布を対称にするシフト係数、**M** は分布を滑らかにする行列です。この等価変換を採用した既存手法の多くが、多様な量子化設定と場面で最先端（SOTA）の性能を達成しています。
@@ -564,19 +564,19 @@ $\Delta$ は入力の離群値分布を対称にするシフト係数、**M** �
 LLM の離群値はチャネル間で非対称に分布します。この非対称な表現により、小さな範囲のチャネルで構成されたテンソルでも全体として非常に大きな範囲を持ち、量子化が難しくなる場合があります。OS+ [Wei23] はこの問題に対処するため、チャネル単位のシフト変換を初めて提案しました。次式のようにチャネルごとの活性化を調整し、非対称性の影響を抑えます。
 
 $$
-\hat{X}=X-\Delta,\tag{21}
+\hat{X}=X-\Delta,
 $$
 
 $\Delta\in\mathbb{R}^{c\times 1}$ は行ベクトルとして各活性化チャネルをシフトします。これは対称量子化で一般的なシフト操作ではありません。チャネル単位で作用し、テンソル単位量子化に適した分布を作ります。OS+ は $\Delta$ を次の経験則で定義します。
 
 $$
-\Delta_{j}=\frac{\max(\textbf{X}_{:,j})+\min(\textbf{X}_{:,j})}{2}.\tag{22}
+\Delta_{j}=\frac{\max(\textbf{X}_{:,j})+\min(\textbf{X}_{:,j})}{2}.
 $$
 
 チャネル単位のシフトによってテンソル範囲は最大のチャネル範囲まで縮まり、非対称な離群値の影響を除けます。ただし、等価パラメーターを手作業の規則で定めると結果は最適になりません。そこで OmniQuant [Sha23] は、ブロック単位の量子化誤差を最小化し、最適なシフトパラメーターを微分可能な方法で求めます。
 
 $$
-\underset{\Delta}{\mathrm{arg}\,\min}\,\|\mathcal{O}(\textbf{W},\textbf{X})-\mathcal{O}\big(Q_{w}\left(\textbf{W};\Delta\right),Q_{a}\left(\textbf{X};\Delta\right)\big)\|,\tag{23}
+\underset{\Delta}{\mathrm{arg}\,\min}\,\|\mathcal{O}(\textbf{W},\textbf{X})-\mathcal{O}\big(Q_{w}\left(\textbf{W};\Delta\right),Q_{a}\left(\textbf{X};\Delta\right)\big)\|,
 $$
 
 $\mathcal{O}$ は LLM の Transformer ブロックの写像関数、$Q_{w}(\cdot)$ と $Q_{a}(\cdot)$ はそれぞれ重みと活性化の量子化器、$\Delta$ はシフトパラメーターです。ブロック単位の最小化は少ない資源で容易に最適化できます。そのため OS+ の直接計算よりも効率的かつ省資源で、有効なシフトベクトルを得られます。ただし、OmniQuant は学習可能なパラメーターをファインチューニングしなければならず、そうしないと勾配爆発などが起こりやすくなります。AffineQuant [Ma24a] も OmniQuant と同様に、学習ベースのシフト操作を採用します。
@@ -594,13 +594,13 @@ $\mathcal{O}$ は LLM の Transformer ブロックの写像関数、$Q_{w}(\cdot
 シフト変換は活性化の離群値が非対称に分布する問題へ有効であり、非対称性による広い範囲を縮小します。ただし、チャネル間に分布する離群値そのものは除かないため、テンソル単位量子化には役立っても、チャネル単位量子化の難しさは軽減しません。離群値の影響をさらに抑えるため、SmoothQuant [Xia23] はスケーリング変換を初めて提案しました。この手法は、離群値によって活性化は重みより量子化が難しいものの、異なるトークンがチャネル間で似た変化を示すという重要な観察に基づきます [Det22]。SmoothQuant は数学的に等価なチャネル単位スケーリング変換を導入し、量子化の難しさをオフラインで活性化から重みへ移します。これにより、チャネル間の大きさを大幅に滑らかにします。
 
 $$
-\textbf{Y}=(\textbf{X}\mathrm{diag}(\Phi)^{-1})\cdot(\mathrm{diag}(\Phi)\textbf{W})=\hat{\textbf{X}}\hat{\textbf{W}},\tag{24}
+\textbf{Y}=(\textbf{X}\mathrm{diag}(\Phi)^{-1})\cdot(\mathrm{diag}(\Phi)\textbf{W})=\hat{\textbf{X}}\hat{\textbf{W}},
 $$
 
 $\Phi$ は平滑化係数です。$\mathrm{diag}(\Phi)$ は式 (20) の行列 **M** に対応しますが、チャネル単位の平滑化に使う対角行列です。SmoothQuant は移行強度を表すハイパーパラメーター $\alpha$ を導入し、活性化から重みへ移す難しさの量を制御します。
 
 $$
-\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)^{\alpha}}{\max(|\textbf{W}_{j}|)^{1-\alpha}}.\tag{25}
+\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)^{\alpha}}{\max(|\textbf{W}_{j}|)^{1-\alpha}}.
 $$
 
 ただし、モデルごとに最適な移行強度を決めるには複数回の試行が必要です。例えば、すべての OPT [Zha22] と BLOOM [Les23] モデルでは $\alpha=0.5$ がバランスのよい値です。
@@ -608,7 +608,7 @@ $$
 SmoothQuant に着想を得た FPTQ [Li23c] は、活性化の平滑化尺度を求める際に重みを考慮する必要はない一方、非線形かつ損失のない写像ですべての活性化値を保持することが重要だと主張します。この写像には、（1）通常値へ穏やかに作用すること、（2）離群値を強く抑えること、という二条件があります。そこで対数関数を使い、平滑化行列 $\Phi$ の計算を改善します。
 
 $$
-\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)}{\log_{2}(2+\max(\textbf{X}_{j}))}.\tag{26}
+\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)}{\log_{2}(2+\max(\textbf{X}_{j}))}.
 $$
 
 FPTQ 以外にも多くの研究が SmoothQuant の方針を継承しています。OS+ と AWQ [Lin24] はどちらも探索によって平滑化尺度を求めますが、最適化目的と探索空間は異なります。OS+ の目的関数は次式です。
@@ -617,13 +617,13 @@ $$
 \begin{aligned}
 \Phi^{*} = \underset{\Phi}{\mathrm{arg}\,\min}\,\mathbb{E}\|Q\big((\textbf{X}-\Delta)\cdot \mathrm{diag}(\Phi)^{-1}\big)Q\big(\mathrm{diag}(\Phi)\cdot\textbf{W}^{\mathsf{T}}\big) \\
 +\hat{\textbf{b}}-(\textbf{X}\textbf{W}^{\mathsf{T}}+\textbf{b})\|^{2}_{F}.
-\end{aligned}\tag{27}
+\end{aligned}
 $$
 
 探索空間を簡略化するため、OS+ は離群値のしきい値 $t$ を最適化します。活性化範囲が $t$ を超えるチャネルを $(-t,t)$ へ圧縮し、その他は変更しません。これにより問題は一変数となり、目的関数を最小化する $t$ をグリッド探索できます。最適な $t$ を得た後、スケーリングベクトルを次式で求めます。
 
 $$
-\Phi_{j}=\max(1.0,\frac{\max(\textbf{X}_{:,j}-\Delta_{j})}{t}).\tag{28}
+\Phi_{j}=\max(1.0,\frac{\max(\textbf{X}_{:,j}-\Delta_{j})}{t}).
 $$
 
 AWQ は、重みチャネルの重要度が実際には活性化尺度によって決まると指摘します。そこで活性化を考慮した目的関数と、非常に単純な探索空間を採用します。
@@ -632,7 +632,7 @@ $$
 \begin{aligned}
 \Phi ={\Phi_{x}}^{\alpha}, \\
 \alpha^{*} =\underset{\alpha}{\mathrm{arg}\,\min}\,\left\|Q\!\left(\textbf{W}\cdot\mathrm{diag}({\Phi_{x}}^{\alpha})\right)(\mathrm{diag}({\Phi_{x}}^{\alpha}))^{-1}\textbf{X}-\textbf{W}\textbf{X}\right\|,
-\end{aligned}\tag{29}
+\end{aligned}
 $$
 
 ${\Phi_{x}}$ はチャネル単位の活性化の平均的な大きさで、一つのハイパーパラメーター $\alpha$ によって重要チャネルと非重要チャネルの保護を調整します。
@@ -646,7 +646,7 @@ ${\Phi_{x}}$ はチャネル単位の活性化の平均的な大きさで、一�
 回転変換は QuIP [Che24b] が初めて導入しました。QuIP は、重み行列と Hessian 行列がインコヒーレントであるほど量子化がうまく機能するという知見に基づきます。つまり、各重みの大きさが近く、精密な丸めを必要とする方向が座標軸と揃わないことが望まれます。具体的には、次式を満たす重み行列を $\mu$-インコヒーレントと呼びます。
 
 $$
-\max(\textbf{W})\leq\mu\|\textbf{W}\|_{F}/\sqrt{mn},\tag{30}
+\max(\textbf{W})\leq\mu\|\textbf{W}\|_{F}/\sqrt{mn},
 $$
 
 $mn$ は行列の要素数、$\|\cdot\|_{F}$ は Frobenius ノルムです。QuIP は、重み行列の左右に直交行列を掛けるとコヒーレンスを下げられることを示します。これは重み行列への回転変換に相当します。QuIP は Kronecker 構造を持つ直交行列を使うため、追加計算を高速に実行できます。QuIP# [Tse24] はこれを Hadamard 行列へ置き換え、より高いインコヒーレンスによって量子化を改善し、前向き計算も高速化します。Hadamard 変換は $\mathcal{O}(n\log n)$ 回の加算で計算できるからです。
@@ -662,7 +662,7 @@ $mn$ は行列の要素数、$\|\cdot\|_{F}$ は Frobenius ノルムです。QuI
 ただし、QuIP の直交行列も、QuIP# と QuaRot の Hadamard 行列もランダムに生成されます。これらが離群値問題をある程度緩和することは示されていますが、最適ではありません。SpinQuant [Liu24b] は、量子化ネットワークの性能が回転行列によって大きく変わることを発見しました。例えば MMLU ベンチマークでは、回転によって下流のゼロショット推論タスクの平均精度が最大 13 ポイント変動します。そこで SpinQuant は学習ベースの回転変換を提案し、Cayley SGD で次の目的を最適化して回転行列を学習します。
 
 $$
-\textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).\tag{31}
+\textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).
 $$
 
 $\mathcal{M}$ は Stiefel 多様体、すなわちすべての直交行列の集合を表し、$\mathcal{L}_{Q}(\cdot)$ はタスク損失です。学習した行列を使うと、ランダム行列に比べて性能が大幅に向上し、分散も小さくなります。SpinQuant [Liu24b] の図は回転変換全体を明確に示しているため、本稿では[図 11](#figure-11) として引用しました。QuaRot [Ash24] は $R_{2}$ でヘッド単位の回転変換を行うため、等価変換を実現するには注意出力を量子化する前にオンライン Hadamard 行列を挿入する必要があります。DuQuant [Lin24b] は、大規模な離群値を平滑化する際の既存手法の限界を指摘し、事前知識に基づく回転と置換を使います。また SpinQuant と異なり、貪欲探索で回転行列を最適化します。PrefixQuant [Che24c] は、特に先頭トークンと意味情報の少ないトークンに現れるトークン単位の離群値を発見しました。これらのトークンはすべての入力で変わらないため、PrefixQuant はオフラインの Prefill によってその KV キャッシュを保存します。
@@ -676,11 +676,11 @@ $\mathcal{M}$ は Stiefel 多様体、すなわちすべての直交行列の集
 重みを一つずつ量子化する方法は小モデルで良好な性能を得られますが、大モデルへ拡張すると計算負荷が許容できなくなります。GPTQ [Fra22] は量子化を高速化するため、重みを列単位で量子化し、二次情報で丸め誤差を補償します。具体的には、更新量 $\boldsymbol{\delta}_{R}$ で全精度重みの部分集合 $R$ を調整し、量子化重み $\mathrm{Quant}(\mathbf{W}_{i})$ による誤差を補償します。
 
 $$
-\mathbf{W}_{i}=\underset{\mathbf{W}_{i}}{\mathrm{arg}\,\min}\,\frac{(\mathrm{Quant}(\mathbf{W}_{i})-\mathbf{W}_{i})^{2}}{[\mathbf{H}_{R}^{-1}]_{ii}}.\tag{32}
+\mathbf{W}_{i}=\underset{\mathbf{W}_{i}}{\mathrm{arg}\,\min}\,\frac{(\mathrm{Quant}(\mathbf{W}_{i})-\mathbf{W}_{i})^{2}}{[\mathbf{H}_{R}^{-1}]_{ii}}.
 $$
 
 $$
-\boldsymbol{\delta}_{R}=-\frac{\mathbf{W}_{i}-\mathrm{Quant}(\mathbf{W}_{i})}{[\mathbf{H}_{R}^{-1}]_{ii}}\cdot(\mathbf{H}_{R}^{-1})_{:,i}.\tag{33}
+\boldsymbol{\delta}_{R}=-\frac{\mathbf{W}_{i}-\mathrm{Quant}(\mathbf{W}_{i})}{[\mathbf{H}_{R}^{-1}]_{ii}}\cdot(\mathbf{H}_{R}^{-1})_{:,i}.
 $$
 
 Hessian 行列は $\mathbf{H}_{R}=2\mathbf{X}_{R}\mathbf{X}_{R}^{\top}$ です。GPTQ をもとに複数の研究が続きました。QuantEase [Beh23] は座標降下法で、未量子化の重みに対してより正確な補償を計算します。QQQ [Zha24a] は OS+ [Wei23] で変換した重みへ GPTQ を適用します。
@@ -721,7 +721,7 @@ $$
 \textbf{A}_{ij} =\max(\hat{\textbf{Y}}_{:i})-\min(\hat{\textbf{Y}}_{:i}), \\
 \mathrm{where}\qquad\hat{\textbf{Y}}=\textbf{X}\cdot(\Theta(\textbf{W};i;j))^{\mathsf{T}}, \\
 \textbf{S}_{ij} =\textbf{I}_{ij}+\lambda\textbf{A}_{ij}.
-\end{aligned}\tag{34}
+\end{aligned}
 $$
 
 $\Theta(\textbf{W};i;j)$ は、**W** の第 $i$ 行・第 $j$ 列の要素を 0 にした補助重み行列、$\lambda$ はトレードオフ係数です。この指標により、より多くの情報を得るため離群値を残すことと、量子化しやすいよう活性化範囲を縮めることの間で、より良いバランスを取れます。
@@ -751,7 +751,7 @@ Quantile Quantization とともに提案された Normal Float [Det21, Det24] �
 ベクトル量子化（VQ）は複数のベクトル次元をまとめて量子化します。$C_{1},...,C_{M}$ というコードブックを学習し、それぞれに $2^{B}$ 個のベクトル（B ビットコード）を格納します。データベースベクトルを符号化するときは、要素をサブグループへ分割し、学習済みコードブックから一つのベクトルを選んで各グループを符号化します。第 $i$ 層の重みの一部は、各コードブックから一つのコードを選んで合計することで表されます。
 
 $$
-\widehat{W}_{i,j}=\sum_{m=1}^{M}{C_{m}d_{ijm}}\tag{35}
+\widehat{W}_{i,j}=\sum_{m=1}^{M}{C_{m}d_{ijm}}
 $$
 
 $d_{ijm}\in\mathbb{R}^{2^{B}}$ は、第 $i$ 出力ユニット、第 $j$ 入力次元グループ、第 $m$ コードブックに対応する one-hot コードです。
@@ -759,7 +759,7 @@ $d_{ijm}\in\mathbb{R}^{2^{B}}$ は、第 $i$ 出力ユニット、第 $j$ 入力
 第 $i$ 層の重み全体は単純に連結して表します。
 
 $$
-\widehat{W}_{i}=\widehat{W}_{1}\oplus...\oplus\widehat{W}_{d_{\mathrm{in}}/g}\tag{36}
+\widehat{W}_{i}=\widehat{W}_{1}\oplus...\oplus\widehat{W}_{d_{\mathrm{in}}/g}
 $$
 
 $\oplus$ は連結を表します。

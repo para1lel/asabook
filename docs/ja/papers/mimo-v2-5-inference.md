@@ -200,7 +200,7 @@ HiCache は L2 ヒット率に非常に敏感である。L2 cache がミスす�
 ルータは、配信済みリクエストを Radix プレフィックス木で維持することにより、KVCache 親和性スケジューリングを実装する。複数の Prefill インスタンスのうち、現在のリクエストのプレフィックスをすでにキャッシュしているノードを優先しながら負荷も分散し、ホットスポットへの負荷偏在を避ける。この戦略を導入すると、L2 cache のヒット率は約 **25%**、ノード当たりの入力スループットは約 **30%** 向上した。主要な式はおおむね次のとおりである。
 
 $$
-\mathrm{score}(\mathrm{worker}) = \mathrm{matchWeight} \times \mathrm{prefixMatchPercentage} - \mathrm{normalizedLoad}\tag{1}
+\mathrm{score}(\mathrm{worker}) = \mathrm{matchWeight} \times \mathrm{prefixMatchPercentage} - \mathrm{normalizedLoad}
 $$
 
 <span id="section-4-2"></span>

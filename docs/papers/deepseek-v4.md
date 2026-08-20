@@ -63,7 +63,7 @@ DeepSeek-V4 系列的后训练流程采用两阶段范式: 首先独立培养特
 **标准超连接.** 标准 HC 将残差流的宽度扩大 $n_{\mathrm{hc}}$ 倍. 具体而言, 残差流的形状从 $\mathbb{R}^{d}$ 扩展至 $\mathbb{R}^{n_{\mathrm{hc}}\times d}$, 其中 $d$ 是实际层输入的隐藏维度. 令 $X_{l}=[\mathbf{x}_{l,1};\ldots;\mathbf{x}_{l,n_{\mathrm{hc}}}]^\top\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$ 为第 $l$ 层之前的残差状态. HC 引入三个线性映射: 输入映射 $A_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, 残差变换 $B_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$, 以及输出映射 $C_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$. 残差状态的更新可表示为:
 
 $$
-X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),\tag{1}
+X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),
 $$
 
 其中, $\mathcal{F}_{l}$ 表示第 $l$ 层 (例如 MoE 层), 其输入与输出形状均为 $\mathbb{R}^{d}$. 请注意, 实际层输入 $A_{l}X_{l}\in\mathbb{R}^{d}$ 同样是 $d$ 维的, 因而扩展后的残差宽度不会影响内部层的设计. HC 将残差宽度与实际隐藏维度解耦, 以极小的计算开销提供一个互补的扩展轴, 因为 $n_{\mathrm{hc}}$ 通常远小于隐藏维度 $d$. 然而, 尽管 HC 已展现出提高模型性能的潜力, 我们发现堆叠多层时, 训练会频繁出现数值不稳定, 从而阻碍 HC 的扩展.
@@ -71,7 +71,7 @@ $$
 **流形约束残差映射.** *m*HC 的核心创新是将残差映射矩阵 $B_{l}$ 约束在双随机矩阵的流形 (Birkhoff 多面体) $\mathcal{M}$ 上, 从而提高信号跨层传播的稳定性:
 
 $$
-B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.\tag{2}
+B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.
 $$
 
 该约束保证映射矩阵的谱范数 $\|B_{l}\|_{2}$ 以 1 为上界, 因而残差变换是非扩张的, 这提高了前向传播与反向传播期间的数值稳定性. 此外, 集合 $\mathcal{M}$ 对乘法封闭, 从而保证深度堆叠 *m*HC 场景下的稳定性. 另外, 输入变换 $A_{l}$ 与输出变换 $C_{l}$ 也通过 Sigmoid 函数被约束为非负且有界, 以避免信号抵消风险.
@@ -79,15 +79,15 @@ $$
 **动态参数化.** 三个线性映射的参数是动态生成的, 并被分解为动态 (依赖输入) 分量与静态 (不依赖输入) 分量. 给定输入 $X_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$, 首先将其展平并归一化: $\hat{X}_{l}=\mathrm{RMSNorm}(\mathrm{vec}(X_{l}))\in\mathbb{R}^{1\times n_{\mathrm{hc}}d}$. 随后, 我们遵循传统 HC, 生成无约束的原始参数 $\tilde{A}_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, $\tilde{B}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$ 和 $\tilde{C}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$:
 
 $$
-\tilde{A}_{l} =\alpha_{l}^{\mathrm{pre}}\cdot(\hat{X}_{l}W^{\mathrm{pre}}_{l})+S_{l}^{\mathrm{pre}},\tag{3}
+\tilde{A}_{l} =\alpha_{l}^{\mathrm{pre}}\cdot(\hat{X}_{l}W^{\mathrm{pre}}_{l})+S_{l}^{\mathrm{pre}},
 $$
 
 $$
-\tilde{B}_{l} =\alpha_{l}^{\mathrm{res}}\cdot\mathrm{Mat}(\hat{X}_{l}W^{\mathrm{res}}_{l})+S_{l}^{\mathrm{res}},\tag{4}
+\tilde{B}_{l} =\alpha_{l}^{\mathrm{res}}\cdot\mathrm{Mat}(\hat{X}_{l}W^{\mathrm{res}}_{l})+S_{l}^{\mathrm{res}},
 $$
 
 $$
-\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},\tag{5}
+\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},
 $$
 
 其中, $W^{\mathrm{pre}}_{l},W^{\mathrm{post}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}}$ 与 $W^{\mathrm{res}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}^{2}}$ 是用于生成动态分量的可学习参数; $\mathrm{Mat}(\cdot)$ 将大小为 $1\times n_{\mathrm{hc}}^{2}$ 的向量重塑为大小为 $n_{\mathrm{hc}}\times n_{\mathrm{hc}}$ 的矩阵; $S_{l}^{\mathrm{pre}}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, $S_{l}^{\mathrm{post}}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$ 和 $S_{l}^{\mathrm{res}}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$ 是可学习的静态偏置; $\alpha_{l}^{\mathrm{pre}}$, $\alpha_{l}^{\mathrm{res}}$, $\alpha_{l}^{\mathrm{post}}\in\mathbb{R}$ 是初始化为较小值的可学习门控因子.
@@ -95,17 +95,17 @@ $$
 **应用参数约束.** 得到无约束原始参数 $\tilde{A}_{l},\tilde{B}_{l},\tilde{C}_{l}$ 后, 我们对其应用前述约束, 以提高数值稳定性. 具体而言, 对于输入和输出映射, 我们使用 Sigmoid 函数 $\sigma(\cdot)$ 来保证其非负性与有界性:
 
 $$
-A_{l} =\sigma(\tilde{A}_{l}),\tag{6}
+A_{l} =\sigma(\tilde{A}_{l}),
 $$
 
 $$
-C_{l} =2\sigma(\tilde{C}_{l}).\tag{7}
+C_{l} =2\sigma(\tilde{C}_{l}).
 $$
 
 对于残差映射 $\tilde{B}_{l}$, 我们将其投影到双随机矩阵流形 $\mathcal{M}$ 上. 这一过程通过 Sinkhorn-Knopp 算法实现: 先对 $\tilde{B}_{l}$ 应用指数函数以保证正性, 得到 $M^{(0)}=\exp(\tilde{B}_{l})$, 随后迭代执行列归一化与行归一化:
 
 $$
-M^{(t)}=\mathcal{T}_{r}(\mathcal{T}_{c}(M^{(t-1)})),\tag{8}
+M^{(t)}=\mathcal{T}_{r}(\mathcal{T}_{c}(M^{(t-1)})),
 $$
 
 其中, $\mathcal{T}_{r}$ 和 $\mathcal{T}_{c}$ 分别表示行归一化与列归一化. 该迭代收敛至受约束的双随机矩阵 $B_{l}=M^{(t_{\max})}$. 我们选择 $t_{\max}=20$ 作为实用取值.
@@ -127,21 +127,21 @@ $$
 **压缩键值条目.** 令 $H\in\mathbb{R}^{n\times d}$ 为输入隐藏状态序列, 其中 $n$ 是序列长度, $d$ 是隐藏维度. CSA 首先计算两组 KV 条目 $C^{a},C^{b}\in\mathbb{R}^{n\times c}$ 及其对应的压缩权重 $Z^{a},Z^{b}\in\mathbb{R}^{n\times c}$, 其中 $c$ 是头维度:
 
 $$
-C^{a} =H\cdot W^{a\mathrm{KV}},\quad C^{b}=H\cdot W^{b\mathrm{KV}},\tag{9}
+C^{a} =H\cdot W^{a\mathrm{KV}},\quad C^{b}=H\cdot W^{b\mathrm{KV}},
 $$
 
 $$
-Z^{a} =H\cdot W^{aZ},\quad\ \ Z^{b}=H\cdot W^{bZ},\tag{10}
+Z^{a} =H\cdot W^{aZ},\quad\ \ Z^{b}=H\cdot W^{bZ},
 $$
 
 其中, $W^{a\mathrm{KV}},W^{b\mathrm{KV}},W^{aZ},W^{bZ}\in\mathbb{R}^{d\times c}$ 是可训练参数. 随后, 根据压缩权重和可学习的位置偏置 $B^{a},B^{b}\in\mathbb{R}^{m\times c}$, 将 $C^{a}$ 与 $C^{b}$ 中每 $m$ 个 KV 条目压缩为一个条目, 得到 $C^{\mathrm{Comp}}\in\mathbb{R}^{\frac{n}{m}\times c}$. 每个压缩条目 $C^{\mathrm{Comp}}_{i}\in\mathbb{R}^{c}$ 的计算方式为
 
 $$
-[S^{a}_{mi:m(i+1)-1};S^{b}_{m(i-1):mi-1}] =\mathrm{Softmax}_{\mathrm{row}}([Z^{a}_{mi:m(i+1)-1}+B^{a};Z^{b}_{m(i-1):mi-1}+B^{b}]),\tag{11}
+[S^{a}_{mi:m(i+1)-1};S^{b}_{m(i-1):mi-1}] =\mathrm{Softmax}_{\mathrm{row}}([Z^{a}_{mi:m(i+1)-1}+B^{a};Z^{b}_{m(i-1):mi-1}+B^{b}]),
 $$
 
 $$
-C^{\mathrm{Comp}}_{i} =\sum_{j=mi}^{m(i+1)-1}S^{a}_{j}\odot C^{a}_{j}+\sum_{j=m(i-1)}^{mi-1}S^{b}_{j}\odot C^{b}_{j},\tag{12}
+C^{\mathrm{Comp}}_{i} =\sum_{j=mi}^{m(i+1)-1}S^{a}_{j}\odot C^{a}_{j}+\sum_{j=m(i-1)}^{mi-1}S^{b}_{j}\odot C^{b}_{j},
 $$
 
 其中, $\odot$ 表示 Hadamard 积; $\mathrm{Softmax}_{\mathrm{row}}(\cdot)$ 表示沿行维度的 softmax 操作, 它对来自 $Z^{a}$ 与 $Z^{b}$ 的总计 $2m$ 个元素进行归一化. 当 $i=0$ 时, $Z^{b}_{m(i-1):mi-1}$ 用负无穷填充, $C^{b}_{m(i-1):mi-1}$ 用零填充. 请注意, 每个 $C^{\mathrm{Comp}}_{i}$ 均源自 $2m$ 个 KV 条目, 但用于 $C^{\mathrm{Comp}}_{i}$ 的 $C^{b}$ 索引与用于 $C^{\mathrm{Comp}}_{i-1}$ 的 $C^{a}$ 索引相互重叠. 因此, CSA 实际上将序列长度压缩至 $\frac{1}{m}$.
@@ -149,39 +149,39 @@ $$
 **用于稀疏选择的 Lightning Indexer.** 得到压缩 KV 条目 $C^{\mathrm{Comp}}$ 后, CSA 应用 DSA 策略, 为核心注意力选择 top-k 个压缩 KV 条目. 首先, CSA 执行与 $C^{\mathrm{Comp}}$ 相同的压缩操作, 得到压缩索引器键 $K^{\mathrm{IComp}}\in\mathbb{R}^{\frac{n}{m}\times c^{I}}$, 其中 $c^{I}$ 是索引器头维度. 随后, 对于查询 token $t$, 我们以低秩方式生成索引器查询 $\{\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}\}$:
 
 $$
-\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},\tag{13}
+\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},
 $$
 
 $$
-[\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}]=\mathbf{q}_{t}^{I} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{IUQ}},\tag{14}
+[\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}]=\mathbf{q}_{t}^{I} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{IUQ}},
 $$
 
 其中, $\mathbf{h}_{t}\in\mathbb{R}^{d}$ 是查询 token $t$ 的输入隐藏状态; $\mathbf{c}_{t}^{Q}\in\mathbb{R}^{d_{c}}$ 是查询的压缩潜在向量; $d_{c}$ 表示查询压缩维度; $n_{h}^{I}$ 表示索引器查询头的数量; $W^{\mathrm{DQ}}\in\mathbb{R}^{d\times d_{c}}$ 与 $W^{\mathrm{IUQ}}\in\mathbb{R}^{d_{c}\times c^{I}n_{h}^{I}}$ 分别是索引器查询的下投影矩阵和上投影矩阵. 随后, 查询 token $t$ 与先前压缩块 $s$ ($s$ < $\mathrm{Floor}(\frac{t}{m})$) 之间的索引分数 $I_{t,s}\in\mathbb{R}$ 计算如下
 
 $$
-[w_{t,1}^{I};w_{t,2}^{I};...;w_{t,n_{h}^{I}}^{I}]=\mathbf{w}_{t}^{I} =\mathbf{h}_{t}\cdot W^{w},\tag{15}
+[w_{t,1}^{I};w_{t,2}^{I};...;w_{t,n_{h}^{I}}^{I}]=\mathbf{w}_{t}^{I} =\mathbf{h}_{t}\cdot W^{w},
 $$
 
 $$
-I_{t,s} =\sum_{h=1}^{n_{h}^{I}}w_{t,h}^{I}\cdot\mathrm{ReLU}\left(\mathbf{q}^{I}_{t,h}\cdot K^{\mathrm{IComp}}_{s}\right),\tag{16}
+I_{t,s} =\sum_{h=1}^{n_{h}^{I}}w_{t,h}^{I}\cdot\mathrm{ReLU}\left(\mathbf{q}^{I}_{t,h}\cdot K^{\mathrm{IComp}}_{s}\right),
 $$
 
 其中, $W^{w}\in\mathbb{R}^{d\times n_{h}^{I}}$ 是可学习矩阵; $w_{t,h}^{I}\in\mathbb{R}$ 是第 $h$ 个索引器头的权重. 对于查询 token $t$, 给定其索引分数 $I_{t,:}$, 我们使用 top-k 选择器, 选择性保留压缩 KV 条目的子集 $\mathcal{C}^{\mathrm{SprsComp}}_{t}$, 供后续核心注意力使用:
 
 $$
-\mathcal{C}^{\mathrm{SprsComp}}_{t}=\left\{C^{\mathrm{Comp}}_{s}\ \Big|\ I_{t,s}\in\mathrm{Top-k}(I_{t,:})\right\}.\tag{17}
+\mathcal{C}^{\mathrm{SprsComp}}_{t}=\left\{C^{\mathrm{Comp}}_{s}\ \Big|\ I_{t,s}\in\mathrm{Top-k}(I_{t,:})\right\}.
 $$
 
 **共享键值 MQA.** 选出稀疏 KV 条目后, CSA 以多查询注意力 (MQA) [Sha19] 方式执行核心注意力, 其中 $\mathcal{C}^{\mathrm{SprsComp}}_{t}$ 内的每个压缩 KV 条目同时作为注意力键和值. 具体而言, 对于查询 token $t$, 我们首先从压缩潜在向量 $\mathbf{c}_{t}^{Q}$ 生成注意力查询 $\{\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}\}$:
 
 $$
-[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t}=\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},\tag{18}
+[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t}=\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},
 $$
 
 其中, $n_{h}$ 表示查询头数量; $W^{\mathrm{UQ}}\in\mathbb{R}^{d_{c}\times cn_{h}}$ 是查询的上投影矩阵. 请注意, 潜在查询向量 $\mathbf{c}_{t}^{Q}$ 与索引器查询所使用的向量共享. 随后, 我们对 $\{\mathbf{q}_{t,i}\}$ 和 $\mathcal{C}^{\mathrm{SprsComp}}_{t}$ 执行 MQA:
 
 $$
-\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}\mathcal{C}^{\mathrm{SprsComp}}_{t},\texttt{value=}\mathcal{C}^{\mathrm{SprsComp}}_{t}\right),\tag{19}
+\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}\mathcal{C}^{\mathrm{SprsComp}}_{t},\texttt{value=}\mathcal{C}^{\mathrm{SprsComp}}_{t}\right),
 $$
 
 其中, $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ 是第 $t$ 个 token 处第 $i$ 个头的核心注意力输出; $\mathrm{CoreAttn}(\cdot)$ 表示核心注意力操作.
@@ -201,21 +201,21 @@ $$
 **压缩键值条目.** 总体而言, HCA 的压缩策略与 CSA 相似, 但采用更大的压缩率 $m^{\prime}$ ($\gg m$), 且不执行重叠压缩. 令 $H\in\mathbb{R}^{n\times d}$ 为输入隐藏状态序列, HCA 首先计算原始 KV 条目 $C\in\mathbb{R}^{n\times c}$ 及其对应的压缩权重 $Z\in\mathbb{R}^{n\times c}$:
 
 $$
-C =H\cdot W^{\mathrm{KV}},\tag{20}
+C =H\cdot W^{\mathrm{KV}},
 $$
 
 $$
-Z =H\cdot W^{Z},\tag{21}
+Z =H\cdot W^{Z},
 $$
 
 其中, $W^{\mathrm{KV}},W^{Z}\in\mathbb{R}^{d\times c}$ 是可训练参数. 随后, 根据压缩权重与可学习的位置偏置 $B\in\mathbb{R}^{m^{\prime}\times c}$, 将 $C$ 中每 $m^{\prime}$ 个 KV 条目压缩为一个, 得到 $C^{\mathrm{Comp}}\in\mathbb{R}^{\frac{n}{m^{\prime}}\times c}$. 每个压缩条目 $C^{\mathrm{Comp}}_{i}\in\mathbb{R}^{c}$ 的计算方式为
 
 $$
-S_{m^{\prime}i:m^{\prime}(i+1)-1} =\mathrm{Softmax}_{\mathrm{row}}(Z_{m^{\prime}i:m^{\prime}(i+1)-1}+B),\tag{22}
+S_{m^{\prime}i:m^{\prime}(i+1)-1} =\mathrm{Softmax}_{\mathrm{row}}(Z_{m^{\prime}i:m^{\prime}(i+1)-1}+B),
 $$
 
 $$
-C^{\mathrm{Comp}}_{i} =\sum_{j=m^{\prime}i}^{m^{\prime}(i+1)-1}S_{j}\odot C_{j}.\tag{23}
+C^{\mathrm{Comp}}_{i} =\sum_{j=m^{\prime}i}^{m^{\prime}(i+1)-1}S_{j}\odot C_{j}.
 $$
 
 通过这一压缩操作, HCA 将序列长度压缩至 $\frac{1}{m^{\prime}}$.
@@ -223,17 +223,17 @@ $$
 **共享键值 MQA 与分组输出投影.** 与 CSA 一样, HCA 也采用共享 KV MQA 与分组输出投影策略. 在 KV 压缩后, 对于查询 token $t$, HCA 首先以低秩方式生成注意力查询 $\{\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}\}$:
 
 $$
-\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},\tag{24}
+\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},
 $$
 
 $$
-[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},\tag{25}
+[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},
 $$
 
 其中, $\mathbf{h}_{t}\in\mathbb{R}^{d}$ 是查询 token $t$ 的输入隐藏状态; $n_{h}$ 表示查询头数量; $W^{\mathrm{DQ}}\in\mathbb{R}^{d\times d_{c}}$ 和 $W^{\mathrm{UQ}}\in\mathbb{R}^{d_{c}\times cn_{h}}$ 分别是查询的下投影矩阵与上投影矩阵. 随后, 我们对 $\{\mathbf{q}_{t,i}\}$ 和 $C^{\mathrm{Comp}}$ 执行 MQA:
 
 $$
-\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}C^{\mathrm{Comp}},\texttt{value=}C^{\mathrm{Comp}}\right),\tag{26}
+\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}C^{\mathrm{Comp}},\texttt{value=}C^{\mathrm{Comp}}\right),
 $$
 
 其中, $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ 是第 $t$ 个 token 处第 $i$ 个头的核心注意力输出. 随后, 与 CSA 相同, HCA 将 $n_{h}$ 个输出分成 $g$ 组, 并将每组输出 $\mathbf{o}^{G}_{t,i}\in\mathbb{R}^{c\frac{n_{h}}{g}}$ 投影为 $d_{g}$ 维中间输出 $\mathbf{o}^{G^{\prime}}_{t,i}\in\mathbb{R}^{d_{g}}$, 其中 $d_{g}<c\frac{n_{h}}{g}$. 最后, HCA 将中间输出 $[\mathbf{o}^{G^{\prime}}_{t,1};\mathbf{o}^{G^{\prime}}_{t,2};...;\mathbf{o}^{G^{\prime}}_{t,g}]\in\mathbb{R}^{d_{g}g}$ 投影为最终注意力输出 $\mathbf{\hat{o}}_{t}\in\mathbb{R}^{d}$.
@@ -251,7 +251,7 @@ $$
 **Attention Sink.** 在 CSA 与 HCA 的核心注意力中, 我们采用 Attention Sink 技术 [Xia24a, Ope25c]. 具体而言, 我们设置一组可学习的 sink logit $\{z^{\prime}_{1},z^{\prime}_{2},...,z^{\prime}_{n_{h}}\}$. 对于第 $h$ 个注意力头, 将 $\mathrm{Exp}(z^{\prime}_{h})$ 加到注意力分数的分母中:
 
 $$
-s_{h,i,j}=\frac{\mathrm{Exp}(z_{h,i,j})}{\sum_{k}\mathrm{Exp}(z_{h,i,k})+\mathrm{Exp}(z^{\prime}_{h})},\tag{27}
+s_{h,i,j}=\frac{\mathrm{Exp}(z_{h,i,j})}{\sum_{k}\mathrm{Exp}(z_{h,i,k})+\mathrm{Exp}(z^{\prime}_{h})},
 $$
 
 其中, $s_{h,i,j},z_{h,i,j}\in\mathbb{R}$ 分别表示第 $h$ 个注意力头在第 $i$ 个查询 token 与此前第 $j$ 个 token 或压缩块之间的注意力分数与注意力 logit. 该技术允许每个查询头将注意力分数总和调整为不等于 1, 甚至接近 0.
@@ -282,7 +282,7 @@ $$
 **混合 Newton-Schulz 迭代.** 对于给定矩阵 $M$, 令其奇异值分解 (SVD) 为 $M=U\Sigma V^\top$. Newton-Schulz 迭代旨在将 $M$ 近似正交化为 $U V^\top$. 通常先将 $M$ 归一化为 $M_{0}=M/\|M\|_{F}$, 以确保其最大奇异值不超过 1. 随后, 每次 Newton-Schulz 迭代执行以下操作:
 
 $$
-M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.\tag{28}
+M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.
 $$
 
 我们的混合 Newton-Schulz 在两个不同阶段中执行 10 次迭代. 前 8 步使用系数 $(a,b,c)=(3.4445,-4.7750,2.0315)$ 推动快速收敛, 使奇异值接近 1. 最后 2 步改用系数 $(a,b,c)=(2,-1.5,0.5)$, 将奇异值精确稳定在 1.
@@ -548,7 +548,7 @@ DeepSeek-V4-Flash-Base 与 DeepSeek-V3.2-Base 的比较展现了令人信服的�
 通过专门微调与强化学习训练多个特定领域专家后, 我们采用多教师在策略蒸馏 (OPD; [Lu25, Gu25]) 作为将专家能力整合进最终模型的主要技术. OPD 已成为一种有效的后训练范式, 可将领域专家的知识与能力高效转移到单一统一模型. 它让学生在自己生成的轨迹上学习教师模型的输出分布. 形式化地, 给定一组 $N$ 个专家模型 $\{\pi_{E_{1}},\pi_{E_{2}},\dots,\pi_{E_{N}}\}$, OPD 目标函数定义为:
 
 $$
-\mathcal{L}_{\mathrm{OPD}}(\theta)=\sum_{i=1}^{N}w_{i}\cdot\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right).\tag{29}
+\mathcal{L}_{\mathrm{OPD}}(\theta)=\sum_{i=1}^{N}w_{i}\cdot\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right).
 $$
 
 在该公式中, $w_{i}$ 表示分配给每个专家的权重, 通常由专家的相对重要性决定. 计算反向 KL 损失 $\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right)$ 需要从学生 $\pi_{\theta}$ 采样训练轨迹, 以保持在策略学习. 这一机制保证统一策略 $\pi_{\theta}$ 有选择地学习与当前任务上下文相关的专业化专家 (例如数学推理任务与数学专家对齐, 编程任务与编码专家对齐). 通过该机制, 来自彼此独立的专家权重的知识经由 logits 级对齐整合到统一参数空间, 实际规避了传统权重合并或混合 RL 技术中常见的性能下降. 此阶段使用覆盖不同领域的十多个教师模型来蒸馏单个学生模型.

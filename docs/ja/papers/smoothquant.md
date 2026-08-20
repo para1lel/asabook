@@ -40,8 +40,10 @@ permalink: /ja/papers/smoothquant/
 
 量子化は高精度の値を離散レベルにマッピングします。我々は、より良いハードウェアサポートと効率のために整数の均一量子化 [Jac18]（特に INT8）を研究します。量子化プロセスは次のように表せます：
 
+<span id="S2.E1"></span>
+
 $$
-\bar{\mathbf{X}}^{\mathrm{INT8}}=\lceil\frac{\mathbf{X^{\mathrm{FP16}}}}{\Delta}\rfloor,\quad\Delta=\frac{\max(|\mathbf{X}|)}{2^{N-1}-1},\tag{1}
+\bar{\mathbf{X}}^{\mathrm{INT8}}=\lceil\frac{\mathbf{X^{\mathrm{FP16}}}}{\Delta}\rfloor,\quad\Delta=\frac{\max(|\mathbf{X}|)}{2^{N-1}-1},
 $$
 
 ここで $\mathbf{X}$ は浮動小数点テンソル、$\bar{\mathbf{X}}$ は量子化された対応物、$\Delta$ は量子化ステップサイズ、$\lceil\cdot\rfloor$ は丸め関数、$N$ はビット数（本研究では 8）です。ここでは簡単のためテンソルが 0 を中心に*対称*であると仮定します；非対称の場合（例：ReLU後）も、ゼロ点 [Jac18] を追加することで同様に議論できます。
@@ -85,7 +87,7 @@ LLMはアクティベーションにおけるアウトライヤーのために�
 しかし、チャネルごとのアクティベーション量子化は、ハードウェアアクセラレーションされたGEMMカーネルにはうまくマップできません。これらのカーネルは、高スループットで実行される一連の操作（例： Tensor Core MMA）に依存しており、その一連の中で低スループットの命令（例： 変換やCUDA Core FMA）の挿入を許容しません。そのようなカーネルでは、スケーリングは行列乗算の外側の次元（すなわちアクティベーションのトークン次元$T$、重みの出力チャネル次元$C_{o}$、[図3](#figure-03)参照）のみに沿って行うことができ、行列乗算終了後に適用されます：
 
 $$
-\mathbf{Y}=\mathrm{diag}(\mathbf{\Delta}_{\mathbf{X}}^{\mathrm{FP16}})\cdot(\mathbf{\bar{X}}^{\mathrm{INT8}}\cdot\mathbf{\bar{W}}^{\mathrm{INT8}})\cdot\mathrm{diag}(\mathbf{\Delta}_{\mathbf{W}}^{\mathrm{FP16}})\tag{2}
+\mathbf{Y}=\mathrm{diag}(\mathbf{\Delta}_{\mathbf{X}}^{\mathrm{FP16}})\cdot(\mathbf{\bar{X}}^{\mathrm{INT8}}\cdot\mathbf{\bar{W}}^{\mathrm{INT8}})\cdot\mathrm{diag}(\mathbf{\Delta}_{\mathbf{W}}^{\mathrm{FP16}})
 $$
 
 したがって、以前の研究では、線形層に対するトークンごとのアクティベーション量子化をすべて使用しています[Det22, Yao22] が、アクティベーション量子化の難しさには対処できません（テンソル単位よりわずかに優れている程度です）。
@@ -95,7 +97,7 @@ $$
 チャネルごとのアクティベーション量子化（実行不可能）ではなく、入力アクティベーションをチャネルごとのスムージング係数で割ることで「スムーズ化」することを提案します$\mathbf{s}\in\mathbb{R}^{C_{i}}$。線形層の数学的同等性を保持するために、重みも逆方向に応じてスケーリングします：
 
 $$
-\mathbf{Y}=(\mathbf{X}\mathrm{diag}(\mathbf{s})^{-1})\cdot(\mathrm{diag}(\mathbf{s})\mathbf{W})=\hat{\mathbf{X}}\hat{\mathbf{W}}\tag{3}
+\mathbf{Y}=(\mathbf{X}\mathrm{diag}(\mathbf{s})^{-1})\cdot(\mathrm{diag}(\mathbf{s})\mathbf{W})=\hat{\mathbf{X}}\hat{\mathbf{W}}
 $$
 
 入力 $\mathbf{X}$ は通常、前の線形操作（例えば、線形層、レイヤーノルムなど）から生成されるため、平滑化係数を前の層のパラメータにオフラインで簡単に結合することができ、追加のスケーリングによるカーネル呼び出しのオーバーヘッドは発生しません。その他のケースでは、入力が残差加算から来ている場合、残差ブランチに対して [Wei22] と同様に追加のスケーリングを行うことができます。
@@ -112,8 +114,10 @@ $$
 
 ここで、ハイパーパラメータであるマイグレーション強度$\alpha$を導入し、以下の式を用いて、アクティベーションから重みへの難易度移行量を制御します：
 
+<span id="S4.E4"></span>
+
 $$
-\mathbf{s}_{j}=\max(|\mathbf{X}_{j}|)^{\alpha}/\max(|\mathbf{W}_{j}|)^{1-\alpha}\tag{4}
+\mathbf{s}_{j}=\max(|\mathbf{X}_{j}|)^{\alpha}/\max(|\mathbf{W}_{j}|)^{1-\alpha}
 $$
 
 ほとんどのモデル、例えば全てのOPT [Zha22]およびBLOOM [Les23]モデルにおいて、$\alpha=0.5$ は量子化の難易度を均等に分割するためのバランスポイントです。特に、重みとアクティベーションに同じ量子化器（例：テンソル単位の静的量子化）を使用している場合に有効です。この式は、対応するチャンネルの重みとアクティベーションが類似の最大値を共有し、同じ量子化の難易度を共有することを保証します。[図5](#figure-05) は、$\alpha=0.5$を取った場合の平滑化変換を示しています。アクティベーションの外れ値がより顕著な他のモデル（例：GLM-130B [Zen22]は$\sim$30%の外れ値を持ち、アクティベーション量子化が困難）では、より大きな$\alpha$を選択して、量子化の難易度をより多く重みに移行することができます（例えば0.75）。

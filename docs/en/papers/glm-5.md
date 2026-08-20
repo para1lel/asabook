@@ -251,7 +251,6 @@ r_{i,t},
 \right)
 \Bigg].
 \end{aligned}
-\tag{1}
 $$
 
 where the training-inference mismatch ratio is defined as
@@ -309,7 +308,6 @@ In our multi-stage RL pipeline, sequentially optimizing for distinct objectives 
 
 $$
 \hat{A}_{i,t}=\mathrm{sg}\left[\log\frac{\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
-\tag{2}
 $$
 
 Currently, we utilize the inference engine to fetch teachers' logits. In the future, we plan to migrate the inference backend to the training engine and uniformly adopt the Multi-Query Attention (MQA) mode of MLA for inference ($\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}\rightarrow\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{train}}$). During training, the group size in the GRPO algorithm is configured to 1 to increase data throughput, and the batch size is set to 1024. This is feasible at this stage because it is no longer necessary to maintain a large group of samples per prompt to estimate advantages; the advantage is computed directly from the gap with the teacher models instead.
@@ -374,14 +372,12 @@ Formally, the optimization objective with token-level clipping can be written as
 
 $$
 L(\theta)=\mathbb{E}_{t}\left[f(r_{t}(\theta),\epsilon_{l},\epsilon_{h})\hat{A}_{t}\log\pi_{\theta}(a_{t}|s_{t})\right]
-\tag{3}
 $$
 
 In this formulation, the importance sampling ratio $r_{t}(\theta)$ is computed as:
 
 $$
 r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\mathrm{rollout}}(a_{t}|s_{t})\right)
-\tag{4}
 $$
 
 Stability is further enforced via the calibration function $f(x;\epsilon_{\ell},\epsilon_{h})$:
@@ -389,7 +385,6 @@ Stability is further enforced via the calibration function $f(x;\epsilon_{\ell},
 $$
 f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\mathrm{if}\ 1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
 0,&\mathrm{otherwise}\end{cases}
-\tag{5}
 $$
 
 In the experiments, we find that reusing rollout log-probabilities accepts a controlled degree of off-policy bias to circumvent the need for historical policy tracking while boosting training stability.

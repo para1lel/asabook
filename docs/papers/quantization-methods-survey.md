@@ -76,7 +76,7 @@ Gray 和 Neuhoff 撰写了一篇出色的综述, 回顾了截至 1998 年的量�
 <span id="equation-01"></span>
 
 $$
-\mathcal{L}(\theta)=\frac{1}{N}\sum_{i=1}^{N}l(x_{i},y_{i};\theta),\tag{1}
+\mathcal{L}(\theta)=\frac{1}{N}\sum_{i=1}^{N}l(x_{i},y_{i};\theta),
 $$
 
 其中 $(x,y)$ 是输入数据及其标签, $l(x,y;\theta)$ 是损失函数 (例如均方误差或交叉熵损失), $N$ 是数据点总数. 再把第 $i$ 层的输入隐藏激活记为 $h_{i}$, 相应的输出隐藏激活记为 $a_{i}$. 假设训练后的模型参数 $\theta$ 以浮点精度存储. 量化的目标是降低参数 $\theta$ 和中间激活图 (即 $h_{i},\ a_{i}$) 的精度, 同时尽量不影响模型的泛化能力或准确率. 为此, 我们需要定义一个把浮点值映射为量化值的量化算子, 下面给出具体说明.
@@ -96,7 +96,7 @@ $$
 <span id="equation-02"></span>
 
 $$
-Q(r)=\mathrm{Int}\left(\frac{r}{S}\right)-Z,\tag{2}
+Q(r)=\mathrm{Int}\left(\frac{r}{S}\right)-Z,
 $$
 
 其中 $Q$ 是量化算子, $r$ 是实值输入 (激活或权重), $S$ 是实值缩放因子, $Z$ 是整数零点. $\mathrm{Int}$ 函数通过舍入操作 (例如舍入到最近值或截断) 将实值映射为整数. 本质上, 该函数把实值 $r$ 映射为某个整数值. 这种方法也称为*均匀量化*, 因为所得量化值 (即量化级别) 等间距分布 ([图 1](#figure-01), 左). 还有一些*非均匀量化*方法, 其量化值不一定等间距分布 ([图 1](#figure-01), 右); 第 [3.6](#section-3-6) 节会进一步讨论这些方法. 通过通常所谓的*反量化*操作, 可以从量化值 $Q(r)$ 恢复实值 $r$:
@@ -104,7 +104,7 @@ $$
 <span id="equation-03"></span>
 
 $$
-\tilde{r}=S(Q(r)+Z).\tag{3}
+\tilde{r}=S(Q(r)+Z).
 $$
 
 由于存在舍入操作, 恢复的实值 $\tilde{r}$ 不会与 $r$ 完全一致.
@@ -124,7 +124,7 @@ $$
 <span id="equation-04"></span>
 
 $$
-S=\frac{\beta-\alpha}{2^{b}-1},\tag{4}
+S=\frac{\beta-\alpha}{2^{b}-1},
 $$
 
 其中 $[\alpha,\beta]$ 是裁剪实值所用的有界区间, $b$ 是量化位宽. 因此, 定义缩放因子之前必须先确定裁剪范围 $[\alpha,\beta]$. 选择裁剪范围的过程通常称为校准. 最直接的做法是用信号的最小值和最大值作为裁剪范围, 即 $\alpha=r_{\min}$, $\beta=r_{\max}$. 这是一种*非对称量化*方案, 因为裁剪范围不一定关于原点对称, 即 $-\alpha\neq\beta$, 如 [图 2](#figure-02) (右) 所示. 也可以选择 $\alpha=-\beta$ 的对称裁剪范围, 得到*对称量化*方案. 一种常见做法是根据信号的最小值和最大值取 $-\alpha=\beta={\max(|r_{\max}|,|r_{\min}|)}$. 与对称量化相比, 非对称量化通常能得到更紧的裁剪范围. 当目标权重或激活分布不均衡时, 这一点尤其重要, 例如 ReLU 后的激活始终非负. 不过, 对称量化可以把零点设为 $Z=0$, 从而简化[公式 2](#equation-02) 中的量化函数:
@@ -132,7 +132,7 @@ $$
 <span id="equation-05"></span>
 
 $$
-Q(r)=\mathrm{Int}\left(\frac{r}{S}\right).\tag{5}
+Q(r)=\mathrm{Int}\left(\frac{r}{S}\right).
 $$
 
 缩放因子有两种取法. 在“全范围”对称量化中, $S$ 取 $\frac{2\max(|r|)}{2^{n}-1}$ (采用向下取整模式), 从而使用完整的 INT8 范围 \[-128, 127\]. 在“受限范围”中, $S$ 取 $\frac{\max(|r|)}{2^{n-1}-1}$, 仅使用 \[-127, 127\]. 不出所料, 全范围方法更准确. 实践中常用对称量化来量化权重, 因为把零点设为零既能降低推理计算成本 [Wu20], 也能简化实现. 但对于激活而言, 非对称激活偏移产生的交叉项是与数据无关的静态项, 可以吸收到偏置中 (或用于初始化累加器) [Bha20].
@@ -184,7 +184,7 @@ $$
 <span id="equation-06"></span>
 
 $$
-Q(r)=X_{i},\quad \mathrm{if}\quad r\in[\Delta_{i},\Delta_{i+1}).\tag{6}
+Q(r)=X_{i},\quad \mathrm{if}\quad r\in[\Delta_{i},\Delta_{i+1}).
 $$
 
 具体而言, 当实数 $r$ 落在量化步长 $\Delta_{i}$ 与 $\Delta_{i+1}$ 之间时, 量化器 $Q$ 会将其映射到相应的量化级别 $X_{i}$. $X_{i}$ 和 $\Delta_{i}$ 都不采用均匀间距.
@@ -194,7 +194,7 @@ $$
 <span id="equation-07"></span>
 
 $$
-\min_{Q}\|Q(r)-r\|^{2}\tag{7}
+\min_{Q}\|Q(r)-r\|^{2}
 $$
 
 另外, 量化器本身也可以与模型参数一起联合训练. 这些方法被称为可学习量化器, 量化步骤/级别通常通过迭代优化 [Zha18, Xu18] 或梯度下降 [Lin17a, Jun19, Yan19a] 进行训练.
@@ -286,7 +286,7 @@ $$
 \begin{cases}
 \lfloor x\rfloor, & \text{概率为 } \lceil x\rceil-x,\\
 \lceil x\rceil, & \text{概率为 } x-\lfloor x\rfloor.
-\end{cases}\tag{8}
+\end{cases}
 $$
 
 但这一定义不能用于二值量化. 因此, [Cou15] 将其扩展为
@@ -298,7 +298,7 @@ $$
 \begin{cases}
 -1, & \text{概率为 } 1-\sigma(x),\\
 +1, & \text{概率为 } \sigma(x).
-\end{cases}\tag{9}
+\end{cases}
 $$
 
 其中 $\mathrm{Binary}$ 是把实值 $x$ 二值化的函数, $\sigma(\cdot)$ 是 sigmoid 函数.
@@ -362,7 +362,7 @@ HAWQ [Don19a] 不同于上述搜索和正则化方法, 它根据模型的二阶�
 <span id="equation-10"></span>
 
 $$
-\mathcal{L}=\alpha\mathcal{H}(y,\sigma(z_{s}))+\beta\mathcal{H}(\sigma(z_{t},T),\sigma(z_{s},T))\tag{10}
+\mathcal{L}=\alpha\mathcal{H}(y,\sigma(z_{s}))+\beta\mathcal{H}(\sigma(z_{t},T),\sigma(z_{s},T))
 $$
 
 在[公式 10](#equation-10) 中, $\alpha$ 和 $\beta$ 是调节学生模型损失与蒸馏损失比重的权重系数, $y$ 是真实类别标签, $\mathcal{H}$ 是交叉熵损失函数, $z_{s}$ 和 $z_{t}$ 分别是学生模型与教师模型生成的 logits, $\sigma$ 是 softmax 函数, $T$ 是其温度, 定义如下:
@@ -370,7 +370,7 @@ $$
 <span id="equation-11"></span>
 
 $$
-p_{i}=\frac{\exp{\frac{z_{i}}{T}}}{\sum_{j}\exp{\frac{z_{j}}{T}}}\tag{11}
+p_{i}=\frac{\exp{\frac{z_{i}}{T}}}{\sum_{j}\exp{\frac{z_{j}}{T}}}
 $$
 
 以往的知识蒸馏方法侧重于探索不同的知识来源. [Hin15a, Li17a, Par19a] 使用 logits (软概率) 作为知识来源, 而 [Rom14, Yim17, Ahn19] 尝试利用来自中间层的知识. 教师模型的选择也有深入研究, 其中 [You17a, Tar17] 使用多个教师模型联合监督学生模型, 而 [Cro18, Zha19f] 则应用自蒸馏, 无需额外的教师模型.
@@ -386,7 +386,7 @@ BinaryConnect [Cou15] 是一项重要工作, 它把权重限制为 1 或 -1. 该
 <span id="equation-12"></span>
 
 $$
-\alpha,B=\mathop{\mathrm{argmin}}\limits\|W-\alpha B\|^{2}.\tag{12}
+\alpha,B=\mathop{\mathrm{argmin}}\limits\|W-\alpha B\|^{2}.
 $$
 
 许多学得的权重接近零, 由此产生了网络三值化的尝试: 把权重或激活限制为 1, 0 和 -1 等三个值, 明确允许量化值为零 [Lin15, Li16b]. 与二值化类似, 三值化消除了昂贵的矩阵乘法, 也能大幅降低推理延迟. 后来的 Ternary-Binary Network (TBN) [Wan18b] 表明, 结合二值网络权重与三值激活, 可以在准确率和计算效率之间取得最佳权衡.
@@ -414,7 +414,7 @@ $$
 <span id="equation-13"></span>
 
 $$
-\min_{c_{1},...,c_{k}}\sum_{i}\|w_{i}-c_{j}\|^{2}\tag{13}
+\min_{c_{1},...,c_{k}}\sum_{i}\|w_{i}-c_{j}\|^{2}
 $$
 
 研究发现, 仅使用 k-means 聚类就能在不明显降低准确率的情况下, 把模型大小最多缩减 $8\times$ [Gon14]. 如果再与剪枝和 Huffman 编码结合, 基于 k-means 的向量量化还能进一步缩小模型 [Han15].

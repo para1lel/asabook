@@ -76,7 +76,7 @@ Assume that the NN has $L$ layers with learnable parameters, denoted as $\{W_{1}
 <span id="equation-01"></span>
 
 $$
-\mathcal{L}(\theta)=\frac{1}{N}\sum_{i=1}^{N}l(x_{i},y_{i};\theta),\tag{1}
+\mathcal{L}(\theta)=\frac{1}{N}\sum_{i=1}^{N}l(x_{i},y_{i};\theta),
 $$
 
 where $(x,y)$ is the input data and the corresponding label, $l(x,y;\theta)$ is the loss function (e.g., Mean Squared Error or Cross Entropy loss), and $N$ is the total number of data points. Let us also denote the input hidden activations of the $i^{\mathrm{th}}$ layer as $h_{i}$, and the corresponding output hidden activation as $a_{i}$. We assume that we have the trained model parameters $\theta$, stored in floating point precision. In quantization, the goal is to reduce the precision of both the parameters ($\theta$), as well as the intermediate activation maps (i.e., $h_{i},\ a_{i}$) to low-precision, with minimal impact on the generalization power/accuracy of the model. To do this, we need to define a quantization operator that maps a floating point value to a quantized one, which is described next.
@@ -96,7 +96,7 @@ We need first to define a function that can quantize NN weights and activations 
 <span id="equation-02"></span>
 
 $$
-Q(r)=\mathrm{Int}\left(\frac{r}{S}\right)-Z,\tag{2}
+Q(r)=\mathrm{Int}\left(\frac{r}{S}\right)-Z,
 $$
 
 where $Q$ is the quantization operator, $r$ is a real valued input (activation or weight), $S$ is a real valued scaling factor, and $Z$ is an integer zero point. Furthermore, the Int function maps a real value to an integer value through a rounding operation (e.g., round to nearest and truncation). In essence, this function is a mapping from real values $r$ to some integer values. This method of quantization is also known as uniform quantization, as the resulting quantized values (aka quantization levels) are uniformly spaced ([Figure 1](#figure-01), left). There are also non-uniform quantization methods whose quantized values are not necessarily uniformly spaced ([Figure 1](#figure-01), right), and these methods will be discussed in more detail in Section [3.6](#section-3-6). It is possible to recover real values $r$ from the quantized values $Q(r)$ through an operation that is often referred to as *dequantization*:
@@ -104,7 +104,7 @@ where $Q$ is the quantization operator, $r$ is a real valued input (activation o
 <span id="equation-03"></span>
 
 $$
-\tilde{r}=S(Q(r)+Z).\tag{3}
+\tilde{r}=S(Q(r)+Z).
 $$
 
 Note that the recovered real values $\tilde{r}$ will not exactly match $r$ due to the rounding operation.
@@ -124,7 +124,7 @@ One important factor in uniform quantization is the choice of the scaling factor
 <span id="equation-04"></span>
 
 $$
-S=\frac{\beta-\alpha}{2^{b}-1},\tag{4}
+S=\frac{\beta-\alpha}{2^{b}-1},
 $$
 
 where $[\alpha,\beta]$ denotes the clipping range, a bounded range that we are clipping the real values with, and $b$ is the quantization bit width. Therefore, in order for the scaling factor to be defined, the clipping range $[\alpha,\beta]$ should first be determined. The process of choosing the clipping range is often referred to as calibration. A straightforward choice is to use the min/max of the signal for the clipping range, i.e., $\alpha=r_{\min}$, and $\beta=r_{\max}$. This approach is an *asymmetric quantization* scheme, since the clipping range is not necessarily symmetric with respect to the origin, i.e., $-\alpha\neq\beta$, as illustrated in [Figure 2](#figure-02) (Right). It is also possible to use a *symmetric quantization* scheme by choosing a symmetric clipping range of $\alpha=-\beta$. A popular choice is to choose these based on the min/max values of the signal: $-\alpha=\beta={\max(|r_{\max}|,|r_{\min}|)}$. Asymmetric quantization often results in a tighter clipping range as compared to symmetric quantization. This is especially important when the target weights or activations are imbalanced, e.g., the activation after ReLU that always has non-negative values. Using symmetric quantization, however, simplifies the quantization function in Eq. [2](#equation-02) by replacing the zero point with $Z=0$:
@@ -132,7 +132,7 @@ where $[\alpha,\beta]$ denotes the clipping range, a bounded range that we are c
 <span id="equation-05"></span>
 
 $$
-Q(r)=\mathrm{Int}\left(\frac{r}{S}\right).\tag{5}
+Q(r)=\mathrm{Int}\left(\frac{r}{S}\right).
 $$
 
 Here, there are two choices for the scaling factor. In “full range” symmetric quantization S is chosen as $\frac{2\max(|r|)}{2^{n}-1}$ (with floor rounding mode), to use the full INT8 range of \[-128,127\]. However, in “restricted range” S is chosen as $\frac{\max(|r|)}{2^{n-1}-1}$, which only uses the range of \[-127,127\]. As expected, the full range approach is more accurate. Symmetric quantization is widely adopted in practice for quantizing weights because zeroing out the zero point can lead to reduction in computational cost during inference [Wu20], and also makes the implementation more straightforward. However, note that for activation the cross terms occupying due to the offset in the asymmetric activations are a static data independent term and can be absorbed in the bias (or used to initialize the accumulator) [Bha20].
@@ -184,7 +184,7 @@ Some work in the literature has also explored non-uniform quantization [Gon14, W
 <span id="equation-06"></span>
 
 $$
-Q(r)=X_{i},\quad \mathrm{if}\quad r\in[\Delta_{i},\Delta_{i+1}).\tag{6}
+Q(r)=X_{i},\quad \mathrm{if}\quad r\in[\Delta_{i},\Delta_{i+1}).
 $$
 
 Specifically, when the value of a real number $r$ falls in between the quantization step $\Delta_{i}$ and $\Delta_{i+1}$, quantizer $Q$ projects it to the corresponding quantization level $X_{i}$. Note that neither $X_{i}$’s nor $\Delta_{i}$’s are uniformly spaced.
@@ -194,7 +194,7 @@ Non-uniform quantization may achieve higher accuracy for a fixed bit-width, beca
 <span id="equation-07"></span>
 
 $$
-\min_{Q}\|Q(r)-r\|^{2}\tag{7}
+\min_{Q}\|Q(r)-r\|^{2}
 $$
 
 Furthermore, the quantizer itself can also be jointly trained with the model parameters. These methods are referred to as learnable quantizers, and the quantization steps/levels are generally trained with iterative optimization [Zha18, Xu18] or gradient descent [Lin17a, Jun19, Yan19a].
@@ -286,7 +286,7 @@ $$
 \begin{cases}
 \lfloor x\rfloor, & \mathrm{with\ probability}\ \lceil x\rceil-x,\\
 \lceil x\rceil, & \mathrm{with\ probability}\ x-\lfloor x\rfloor.
-\end{cases}\tag{8}
+\end{cases}
 $$
 
 However, this definition cannot be used for binary quantization. Hence, [Cou15] extends this to
@@ -298,7 +298,7 @@ $$
 \begin{cases}
 -1, & \mathrm{with\ probability}\ 1-\sigma(x),\\
 +1, & \mathrm{with\ probability}\ \sigma(x).
-\end{cases}\tag{9}
+\end{cases}
 $$
 
 where Binary is a function to binarize the real value $x$, and $\sigma(\cdot)$ is the sigmoid function.
@@ -362,7 +362,7 @@ An interesting line of work in quantization is to incorporate model distillation
 <span id="equation-10"></span>
 
 $$
-\mathcal{L}=\alpha\mathcal{H}(y,\sigma(z_{s}))+\beta\mathcal{H}(\sigma(z_{t},T),\sigma(z_{s},T))\tag{10}
+\mathcal{L}=\alpha\mathcal{H}(y,\sigma(z_{s}))+\beta\mathcal{H}(\sigma(z_{t},T),\sigma(z_{s},T))
 $$
 
 In Eq. [10](#equation-10), $\alpha$ and $\beta$ are weighting coefficients to tune the amount of loss from the student model and the distillation loss, $y$ is the ground-truth class label, $\mathcal{H}$ is the cross-entropy loss function, $z_{s}$/$z_{t}$ are logits generated by the student/teacher model, $\sigma$ is the softmax function, and T is its temperature defined as follows:
@@ -370,7 +370,7 @@ In Eq. [10](#equation-10), $\alpha$ and $\beta$ are weighting coefficients to tu
 <span id="equation-11"></span>
 
 $$
-p_{i}=\frac{\exp{\frac{z_{i}}{T}}}{\sum_{j}\exp{\frac{z_{j}}{T}}}\tag{11}
+p_{i}=\frac{\exp{\frac{z_{i}}{T}}}{\sum_{j}\exp{\frac{z_{j}}{T}}}
 $$
 
 Previous methods of knowledge distillation focus on exploring different knowledge sources. [Hin15a, Li17a, Par19a] use logits (the soft probabilities) as the source of knowledge, while [Rom14, Yim17, Ahn19] try to leverage the knowledge from intermediate layers. The choices of teacher models are also well studied, where [You17a, Tar17] use multiple teacher models to jointly supervise the student model, while [Cro18, Zha19f] apply self-distillation without an extra teacher model.
@@ -386,7 +386,7 @@ An important work here is BinaryConnect [Cou15] which constrains the weights to 
 <span id="equation-12"></span>
 
 $$
-\alpha,B=\mathop{\mathrm{argmin}}\limits\|W-\alpha B\|^{2}.\tag{12}
+\alpha,B=\mathop{\mathrm{argmin}}\limits\|W-\alpha B\|^{2}.
 $$
 
 Furthermore, inspired by the observation that many learned weights are close to zero, there have been attempts to ternarize network by constraining the weights/activations with ternary values, e.g., +1, 0 and -1, thereby explicitly permitting the quantized values to be zero [Lin15, Li16b]. Ternarization also drastically reduces the inference latency by eliminating the costly matrix multiplications as binarization does. Later, Ternary-Binary Network (TBN) [Wan18b] shows that combining binary network weights and ternary activations can achieve an optimal tradeoff between the accuracy and computational efficiency.
@@ -414,7 +414,7 @@ Having said that, there are a lot of interesting ideas in the classical quantiza
 <span id="equation-13"></span>
 
 $$
-\min_{c_{1},...,c_{k}}\sum_{i}\|w_{i}-c_{j}\|^{2}\tag{13}
+\min_{c_{1},...,c_{k}}\sum_{i}\|w_{i}-c_{j}\|^{2}
 $$
 
 It has been found that using a k-means clustering is sufficient to reduce the model size up to $8\times$ without significant accuracy degradation [Gon14]. In addition to that, jointly applying k-means based vector quantization with pruning and Huffman coding can further reduce the model size [Han15].

@@ -54,7 +54,6 @@ $$
 +\beta_t\mathbf k_t\mathbf v_t^\top,
 \qquad
 \widetilde{\mathbf o}_t=\mathbf S_t^\top\mathbf q_t.
-\tag{1}
 $$
 
 其中, $\boldsymbol\alpha_t\in(0,1)^{d_k}$ 是逐通道的单步保留因子, $\beta_t\in(0,1)$ 控制 delta rule 的写入强度.
@@ -70,7 +69,6 @@ $$
 \beta_t^h&=\operatorname{Sigmoid}(\mathbf W_\beta^h\mathbf x_t)\in(0,1),\\
 \mathbf z_t^h&=\mathbf W_\alpha^\uparrow\mathbf W_\alpha^\downarrow\mathbf x_t+\mathbf b_\alpha^h\in\mathbb R^{d_k}.
 \end{aligned}
-\tag{2}
 $$
 
 查询, 键和值投影依次应用 ShortConv 和 Swish [Yan25], 查询和键还会进一步接受 $L_2$ 归一化 [Yan24b]. 低秩投影与注意力头特有的偏置 $\mathbf b_\alpha^h\in\mathbb R^{d_k}$ 为每个键通道生成细粒度衰减 logit $\mathbf z_t^h$. 从 $\mathbf z_t^h$ 到 $\boldsymbol\alpha_t^h$ 的有下界映射将在下面的分块形式之后介绍.
@@ -81,7 +79,6 @@ $$
 \boldsymbol\gamma_{[t]}^{i\to j}:=\prod_{r=i}^{j}\boldsymbol\alpha_{[t]}^r,
 \qquad
 \boldsymbol\gamma_{[t]}^r:=\boldsymbol\gamma_{[t]}^{1\to r}.
-\tag{3}
 $$
 
 与 Kimi Linear 相同, $\boldsymbol\Gamma_{[t]}^{1\to C}\in\mathbb R^{C\times d_k}$ 逐行堆叠 $\boldsymbol\gamma_{[t]}^1,\ldots,\boldsymbol\gamma_{[t]}^C$. UT 变换生成 $\mathbf U_{[t]}$ 和 $\mathbf W_{[t]}$, 据此定义伪值项 $\widetilde{\mathbf V}_{[t]}:=\mathbf U_{[t]}-\mathbf W_{[t]}\mathbf S_{[t]}$. 给定传入状态 $\mathbf S_{[t]}$, 块 $t$ 中的所有输出可按下式并行计算
@@ -95,7 +92,6 @@ $$
 \underbrace{(\boldsymbol\Gamma_{[t]}^{1\to C}\odot\mathbf Q_{[t]})\mathbf S_{[t]}}_{\text{inter-chunk}}
 +\underbrace{\mathbf A_{[t]}\widetilde{\mathbf V}_{[t]}}_{\text{intra-chunk}}.
 \end{aligned}
-\tag{4}
 $$
 
 对于矩阵 $\mathbf M$, $\operatorname{Tril}(\mathbf M)$ 将所有严格上三角元素置零, 并保留下三角元素及对角线. 这一掩码保证块内交互满足因果关系. 对角线之所以保留, 是因为每个输出读取的都是当前 token 更新后的状态. $\mathbf O_{[t]}$ 中第一项携带来自先前块的信息, 第二项则描述当前块内的交互. 关于 UT 变换以及分块形式的完整推导, 请参阅 Kimi Linear [Kim25b].
@@ -106,7 +102,6 @@ $$
 \mathbf g_t^h=g_{\min}\operatorname{Sigmoid}(e^{A_h}\mathbf z_t^h)\in(g_{\min},0)^{d_k},
 \qquad
 \boldsymbol\alpha_t^h=\exp(\mathbf g_t^h)\in(e^{g_{\min}},1)^{d_k}.
-\tag{5}
 $$
 
 其中, $A_h$ 是每个注意力头可学习的 log 缩放因子, $g_{\min}=-5$ 为固定值. 我们将 $A_h$ 初始化为 0, 并按照 [Kim25b, Dao24, Yan25] 初始化各偏置 $\mathbf b_\alpha^h$. 当 $g_{\min}=-5$ 时, 每个保留因子均满足 $\alpha_{t,j}^h>e^{-5}\approx6.7\times10^{-3}$, 16-token tile 上的累积 log 衰减位于 $(-80,0)$ 内. 因此, 对应的倒数缩放因子小于 $e^{80}$, 始终处于 BF16 的动态范围内. 这一有限范围使对角和非对角 tile 均可使用稠密 Tensor Core 矩阵乘法, 从而消除按位置对计算的对角路径. 该参数化与先前工作中的有下界递归门密切相关 [Qin24a, De24, Pen25]. [图 3](#figure-03) 展示了衰减参数化的变化及其对计算的影响.
@@ -122,7 +117,6 @@ $$
 $$
 \mathbf y_t=\mathbf W_o\!\left[\operatorname{Sigmoid}(\mathbf W_g\mathbf x_t)\odot
 \operatorname{RMSNorm}(\widetilde{\mathbf o}_t)\right].
-\tag{6}
 $$
 
 #### 2.1.2 Gated MLA
@@ -135,7 +129,6 @@ Kimi K3 与 Kimi K2 和 Kimi K2.5 不同, 它沿用 Kimi Linear [Kim25b] 的混�
 
 $$
 \mathbf y_t=\mathbf W_o\!\left[\operatorname{Sigmoid}(\mathbf W_g\mathbf x_t)\odot\widetilde{\mathbf o}_t\right].
-\tag{7}
 $$
 
 门投影 $\mathbf W_g$ 为满秩, 与 Kimi K3 中 KDA 使用的新参数化一致. 该门使每个 token 都能调节从全局注意力中读取的通道 [Qiu25].
@@ -156,7 +149,6 @@ $$
 \mathbf h_1,&i=0,\\
 f_i(\mathbf h_i),&1\le i\le l-1.
 \end{cases}
-\tag{8}
 $$
 
 其中, $f_i(\mathbf h_i)$ 是第 $i$ 层的输出, $\mathbf h_1$ 是 token 嵌入. 注意力权重采用 softmax kernel $\phi(\mathbf q,\mathbf k)=\exp(\mathbf q^\top\operatorname{RMSNorm}(\mathbf k))$ [Kat20, Zha19], 其中 RMSNorm 可防止输出幅度较大的层主导权重:
@@ -166,7 +158,6 @@ $$
 {\sum_{j=0}^{l-1}\phi(\mathbf q_l,\mathbf k_j)},
 \qquad
 \mathbf h_l=\sum_{i=0}^{l-1}\alpha_{i\to l}\mathbf v_i.
-\tag{9}
 $$
 
 由于网络深度并不大 ($L<100$), 这一完整形式的 $O(L^2d)$ 计算量可以接受. 实际开销来自保留所有层输出所需的 $O(Ld)$ 内存, 以及流水线并行下的跨 stage 通信.
@@ -181,7 +172,6 @@ $$
 [\mathbf b_0,\mathbf b_1,\ldots,\mathbf b_{n-1}]^\top,&i=1,\\
 [\mathbf b_0,\mathbf b_1,\ldots,\mathbf b_{n-1},\mathbf b_n^{i-1}]^\top,&i\ge2.
 \end{cases}
-\tag{10}
 $$
 
 键和注意力权重遵循式 8 和式 9. 最终输出层再聚合全部 $N$ 个块表示. 在 Block AttnRes 下, 内存和通信开销从 $O(Ld)$ 降至 $O(Nd)$. 同时, 这种分块结构也限制了推理时状态的大小, 使并行的块间结果可以通过 online softmax [Mil18] 与顺序的块内部分和高效合并, 从而显著降低推理时开销.
@@ -201,7 +191,6 @@ $$
 \qquad
 \mathbf y=\sum_{j=1}^{N_s}E_j^{\mathrm{shared}}(\mathbf x)
 +\mathbf W^\uparrow\operatorname{RMSNorm}(\mathbf u).
-\tag{11}
 $$
 
 其中, $\mathbf u\in\mathbb R^\ell$ 是聚合后的路由表示, $E_j^{\mathrm{shared}}:\mathbb R^d\to\mathbb R^d$ 和 $E_i^{\mathrm{routed}}:\mathbb R^\ell\to\mathbb R^\ell$ 分别是共享专家和路由专家的前馈网络, $p_i$ 是由下文 Quantile Balancing 规则定义的路由权重. Kimi K3 将每层全宽共享专家的数量固定为 $N_s=2$.
@@ -221,7 +210,6 @@ $$
 \beta_1\tanh(\mathbf W_g\mathbf x/\beta_1)
 \odot\operatorname{Sigmoid}(\mathbf W_g\mathbf x)
 \odot\beta_2\tanh(\mathbf W_u\mathbf x/\beta_2).
-\tag{12}
 $$
 
 对于 Kimi K3, 我们将门分支的 soft-cap 超参数设为 $\beta_1=4$, 将上投影分支的超参数设为 $\beta_2=25$. 缩放后的 tanh 在原点附近近似线性, 在幅度较大时则有界, 因而 SiTU-GLU 能够在控制乘积中两个因子的同时, 保留 SwiGLU 的局部响应. [图 4](#figure-04) 在同一切片上比较了 GLU, SwiGLU 和 SiTU-GLU 的分支定义与标量响应. 附录 B 给出了局部展开, 极限情形, 形式化输出界以及与硬截断的比较.
@@ -240,7 +228,6 @@ $$
 \mathcal T_i=\operatorname{argtop}_k(\mathbf s_i+\mathbf b),
 \qquad
 p_{i,j}=\frac{s_{i,j}}{\sum_{r\in\mathcal T_i}s_{i,r}},\quad j\in\mathcal T_i.
-\tag{13}
 $$
 
 由于 $p_{i,j}$ 中不包含 $\mathbf b$, 它能够调节分派结果, 而不会改变混合权重或基于梯度的路由器优化. 原始方法使用固定步长规则 [Dee24a] 更新 $\mathbf b$
@@ -266,7 +253,6 @@ $$
 b_j^{(t+1)}&\leftarrow\operatorname{quantile}_{1-k/n}(\mathbf s_{:,j}-\boldsymbol\alpha^{(t)}),\\
 \mathbf b^{(t+1)}&\leftarrow\mathbf b^{(t+1)}-\operatorname{mean}(\mathbf b^{(t+1)})\mathbf 1.
 \end{aligned}
-\tag{14}
 $$
 
 margin 是原始分数 $s_{i,j}$ 减去带偏置阈值 $\alpha_i^{(t)}$ 的结果, 因而旧偏置只会通过阈值进入更新. 第二行移除一个不会改变 Top-$k$ 选择的公共偏移. 为满足因果性, 更新只在下一步生效 [Dee24a], 即 batch 绝不会使用由自身计算出的偏置进行路由. [图 5](#figure-05) 展示了 $m=8$, $n=4$, $k=1$ 的情形, 此时每个专家都接收目标负载 $q=2$. 推理时会冻结最终偏置. 附录 C 给出了均衡分派的推导.
@@ -386,7 +372,6 @@ r_{\mathrm{opd}}^d(y_t\mid e,x,y_{<t})=
 \log\frac{\pi_{\mathrm{teacher}}^{(d,e)}(y_t\mid x,y_{<t})}
 {\pi_\theta(y_t\mid e,x,y_{<t})}
 \right],-R_{\max},R_{\max}\right).
-\tag{15}
 $$
 
 其中, $\operatorname{sg}(\cdot)$ 表示停止梯度算子, $R_{\max}>0$ 是用于限制极端优势信号的截断阈值, 从而稳定 RL 训练. 这种稠密奖励信号可以无缝集成到我们的 RL 框架中, 自然支持长程任务的部分 rollout 训练等基础设施级优化. 我们也尝试了更细粒度的 Top-$k$ 蒸馏目标, 但在当前设置下, 无论收敛速度还是最终性能都没有观察到明显优势.
@@ -405,7 +390,6 @@ $$
 
 $$
 \mathcal L_{\mathrm{LK}}=-\log\sum_{x\in\mathcal V}\min(p(x),q(x)).
-\tag{16}
 $$
 
 其中, $p$ 和 $q$ 均在温度为 1 时计算, 且不使用额外的真实标签交叉熵项. 草稿模型微调沿用后训练 QAT 配置 ([§4.1.4](#_4-1-4-面向部署的后训练)), MoE 专家权重采用 MXFP4, 其输入激活采用 MXFP8, 非专家模块则保持较高精度.
@@ -500,7 +484,6 @@ $$
 \widetilde{\mathbf S}_{[j]}^{T_j}
 \in\mathbb R^{d_k\times d_v}.
 \end{aligned}
-\tag{17}
 $$
 
 其中, $\mathbf M_{[i+1]}^{t\leftarrow1}$ 表示前 $t$ 个本地 token 的累积转移. 第一项包含本地 token 生成的状态, 第二项则使先前 rank 的上下文经过本地 KDA 更新传播. 当 $t=T_{i+1}$ 时, $\mathbf M_{[i+1]}^{T_{i+1}\leftarrow1}$ 和 $\widetilde{\mathbf S}_{[i+1]}^{T_{i+1}}$ 都能在 $\mathbf S_{[i]}^{T_i}$ 可用前, 仅使用本地 token 计算. 它们正是每个 rank 与其他 rank 交换的分片.
@@ -889,7 +872,6 @@ SiTU 将 Swish 的线性因子限制为 $\beta_1\tanh(\mathbf W_g\mathbf x/\beta
 
 $$
 \beta\tanh(z/\beta)=z+O(z^3/\beta^2).
-\tag{18}
 $$
 
 因此, SiTU-GLU 在原点附近与 SwiGLU 一阶匹配. 当 $\beta_1,\beta_2\to\infty$ 时, 它还会逐点恢复为 SwiGLU.
@@ -898,7 +880,6 @@ $$
 
 $$
 \|\operatorname{SiTU\text{-}GLU}(\mathbf x)\|_\infty\le\beta_1\beta_2=100.
-\tag{19}
 $$
 
 这里 $\beta_1=4$, $\beta_2=25$. 与硬截断门的预激活不同, 平滑限制在饱和边界外保留非零梯度. 我们发现, 这样可以获得更好的训练行为.
@@ -911,7 +892,6 @@ $$
 \max_{\mathbf x;\,x_{i,j}\in\{0,1\}}\sum_{i,j}x_{i,j}s_{i,j}
 \quad\text{s.t.}\quad
 \sum_jx_{i,j}=k,\qquad\sum_i x_{i,j}=\frac{mk}{n}.
-\tag{20}
 $$
 
 **线性松弛与对偶.** 将 $x_{i,j}\in\{0,1\}$ 松弛为 $x_{i,j}\in[0,1]$ 后, 式 20 变为线性规划. 由二分图 $b$-matching 多面体的标准整数性可知, 其最优解为整数, 因而该松弛是精确的. 分别为 token 侧和专家侧的等式约束引入自由乘数 $\alpha_i$ 和 $\beta_j$, 可将松弛后的问题写为如下 max-min 形式
@@ -921,7 +901,6 @@ $$
 \sum_{i,j}x_{i,j}s_{i,j}
 -\sum_i\alpha_i\left(\sum_jx_{i,j}-k\right)
 -\sum_j\beta_j\left(\sum_i x_{i,j}-\frac{mk}{n}\right).
-\tag{21}
 $$
 
 目标函数分别关于 $\mathbf x$, $\boldsymbol\alpha$ 和 $\boldsymbol\beta$ 线性, 可行集为凸集, 因此由极小极大定理可交换优化顺序:
@@ -930,7 +909,6 @@ $$
 \min_{\boldsymbol\alpha,\boldsymbol\beta}\max_{\mathbf x;\,x_{i,j}\in[0,1]}
 \sum_{i,j}x_{i,j}(s_{i,j}-\alpha_i-\beta_j)
 +k\sum_i\alpha_i+\frac{mk}{n}\sum_j\beta_j.
-\tag{22}
 $$
 
 内部最大化可按元素分离. 当 $s_{i,j}-\alpha_i-\beta_j>0$ 时, $x_{i,j}^*=1$; 当 $s_{i,j}-\alpha_i-\beta_j<0$ 时, $x_{i,j}^*=0$. 值相同的情形在实践中测度为零. 代入 $\mathbf x^*$ 得到凸对偶目标
@@ -939,7 +917,6 @@ $$
 \min_{\boldsymbol\alpha,\boldsymbol\beta}\mathcal L(\boldsymbol\alpha,\boldsymbol\beta):=
 \sum_{i,j}\max(0,s_{i,j}-\alpha_i-\beta_j)
 +k\sum_i\alpha_i+\frac{mk}{n}\sum_j\beta_j.
-\tag{23}
 $$
 
 ```pseudocode:line-numbers title="算法 1: 交替 QB solver"
@@ -957,21 +934,18 @@ for t = 1, 2, ..., T:
 
 $$
 \min_\alpha k\alpha+\sum_j\max(0,s_{i,j}-\beta_j-\alpha).
-\tag{24}
 $$
 
 该目标关于 $\alpha$ 分段线性, 其斜率为 $k$ 减去超过 $\alpha$ 的 margin $s_{i,j}-\beta_j$ 的数量. 因此, 当恰有 $k$ 个 margin 大于 $\alpha$ 时, 目标精确达到最小值, 即 $\alpha_i^*$ 可以取 $\mathbf s_i-\boldsymbol\beta$ 中第 $k$ 大与第 $(k+1)$ 大元素之间的任意值. 按惯例, 我们取第 $(k+1)$ 大元素, 等价于第 $(1-k/n)$ 分位数:
 
 $$
 \alpha_i^*=\operatorname{quantile}_{1-k/n}(\mathbf s_i-\boldsymbol\beta).
-\tag{25}
 $$
 
 类似地, 固定 $\boldsymbol\alpha$ 后, 专家 $j$ 求解 $\min_\beta \frac{mk}{n}\beta+\sum_i\max(0,s_{i,j}-\alpha_i-\beta)$. 其最小值点为 $\mathbf s_{:,j}-\boldsymbol\alpha$ 中第 $(mk/n+1)$ 大元素, 同样是第 $(1-k/n)$ 分位数:
 
 $$
 \beta_j^*=\operatorname{quantile}_{1-k/n}(\mathbf s_{:,j}-\boldsymbol\alpha).
-\tag{26}
 $$
 
 因此, 两种更新分别沿 token 轴和专家轴计算同一分位数, 这也是该方法名称的由来. [图 5](#figure-05) 将专家侧更新展示为使各专家 margin 分布中被接受的上尾部分均衡, 算法 1 则总结了最终的交替 solver.
@@ -983,7 +957,6 @@ $$
 $$
 \frac{\partial\mathcal L}{\partial\beta_j}=\frac{mk}{n}
 -\sum_{i=1}^{m}\chi(s_{i,j}-\alpha_i-\beta_j>0).
-\tag{27}
 $$
 
 即目标负载减去专家 $j$ 的观测负载. 在该目标上执行一次 SignSGD, 可恢复无辅助损失均衡 [Dee24a] 的固定步长符号更新, 二者只相差符号约定 $\mathbf b=-\boldsymbol\beta$: 符号更新只保留式 27 中负载误差的方向, QB 则直接跳转到同一对偶目标的精确坐标最小值点. 这一视角既解释了 QB 为何不需要类似学习率的超参数, 也解释了即使面对近 $10^3$ 个专家, 它为何只需几个更新步骤就能达到均衡. QB 同样与 BIP [Sun25a] 有关. BIP 使用不等式约束 $\sum_jx_{i,j}\le k$ 和 $\sum_i x_{i,j}\le mk/n$ 求解同一分派问题; 由此对 $\boldsymbol\alpha$ 和 $\boldsymbol\beta$ 引入的非负约束, 会为两个更新加入 $\max(0,\cdot)$ 截断. 这种截断只能抑制过度选中的专家, 无法促进选择不足的专家, 在我们的实验中会明显减慢均衡过程. 最后, 所得固定 Top-$k$ 路由与专家特定阈值路由相关, 但不同于 Expert Threshold 路由. 后者维护 EMA 阈值, 并允许每个 token 选择数量可变的专家 [Sun26].
@@ -1015,7 +988,6 @@ $$
 $$
 M(I)=\min_P\max_r\{m_r(P)\}
 \le\max_r\{m_r(P^*)\}\le\frac ER.
-\tag{28}
 $$
 
 #### 定理 2 的证明 (上界的紧性)

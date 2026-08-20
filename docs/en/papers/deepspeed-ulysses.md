@@ -89,7 +89,7 @@ There are related works in sparse Transformer particularly focusing on full-atte
 [Figure 2](#figure-02) shows the core design of DeepSpeed-Ulysses. As with the known transformer architecture, the design consists of input sequences *N* partitioned across *P* available devices. Each local *N/P* partition is projected into queries (*Q*), keys (*K*) and values (*V*) embeddings. Next, (*QKV*) embeddings are gathered into global *QKV* through highly optimized all-to-all collectives between participating compute devices. Sequel to all-to-all collective is the attention computation per head in the form:
 
 $$
-\mathrm{Outputcontext}=\mathrm{Softmax}((\mathrm{QK}^\top)/\sqrt{(}d))V\tag{1}
+\mathrm{Outputcontext}=\mathrm{Softmax}((\mathrm{QK}^\top)/\sqrt{(}d))V
 $$
 
 After the attention computation, another all-to-all collective transforms output context tensor of attention computation to sequence (*N/P*) parallel for subsequent operators (MLP MatMul, layer norm etc) in the remaining modules of transformer layer block.

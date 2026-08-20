@@ -58,7 +58,7 @@ The task of language modeling is to model the probability of a list of tokens $(
 <span id="S2.E1"></span>
 
 $$
-P(x)=P(x_{1})\cdot P(x_{2}\mid x_{1})\cdots P(x_{n}\mid x_{1},\ldots,x_{n-1}).\tag{1}
+P(x)=P(x_{1})\cdot P(x_{2}\mid x_{1})\cdots P(x_{n}\mid x_{1},\ldots,x_{n-1}).
 $$
 
 Transformers [Vas17] have become the de facto standard architecture for modeling the probability above at a large scale. The most important component of a Transformer-based language model is its *self-attention* layers. For an input hidden state sequence $(x_{1},\ldots,x_{n})\in\mathbb{R}^{n\times d}$, a self-attention layer first applies linear transformations on each position $i$ to get the query, key, and value vectors:
@@ -66,7 +66,7 @@ Transformers [Vas17] have become the de facto standard architecture for modeling
 <span id="S2.E2"></span>
 
 $$
-q_{i}=W_{q}x_{i},\ k_{i}=W_{k}x_{i},\ v_{i}=W_{v}x_{i}.\tag{2}
+q_{i}=W_{q}x_{i},\ k_{i}=W_{k}x_{i},\ v_{i}=W_{v}x_{i}.
 $$
 
 Then, the self-attention layer computes the attention score $a_{ij}$ by multiplying the query vector at one position with all the key vectors before it and compute the output $o_{i}$ as the weighted average over the value vectors:
@@ -74,7 +74,7 @@ Then, the self-attention layer computes the attention score $a_{ij}$ by multiply
 <span id="S2.E3"></span>
 
 $$
-a_{ij}=\frac{\exp(q_{i}^{\top}k_{j}/\sqrt{d})}{\sum_{t=1}^{i}\exp(q_{i}^{\top}k_{t}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{i}a_{ij}v_{j}.\tag{3}
+a_{ij}=\frac{\exp(q_{i}^{\top}k_{j}/\sqrt{d})}{\sum_{t=1}^{i}\exp(q_{i}^{\top}k_{t}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{i}a_{ij}v_{j}.
 $$
 
 Besides the computation in Eq. [3](#S2.E3), all other components in the Transformer model, including the embedding layer, feed-forward layer, layer normalization [Ba16], residual connection [He16], output logit computation, and the query, key, and value transformation in Eq. [2](#S2.E2), are all applied independently position-wise in a form of $y_{i}=f(x_{i})$.
@@ -144,7 +144,7 @@ To address the memory challenges in §[3](#S3), we introduce *PagedAttention*, a
 <span id="S4.E4"></span>
 
 $$
-A_{ij}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf{1}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{ij}^{\top},\tag{4}
+A_{ij}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf{1}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{ij}^{\top},
 $$
 
 where $A_{ij}=(a_{i,(j-1)B+1},\ldots,a_{i,jB})$ is the row vector of attention score on $j$-th KV block.

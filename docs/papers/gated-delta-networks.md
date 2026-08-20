@@ -81,7 +81,6 @@ $$
 
 $$
 {\mathbf{S}}_{[t+1]}={\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#ffd54f}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#ffd54f}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#ffd54f}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
-\tag{1}
 $$
 
 其中 ${\color{#ffd54f}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$. [+1] 下文用左箭头 ($\overleftarrow{\cdot}$) 和右箭头 ($\overrightarrow{\cdot}$) 分别表示变量衰减到每个块的首位置与末位置:
@@ -98,7 +97,6 @@ $$
 
 $$
 {\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#ffd54f}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
-\tag{2}
 $$
 
 其他变量 (如 ${\color{#ffd54f}\overrightarrow{\bm{v}}}$) 也作同样处理. Mamba2 的 SSD 分解算法与这一分块算法基本等价. [Yan24a] 还提出了更一般的扩展分块算法, 可在线性注意力中加入细粒度衰减机制.
@@ -119,7 +117,6 @@ $$
 
 $$
 {\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)}_{:={\mathbf{P}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{H}}_{[t]}^r}
-\tag{3}
 $$
 
 ${\mathbf{P}}_{[t]}^j$ 包含广义 Householder 矩阵的累积乘积, 可以用经典 WY 表示 [Bis85] 加速:
@@ -128,7 +125,6 @@ ${\mathbf{P}}_{[t]}^j$ 包含广义 Householder 矩阵的累积乘积, 可以用
 
 $$
 {\mathbf{P}}_{[t]}^r={\mathbf{I}}-\sum_{i=1}^r{\bm{w}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_k\times d_k},\qquad {\bm{w}}_{[t]}^r=\beta_{[t]}^r\left({\bm{k}}_{[t]}^r-\sum_{i=1}^{r-1}{\bm{w}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_k}
-\tag{4}
 $$
 
 同理, ${\mathbf{H}}_{[t]}^r$ 可以表示为
@@ -137,7 +133,6 @@ $$
 
 $$
 {\mathbf{H}}_{[t]}^r=\sum_{i=1}^r{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad {\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}{\bm{u}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
-\tag{5}
 $$
 
 矩阵形式为 ${\mathbf{P}}_{[t]}={\mathbf{I}}-{\mathbf{W}}_{[t]}^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_k\times d_k}$ 和 ${\mathbf{H}}_{[t]}={\mathbf{U}}_{[t]}^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_v\times d_k}$. 再用 UT 变换 [Jof06], 可将 ${\mathbf{W}}$ 与 ${\mathbf{U}}$ 写成
@@ -146,14 +141,12 @@ $$
 
 $$
 {\mathbf{T}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]}){\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right]^{-1}\mathrm{diag}(\beta_{[t]})\in\mathbb{R}^{C\times C}
-\tag{6}
 $$
 
 <span id="equation-07"></span>
 
 $$
 {\mathbf{W}}_{[t]}={\mathbf{T}}_{[t]}{\mathbf{K}}_{[t]}\in\mathbb{R}^{C\times d_k},\qquad {\mathbf{U}}_{[t]}={\mathbf{T}}_{[t]}{\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
-\tag{7}
 $$
 
 将它们代回[式 3](#equation-03), 即得以矩阵乘法为主的 DeltaNet 分块算法, 可以利用 Tensor Core 加速:
@@ -162,14 +155,12 @@ $$
 
 $$
 {\mathbf{S}}_{[t+1]}={\mathbf{S}}_{[t]}{\mathbf{P}}_{[t]}+{\mathbf{H}}_{[t]}={\mathbf{S}}_{[t]}+\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^\top\right)^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_v\times d_k}
-\tag{8}
 $$
 
 <span id="equation-09"></span>
 
 $$
 {\mathbf{O}}_{[t]}={\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
-\tag{9}
 $$
 
 ## 3 门控 Delta 网络
@@ -182,7 +173,6 @@ $$
 
 $$
 {\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#ffd54f}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
-\tag{10}
 $$
 
 数据相关门控项 ${\color{#ffd54f}\alpha_t}\in(0,1)$ 控制状态衰减. 这一形式兼具门控机制和 delta 规则的特点: 门控项负责自适应管理记忆, delta 更新结构则负责学习键值关联.

@@ -54,7 +54,6 @@ $$
 +\beta_t\mathbf k_t\mathbf v_t^\top,
 \qquad
 \widetilde{\mathbf o}_t=\mathbf S_t^\top\mathbf q_t.
-\tag{1}
 $$
 
 ここで、$\boldsymbol\alpha_t\in(0,1)^{d_k}$ はチャネルごとの 1 ステップ保持係数であり、$\beta_t\in(0,1)$ はデルタ ルール書き込み強度を制御します。
@@ -70,7 +69,6 @@ $$
 \beta_t^h&=\operatorname{Sigmoid}(\mathbf W_\beta^h\mathbf x_t)\in(0,1),\\
 \mathbf z_t^h&=\mathbf W_\alpha^\uparrow\mathbf W_\alpha^\downarrow\mathbf x_t+\mathbf b_\alpha^h\in\mathbb R^{d_k}.
 \end{aligned}
-\tag{2}
 $$
 
 クエリ、キー、値の射影では ShortConv に続いて Swish [Yan25] が適用され、クエリとキーは $L_2$ 正規化 [Yan24b] でさらに正規化されます。低ランク投影とヘッド固有のバイアス $\mathbf b_\alpha^h\in\mathbb R^{d_k}$ は、キー チャネルごとにきめの細かい減衰ロジット $\mathbf z_t^h$ を生成します。 $\mathbf z_t^h$ から $\boldsymbol\alpha_t^h$ への下限マッピングは、以下のチャンク単位の定式化の後に導入されます。
@@ -81,7 +79,6 @@ $$
 \boldsymbol\gamma_{[t]}^{i\to j}:=\prod_{r=i}^{j}\boldsymbol\alpha_{[t]}^r,
 \qquad
 \boldsymbol\gamma_{[t]}^r:=\boldsymbol\gamma_{[t]}^{1\to r}.
-\tag{3}
 $$
 
 Kim Linear と同様に、$\boldsymbol\Gamma_{[t]}^{1\to C}\in\mathbb R^{C\times d_k}$ は $\boldsymbol\gamma_{[t]}^1,\ldots,\boldsymbol\gamma_{[t]}^C$ を行方向にスタックします。 UT 変換は $\mathbf U_{[t]}$ および $\mathbf W_{[t]}$ を生成し、そこから擬似値項 $\widetilde{\mathbf V}_{[t]}:=\mathbf U_{[t]}-\mathbf W_{[t]}\mathbf S_{[t]}$ を定義します。受信状態 $\mathbf S_{[t]}$ を考慮すると、チャンク $t$ 内のすべての出力は次のように並列計算されます。
@@ -95,7 +92,6 @@ $$
 \underbrace{(\boldsymbol\Gamma_{[t]}^{1\to C}\odot\mathbf Q_{[t]})\mathbf S_{[t]}}_{\text{inter-chunk}}
 +\underbrace{\mathbf A_{[t]}\widetilde{\mathbf V}_{[t]}}_{\text{intra-chunk}}.
 \end{aligned}
-\tag{4}
 $$
 
 行列 $\mathbf M$ の場合、$\operatorname{Tril}(\mathbf M)$ は厳密に上三角のエントリをすべて 0 に設定し、対角を含む下三角のエントリを保持します。このマスクはチャンク内で因果関係を強制し、現在のトークンの更新後に各出力が状態を読み取るため、対角線が保持されます。 $\mathbf O_{[t]}$ の最初の項は前のチャンクからの情報を伝えますが、2 番目の項は現在のチャンク内の相互作用を説明します。 UT 変換とチャンクワイズ形式の完全な導出については、「 Kim Linear [Kim25b]」を参照してください。
@@ -106,7 +102,6 @@ $$
 \mathbf g_t^h=g_{\min}\operatorname{Sigmoid}(e^{A_h}\mathbf z_t^h)\in(g_{\min},0)^{d_k},
 \qquad
 \boldsymbol\alpha_t^h=\exp(\mathbf g_t^h)\in(e^{g_{\min}},1)^{d_k}.
-\tag{5}
 $$
 
 ここで、$A_h$ は学習可能な頭ごとの対数スケールであり、$g_{\min}=-5$ は固定です。 $A_h=0$ を初期化し、[Tea25b、Dao24、Yan25] に続いて各バイアス $\mathbf b_\alpha^h$ が初期化されます。 $g_{\min}=-5$ では、すべての保持係数が $\alpha_{t,j}^h>e^{-5}\approx6.7\times10^{-3}$ を満たし、16 トークン タイルにわたる累積対数減衰は $(-80,0)$ にあります。したがって、対応する逆数再スケーリング係数は $e^{80}$ よりも小さく、BF16 ダイナミック レンジ内に留まります。この有限範囲により、対角タイルと非対角タイルの両方で高密度の Tensor コア行列乗算を使用できるようになり、位置ペアの対角パスが排除されます。このパラメータ化は、以前の研究 [Qin24a、De24、Pen25] の下限再帰ゲートと密接に関連しています。[図 3](#figure-03) は、減衰パラメータ化の変化とその計算結果を示しています。
@@ -122,7 +117,6 @@ $$
 $$
 \mathbf y_t=\mathbf W_o\!\left [\operatorname{Sigmoid}(\mathbf W_g\mathbf x_t)\odot
 \operatorname{RMSNorm}(\widetilde{\mathbf o}_t)\right].
-\tag{6}
 $$
 
 #### 2.1.2 Gated MLA
@@ -135,7 +129,6 @@ Kimi K2 および Kimi K2.5 とは異なり、Kimi K3 は Kim Linear [Kim25b] �
 
 $$
 \mathbf y_t=\mathbf W_o\!\left [\operatorname{Sigmoid}(\mathbf W_g\mathbf x_t)\odot\widetilde{\mathbf o}_t\right].
-\tag{7}
 $$
 
 ゲート プロジェクション $\mathbf W_g$ はフルランクで、Kimi K3 の KDA で使用される新しいパラメータ化と一致します。このゲートにより、各トークンがグローバル アテンション [Qiu25] から読み取られたチャネルを変調できるようになります。
@@ -156,7 +149,6 @@ $$
 \mathbf h_1,&i=0,\\
 f_i(\mathbf h_i),&1\le i\le l-1.
 \end{cases}
-\tag{8}
 $$
 
 ここで $f_i(\mathbf h_i)$ は layer $i$ の出力、$\mathbf h_1$ は token embedding です。attention weight は softmax kernel $\phi(\mathbf q,\mathbf k)=\exp(\mathbf q^\top\operatorname{RMSNorm}(\mathbf k))$ [Kat20、Zha19] に従い、RMSNorm によって出力の絶対値が大きい layer が weight を支配することを防ぎます。
@@ -166,7 +158,6 @@ $$
 {\sum_{j=0}^{l-1}\phi(\mathbf q_l,\mathbf k_j)},
 \qquad
 \mathbf h_l=\sum_{i=0}^{l-1}\alpha_{i\to l}\mathbf v_i.
-\tag{9}
 $$
 
 ネットワークの深さは控えめなので ($L<100$)、この完全形式の $O(L^2d)$ 演算は手頃な価格です。実際のオーバーヘッドは、$O(Ld)$ メモリと、すべてのレイヤー出力を維持するために必要なパイプライン並列処理でのクロスステージ通信です。
@@ -181,7 +172,6 @@ $$
 [\mathbf b_0,\mathbf b_1,\ldots,\mathbf b_{n-1}]^\top,&i=1,\\
 [\mathbf b_0,\mathbf b_1,\ldots,\mathbf b_{n-1},\mathbf b_n^{i-1}]^\top,&i\ge2.
 \end{cases}
-\tag{10}
 $$
 
 式 8 および 9 に従ってキーとアテンションの重みを使用します。その後、最終出力層はすべての $N$ ブロック表現を集約します。ブロック AttnRes では、メモリと通信のオーバーヘッドが $O(Ld)$ から $O(Nd)$ に低下しますが、このブロック構造は推論時間の状態も制限するため、並列ブロック間の結果をオンライン ソフトマックス [Mil18] を介して順次ブロック内部分和とより適切にマージできるようになり、推論時間のコストが大幅に削減されます。
@@ -201,7 +191,6 @@ $$
 \qquad
 \mathbf y=\sum_{j=1}^{N_s}E_j^{\mathrm{shared}}(\mathbf x)
 +\mathbf W^\uparrow\operatorname{RMSNorm}(\mathbf u).
-\tag{11}
 $$
 
 ここで、$\mathbf u\in\mathbb R^\ell$ は集約されたルーティングされた表現、$E_j^{\mathrm{shared}}:\mathbb R^d\to\mathbb R^d$ および $E_i^{\mathrm{routed}}:\mathbb R^\ell\to\mathbb R^\ell$ は共有およびルーティングされたエキスパート フィードフォワード ネットワーク、$p_i$ は以下の Quantile Balancing ルールで定義されたルーターの重みです。 Kimi K3 は、各レイヤーの全角共有エキスパートの数を $N_s=2$ に固定します。
@@ -221,7 +210,6 @@ $$
 \beta_1\tanh(\mathbf W_g\mathbf x/\beta_1)
 \odot\operatorname{Sigmoid}(\mathbf W_g\mathbf x)
 \odot\beta_2\tanh(\mathbf W_u\mathbf x/\beta_2).
-\tag{12}
 $$
 
 Kimi K3 の場合、ソフトキャップ ハイパーパラメータをゲート ブランチの場合は $\beta_1=4$、アップ ブランチの場合は $\beta_2=25$ に設定します。スケーリングされた正接正接は原点付近でほぼ線形であり、大きな値で境界があるため、SiTU-GLU は積の両方の要素を制御しながら SwiGLU のローカル応答を保存できます。[図 4](#figure-04) は、共通スライス上の GLU、SwiGLU、および SiTU-GLU の分岐定義とスカラー応答を比較しています。付録 B では、局所的な拡張、制限ケース、正式な出力限界、およびハード クランプとの比較を示します。
@@ -240,7 +228,6 @@ $$
 \mathcal T_i=\operatorname{argtop}_k(\mathbf s_i+\mathbf b),
 \qquad
 p_{i,j}=\frac{s_{i,j}}{\sum_{r\in\mathcal T_i}s_{i,r}},\quad j\in\mathcal T_i.
-\tag{13}
 $$
 
 $\mathbf b$ は $p_{i,j}$ から省略されているため、混合重みや勾配ベースのルーター最適化を変更せずにディスパッチを制御します。元のメソッドは、固定ステップ ルール [Dee24a] を使用して $\mathbf b$ を更新します。
@@ -266,7 +253,6 @@ $$
 b_j^{(t+1)}&\leftarrow\operatorname{quantile}_{1-k/n}(\mathbf s_{:,j}-\boldsymbol\alpha^{(t)}),\\
 \mathbf b^{(t+1)}&\leftarrow\mathbf b^{(t+1)}-\operatorname{mean}(\mathbf b^{(t+1)})\mathbf 1.
 \end{aligned}
-\tag{14}
 $$
 
 マージンは生のスコア $s_{i,j}$ からバイアスされたカットオフ $\alpha_i^{(t)}$ を減算するため、古いバイアスはカットオフを通じてのみ更新に入り、2 行目は Top-$k$ の選択を変更しないままにする共通のオフセットを削除します。因果関係により、更新は次のステップ [Dee24a] でのみ有効になります。つまり、バッチがそれ自体から派生したバイアスでルーティングされることはありません。[図 5](#figure-05) は、$m=8$、$n=4$、および $k=1$ のケースを示しています。各エキスパートはターゲット ロード $q=2$ を受け取ります。最終的なバイアスは推論時に固定されます。バランス割り当ての導出については、付録 C に記載されています。
@@ -386,7 +372,6 @@ r_{\mathrm{opd}}^d(y_t\mid e,x,y_{<t})=
 \log\frac{\pi_{\mathrm{teacher}}^{(d,e)}(y_t\mid x,y_{<t})}
 {\pi_\theta(y_t\mid e,x,y_{<t})}
 \right],-R_{\max},R_{\max}\right).
-\tag{15}
 $$
 
 ここで、$\operatorname{sg}(\cdot)$ は停止勾配演算子を表し、$R_{\max}>0$ は極度のアドバンテージ信号を制限するクリッピングしきい値であり、これにより RL トレーニングが安定します。この高密度の報酬シグナルは RL フレームワークにシームレスに統合され、長期的なタスクの部分的なロールアウト トレーニングなどのインフラストラクチャ レベルの最適化が自然に可能になります。よりきめの細かい Top-$k$ 蒸留目標でも実験しましたが、この設定では収束速度や最終パフォーマンスのいずれにおいても明らかな利点は観察されませんでした。
@@ -405,7 +390,6 @@ $$
 
 $$
 \mathcal L_{\mathrm{LK}}=-\log\sum_{x\in\mathcal V}\min(p(x),q(x)).
-\tag{16}
 $$
 
 $p$ および $q$ は温度 1 で評価され、補助グラウンド トゥルース ク​​ロス エントロピー項はありません。ドラフトの微調整はトレーニング後の QAT 構成 ([§4.1.4](#_4-1-4-deployment-aware-post-training)) に従い、MoE エキスパートの重みは MXFP4 で、その入力アクティベーションは MXFP8 で行われますが、非エキスパート モジュールは高精度のままです。
@@ -500,7 +484,6 @@ $$
 \widetilde{\mathbf S}_{[j]}^{T_j}
 \in\mathbb R^{d_k\times d_v}.
 \end{aligned}
-\tag{17}
 $$
 
 ここで、$\mathbf M_{[i+1]}^{t\leftarrow1}$ は、最初の $t$ ローカル トークンの累積遷移を示します。最初の項にはローカル トークンによって生成された状態が含まれますが、2 番目の項にはローカル KDA 更新を通じて前のランクからのコンテキストが伝播されます。 $t=T_{i+1}$ では、$\mathbf M_{[i+1]}^{T_{i+1}\leftarrow1}$ と $\widetilde{\mathbf S}_{[i+1]}^{T_{i+1}}$ の両方が、$\mathbf S_{[i]}^{T_i}$ が利用可能になる前にローカル トークンのみを使用して計算でき、各ランクが他のランクと交換するフラグメントです。
@@ -889,7 +872,6 @@ SiTU は、シグモイド係数 [Kim26c] を保持しながら、Swish の線�
 
 $$
 \beta\tanh(z/\beta)=z+O(z^3/\beta^2).
-\tag{18}
 $$
 
 したがって、SiTU-GLU は SwiGLU を原点付近の 1 次と一致させます。また、SwiGLU を $\beta_1,\beta_2\to\infty$ としてポイント単位で回復します。
@@ -898,7 +880,6 @@ $$
 
 $$
 \|\operatorname{SiTU\text{-}GLU}(\mathbf x)\|_\infty\le\beta_1\beta_2=100.
-\tag{19}
 $$
 
 ここでは $\beta_1=4$ と $\beta_2=25$ です。ゲートの事前アクティベーションのハード クランプとは異なり、スムーズ キャップは飽和境界から離れたゼロ以外の勾配を保持し、これによりトレーニング動作が向上することがわかりました。
@@ -911,7 +892,6 @@ $$
 \max_{\mathbf x;\,x_{i,j}\in\{0,1\}}\sum_{i,j}x_{i,j}s_{i,j}
 \quad\text{s.t.}\quad
 \sum_jx_{i,j}=k,\qquad\sum_i x_{i,j}=\frac{mk}{n}.
-\tag{20}
 $$
 
 **線形緩和と双対性。** $x_{i,j}\in\{0,1\}$ から $x_{i,j}\in[0,1]$ への緩和は、方程式 20 を線形プログラムに変換します。その最適値は、2 部構成の $b$ マッチング多面体の標準積分によって積分されます。したがって、緩和は正確です。トークン側とエキスパート側の等式制約にそれぞれ無料の乗数 $\alpha_i$ と $\beta_j$ を導入すると、緩和された問題は最大-最小形式で次のように書くことができます。
@@ -921,7 +901,6 @@ $$
 \sum_{i,j}x_{i,j}s_{i,j}
 -\sum_i\alpha_i\left(\sum_jx_{i,j}-k\right)
 -\sum_j\beta_j\left(\sum_i x_{i,j}-\frac{mk}{n}\right).
-\tag{21}
 $$
 
 $\mathbf x$、$\boldsymbol\alpha$、および $\boldsymbol\beta$ のそれぞれで目的は線形であり、実現可能セットは凸であるため、ミニマックス定理により最適化の順序を交換できます。
@@ -930,7 +909,6 @@ $$
 \min_{\boldsymbol\alpha,\boldsymbol\beta}\max_{\mathbf x;\,x_{i,j}\in [0,1]}
 \sum_{i,j}x_{i,j}(s_{i,j}-\alpha_i-\beta_j)
 +k\sum_i\alpha_i+\frac{mk}{n}\sum_j\beta_j.
-\tag{22}
 $$
 
 内部最大値はエントリ間で分離可能で、$s_{i,j}-\alpha_i-\beta_j>0$ の場合は $x_{i,j}^*=1$、$s_{i,j}-\alpha_i-\beta_j<0$ の場合は $x_{i,j}^*=0$ となります。タイケースの実際の測定値はゼロです。 $\mathbf x^*$ を代入すると、凸双対物レンズが得られます。
@@ -939,7 +917,6 @@ $$
 \min_{\boldsymbol\alpha,\boldsymbol\beta}\mathcal L(\boldsymbol\alpha,\boldsymbol\beta):=
 \sum_{i,j}\max(0,s_{i,j}-\alpha_i-\beta_j)
 +k\sum_i\alpha_i+\frac{mk}{n}\sum_j\beta_j.
-\tag{23}
 $$
 
 ```pseudocode:line-numbers title="アルゴリズム 1：交互 QB ソルバー"
@@ -957,21 +934,18 @@ return x, where x[i,j] = 1 iff j is in argtop_k(s[i] - beta)
 
 $$
 \min_\alpha k\alpha+\sum_j\max(0,s_{i,j}-\beta_j-\alpha).
-\tag{24}
 $$
 
 この目標は、$\alpha$ で区分的に線形であり、傾き $k$ からマージンの数 $s_{i,j}-\beta_j$ を差し引いた値が $\alpha$ を超えます。したがって、$k$ マージンが $\alpha$ より上にあるとき、つまり、$\mathbf s_i-\boldsymbol\beta$ の $k$ 番目と $(k+1)$ 番目の最大エントリの間の任意の $\alpha_i^*$ について、正確に最小化されます。慣例により、$(k+1)$ 番目に大きいエントリ、つまり $(1-k/n)$ 番目の分位数を取得します。
 
 $$
 \alpha_i^*=\operatorname{quantile}_{1-k/n}(\mathbf s_i-\boldsymbol\beta).
-\tag{25}
 $$
 
 対称的に、$\boldsymbol\alpha$ が固定されている場合、エキスパート $j$ は $\min_\beta \frac{mk}{n}\beta+\sum_i\max(0,s_{i,j}-\alpha_i-\beta)$ を解きます。その最小化子は、$\mathbf s_{:,j}-\boldsymbol\alpha$ の $(mk/n+1)$ 番目に大きいエントリであり、やはり $(1-k/n)$ 番目の分位です。
 
 $$
 \beta_j^*=\operatorname{quantile}_{1-k/n}(\mathbf s_{:,j}-\boldsymbol\alpha).
-\tag{26}
 $$
 
 したがって、両方の更新はそれぞれトークン軸とエキスパート軸に沿った同じ分位数であり、これがメソッドの名前の由来となっています。図５は、エキスパート側の更新が、各エキスパートのマージン分布の受け入れられた上裾を均等化するものとして示しており、Ａｌｇ． 1 は、結果として得られる交互ソルバーを要約したものです。
@@ -983,7 +957,6 @@ $$
 $$
 \frac{\partial\mathcal L}{\partial\beta_j}=\frac{mk}{n}
 -\sum_{i=1}^{m}\chi(s_{i,j}-\alpha_i-\beta_j>0).
-\tag{27}
 $$
 
 つまり、ターゲット負荷からエキスパート $j$ の観測負荷を引いたものです。この目的の SignSGD ステップは、符号規則 $\mathbf b=-\boldsymbol\beta$ まで、補助損失のないバランシング [Dee24a] の固定ステップの符号更新を回復します。符号の更新は式 27 の負荷誤差の方向のみを保持しますが、QB は同じ二重目的の正確な座標最小化装置に直接ジャンプします。このビューは、QB が学習率のようなハイパーパラメータを必要としない理由と、ほぼ $10^3$ の専門家であっても数回の更新ステップ内で平衡化する理由の両方を説明します。 QB も同様に BIP [Sun25a] に関連しており、不等式制約 $\sum_jx_{i,j}\le k$ および $\sum_i x_{i,j}\le mk/n$ を使用して同じ割り当てを解決します。 $\boldsymbol\alpha$ と $\boldsymbol\beta$ に誘発された非負性制約により、両方の更新に $\max(0,\cdot)$ クリッピングが追加されます。これにより、過小選択されたエキスパートは促進されず、過剰に選択されたエキスパートのみが抑制され、実験の平衡化が著しく遅くなります。最後に、結果の固定トップ $k$ ルーティングは、エキスパート固有のしきい値ルーティングに関連していますが、EMA しきい値を維持し、トークン [Sun26] ごとに選択されたエキスパートの可変数を許可するエキスパートしきい値ルーティングとは異なります。
@@ -1015,7 +988,6 @@ $m_r(P)$ が、計画 $P$ の下でランク $r$ に配置された余剰専門�
 $$
 M(I)=\min_P\max_r\{m_r(P)\}
 \le\max_r\{m_r(P^*)\}\le\frac ER.
-\tag{28}
 $$
 
 #### 定理 2 (上限の厳密性) の証明

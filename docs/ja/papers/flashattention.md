@@ -333,14 +333,18 @@ $$
 
 我々には次のことがあります $S_{\mathrm{ij}}=q_{i}^\topk_{j}$ ここで $q_{i}$ と $k_{j}$ は、それぞれ $i$ 列と $j$ 列です $\mathbf{Q}$ と $\mathbf{K}$ の。ソフトマックスの正規化定数を定義します：
 
+<span id="A2.E1"></span>
+
 $$
-L_{i}=\sum_{j}e^{q_{i}^\topk_{j}}.\tag{1}
+L_{i}=\sum_{j}e^{q_{i}^\topk_{j}}.
 $$
 
 $v_{j}$を$j$番目の$\mathbf{V}$の列とすると、出力の$i$番目の列は
 
+<span id="A2.E2"></span>
+
 $$
-o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{\mathrm{ij}}v_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}.\tag{2}
+o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{\mathrm{ij}}v_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}.
 $$
 
 となります。$L_{i}$が計算されると、$\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}$を繰り返し加算することで追加メモリなしで$o_{i}$を計算できることがわかります。したがって、順方向計算は$O(n)$の追加メモリで計算可能です：
@@ -356,8 +360,10 @@ $$
 
 勾配 $\mathbf{\mathrm{dV}}$ は簡単に理解できます。手動で逆モード自動微分（別名連鎖律）を適用すると、（行列表記で） $\mathbf{\mathrm{dV}}=\mathbf{P}^\top\mathbf{\mathrm{dO}}$ を得ます。したがって：
 
+<span id="A2.E3"></span>
+
 $$
-\mathrm{dv}_{j}=\sum_{i}P_{\mathrm{ij}}\mathrm{do}_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}.\tag{3}
+\mathrm{dv}_{j}=\sum_{i}P_{\mathrm{ij}}\mathrm{do}_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}.
 $$
 
 すでに $L_{i}$ を計算しているので、$\mathrm{dv}_{j}$ は追加のメモリを使わずに繰り返し和を取ることで計算できます。
@@ -378,8 +384,10 @@ $$
 
 次を定義します：
 
+<span id="A2.E4"></span>
+
 $$
-D_{i}=P_{i:}^\topdP_{i:}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}^\topv_{j}=\mathrm{do}_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=\mathrm{do}_{i}^\topo_{i},\tag{4}
+D_{i}=P_{i:}^\topdP_{i:}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}^\topv_{j}=\mathrm{do}_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=\mathrm{do}_{i}^\topo_{i},
 $$
 
 すると
@@ -396,14 +404,18 @@ $$
 
 これで勾配 $\mathbf{\mathrm{dQ}}$ と $\mathbf{\mathrm{dK}}$ を取得できます。$S_{\mathrm{ij}}=q_{i}^\topk_{j}$ を思い出してください。次に、
 
+<span id="A2.E5"></span>
+
 $$
-\mathrm{dq}_{i}=\sum_{j}\mathrm{dS}_{\mathrm{ij}}k_{j}=\sum_{j}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})k_{j}.\tag{5}
+\mathrm{dq}_{i}=\sum_{j}\mathrm{dS}_{\mathrm{ij}}k_{j}=\sum_{j}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})k_{j}.
 $$
 
 同様に、
 
+<span id="A2.E6"></span>
+
 $$
-\mathrm{dk}_{j}=\sum_{i}\mathrm{dS}_{\mathrm{ij}}q_{i}=\sum_{i}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})q_{i}.\tag{6}
+\mathrm{dk}_{j}=\sum_{i}\mathrm{dS}_{\mathrm{ij}}q_{i}=\sum_{i}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})q_{i}.
 $$
 
 したがって逆伝播は追加メモリ $O(n)$ を使っても計算できます：

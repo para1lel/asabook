@@ -55,13 +55,15 @@ $\downarrow$|FP32|RTN|FP16%（活性化基準）|||FP16%（重み基準）|||FP1
 量子化誤差の分析。重みのみの量子化からの誤差を分析することから始めます。重みのグループ/ブロック$\mathbf{w}$を考えます。線形演算は次のように書けます：$y=\mathbf{w}\mathbf{x}$、量子化された対応は$y=Q(\mathbf{w})\mathbf{x}$です。具体的には、量子化関数は次のように定義されます：
 
 $$
-Q(\mathbf{w})=\Delta\cdot\mathrm{Round}(\frac{\mathbf{w}}{\Delta}),\quad\Delta=\frac{\max(|\mathbf{w}|)}{2^{N-1}},\tag{1}
+Q(\mathbf{w})=\Delta\cdot\mathrm{Round}(\frac{\mathbf{w}}{\Delta}),\quad\Delta=\frac{\max(|\mathbf{w}|)}{2^{N-1}},
 $$
 
 ここで$N$は量子化ビット数であり、$\Delta$は絶対最大値によって決定される量子化スケーラです。次に重み要素$w\in\mathbf{w}$を考え、もし$w$に$s>1$を掛け、$x$を逆スケーリングすると、次のようになります：$Q(w\cdot s)(x/s)$
 
+<span id="S2.E2"></span>
+
 $$
-Q(w\cdot s)\cdot\frac{x}{s}=\Delta^{ {}^{\prime}}\cdot\mathrm{Round}(\frac{\mathrm{ws}}{\Delta})\cdot x\cdot\frac{1}{s},\tag{2}
+Q(w\cdot s)\cdot\frac{x}{s}=\Delta^{ {}^{\prime}}\cdot\mathrm{Round}(\frac{\mathrm{ws}}{\Delta})\cdot x\cdot\frac{1}{s},
 $$
 
 、ここで $\Delta^{ {}^{\prime}}$ は $s$ を適用した後の新しい量子化スケーラーです。我々は経験的に次のことを発見しました：（1）$\mathrm{Round}(\cdot)$ からの期待誤差（$\mathrm{RoundErr}$ と表される）は変動しません：丸め関数は浮動小数点数を整数にマッピングするため、誤差は概ね 0-0.5 の範囲で一様に分布し、平均誤差は 0.25 になります；（2）単一の要素 $w$ をスケーリングアップしても、通常はグループ $\mathbf{w}$ の極値は変わりません。したがって、$\Delta^{ {}^{\prime}}\approx\Delta$ となります；（3）方程式 [2] （#S2.E2 "In 2.2 Protecting Salient Weights by Activation-aware Scaling ‣ 2 AWQ： Activation-aware Weight Quantization ‣ AWQ： Activation-aware Weight Quantization for LLM Compression and Acceleration"） からの誤差は $\mathrm{Err}^{ {}^{\prime}}=\Delta^{ {}^{\prime}}\cdot \mathrm{RoundErr}\cdot\frac{1}{s}$ と表現でき、元の誤差 $\mathrm{RoundErr}$ と比較した比率は $\frac{\Delta^{ {}^{\prime}}}{\Delta}\cdot\frac{1}{s}$ です。$\Delta^{ {}^{\prime}}\approx\Delta$ と $s>1$ が与えられた場合、相対誤差は顕著な重み $w$ に対して小さくなります。
@@ -83,15 +85,17 @@ $$
 スケーリングの探索。重要な重みと非重要な重みの両方を考慮するために、特定の層の量子化後の出力差を最小にする最適な（入力チャネルごとの）スケーリングファクターを自動的に探索することを選択します。形式的には、以下の目的関数を最適化したいと考えています：
 
 $$
-\mathbf{s}^{*}=\mathrm{arg\,min}_{\mathbf{s}}\mathcal{L}(\mathbf{s}),\quad\mathcal{L}(\mathbf{s})=\| Q(\mathbf{W}\cdot\mathbf{s})(\mathbf{s^{-1}}\cdot\mathbf{X})-\mathbf{W}\mathbf{X}\|\tag{3}
+\mathbf{s}^{*}=\mathrm{arg\,min}_{\mathbf{s}}\mathcal{L}(\mathbf{s}),\quad\mathcal{L}(\mathbf{s})=\| Q(\mathbf{W}\cdot\mathbf{s})(\mathbf{s^{-1}}\cdot\mathbf{X})-\mathbf{W}\mathbf{X}\|
 $$
 
 ここで$Q$は重み量子化関数（例：グループサイズ128のINT3/INT4量子化）を意味し、$\mathbf{W}$はFP16の元の重み、$\mathbf{X}$は小さなキャリブレーションセットからキャッシュされた入力特徴です（特定のタスクに過度に適合しないように事前学習データセットから小さなキャリブレーションセットを取得します）。$\mathbf{s}$は入力チャネルごとのスケーリングファクターであり、$\mathbf{s^{-1}}\cdot\mathbf{X}$の場合、通常は前の演算子[Wei22, Xia23]に統合可能です。量子化関数は微分可能ではないため、通常の逆伝播では問題を直接最適化することはできません。いくつかの近似勾配に依存する技術[Ben13, Ess19]がありますが、収束の不安定さに依然として悩まされています。
 
 プロセスをより安定させるために、スケーリング係数の選択に影響を与える要因を分析して、最適なスケールのための*探索空間*を定義します。前節で示したように、重みチャンネルの顕著性は実際には活性化スケールによって決まります（したがって、“活性化認識”）。したがって、非常に単純な探索空間を使用します。
 
+<span id="S2.E4"></span>
+
 $$
-\mathbf{s}=\mathbf{s_{X}}^{\alpha},\quad\alpha^{*}=\mathrm{arg\,min}_{\alpha}\mathcal{L}(\mathbf{s_{X}}^{\alpha})\tag{4}
+\mathbf{s}=\mathbf{s_{X}}^{\alpha},\quad\alpha^{*}=\mathrm{arg\,min}_{\alpha}\mathcal{L}(\mathbf{s_{X}}^{\alpha})
 $$
 
 $\mathbf{s}$ は活性化 $\mathbf{s_{X}}$ の大きさにのみ関連し、単一のハイパーパラメータ $\alpha$ を使用して、顕著チャンネルと非顕著チャンネルの保護のバランスを取ります。$\alpha$ は $[0,1]$ の間隔で高速グリッドサーチを行うことで見つけることができます（$0$ はスケーリングしないことを意味し、$1$ は最も積極的なスケーリングに対応します）。さらに、重みクリッピングも MSE 誤差を最小化することで適用します。なぜなら、重みのクリッピングは式 [2](#S2.E2) における $\Delta^{ {}^{\prime}}$ の削減にさらに役立つからです。したがって、量子化誤差を減らすことができます。[表 3](#table-03) では INT3-g128 量子化下の OPT モデルに関するアブレーション研究を提供しており、AWQ は一貫して最近傍丸め（RTN）を上回り、混合精度（1% FP16）と同等の性能を達成しつつ、よりハードウェアに優しいことがわかります。

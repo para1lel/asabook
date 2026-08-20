@@ -53,13 +53,15 @@ AWQ 已被包括 [FastChat](https://github.com/lm-sys/FastChat/blob/main/docs/aw
 量化误差分析. 我们从仅权重量化的误差分析开始. 考虑一组/块权重 $\mathbf{w}$; 线性操作可以写为 $y=\mathbf{w}\mathbf{x}$, 量化对应物为 $y=Q(\mathbf{w})\mathbf{x}$. 具体来说, 量化函数定义为:
 
 $$
-Q(\mathbf{w})=\Delta\cdot\mathrm{Round}(\frac{\mathbf{w}}{\Delta}),\quad\Delta=\frac{\max(|\mathbf{w}|)}{2^{N-1}},\tag{1}
+Q(\mathbf{w})=\Delta\cdot\mathrm{Round}(\frac{\mathbf{w}}{\Delta}),\quad\Delta=\frac{\max(|\mathbf{w}|)}{2^{N-1}},
 $$
 
 其中 $N$ 是量化位数, $\Delta$ 是由绝对最大值决定的量化缩放因子. 现在考虑一个权重元素 $w\in\mathbf{w}$, 如果我们将 $w$ 乘以 $s>1$ 并对 $x$ 进行反向缩放, 我们将得到 $Q(w\cdot s)(x/s)$, 其结果是:
 
+<span id="S2.E2"></span>
+
 $$
-Q(w\cdot s)\cdot\frac{x}{s}=\Delta^{ {}^{\prime}}\cdot\mathrm{Round}(\frac{\mathrm{ws}}{\Delta})\cdot x\cdot\frac{1}{s},\tag{2}
+Q(w\cdot s)\cdot\frac{x}{s}=\Delta^{ {}^{\prime}}\cdot\mathrm{Round}(\frac{\mathrm{ws}}{\Delta})\cdot x\cdot\frac{1}{s},
 $$
 
 其中 $\Delta^{ {}^{\prime}}$ 是应用 $s$ 之后的新量化缩放器. 我们通过经验发现: (1) $\mathrm{Round}(\cdot)$ 的期望误差 (记为 $\mathrm{RoundErr}$) 不会变化: 由于 round 函数将浮点数映射为整数, 误差大致均匀分布在 0-0.5 之间, 导致平均误差为 0.25; (2) 对单个元素 $w$ 进行缩放通常不会改变该组的极值 $\mathbf{w}$. 因此我们有 $\Delta^{ {}^{\prime}}\approx\Delta$; (3) 方程 [2](#S2.E2) 的误差可以表示为 $\mathrm{Err}^{ {}^{\prime}}=\Delta^{ {}^{\prime}}\cdot \mathrm{RoundErr}\cdot\frac{1}{s}$, 相对于原始误差 $\mathrm{RoundErr}$ 的比例为 $\frac{\Delta^{ {}^{\prime}}}{\Delta}\cdot\frac{1}{s}$. 给定 $\Delta^{ {}^{\prime}}\approx\Delta$ 和 $s>1$, 对于显著权重 $w$, 相对误差更小.
@@ -81,15 +83,17 @@ $$
 搜索缩放. 为了同时考虑显著和非显著权重, 我们选择自动搜索每个输入通道的最优缩放因子, 以最小化某一层量化后的输出差异. 形式上, 我们希望优化以下目标:
 
 $$
-\mathbf{s}^{*}=\mathrm{arg\,min}_{\mathbf{s}}\mathcal{L}(\mathbf{s}),\quad\mathcal{L}(\mathbf{s})=\| Q(\mathbf{W}\cdot\mathbf{s})(\mathbf{s^{-1}}\cdot\mathbf{X})-\mathbf{W}\mathbf{X}\|\tag{3}
+\mathbf{s}^{*}=\mathrm{arg\,min}_{\mathbf{s}}\mathcal{L}(\mathbf{s}),\quad\mathcal{L}(\mathbf{s})=\| Q(\mathbf{W}\cdot\mathbf{s})(\mathbf{s^{-1}}\cdot\mathbf{X})-\mathbf{W}\mathbf{X}\|
 $$
 
 这里 $Q$ 表示权重量化函数 (例如, 使用组大小为 128 的 INT3/INT4 量化), $\mathbf{W}$ 是 FP16 格式的原始权重, $\mathbf{X}$ 是从小型校准集缓存的输入特征 (我们从预训练数据集中取一个小型校准集, 以避免对特定任务过拟合). $\mathbf{s}$ 是每个 (输入) 通道的缩放因子; 对于 $\mathbf{s^{-1}}\cdot\mathbf{X}$, 它通常可以与前一个操作 [Wei22, Xia23] 融合. 由于量化函数不可微, 我们无法直接使用普通反向传播来优化该问题. 有一些技术依赖于近似梯度 [Ben13, Ess19], 但我们发现仍然存在收敛不稳定的问题.
 
 为了使该过程更稳定, 我们通过分析会影响缩放因子选择的因素, 为最优缩放定义了一个*搜索空间*. 如上一节所示, 权重通道的重要性实际上由激活尺度决定 (因此称为“激活感知”). 因此, 我们只使用一个非常简单的搜索空间:
 
+<span id="S2.E4"></span>
+
 $$
-\mathbf{s}=\mathbf{s_{X}}^{\alpha},\quad\alpha^{*}=\mathrm{arg\,min}_{\alpha}\mathcal{L}(\mathbf{s_{X}}^{\alpha})\tag{4}
+\mathbf{s}=\mathbf{s_{X}}^{\alpha},\quad\alpha^{*}=\mathrm{arg\,min}_{\alpha}\mathcal{L}(\mathbf{s_{X}}^{\alpha})
 $$
 
 $\mathbf{s}$ 仅与激活 $\mathbf{s_{X}}$ 的幅度相关, 我们使用单个超参数 $\alpha$ 来在重要通道和非重要通道的保护之间进行平衡. 我们可以通过在 $[0,1]$ 区间上的快速网格搜索找到最佳 $\alpha$ ($0$ 表示我们不进行缩放; $1$ 对应最激进的缩放). 我们进一步通过最小化均方误差 (MSE) 来应用权重裁剪, 因为裁剪权重可以进一步帮助减少方程 [2](#S2.E2) 中的 $\Delta^{ {}^{\prime}}$, 从而减少量化误差. 我们在 [表 3](#table-03) 中提供了 OPT 模型在 INT3-g128 量化下的消融研究; AWQ 始终优于四舍五入量化 (RTN), 并在性能上与混合精度 (1% FP16) 相当, 同时更适合硬件实现.

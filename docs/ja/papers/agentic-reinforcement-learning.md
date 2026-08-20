@@ -73,7 +73,6 @@ RL 微調整プロセスのマルコフ決定プロセス (MDP) は、7 要素�
 
 $$
 \langle\mathcal{S}_{\mathrm{trad}},\mathcal{A}_{\mathrm{trad}},\mathcal{P}_{\mathrm{trad}},\mathcal{R}_{\mathrm{trad}},T=1,\gamma=1\rangle.
-\tag{1}
 $$
 
 **エージェント RL。** エージェント RL の RL トレーニング プロセスは、POMDP としてモデル化されます。
@@ -82,7 +81,6 @@ $$
 
 $$
 \langle\mathcal{S}_{\mathrm{agent}},\mathcal{A}_{\mathrm{agent}},\mathcal{P}_{\mathrm{agent}},\mathcal{R}_{\mathrm{agent}},\gamma,\mathcal{O}\rangle.
-\tag{2}
 $$
 
 ここで、エージェントは状態 $s_{t}\in\mathcal{S}_{\mathrm{agent}}$ に基づいて観測値 $o_{t}=O(s_{t})$ を受け取ります。 PBRFT と Agentic RL の主な違いを [表 1](#table-01) に示します。要約すると、PBRFT は完全な観察の下で固定データセット内の出力文のシーケンスを最適化しますが、Agentic RL は部分的な観察によって特徴付けられる可変環境での意味レベルの動作を最適化します。
@@ -103,7 +101,6 @@ $$
 
 $$
 \mathcal{S}_{\mathrm{trad}}=\{\mathrm{prompt}\}.
-\tag{3}
 $$
 
 **エージェント RL。** LLM エージェントは、POMDP の複数のタイムステップにわたって動作します。 $s_{t}\in\mathcal{S}_{\mathrm{agent}}$ が完全なワールド状態を示し、LLM エージェントは現在の状態 $o_{t}=\mathcal{O}(s_{t})$ に基づいて観測値 $O_{t}$ を取得します。 LLM エージェントは、現在の観測値 $o_{t}$ に基づいてアクション $a_{t}$ を選択し、状態は時間の経過とともに変化します。
@@ -112,7 +109,6 @@ $$
 
 $$
 s_{t+1}\sim P(s_{t+1}\mid s_{t},a_{t}).
-\tag{4}
 $$
 
 エージェントは、取得したツールの結果、ユーザー メッセージ、環境フィードバックなどの中間信号を蓄積します。したがって、相互作用は本質的に動的であり、時間的に拡張されます。
@@ -127,7 +123,6 @@ Agentic RL 設定では、LLM のアクション スペースは 2 つの異な�
 
 $$
 \mathcal{A}_{\mathrm{agent}}=\mathcal{A}_{\mathrm{text}}\cup\mathcal{A}_{\mathrm{action}}.
-\tag{5}
 $$
 
 ここで、$\mathcal{A}_{\mathrm{text}}$ は、自己回帰デコードによって出力される自由形式の自然言語トークンの空間を示し、一方、$\mathcal{A}_{\mathrm{action}}$ は、出力ストリーム内で通常、特別なトークン `<action_start>` および `<action_end>` によって区切られる、抽象的な非言語アクションの空間を示します。これらのアクションは、タスクの要件に応じて、外部ツール (例: `call("search", "Einstein")`) を呼び出したり、環境 (例: `move("north")`) と対話したりする場合があります。
@@ -146,7 +141,6 @@ $$
 
 $$
 \mathcal{P}(s_{1}\mid s_{0},a)=1,\quad\mathrm{where\ there\ is\ no\ uncertainty.}
-\tag{6}
 $$
 
 **エージェント RL。** エージェント RL では、環境は以下に従って不確実性の下で進化します。
@@ -155,7 +149,6 @@ $$
 
 $$
 s_{t+1}\sim\mathcal{P}(s_{t+1}\mid s_{t},a_{t}),\quad a_{t}\in\mathcal{A}_{\mathrm{text}}\cup\mathcal{A}_{\mathrm{action}}.
-\tag{7}
 $$
 
 テキスト アクション $(\mathcal{A}_{\mathrm{text}})$ は、環境状態を変更せずに自然言語出力を生成します。 `<action_start>` と `<action_end>` で区切られた構造化アクション $(\mathcal{A}_{\mathrm{action}})$ は、外部ツールにクエリを実行したり、環境を直接変更したりできます。この逐次的な定式化は、PBRFT のワンショット マッピングとは対照的で、通信、情報取得、環境操作を繰り返し組み合わせる方策を可能にします。
@@ -170,7 +163,6 @@ $$
 
 $$
 \mathcal{R}_{\mathrm{trad}}(s_{0},a)=r(a).
-\tag{8}
 $$
 
 ここで、$r:\mathcal{A}\!\to\!\mathbb{R}$ は、人間または AI の選好モデルによって提供される、中間フィードバックなしのスカラー スコアです。
@@ -183,7 +175,6 @@ $$
 \mathcal{R}_{\mathrm{agent}}(s_{t},a_{t})=\begin{cases}r_{\mathrm{task}}&\mathrm{on\ task\ completion},\\[2.0pt]
 r_{\mathrm{sub}}(s_{t},a_{t})&\mathrm{for\ step\!-\!level\ progress},\\[2.0pt]
 0&\mathrm{otherwise}.\end{cases}
-\tag{9}
 $$
 
 密、疎、または学習された報酬 (*例* 単体テストの合格、シンボリック検証の成功) を許可します。
@@ -198,7 +189,6 @@ $$
 
 $$
 J_{\mathrm{trad}}(\theta)=\mathbb{E}_{a\sim\pi_{\theta}}\bigl[r(a)\bigr].
-\tag{10}
 $$
 
 割引率は不要であり、最適化は期待報酬を最大化する系列モデリングに相当します。
@@ -209,7 +199,6 @@ $$
 
 $$
 J_{\mathrm{agent}}(\theta)=\mathbb{E}_{\tau\sim\pi_{\theta}}\left[\,\sum_{t=0}^{T-1}\gamma^{t}R_{\mathrm{agent}}(s_{t},a_{t})\right],\qquad 0\lt\gamma\lt1.
-\tag{11}
 $$
 
 この目的は、探索と長期的な信用割当を伴う方策勾配法または価値ベース法によって最適化されます。
@@ -228,7 +217,6 @@ PBRFT は、明示的な計画、ツール利用、環境フィードバック�
 
 $$
 \nabla_{\theta}J(\theta)=\mathbb{E}_{s_{0}}\left[\frac{1}{N}\sum_{i=1}^{N}\left(\mathcal{R}(s_{0},a^{(i)})-b(s_{0})\right)\nabla_{\theta}\log\pi_{\theta}(a^{(i)}|s_{0})\right].
-\tag{12}
 $$
 
 ここで、$a^{(i)}\sim\pi_{\theta}(a|s_{0})$ は $i$ 番目にサンプリングされた応答、$\mathcal{R}(s_{0},a)$ はタスク完了時に得られる最終報酬、$b(s)$ は方策勾配推定の分散を抑えるベースライン関数です。一般に、$b(s)$ には確率変数を含む任意の関数を使えます。実際には、$b(s)$ として通常は価値関数 $V(s)$ が用いられます。REINFORCE は式が簡潔で実装しやすい一方、勾配推定の分散が大きく、サンプル効率が低く、学習率に敏感で、critic（価値推定器）を持たないという欠点があります。
@@ -239,7 +227,6 @@ $$
 
 $$
 L_{\mathrm{PPO}}(\theta)=\frac{1}{N}\sum_{i=1}^{N}\min\left(\frac{\pi_{\theta}(a_{t}^{(i)}|s_{t})}{\pi_{\theta_{old}}(a_{t}^{(i)}|s_{t})}A(s_{t},a_{t}^{(i)}),\;\;\mathrm{clip}\left(\frac{\pi_{\theta}(a_{t}^{(i)}|s_{t})}{\pi_{\theta_{old}}(a_{t}^{(i)}|s_{t})},1-\epsilon,1+\epsilon\right)A(s_{t},a_{t}^{(i)})\right).
-\tag{13}
 $$
 
 ここで、$a_{t}^{(i)}\sim\pi_{\theta_{old}}(a|s_{t})$ は、更新が遅れている古いポリシー $\pi_{\theta_{old}}$ からの $i$ 番目にサンプリングされた応答です。 $A_{t}$ は、次によって得られる推定利点です。
@@ -248,7 +235,6 @@ $$
 
 $$
 A(s_{t},a_{t})=\mathcal{R}(s_{t},a_{t})-V(s_{t}).
-\tag{14}
 $$
 
 ここで、$V_{\theta}(s)$ は学習される価値関数、すなわち期待値 $\mathbb{E}_{a\sim\pi_{\theta}(a|s)}[\mathcal{R}(s,a)]$ です。通常は方策ネットワークと同程度の大きさを持つ critic ネットワークから得られますが、必須ではありません。クリップ項は確率比が 1 から離れすぎるのを防ぎ、更新を安定させます。アドバンテージ関数の推定は PPO の性能を大きく左右します。近年の変種は、アドバンテージ推定のバイアス [Kaz24] や分散 [Yue25a] の低減、方策更新の安定化 [Liu25s]、疎な報酬の緩和 [Dai25] に取り組んでいます。それでも、アドバンテージ推定に別の critic ネットワークが必要で、学習時のパラメータ数が大幅に増えるという問題は残ります。
@@ -259,7 +245,6 @@ $$
 
 $$
 L_{\mathrm{DPO}}(\pi_{\theta};\pi_{ref})=-\mathbb{E}_{(x,y_{w},y_{l})\sim D}\left[\log\sigma\left(\beta\log\frac{\pi_{\theta}(y_{w}|x)}{\pi_{ref}(y_{w}|x)}-\beta\log\frac{\pi_{\theta}(y_{l}|x)}{\pi_{ref}(y_{l}|x)}\right)\right].
-\tag{15}
 $$
 
 ここで、$\pi_{ref}$ は参照方策（通常は初期 SFT モデル）、$\beta$ はハイパーパラメータです。DPO は critic を不要にしますが、性能は静的な選好データセットの品質と範囲に本質的に依存します。この制約に対処するため、外部データやオンラインデータ [Eth24, Hon24] を取り入れる変種が提案されています。より一般的な最適化目的 [Aza24] や、改良された暗黙的報酬機構 [Men24, Lai24, Hon25] を導入する研究もあります。
@@ -270,7 +255,6 @@ $$
 
 $$
 L_{\mathrm{GRPO}}=\frac{1}{G}\sum_{g=1}^{G}\min\left(\frac{\pi_{\theta}(a_{t}^{(g)}|s_{t}^{(g)})}{\pi_{\theta_{old}}(a_{t}^{(g)}|s_{t}^{(g)})}\hat{A}(s_{t}^{(g)},a_{t}^{(g)}),\;\;\mathrm{clip}\left(\frac{\pi_{\theta}(a_{t}^{(g)}|s_{t}^{(g)})}{\pi_{\theta_{old}}(a_{t}^{(g)}|s_{t}^{(g)})},1-\epsilon,1+\epsilon\right)\hat{A}(s_{t}^{(g)},a_{t}^{(g)})\right).
-\tag{16}
 $$
 
 ここで、出力 $\{(s_{0}^{(g)},a_{0}^{(g)},\ldots,s_{T-1}^{(g)},a_{T-1}^{(g)})\}_{g=1}^{G}$ のグループは、古いポリシー $\pi_{\theta_{old}}$ からサンプリングされます。有利関数は次のように推定されます。
@@ -279,7 +263,6 @@ $$
 
 $$
 \hat{A}(s_{t},a_{t})=\frac{\mathcal{R}(s_{t},a_{t})-\mathrm{mean}(\mathcal{R}(s_{t}^{(1)},a_{t}^{(1)}),\ldots,\mathcal{R}(s_{t}^{(G)},a_{t}^{(G)}))}{\mathrm{std}(\mathcal{R}(s_{t}^{(1)},a_{t}^{(1)}),\ldots,\mathcal{R}(s_{t}^{(G)},a_{t}^{(G)}))}.
-\tag{17}
 $$
 
 このグループ相対アプローチはサンプル効率が高く、計算オーバーヘッドが削減されます。ただし、グループベースの利点の推定は、高い分散と低い精度に対して脆弱です。その結果、利点の推定を大幅に改善することを目的として、GRPO フレームワークから派生した一連の新しいアルゴリズムがその後提案されました ([表 2](#table-02) を参照)。

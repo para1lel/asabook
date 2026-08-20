@@ -58,7 +58,7 @@ LLM 的核心是自回归 Transformer 模型 [Vas17]. 模型根据输入 (提示
 <span id="S2.E1"></span>
 
 $$
-P(x)=P(x_{1})\cdot P(x_{2}\mid x_{1})\cdots P(x_{n}\mid x_{1},\ldots,x_{n-1}).\tag{1}
+P(x)=P(x_{1})\cdot P(x_{2}\mid x_{1})\cdots P(x_{n}\mid x_{1},\ldots,x_{n-1}).
 $$
 
 Transformer [Vas17] 已成为大规模建模上述概率的事实标准架构. 基于 Transformer 的语言模型最重要的组成部分是*自注意力层*. 对于输入隐藏状态序列 $(x_{1},\ldots,x_{n})\in\mathbb{R}^{n\times d}$, 自注意力层首先对每个位置 $i$ 做线性变换, 得到查询、键和值向量:
@@ -66,7 +66,7 @@ Transformer [Vas17] 已成为大规模建模上述概率的事实标准架构. �
 <span id="S2.E2"></span>
 
 $$
-q_{i}=W_{q}x_{i},\ k_{i}=W_{k}x_{i},\ v_{i}=W_{v}x_{i}.\tag{2}
+q_{i}=W_{q}x_{i},\ k_{i}=W_{k}x_{i},\ v_{i}=W_{v}x_{i}.
 $$
 
 然后, 自注意力层将某一位置的查询向量与此前所有键向量相乘, 得到注意力分数 $a_{ij}$; 输出 $o_{i}$ 则是值向量的加权平均:
@@ -74,7 +74,7 @@ $$
 <span id="S2.E3"></span>
 
 $$
-a_{ij}=\frac{\exp(q_{i}^{\top}k_{j}/\sqrt{d})}{\sum_{t=1}^{i}\exp(q_{i}^{\top}k_{t}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{i}a_{ij}v_{j}.\tag{3}
+a_{ij}=\frac{\exp(q_{i}^{\top}k_{j}/\sqrt{d})}{\sum_{t=1}^{i}\exp(q_{i}^{\top}k_{t}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{i}a_{ij}v_{j}.
 $$
 
 除了 [公式 3](#S2.E3) 中的计算外, Transformer 模型的其他组件, 包括嵌入层、前馈层、层归一化 [Ba16]、残差连接 [He16]、输出 logit 计算, 以及 [公式 2](#S2.E2) 中查询、键和值的变换, 都以 $y_{i}=f(x_{i})$ 的形式逐位置独立应用.
@@ -144,7 +144,7 @@ $$
 <span id="S4.E4"></span>
 
 $$
-A_{ij}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf{1}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{ij}^{\top},\tag{4}
+A_{ij}=\frac{\exp(q_{i}^{\top}K_{j}/\sqrt{d})}{\sum_{t=1}^{\lceil i/B\rceil}\exp(q_{i}^{\top}K_{t}\mathbf{1}/\sqrt{d})},\ o_{i}=\sum_{j=1}^{\lceil i/B\rceil}V_{j}A_{ij}^{\top},
 $$
 
 其中 $A_{ij}=(a_{i,(j-1)B+1},\ldots,a_{i,jB})$ 是第 $j$ 个 KV 块的注意力分数行向量.

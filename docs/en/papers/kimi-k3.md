@@ -54,7 +54,6 @@ $$
 +\beta_t\mathbf k_t\mathbf v_t^\top,
 \qquad
 \widetilde{\mathbf o}_t=\mathbf S_t^\top\mathbf q_t.
-\tag{1}
 $$
 
 Here, $\boldsymbol\alpha_t\in(0,1)^{d_k}$ is the channel-wise one-step retention factor, and $\beta_t\in(0,1)$ controls the delta-rule write strength.
@@ -70,7 +69,6 @@ $$
 \beta_t^h&=\operatorname{Sigmoid}(\mathbf W_\beta^h\mathbf x_t)\in(0,1),\\
 \mathbf z_t^h&=\mathbf W_\alpha^\uparrow\mathbf W_\alpha^\downarrow\mathbf x_t+\mathbf b_\alpha^h\in\mathbb R^{d_k}.
 \end{aligned}
-\tag{2}
 $$
 
 The query, key, and value projections apply ShortConv followed by Swish [Yan25], and the query and key are further normalized with $L_2$ normalization [Yan24b]. The low-rank projection and head-specific bias $\mathbf b_\alpha^h\in\mathbb R^{d_k}$ produce a fine-grained decay logit $\mathbf z_t^h$ for each key channel. The lower-bounded mapping from $\mathbf z_t^h$ to $\boldsymbol\alpha_t^h$ is introduced after the chunkwise formulation below.
@@ -81,7 +79,6 @@ $$
 \boldsymbol\gamma_{[t]}^{i\to j}:=\prod_{r=i}^{j}\boldsymbol\alpha_{[t]}^r,
 \qquad
 \boldsymbol\gamma_{[t]}^r:=\boldsymbol\gamma_{[t]}^{1\to r}.
-\tag{3}
 $$
 
 As in Kimi Linear, $\boldsymbol\Gamma_{[t]}^{1\to C}\in\mathbb R^{C\times d_k}$ stacks $\boldsymbol\gamma_{[t]}^1,\ldots,\boldsymbol\gamma_{[t]}^C$ row-wise. The UT transform produces $\mathbf U_{[t]}$ and $\mathbf W_{[t]}$, from which we define the pseudo-value term $\widetilde{\mathbf V}_{[t]}:=\mathbf U_{[t]}-\mathbf W_{[t]}\mathbf S_{[t]}$. Given the incoming state $\mathbf S_{[t]}$, all outputs in chunk $t$ are computed in parallel as
@@ -95,7 +92,6 @@ $$
 \underbrace{(\boldsymbol\Gamma_{[t]}^{1\to C}\odot\mathbf Q_{[t]})\mathbf S_{[t]}}_{\text{inter-chunk}}
 +\underbrace{\mathbf A_{[t]}\widetilde{\mathbf V}_{[t]}}_{\text{intra-chunk}}.
 \end{aligned}
-\tag{4}
 $$
 
 For a matrix $\mathbf M$, $\operatorname{Tril}(\mathbf M)$ sets all strictly upper-triangular entries to zero and retains the lower-triangular entries, including the diagonal. This mask enforces causal interactions within the chunk, and the diagonal is retained because each output reads the state after the current-token update. The first term in $\mathbf O_{[t]}$ carries information from preceding chunks, whereas the second term accounts for interactions within the current chunk. We refer readers to Kimi Linear [Kim25b] for the UT transform and the full derivation of the chunkwise form.
@@ -106,7 +102,6 @@ $$
 \mathbf g_t^h=g_{\min}\operatorname{Sigmoid}(e^{A_h}\mathbf z_t^h)\in(g_{\min},0)^{d_k},
 \qquad
 \boldsymbol\alpha_t^h=\exp(\mathbf g_t^h)\in(e^{g_{\min}},1)^{d_k}.
-\tag{5}
 $$
 
 where $A_h$ is a learnable per-head log-scale and $g_{\min}=-5$ is fixed. We initialize $A_h=0$, and each bias $\mathbf b_\alpha^h$ is initialized following [Kim25b, Dao24, Yan25]. With $g_{\min}=-5$, every retention factor satisfies $\alpha_{t,j}^h>e^{-5}\approx6.7\times10^{-3}$, and the cumulative log-decay over a 16-token tile lies in $(-80,0)$. The corresponding reciprocal rescaling factor is therefore smaller than $e^{80}$ and remains within the BF16 dynamic range. This finite range allows both diagonal and off-diagonal tiles to use dense Tensor Core matrix multiplications, eliminating the position-pair diagonal path. This parameterization is closely related to the lower-bounded recurrence gates in prior work [Qin24a, De24, Pen25]. [Figure 3](#figure-03) illustrates the change in decay parameterization and its computational consequence.
@@ -122,7 +117,6 @@ where $A_h$ is a learnable per-head log-scale and $g_{\min}=-5$ is fixed. We ini
 $$
 \mathbf y_t=\mathbf W_o\!\left[\operatorname{Sigmoid}(\mathbf W_g\mathbf x_t)\odot
 \operatorname{RMSNorm}(\widetilde{\mathbf o}_t)\right].
-\tag{6}
 $$
 
 #### 2.1.2 Gated MLA
@@ -135,7 +129,6 @@ In addition, Kimi K3 augments MLA with an input-dependent, channel-wise full-ran
 
 $$
 \mathbf y_t=\mathbf W_o\!\left[\operatorname{Sigmoid}(\mathbf W_g\mathbf x_t)\odot\widetilde{\mathbf o}_t\right].
-\tag{7}
 $$
 
 The gate projection $\mathbf W_g$ is full rank, matching the new parameterization used by KDA in Kimi K3. This gate allows each token to modulate the channels read from global attention [Qiu25].
@@ -156,7 +149,6 @@ $$
 \mathbf h_1,&i=0,\\
 f_i(\mathbf h_i),&1\le i\le l-1.
 \end{cases}
-\tag{8}
 $$
 
 where $f_i(\mathbf h_i)$ is the output of layer $i$ and $\mathbf h_1$ is the token embedding. The attention weights follow a softmax kernel $\phi(\mathbf q,\mathbf k)=\exp(\mathbf q^\top\operatorname{RMSNorm}(\mathbf k))$ [Kat20, Zha19], where RMSNorm prevents layers with large-magnitude outputs from dominating the weights:
@@ -166,7 +158,6 @@ $$
 {\sum_{j=0}^{l-1}\phi(\mathbf q_l,\mathbf k_j)},
 \qquad
 \mathbf h_l=\sum_{i=0}^{l-1}\alpha_{i\to l}\mathbf v_i.
-\tag{9}
 $$
 
 Since network depth is modest ($L<100$), the $O(L^2d)$ arithmetic of this full form is affordable; the practical overhead is the $O(Ld)$ memory and cross-stage communication under pipeline parallelism required to keep all layer outputs alive.
@@ -181,7 +172,6 @@ $$
 [\mathbf b_0,\mathbf b_1,\ldots,\mathbf b_{n-1}]^\top,&i=1,\\
 [\mathbf b_0,\mathbf b_1,\ldots,\mathbf b_{n-1},\mathbf b_n^{i-1}]^\top,&i\ge2.
 \end{cases}
-\tag{10}
 $$
 
 with keys and attention weights following Equations 8 and 9. The final output layer then aggregates all $N$ block representations. Under Block AttnRes, memory and communication overhead drop from $O(Ld)$ to $O(Nd)$, while this block structure also bounds the inference-time state, enabling the parallel inter-block results to be better merged with the sequential intra-block partial sums via online softmax [Mil18], significantly reducing inference time cost.
@@ -201,7 +191,6 @@ $$
 \qquad
 \mathbf y=\sum_{j=1}^{N_s}E_j^{\mathrm{shared}}(\mathbf x)
 +\mathbf W^\uparrow\operatorname{RMSNorm}(\mathbf u).
-\tag{11}
 $$
 
 Here, $\mathbf u\in\mathbb R^\ell$ is the aggregated routed representation, $E_j^{\mathrm{shared}}:\mathbb R^d\to\mathbb R^d$ and $E_i^{\mathrm{routed}}:\mathbb R^\ell\to\mathbb R^\ell$ are the shared and routed expert feed-forward networks, and $p_i$ is the router weight defined by the Quantile Balancing rule below. Kimi K3 fixes the number of full-width shared experts to $N_s=2$ in every layer.
@@ -221,7 +210,6 @@ $$
 \beta_1\tanh(\mathbf W_g\mathbf x/\beta_1)
 \odot\operatorname{Sigmoid}(\mathbf W_g\mathbf x)
 \odot\beta_2\tanh(\mathbf W_u\mathbf x/\beta_2).
-\tag{12}
 $$
 
 For Kimi K3, we set the soft-cap hyperparameters to $\beta_1=4$ for the gate branch and $\beta_2=25$ for the up branch. The scaled tanh is approximately linear near the origin and bounded at large magnitude, allowing SiTU-GLU to preserve the local response of SwiGLU while controlling both factors in the product. [Figure 4](#figure-04) compares the branch definitions and scalar responses of GLU, SwiGLU, and SiTU-GLU on a common slice. Appendix B gives the local expansion, limiting case, formal output bound, and comparison with hard clamping.
@@ -240,7 +228,6 @@ $$
 \mathcal T_i=\operatorname{argtop}_k(\mathbf s_i+\mathbf b),
 \qquad
 p_{i,j}=\frac{s_{i,j}}{\sum_{r\in\mathcal T_i}s_{i,r}},\quad j\in\mathcal T_i.
-\tag{13}
 $$
 
 Because $\mathbf b$ is omitted from $p_{i,j}$, it regulates dispatch without altering the mixture weights or gradient-based router optimization. The original method updates $\mathbf b$ with the fixed-step rule [Dee24a]
@@ -266,7 +253,6 @@ $$
 b_j^{(t+1)}&\leftarrow\operatorname{quantile}_{1-k/n}(\mathbf s_{:,j}-\boldsymbol\alpha^{(t)}),\\
 \mathbf b^{(t+1)}&\leftarrow\mathbf b^{(t+1)}-\operatorname{mean}(\mathbf b^{(t+1)})\mathbf 1.
 \end{aligned}
-\tag{14}
 $$
 
 The margins subtract the biased cutoff $\alpha_i^{(t)}$ from the raw score $s_{i,j}$, so the old bias enters the update only through the cutoffs, and the second line removes a common offset that leaves Top-$k$ selection unchanged. For causality, the update takes effect only in the next step [Dee24a], i.e., a batch is never routed with a bias derived from itself. [Figure 5](#figure-05) illustrates the case $m=8$, $n=4$, and $k=1$, where each expert receives the target load $q=2$. The final bias is frozen at inference. The balanced-assignment derivation is given in Appendix C.
@@ -386,7 +372,6 @@ r_{\mathrm{opd}}^d(y_t\mid e,x,y_{<t})=
 \log\frac{\pi_{\mathrm{teacher}}^{(d,e)}(y_t\mid x,y_{<t})}
 {\pi_\theta(y_t\mid e,x,y_{<t})}
 \right],-R_{\max},R_{\max}\right).
-\tag{15}
 $$
 
 where $\operatorname{sg}(\cdot)$ denotes the stop-gradient operator, and $R_{\max}>0$ is a clipping threshold that constrains extreme advantage signals, thereby stabilizing RL training. This dense reward signal seamlessly integrates into our RL framework, naturally enabling infrastructure-level optimizations such as partial rollout training for long-horizon tasks. While we also experimented with more fine-grained Top-$k$ distillation objectives, we observed no clear advantage in either convergence speed or final performance in our setting.
@@ -405,7 +390,6 @@ The speedup of speculative decoding is governed by the per-token acceptance rate
 
 $$
 \mathcal L_{\mathrm{LK}}=-\log\sum_{x\in\mathcal V}\min(p(x),q(x)).
-\tag{16}
 $$
 
 with $p$ and $q$ evaluated at temperature 1 and no auxiliary ground-truth cross-entropy term. Draft fine-tuning follows the post-training QAT configuration ([§4.1.4](#_4-1-4-deployment-aware-post-training)), with MoE expert weights in MXFP4 and their input activations in MXFP8, while non-expert modules remain in higher precision.
@@ -500,7 +484,6 @@ $$
 \widetilde{\mathbf S}_{[j]}^{T_j}
 \in\mathbb R^{d_k\times d_v}.
 \end{aligned}
-\tag{17}
 $$
 
 where $\mathbf M_{[i+1]}^{t\leftarrow1}$ denotes the cumulative transition of the first $t$ local tokens. The first term contains the state generated by the local tokens, whereas the second term propagates the context from preceding ranks through the local KDA updates. At $t=T_{i+1}$, both $\mathbf M_{[i+1]}^{T_{i+1}\leftarrow1}$ and $\widetilde{\mathbf S}_{[i+1]}^{T_{i+1}}$ can be computed using only the local tokens, before $\mathbf S_{[i]}^{T_i}$ is available, and are the fragments each rank exchanges with the others.
@@ -889,7 +872,6 @@ SiTU caps the linear factor of Swish as $\beta_1\tanh(\mathbf W_g\mathbf x/\beta
 
 $$
 \beta\tanh(z/\beta)=z+O(z^3/\beta^2).
-\tag{18}
 $$
 
 SiTU-GLU therefore matches SwiGLU to first order around the origin. It also recovers SwiGLU pointwise as $\beta_1,\beta_2\to\infty$.
@@ -898,7 +880,6 @@ SiTU-GLU therefore matches SwiGLU to first order around the origin. It also reco
 
 $$
 \|\operatorname{SiTU\text{-}GLU}(\mathbf x)\|_\infty\le\beta_1\beta_2=100.
-\tag{19}
 $$
 
 Here $\beta_1=4$ and $\beta_2=25$. Unlike hard clamping of gate pre-activations, the smooth cap preserves nonzero gradients away from saturation boundaries, which we find to give better training behavior.
@@ -911,7 +892,6 @@ $$
 \max_{\mathbf x;\,x_{i,j}\in\{0,1\}}\sum_{i,j}x_{i,j}s_{i,j}
 \quad\text{s.t.}\quad
 \sum_jx_{i,j}=k,\qquad\sum_i x_{i,j}=\frac{mk}{n}.
-\tag{20}
 $$
 
 **Linear relaxation and duality.** Relaxing $x_{i,j}\in\{0,1\}$ to $x_{i,j}\in[0,1]$ turns Equation 20 into a linear program, whose optimum is integral by the standard integrality of the bipartite $b$-matching polytope; the relaxation is therefore exact. Introducing free multipliers $\alpha_i$ and $\beta_j$ for the token- and expert-side equality constraints, respectively, the relaxed problem can be written in max-min form as
@@ -921,7 +901,6 @@ $$
 \sum_{i,j}x_{i,j}s_{i,j}
 -\sum_i\alpha_i\left(\sum_jx_{i,j}-k\right)
 -\sum_j\beta_j\left(\sum_i x_{i,j}-\frac{mk}{n}\right).
-\tag{21}
 $$
 
 The objective is linear in each of $\mathbf x$, $\boldsymbol\alpha$, and $\boldsymbol\beta$, and the feasible sets are convex, so the minimax theorem allows exchanging the order of optimization:
@@ -930,7 +909,6 @@ $$
 \min_{\boldsymbol\alpha,\boldsymbol\beta}\max_{\mathbf x;\,x_{i,j}\in[0,1]}
 \sum_{i,j}x_{i,j}(s_{i,j}-\alpha_i-\beta_j)
 +k\sum_i\alpha_i+\frac{mk}{n}\sum_j\beta_j.
-\tag{22}
 $$
 
 The inner maximum is separable over entries, with $x_{i,j}^*=1$ if $s_{i,j}-\alpha_i-\beta_j>0$ and $x_{i,j}^*=0$ if $s_{i,j}-\alpha_i-\beta_j<0$; the tie case has measure zero in practice. Substituting $\mathbf x^*$ gives the convex dual objective
@@ -939,7 +917,6 @@ $$
 \min_{\boldsymbol\alpha,\boldsymbol\beta}\mathcal L(\boldsymbol\alpha,\boldsymbol\beta):=
 \sum_{i,j}\max(0,s_{i,j}-\alpha_i-\beta_j)
 +k\sum_i\alpha_i+\frac{mk}{n}\sum_j\beta_j.
-\tag{23}
 $$
 
 ```pseudocode:line-numbers title="Algorithm 1: The alternating QB solver."
@@ -957,21 +934,18 @@ return x, where x[i,j] = 1 iff j is in argtop_k(s[i] - beta)
 
 $$
 \min_\alpha k\alpha+\sum_j\max(0,s_{i,j}-\beta_j-\alpha).
-\tag{24}
 $$
 
 This objective is piecewise linear in $\alpha$ with slope $k$ minus the number of margins $s_{i,j}-\beta_j$ exceeding $\alpha$; it is therefore minimized exactly when $k$ margins lie above $\alpha$, i.e., for any $\alpha_i^*$ between the $k$-th and $(k+1)$-th largest entries of $\mathbf s_i-\boldsymbol\beta$. By convention we take the $(k+1)$-th largest entry, equivalently the $(1-k/n)$-th quantile:
 
 $$
 \alpha_i^*=\operatorname{quantile}_{1-k/n}(\mathbf s_i-\boldsymbol\beta).
-\tag{25}
 $$
 
 Symmetrically, with $\boldsymbol\alpha$ fixed, expert $j$ solves $\min_\beta \frac{mk}{n}\beta+\sum_i\max(0,s_{i,j}-\alpha_i-\beta)$, whose minimizer is the $(mk/n+1)$-th largest entry of $\mathbf s_{:,j}-\boldsymbol\alpha$, again the $(1-k/n)$-th quantile:
 
 $$
 \beta_j^*=\operatorname{quantile}_{1-k/n}(\mathbf s_{:,j}-\boldsymbol\alpha).
-\tag{26}
 $$
 
 Both updates are thus the same quantile along the token and expert axes, respectively, which gives the method its name. [Fig. 5](#figure-05) illustrates the expert-side update as equalizing the accepted upper tail of each expert's margin distribution, and Alg. 1 summarizes the resulting alternating solver.
@@ -983,7 +957,6 @@ Both updates are thus the same quantile along the token and expert axes, respect
 $$
 \frac{\partial\mathcal L}{\partial\beta_j}=\frac{mk}{n}
 -\sum_{i=1}^{m}\chi(s_{i,j}-\alpha_i-\beta_j>0).
-\tag{27}
 $$
 
 i.e., the target load minus the observed load of expert $j$. A SignSGD step on this objective recovers the fixed-step sign update of auxiliary-loss-free balancing [Dee24a], up to the sign convention $\mathbf b=-\boldsymbol\beta$: the sign update retains only the direction of the load error in Equation 27, whereas QB jumps directly to the exact coordinate minimizer of the same dual objective. This view explains both why QB requires no learning-rate-like hyperparameter and why it equilibrates within a few update steps even for nearly $10^3$ experts. QB is likewise related to BIP [Sun25a], which solves the same assignment with inequality constraints $\sum_jx_{i,j}\le k$ and $\sum_i x_{i,j}\le mk/n$; the induced non-negativity constraints on $\boldsymbol\alpha$ and $\boldsymbol\beta$ add a $\max(0,\cdot)$ clipping to both updates, which can only suppress over-selected experts without promoting under-selected ones, and markedly slows equilibration in our experiments. Finally, the resulting fixed-Top-$k$ routing is related to expert-specific threshold routing but differs from Expert Threshold routing, which maintains EMA thresholds and permits a variable number of selected experts per token [Sun26].
@@ -1015,7 +988,6 @@ The goal is to prove that $M(I)\le E/R$ holds for any router output $I$. The key
 $$
 M(I)=\min_P\max_r\{m_r(P)\}
 \le\max_r\{m_r(P^*)\}\le\frac ER.
-\tag{28}
 $$
 
 #### Proof of Theorem 2 (Tightness of the Upper Bound)

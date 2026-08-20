@@ -251,7 +251,6 @@ r_{i,t},
 \right)
 \Bigg].
 \end{aligned}
-\tag{1}
 $$
 
 ここで、学習・推論間の不一致比率を次のように定義します。
@@ -309,7 +308,6 @@ GLM-5 のエージェント性能を高めるため、完全非同期かつ分�
 
 $$
 \hat{A}_{i,t}=\mathrm{sg}\left[\log\frac{\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}(y_{i,t}\mid x,y_{i,<t})}{\pi_{\theta}^{\mathrm{train}}(y_{i,t}\mid x,y_{i,<t})}\right].
-\tag{2}
 $$
 
 現在は推論エンジンで教師のロジットを取得しています。将来は推論バックエンドを学習エンジンへ移行し、推論には MLA の Multi-Query Attention（MQA）モードを統一的に採用する予定です（$\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{infer}}\rightarrow\pi_{\theta_{\mathrm{teacher}}}^{\mathrm{train}}$）。学習時は、データスループットを高めるため GRPO のグループサイズを 1、バッチサイズを 1024 に設定します。この段階ではアドバンテージを推定するためにプロンプトごとの大きなサンプルグループを維持する必要がなく、教師モデルとの差から直接アドバンテージを計算できるためです。
@@ -374,14 +372,12 @@ $$
 
 $$
 L(\theta)=\mathbb{E}_{t}\left[f(r_{t}(\theta),\epsilon_{l},\epsilon_{h})\hat{A}_{t}\log\pi_{\theta}(a_{t}|s_{t})\right]
-\tag{3}
 $$
 
 重要度サンプリング比率 $r_{t}(\theta)$ は次式で計算します。
 
 $$
 r_{t}(\theta)=\exp\left(\log\pi_{\theta}(a_{t}|s_{t})-\log\pi_{\mathrm{rollout}}(a_{t}|s_{t})\right)
-\tag{4}
 $$
 
 校正関数 $f(x;\epsilon_{\ell},\epsilon_{h})$ によって、安定性をさらに強化します。
@@ -389,7 +385,6 @@ $$
 $$
 f(x;\epsilon_{\ell},\epsilon_{h})=\begin{cases}x,&\mathrm{if}\ 1-\epsilon_{\ell}<x<1+\epsilon_{h}\\
 0,&\mathrm{otherwise}\end{cases}
-\tag{5}
 $$
 
 実験では、ロールアウト時の対数確率の再利用により、制御された範囲のオフポリシーバイアスを許容する代わりに、過去の方策追跡を不要にし、学習の安定性を高められることが分かりました。

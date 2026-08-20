@@ -333,14 +333,18 @@ $$
 
 We have that $S_{\mathrm{ij}}=q_{i}^\topk_{j}$ where $q_{i}$ and $k_{j}$ are the $i$-th and $j$-th columns of $\mathbf{Q}$ and $\mathbf{K}$ respectively. Define the normalization constants of softmax:
 
+<span id="A2.E1"></span>
+
 $$
-L_{i}=\sum_{j}e^{q_{i}^\topk_{j}}.\tag{1}
+L_{i}=\sum_{j}e^{q_{i}^\topk_{j}}.
 $$
 
 Let $v_{j}$ be the $j$-th column of $\mathbf{V}$, then the $i$-th columns of the output is
 
+<span id="A2.E2"></span>
+
 $$
-o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{\mathrm{ij}}v_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}.\tag{2}
+o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{\mathrm{ij}}v_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}.
 $$
 
 We see that once $L_{i}$ is computed, we can compute $o_{i}$ without extra memory by repeatedly summing $\frac{e^{q_{i}^\topk_{j}}}{L_{i}}v_{j}$. Therefore the forward pass can be computed with $O(n)$ extra memory:
@@ -356,8 +360,10 @@ Suppose that there is a scalar loss function $\phi$, and let the output gradient
 
 The gradient $\mathbf{\mathrm{dV}}$ is easy to see. Applying reverse-mode autodiff by hand (aka the chain rule), we obtain (in matrix notation) $\mathbf{\mathrm{dV}}=\mathbf{P}^\top\mathbf{\mathrm{dO}}$. Thus:
 
+<span id="A2.E3"></span>
+
 $$
-\mathrm{dv}_{j}=\sum_{i}P_{\mathrm{ij}}\mathrm{do}_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}.\tag{3}
+\mathrm{dv}_{j}=\sum_{i}P_{\mathrm{ij}}\mathrm{do}_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}.
 $$
 
 Since we already computed $L_{i}$, $\mathrm{dv}_{j}$ can be computed without extra memory by repeated summing.
@@ -378,8 +384,10 @@ where $\circ$ denotes pointwise multiplication.
 
 Define
 
+<span id="A2.E4"></span>
+
 $$
-D_{i}=P_{i:}^\topdP_{i:}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}^\topv_{j}=\mathrm{do}_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=\mathrm{do}_{i}^\topo_{i},\tag{4}
+D_{i}=P_{i:}^\topdP_{i:}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}\mathrm{do}_{i}^\topv_{j}=\mathrm{do}_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=\mathrm{do}_{i}^\topo_{i},
 $$
 
 then
@@ -396,14 +404,18 @@ $$
 
 Now we can get the gradients $\mathbf{\mathrm{dQ}}$ and $\mathbf{\mathrm{dK}}$. Recall that $S_{\mathrm{ij}}=q_{i}^\topk_{j}$, so
 
+<span id="A2.E5"></span>
+
 $$
-\mathrm{dq}_{i}=\sum_{j}\mathrm{dS}_{\mathrm{ij}}k_{j}=\sum_{j}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})k_{j}.\tag{5}
+\mathrm{dq}_{i}=\sum_{j}\mathrm{dS}_{\mathrm{ij}}k_{j}=\sum_{j}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})k_{j}.
 $$
 
 Similarly,
 
+<span id="A2.E6"></span>
+
 $$
-\mathrm{dk}_{j}=\sum_{i}\mathrm{dS}_{\mathrm{ij}}q_{i}=\sum_{i}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})q_{i}.\tag{6}
+\mathrm{dk}_{j}=\sum_{i}\mathrm{dS}_{\mathrm{ij}}q_{i}=\sum_{i}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\topk_{j}}}{L_{i}}(\mathrm{do}_{i}^\topv_{j}-D_{i})q_{i}.
 $$
 
 Therefore the backward pass can also be computed with $O(n)$ extra memory:

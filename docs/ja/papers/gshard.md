@@ -81,15 +81,15 @@ Transformer [Vas17b] アーキテクチャは自然言語処理で広く使わ�
 本モデルで使用する Mixture-of-Experts（MoE）層は [Sha17] に基づくが、スパースゲーティング関数と補助損失に変更を加えている。Transformer の MoE 層は、$E$ 個のフィードフォワードネットワーク $\mathrm{FFN}_{1}\dots\mathrm{FFN}_{E}$ からなる。
 
 $$
-\mathcal{G}_{s,E}=\mathrm{GATE}(x_s)\tag{1}
+\mathcal{G}_{s,E}=\mathrm{GATE}(x_s)
 $$
 
 $$
-\mathrm{FFN}_e(x_s)=\mathit{wo}_e\cdot\mathrm{ReLU}(\mathit{wi}_e\cdot x_s)\tag{2}
+\mathrm{FFN}_e(x_s)=\mathit{wo}_e\cdot\mathrm{ReLU}(\mathit{wi}_e\cdot x_s)
 $$
 
 $$
-y_s=\sum^E_{e=1}\mathcal{G}_{s,e}\cdot\mathrm{FFN}_e(x_s)\tag{3}
+y_s=\sum^E_{e=1}\mathcal{G}_{s,e}\cdot\mathrm{FFN}_e(x_s)
 $$
 
 ここで $x_s$ は MoE 層への入力トークンであり、$\mathit{wi}$ と $\mathit{wo}$ はフィードフォワード層（エキスパート）の入力射影行列と出力射影行列である。ベクトル $\mathcal{G}_{s,E}$ はゲーティングネットワークで計算される。$\mathcal{G}_{s,E}$ には各エキスパートに対応する非負値が一つずつあり、その大半はゼロ、すなわちトークンをそのエキスパートへ送らないことを表す。トークンはごく少数のエキスパートに送られる。本稿では、各トークンの送信先を最大二つのエキスパートとする。$\mathcal{G}_{s,E}$ の対応する要素は非ゼロで、各エキスパートがネットワークの最終出力にどれだけ寄与するかを表す。各エキスパート $\mathrm{FFN}_e$ は、ReLU [Nai10] 活性化関数を用いた全結合二層ネットワークを $x_s$ に適用する。MoE 層の出力 $y_s$ は、選択された全エキスパートの出力の加重平均である。

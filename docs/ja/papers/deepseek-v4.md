@@ -63,7 +63,7 @@ DeepSeek-V4 シリーズの後学習パイプラインは、ドメイン特化�
 **標準的な Hyper-Connections。** 標準的な HC は、残差ストリームの幅を $n_{\mathrm{hc}}$ 倍に拡張します。具体的には、残差ストリームの形状を $\mathbb{R}^{d}$ から $\mathbb{R}^{n_{\mathrm{hc}}\times d}$ へ拡張します。ここで $d$ は実際の層入力の隠れ次元です。$l$ 番目の層の前にある残差状態を $X_{l}=[\mathbf{x}_{l,1};\ldots;\mathbf{x}_{l,n_{\mathrm{hc}}}]^\top\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$ とします。HC は、入力写像 $A_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$、残差変換 $B_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$、出力写像 $C_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$ という三つの線形写像を導入します。残差状態の更新は次式で表されます。
 
 $$
-X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),\tag{1}
+X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),
 $$
 
 ここで $\mathcal{F}_{l}$ は $l$ 番目の層（例えば MoE 層）を表し、その入力と出力の形状はいずれも $\mathbb{R}^{d}$ です。実際の層入力 $A_{l}X_{l}\in\mathbb{R}^{d}$ も $d$ 次元であるため、拡張された残差幅は内部層の設計に影響しません。HC は残差幅を実際の隠れ次元から切り離し、計算オーバーヘッドを最小限に抑えながら補完的なスケーリング軸を提供します。これは通常、$n_{\mathrm{hc}}$ が隠れ次元 $d$ よりはるかに小さいためです。しかし、HC はモデル性能を高める可能性を示している一方、複数層を積み重ねると学習中に数値的不安定性が頻発し、HC のスケーリングを妨げることが分かりました。
@@ -71,7 +71,7 @@ $$
 **多様体制約付き残差写像。** *m*HC の中核的な革新は、残差写像行列 $B_{l}$ を二重確率行列の多様体（Birkhoff 多面体）$\mathcal{M}$ に制約し、層をまたぐ信号伝播の安定性を高めることです。
 
 $$
-B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.\tag{2}
+B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.
 $$
 
 この制約により写像行列のスペクトルノルム $\|B_{l}\|_{2}$ は 1 以下となるため、残差変換は非拡大的になり、順伝播と逆伝播の双方で数値安定性が向上します。また、集合 $\mathcal{M}$ は乗算について閉じており、*m*HC を深く積み重ねる状況でも安定性が保証されます。さらに、信号が相殺されるリスクを避けるため、入力変換 $A_{l}$ と出力変換 $C_{l}$ も Sigmoid 関数によって非負かつ有界になるよう制約します。
@@ -79,15 +79,15 @@ $$
 **動的パラメータ化。** 三つの線形写像のパラメータは動的に生成され、動的な成分（入力依存）と静的な成分（入力非依存）に分解されます。入力 $X_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$ が与えられると、まず平坦化して正規化します：$\hat{X}_{l}=\mathrm{RMSNorm}(\mathrm{vec}(X_{l}))\in\mathbb{R}^{1\times n_{\mathrm{hc}}d}$。次に従来の HC に従い、制約のない生のパラメータ $\tilde{A}_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$、$\tilde{B}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$、$\tilde{C}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$ を生成します。
 
 $$
-\tilde{A}_{l} =\alpha_{l}^{\mathrm{pre}}\cdot(\hat{X}_{l}W^{\mathrm{pre}}_{l})+S_{l}^{\mathrm{pre}},\tag{3}
+\tilde{A}_{l} =\alpha_{l}^{\mathrm{pre}}\cdot(\hat{X}_{l}W^{\mathrm{pre}}_{l})+S_{l}^{\mathrm{pre}},
 $$
 
 $$
-\tilde{B}_{l} =\alpha_{l}^{\mathrm{res}}\cdot\mathrm{Mat}(\hat{X}_{l}W^{\mathrm{res}}_{l})+S_{l}^{\mathrm{res}},\tag{4}
+\tilde{B}_{l} =\alpha_{l}^{\mathrm{res}}\cdot\mathrm{Mat}(\hat{X}_{l}W^{\mathrm{res}}_{l})+S_{l}^{\mathrm{res}},
 $$
 
 $$
-\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},\tag{5}
+\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},
 $$
 
 ここで $W^{\mathrm{pre}}_{l},W^{\mathrm{post}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}}$ と $W^{\mathrm{res}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}^{2}}$ は動的成分を生成する学習可能なパラメータです。$\mathrm{Mat}(\cdot)$ は大きさ $1\times n_{\mathrm{hc}}^{2}$ のベクトルを大きさ $n_{\mathrm{hc}}\times n_{\mathrm{hc}}$ の行列へ変形します。$S_{l}^{\mathrm{pre}}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$、$S_{l}^{\mathrm{post}}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$、$S_{l}^{\mathrm{res}}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$ は学習可能な静的バイアスです。また、$\alpha_{l}^{\mathrm{pre}}$、$\alpha_{l}^{\mathrm{res}}$、$\alpha_{l}^{\mathrm{post}}\in\mathbb{R}$ は小さな値で初期化される学習可能なゲーティング係数です。
@@ -95,17 +95,17 @@ $$
 **パラメータ制約の適用。** 制約のない生のパラメータ $\tilde{A}_{l},\tilde{B}_{l},\tilde{C}_{l}$ を得た後、数値安定性を高めるため、先に説明した制約を適用します。具体的には、入力写像と出力写像に Sigmoid 関数 $\sigma(\cdot)$ を用い、非負かつ有界であることを保証します。
 
 $$
-A_{l} =\sigma(\tilde{A}_{l}),\tag{6}
+A_{l} =\sigma(\tilde{A}_{l}),
 $$
 
 $$
-C_{l} =2\sigma(\tilde{C}_{l}).\tag{7}
+C_{l} =2\sigma(\tilde{C}_{l}).
 $$
 
 残差写像 $\tilde{B}_{l}$ は、二重確率行列の多様体 $\mathcal{M}$ へ射影します。これには Sinkhorn-Knopp アルゴリズムを使用します。まず $\tilde{B}_{l}$ に指数関数を適用して正値性を保証し、$M^{(0)}=\exp(\tilde{B}_{l})$ を得てから、列正規化と行正規化を反復します。
 
 $$
-M^{(t)}=\mathcal{T}_{r}(\mathcal{T}_{c}(M^{(t-1)})),\tag{8}
+M^{(t)}=\mathcal{T}_{r}(\mathcal{T}_{c}(M^{(t-1)})),
 $$
 
 ここで $\mathcal{T}_{r}$ と $\mathcal{T}_{c}$ は、それぞれ行正規化と列正規化を表します。この反復は、制約された二重確率行列 $B_{l}=M^{(t_{\max})}$ に収束します。実用的な値として $t_{\max}=20$ を選びます。
@@ -127,21 +127,21 @@ $$
 **圧縮された Key-Value エントリ。** 入力隠れ状態の系列を $H\in\mathbb{R}^{n\times d}$ とします。ここで $n$ は系列長、$d$ は隠れ次元です。CSA はまず、二系列の KV エントリ $C^{a},C^{b}\in\mathbb{R}^{n\times c}$ と、それぞれに対応する圧縮重み $Z^{a},Z^{b}\in\mathbb{R}^{n\times c}$ を計算します。ここで $c$ はヘッド次元です。
 
 $$
-C^{a} =H\cdot W^{a\mathrm{KV}},\quad C^{b}=H\cdot W^{b\mathrm{KV}},\tag{9}
+C^{a} =H\cdot W^{a\mathrm{KV}},\quad C^{b}=H\cdot W^{b\mathrm{KV}},
 $$
 
 $$
-Z^{a} =H\cdot W^{aZ},\quad\ \ Z^{b}=H\cdot W^{bZ},\tag{10}
+Z^{a} =H\cdot W^{aZ},\quad\ \ Z^{b}=H\cdot W^{bZ},
 $$
 
 ここで $W^{a\mathrm{KV}},W^{b\mathrm{KV}},W^{aZ},W^{bZ}\in\mathbb{R}^{d\times c}$ は学習可能なパラメータです。次に、圧縮重みと学習可能な位置バイアス $B^{a},B^{b}\in\mathbb{R}^{m\times c}$ に従って、$C^{a}$ と $C^{b}$ の $m$ 個の KV エントリごとに一つへ圧縮し、$C^{\mathrm{Comp}}\in\mathbb{R}^{\frac{n}{m}\times c}$ を生成します。各圧縮エントリ $C^{\mathrm{Comp}}_{i}\in\mathbb{R}^{c}$ は次式で計算します。
 
 $$
-[S^{a}_{mi:m(i+1)-1};S^{b}_{m(i-1):mi-1}] =\mathrm{Softmax}_{\mathrm{row}}([Z^{a}_{mi:m(i+1)-1}+B^{a};Z^{b}_{m(i-1):mi-1}+B^{b}]),\tag{11}
+[S^{a}_{mi:m(i+1)-1};S^{b}_{m(i-1):mi-1}] =\mathrm{Softmax}_{\mathrm{row}}([Z^{a}_{mi:m(i+1)-1}+B^{a};Z^{b}_{m(i-1):mi-1}+B^{b}]),
 $$
 
 $$
-C^{\mathrm{Comp}}_{i} =\sum_{j=mi}^{m(i+1)-1}S^{a}_{j}\odot C^{a}_{j}+\sum_{j=m(i-1)}^{mi-1}S^{b}_{j}\odot C^{b}_{j},\tag{12}
+C^{\mathrm{Comp}}_{i} =\sum_{j=mi}^{m(i+1)-1}S^{a}_{j}\odot C^{a}_{j}+\sum_{j=m(i-1)}^{mi-1}S^{b}_{j}\odot C^{b}_{j},
 $$
 
 ここで $\odot$ は Hadamard 積を表します。$\mathrm{Softmax}_{\mathrm{row}}(\cdot)$ は行方向の softmax 演算を表し、$Z^{a}$ と $Z^{b}$ の合計 $2m$ 要素にわたって正規化します。$i=0$ のとき、$Z^{b}_{m(i-1):mi-1}$ は負の無限大、$C^{b}_{m(i-1):mi-1}$ はゼロでパディングします。各 $C^{\mathrm{Comp}}_{i}$ は $2m$ 個の KV エントリから得られますが、$C^{\mathrm{Comp}}_{i}$ に用いる $C^{b}$ のインデックスと、$C^{\mathrm{Comp}}_{i-1}$ に用いる $C^{a}$ のインデックスは重複します。したがって CSA は実際には系列長を $\frac{1}{m}$ に圧縮します。
@@ -149,39 +149,39 @@ $$
 **疎な選択のための Lightning Indexer。** 圧縮 KV エントリ $C^{\mathrm{Comp}}$ を得た後、CSA は DSA 戦略を適用し、コアアテンションに用いる top-k 個の圧縮 KV エントリを選択します。まず CSA は $C^{\mathrm{Comp}}$ と同じ圧縮演算を実行し、圧縮インデクサキー $K^{\mathrm{IComp}}\in\mathbb{R}^{\frac{n}{m}\times c^{I}}$ を得ます。ここで $c^{I}$ はインデクサのヘッド次元です。次に、クエリトークン $t$ に対し、インデクサクエリ $\{\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}\}$ を低ランク方式で生成します。
 
 $$
-\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},\tag{13}
+\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},
 $$
 
 $$
-[\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}]=\mathbf{q}_{t}^{I} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{IUQ}},\tag{14}
+[\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}]=\mathbf{q}_{t}^{I} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{IUQ}},
 $$
 
 ここで $\mathbf{h}_{t}\in\mathbb{R}^{d}$ はクエリトークン $t$ の入力隠れ状態、$\mathbf{c}_{t}^{Q}\in\mathbb{R}^{d_{c}}$ はクエリ用の圧縮潜在ベクトル、$d_{c}$ はクエリ圧縮次元、$n_{h}^{I}$ はインデクサクエリヘッド数を表します。$W^{\mathrm{DQ}}\in\mathbb{R}^{d\times d_{c}}$ と $W^{\mathrm{IUQ}}\in\mathbb{R}^{d_{c}\times c^{I}n_{h}^{I}}$ は、それぞれインデクサクエリのダウンプロジェクション行列とアッププロジェクション行列です。次に、クエリトークン $t$ と先行する圧縮ブロック $s$（$s$ < $\mathrm{Floor}(\frac{t}{m})$）とのインデックススコア $I_{t,s}\in\mathbb{R}$ を次式で計算します。
 
 $$
-[w_{t,1}^{I};w_{t,2}^{I};...;w_{t,n_{h}^{I}}^{I}]=\mathbf{w}_{t}^{I} =\mathbf{h}_{t}\cdot W^{w},\tag{15}
+[w_{t,1}^{I};w_{t,2}^{I};...;w_{t,n_{h}^{I}}^{I}]=\mathbf{w}_{t}^{I} =\mathbf{h}_{t}\cdot W^{w},
 $$
 
 $$
-I_{t,s} =\sum_{h=1}^{n_{h}^{I}}w_{t,h}^{I}\cdot\mathrm{ReLU}\left(\mathbf{q}^{I}_{t,h}\cdot K^{\mathrm{IComp}}_{s}\right),\tag{16}
+I_{t,s} =\sum_{h=1}^{n_{h}^{I}}w_{t,h}^{I}\cdot\mathrm{ReLU}\left(\mathbf{q}^{I}_{t,h}\cdot K^{\mathrm{IComp}}_{s}\right),
 $$
 
 ここで $W^{w}\in\mathbb{R}^{d\times n_{h}^{I}}$ は学習可能な行列、$w_{t,h}^{I}\in\mathbb{R}$ は $h$ 番目のインデクサヘッドの重みです。クエリトークン $t$ のインデックススコア $I_{t,:}$ が与えられると、top-k セレクタを用いて圧縮 KV エントリの部分集合 $\mathcal{C}^{\mathrm{SprsComp}}_{t}$ を選択的に保持し、後続のコアアテンションに使用します。
 
 $$
-\mathcal{C}^{\mathrm{SprsComp}}_{t}=\left\{C^{\mathrm{Comp}}_{s}\ \Big|\ I_{t,s}\in\mathrm{Top-k}(I_{t,:})\right\}.\tag{17}
+\mathcal{C}^{\mathrm{SprsComp}}_{t}=\left\{C^{\mathrm{Comp}}_{s}\ \Big|\ I_{t,s}\in\mathrm{Top-k}(I_{t,:})\right\}.
 $$
 
 **Key-Value を共有する MQA。** 疎な KV エントリを選択した後、CSA は Multi-Query Attention（MQA）[Sha19] 方式でコアアテンションを実行します。$\mathcal{C}^{\mathrm{SprsComp}}_{t}$ に含まれる各圧縮 KV エントリは、アテンションのキーと値の両方として機能します。具体的には、クエリトークン $t$ について、まず圧縮潜在ベクトル $\mathbf{c}_{t}^{Q}$ からアテンションクエリ $\{\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}\}$ を生成します。
 
 $$
-[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t}=\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},\tag{18}
+[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t}=\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},
 $$
 
 ここで $n_{h}$ はクエリヘッド数、$W^{\mathrm{UQ}}\in\mathbb{R}^{d_{c}\times cn_{h}}$ はクエリのアッププロジェクション行列です。潜在クエリベクトル $\mathbf{c}_{t}^{Q}$ は、インデクサクエリに用いるものと共有されます。次に、$\{\mathbf{q}_{t,i}\}$ と $\mathcal{C}^{\mathrm{SprsComp}}_{t}$ に対して MQA を実行します。
 
 $$
-\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}\mathcal{C}^{\mathrm{SprsComp}}_{t},\texttt{value=}\mathcal{C}^{\mathrm{SprsComp}}_{t}\right),\tag{19}
+\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}\mathcal{C}^{\mathrm{SprsComp}}_{t},\texttt{value=}\mathcal{C}^{\mathrm{SprsComp}}_{t}\right),
 $$
 
 ここで $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ は $t$ 番目のトークンにおける $i$ 番目のヘッドのコアアテンション出力、$\mathrm{CoreAttn}(\cdot)$ はコアアテンション演算を表します。
@@ -201,21 +201,21 @@ $$
 **圧縮された Key-Value エントリ。** 概して HCA の圧縮戦略は CSA と似ていますが、より大きな圧縮率 $m^{\prime}$（$\gg m$）を用い、重複する圧縮は行いません。入力隠れ状態の系列を $H\in\mathbb{R}^{n\times d}$ とすると、HCA はまず元の KV エントリ $C\in\mathbb{R}^{n\times c}$ と、それに対応する圧縮重み $Z\in\mathbb{R}^{n\times c}$ を計算します。
 
 $$
-C =H\cdot W^{\mathrm{KV}},\tag{20}
+C =H\cdot W^{\mathrm{KV}},
 $$
 
 $$
-Z =H\cdot W^{Z},\tag{21}
+Z =H\cdot W^{Z},
 $$
 
 ここで $W^{\mathrm{KV}},W^{Z}\in\mathbb{R}^{d\times c}$ は学習可能なパラメータです。次に、圧縮重みと学習可能な位置バイアス $B\in\mathbb{R}^{m^{\prime}\times c}$ に従って、$C$ の $m^{\prime}$ 個の KV エントリごとに一つへ圧縮し、$C^{\mathrm{Comp}}\in\mathbb{R}^{\frac{n}{m^{\prime}}\times c}$ を生成します。各圧縮エントリ $C^{\mathrm{Comp}}_{i}\in\mathbb{R}^{c}$ は次式で計算します。
 
 $$
-S_{m^{\prime}i:m^{\prime}(i+1)-1} =\mathrm{Softmax}_{\mathrm{row}}(Z_{m^{\prime}i:m^{\prime}(i+1)-1}+B),\tag{22}
+S_{m^{\prime}i:m^{\prime}(i+1)-1} =\mathrm{Softmax}_{\mathrm{row}}(Z_{m^{\prime}i:m^{\prime}(i+1)-1}+B),
 $$
 
 $$
-C^{\mathrm{Comp}}_{i} =\sum_{j=m^{\prime}i}^{m^{\prime}(i+1)-1}S_{j}\odot C_{j}.\tag{23}
+C^{\mathrm{Comp}}_{i} =\sum_{j=m^{\prime}i}^{m^{\prime}(i+1)-1}S_{j}\odot C_{j}.
 $$
 
 この圧縮演算によって、HCA は系列長を $\frac{1}{m^{\prime}}$ に圧縮します。
@@ -223,17 +223,17 @@ $$
 **Key-Value を共有する MQA とグループ化出力プロジェクション。** HCA も CSA と同様に、KV を共有する MQA とグループ化出力プロジェクション戦略を採用します。KV 圧縮後、クエリトークン $t$ に対して、HCA はまずアテンションクエリ $\{\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}\}$ を低ランク方式で生成します。
 
 $$
-\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},\tag{24}
+\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},
 $$
 
 $$
-[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},\tag{25}
+[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},
 $$
 
 ここで $\mathbf{h}_{t}\in\mathbb{R}^{d}$ はクエリトークン $t$ の入力隠れ状態、$n_{h}$ はクエリヘッド数を表します。$W^{\mathrm{DQ}}\in\mathbb{R}^{d\times d_{c}}$ と $W^{\mathrm{UQ}}\in\mathbb{R}^{d_{c}\times cn_{h}}$ は、それぞれクエリのダウンプロジェクション行列とアッププロジェクション行列です。次に $\{\mathbf{q}_{t,i}\}$ と $C^{\mathrm{Comp}}$ に対して MQA を実行します。
 
 $$
-\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}C^{\mathrm{Comp}},\texttt{value=}C^{\mathrm{Comp}}\right),\tag{26}
+\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}C^{\mathrm{Comp}},\texttt{value=}C^{\mathrm{Comp}}\right),
 $$
 
 ここで $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ は $t$ 番目のトークンにおける $i$ 番目のヘッドのコアアテンション出力です。次に CSA と同様、HCA は $n_{h}$ 個の出力を $g$ グループに分け、各出力グループ $\mathbf{o}^{G}_{t,i}\in\mathbb{R}^{c\frac{n_{h}}{g}}$ を $d_{g}$ 次元の中間出力 $\mathbf{o}^{G^{\prime}}_{t,i}\in\mathbb{R}^{d_{g}}$ へ射影します。ここで $d_{g}<c\frac{n_{h}}{g}$ です。最後に、中間出力 $[\mathbf{o}^{G^{\prime}}_{t,1};\mathbf{o}^{G^{\prime}}_{t,2};...;\mathbf{o}^{G^{\prime}}_{t,g}]\in\mathbb{R}^{d_{g}g}$ を最終アテンション出力 $\mathbf{\hat{o}}_{t}\in\mathbb{R}^{d}$ へ射影します。
@@ -251,7 +251,7 @@ $$
 **Attention Sink。** CSA と HCA のコアアテンションには、attention sink [Xia24a, Ope25c] の技法を用います。具体的には、学習可能な一連の sink ロジット $\{z^{\prime}_{1},z^{\prime}_{2},...,z^{\prime}_{n_{h}}\}$ を設定します。$h$ 番目のアテンションヘッドでは、アテンションスコアの分母に $\mathrm{Exp}(z^{\prime}_{h})$ を加えます。
 
 $$
-s_{h,i,j}=\frac{\mathrm{Exp}(z_{h,i,j})}{\sum_{k}\mathrm{Exp}(z_{h,i,k})+\mathrm{Exp}(z^{\prime}_{h})},\tag{27}
+s_{h,i,j}=\frac{\mathrm{Exp}(z_{h,i,j})}{\sum_{k}\mathrm{Exp}(z_{h,i,k})+\mathrm{Exp}(z^{\prime}_{h})},
 $$
 
 ここで $s_{h,i,j},z_{h,i,j}\in\mathbb{R}$ は、$i$ 番目のクエリトークンと、先行する $j$ 番目のトークンまたは圧縮ブロックとの間における、$h$ 番目のアテンションヘッドのアテンションスコアとアテンションロジットを表します。この技法により、各クエリヘッドはアテンションスコアの総和を 1 以外、さらには 0 に近い値へ調整できます。
@@ -282,7 +282,7 @@ Muon [Kel24, Liu25] オプティマイザは収束が速く学習安定性も高
 **ハイブリッド Newton-Schulz 反復。** 与えられた行列 $M$ の Singular Value Decomposition（SVD）を $M=U\Sigma V^\top$ とします。Newton-Schulz 反復は、$M$ を $U V^\top$ へ近似的に直交化することを目的とします。通常、最大特異値が 1 を超えないよう、まず $M$ を $M_{0}=M/\|M\|_{F}$ と正規化します。その後、各 Newton-Schulz 反復で次の演算を実行します。
 
 $$
-M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.\tag{28}
+M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.
 $$
 
 ハイブリッド Newton-Schulz は、異なる二段階にわたって 10 回の反復を実行します。最初の 8 ステップでは係数 $(a,b,c)=(3.4445,-4.7750,2.0315)$ を用いて急速な収束を促し、特異値を 1 に近づけます。最後の 2 ステップでは係数 $(a,b,c)=(2,-1.5,0.5)$ に切り替え、特異値を正確に 1 へ安定させます。
@@ -548,7 +548,7 @@ DeepSeek-V3.2 と同様、ユーザーメッセージを通じてツールイン
 専用のファインチューニングと強化学習によって複数のドメイン特化エキスパートを学習した後、エキスパート能力を最終モデルへ統合する主要技法として、複数教師の On-Policy Distillation（OPD；[Lu25, Gu25]）を用います。OPD はドメインエキスパートの知識と能力を単一の統一モデルへ効率的に移す、効果的な後学習パラダイムです。生徒自身が生成した軌跡における教師モデルの出力分布から生徒を学習させることで実現します。形式的には、$N$ 個のエキスパートモデルの集合 $\{\pi_{E_{1}},\pi_{E_{2}},\dots,\pi_{E_{N}}\}$ が与えられたとき、OPD 目的関数を次のように定義します。
 
 $$
-\mathcal{L}_{\mathrm{OPD}}(\theta)=\sum_{i=1}^{N}w_{i}\cdot\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right).\tag{29}
+\mathcal{L}_{\mathrm{OPD}}(\theta)=\sum_{i=1}^{N}w_{i}\cdot\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right).
 $$
 
 この式で $w_{i}$ は各エキスパートへ割り当てる重みを表し、通常はエキスパートの相対的な重要性で決まります。逆 KL 損失 $\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right)$ の計算には、オンポリシー学習を維持するため、生徒 $\pi_{\theta}$ から学習軌跡をサンプリングする必要があります。基礎ロジックにより、統一方策 $\pi_{\theta}$ は現在のタスクコンテキストに関連する専門エキスパートから選択的に学びます（例えば数学推論タスクでは数学エキスパート、プログラミングタスクではコーディングエキスパートと整合します）。この機構を通じ、物理的に異なるエキスパート重みの知識をロジットレベルの整合によって統一パラメータ空間へ統合し、従来の重みマージや混合 RL 技法で生じやすい性能低下を実質的に回避します。この段階では、さまざまなドメインを網羅する十を超える教師モデルから単一の生徒モデルを蒸留します。

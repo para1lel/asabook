@@ -235,7 +235,7 @@ The choice of the microbatch size $b$ also affects model-training throughput. Fo
 <span id="equation-01"></span>
 
 $$
-\left(b^{\prime}/b+p-1\right)\cdot\left(t_{f}(b)+t_{b}(b)\right).\tag{1}
+\left(b^{\prime}/b+p-1\right)\cdot\left(t_{f}(b)+t_{b}(b)\right).
 $$
 
 The microbatch size thus affects both the arithmetic intensity of operations as well as the pipeline bubble size (by affecting $m$). [Figure 8](#figure-08) shows estimated throughput (equation ([1](#equation-01) used to estimate processing time) for a GPT model with a billion parameters and $(p,t)=(8,8)$. The optimal $b$ for both batch sizes is 4.
@@ -304,7 +304,7 @@ We consider the end-to-end performance of our system on GPT models ranging from 
 <span id="equation-02"></span>
 
 $$
-P=12l h^{2}\left(1+\dfrac{13}{12h}+\dfrac{V+s}{12l h}\right).\tag{2}
+P=12l h^{2}\left(1+\dfrac{13}{12h}+\dfrac{V+s}{12l h}\right).
 $$
 
 As the model size increases, we also increase the batch size ($B$) and the number of GPUs ($n$). The majority of floating-point operations in the model are performed in the matrix multiplications (GEMMs) in the transformer and logit layers. Considering just these GEMMs, the number of FLOPs per iteration is (more details in the Appendix):
@@ -312,7 +312,7 @@ As the model size increases, we also increase the batch size ($B$) and the numbe
 <span id="equation-03"></span>
 
 $$
-F=96B s l h^{2}\left(1+\dfrac{s}{6h}+\dfrac{V}{16l h}\right).\tag{3}
+F=96B s l h^{2}\left(1+\dfrac{s}{6h}+\dfrac{V}{16l h}\right).
 $$
 
 This is a lower bound for the true FLOP count but should be close to the actual value. We count a FLOP as a floating-point operation regardless of precision. We also note that equation ([3](#equation-03)) assumes activation recomputation and takes into account the floating-point operations associated with the extra forward pass.
@@ -322,7 +322,7 @@ This is a lower bound for the true FLOP count but should be close to the actual 
 **Training Time Estimates.** Given these throughputs, we can also estimate the total amount of time needed for end-to-end training on $T$ tokens. Training requires $I=T/\left(B\cdot s\right)$ iterations. Using the value of $F$ from equation ([3](#equation-03)) and empirical end-to-end throughputs from [Table 1](#table-01) (denoted by $X$), we can estimate total training time. We note that for the configurations in [Table 1](#table-01), we have $6h\gg s$, $16lh\gg\left(V+s\right)$, and $12lh\gg V$. Combining these observations with equations ([2](#equation-02)) and ([3](#equation-03)), we arrive at
 
 $$
-\mathrm{End-to-end\ training\ time}\approx\dfrac{8T P}{nX}.\tag{4}
+\mathrm{End-to-end\ training\ time}\approx\dfrac{8T P}{nX}.
 $$
 
 Let us consider the GPT-3 model with $P=$175 billion parameters as an example. This model was trained on $T=300$ billion tokens. On $n=1024$ A100 GPUs using batch size 1536, we achieve $X=140$ teraFLOP/s per GPU. As a result, the time required to train this model is 34 days. For the 1 trillion parameter model, we assume that 450 billion tokens are needed for end-to-end training. With 3072 A100 GPUs, we can achieve a per-GPU throughput of 163 teraFLOP/s, and end-to-end training time of 84 days. We believe these training times (using a reasonable number of GPUs) are practical.

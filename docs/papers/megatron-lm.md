@@ -235,7 +235,7 @@ $d$ 增大时, $n-d$ 减小, 流水线空泡也随之缩小. [图 6](#figure-06)
 <span id="equation-01"></span>
 
 $$
-\left(b^{\prime}/b+p-1\right)\cdot\left(t_{f}(b)+t_{b}(b)\right).\tag{1}
+\left(b^{\prime}/b+p-1\right)\cdot\left(t_{f}(b)+t_{b}(b)\right).
 $$
 
 微批次大小既会改变运算的算术强度, 也会通过 $m$ 改变流水线空泡大小. [图 8](#figure-08) 给出了十亿参数 GPT 模型在 $(p,t)=(8,8)$ 时的估算吞吐量, 其中用公式 ([1](#equation-01)) 估算处理时间. 两种批量下的最优 $b$ 都是 4.
@@ -304,7 +304,7 @@ $$
 <span id="equation-02"></span>
 
 $$
-P=12l h^{2}\left(1+\dfrac{13}{12h}+\dfrac{V+s}{12l h}\right).\tag{2}
+P=12l h^{2}\left(1+\dfrac{13}{12h}+\dfrac{V+s}{12l h}\right).
 $$
 
 模型增大时, 批量大小 $B$ 和 GPU 数量 $n$ 也随之增加. 模型的大部分浮点运算来自 Transformer 层和 logit 层中的矩阵乘法 (GEMM). 只计这些 GEMM, 每次迭代的 FLOP 数为 (详见附录):
@@ -312,7 +312,7 @@ $$
 <span id="equation-03"></span>
 
 $$
-F=96B s l h^{2}\left(1+\dfrac{s}{6h}+\dfrac{V}{16l h}\right).\tag{3}
+F=96B s l h^{2}\left(1+\dfrac{s}{6h}+\dfrac{V}{16l h}\right).
 $$
 
 这是真实 FLOP 数的下界, 但应该接近实际值. 无论采用何种精度, 一次浮点运算都计作一个 FLOP. 公式 ([3](#equation-03)) 假设使用激活重计算, 因此也计入额外一次前向传播的浮点运算.
@@ -322,7 +322,7 @@ $$
 **训练时间估算.** 根据上述吞吐量, 还可以估算训练 $T$ 个 token 所需的端到端总时间. 训练共需 $I=T/\left(B\cdot s\right)$ 次迭代. 将公式 ([3](#equation-03)) 中的 $F$ 与 [表 1](#table-01) 实测的端到端吞吐量 $X$ 代入, 即可估算总训练时间. 对 [表 1](#table-01) 中的配置, 有 $6h\gg s$, $16lh\gg\left(V+s\right)$ 和 $12lh\gg V$. 把这些关系与公式 ([2](#equation-02)) 和 ([3](#equation-03)) 合并可得
 
 $$
-\mathrm{End-to-end\ training\ time}\approx\dfrac{8T P}{nX}.\tag{4}
+\mathrm{End-to-end\ training\ time}\approx\dfrac{8T P}{nX}.
 $$
 
 以 $P=1750$ 亿参数的 GPT-3 为例. 该模型使用 $T=3000$ 亿个 token 训练. 在 $n=1024$ 张 A100 GPU 上, 批量大小取 1536 时, 单 GPU 吞吐量达到 $X=140$ teraFLOP/s, 完成训练需要 34 天. 对 1 万亿参数模型, 假设端到端训练需要 4500 亿个 token, 则 3072 张 A100 GPU 可达到单 GPU 163 teraFLOP/s, 端到端训练时间为 84 天. 我们认为, 在 GPU 数量合理的情况下, 这些训练时间是可行的.

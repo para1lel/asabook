@@ -65,7 +65,7 @@ Transformer 遵循这一总体架构, 对编码器和解码器都采用堆叠自
 在实际操作中, 我们同时在一组查询上计算注意力函数, 这些查询被打包到矩阵 $Q$ 中. 键和值也分别打包到矩阵 $K$ 和 $V$ 中. 我们计算输出矩阵为:
 
 $$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(\frac{\mathrm{QK}^\top}{\sqrt{d_{k}}})V\tag{1}
+\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(\frac{\mathrm{QK}^\top}{\sqrt{d_{k}}})V
 $$
 
 最常用的两种注意力函数是加性注意力 [Bah14] 和点积 (乘性) 注意力. 点积注意力与我们的算法完全相同, 除了 $\frac{1}{\sqrt{d_{k}}}$ 的缩放因子之外. 加性注意力使用具有单个隐藏层的前馈网络来计算兼容性函数. 虽然两者在理论复杂性上相似, 但在实际应用中, 由于可以使用高度优化的矩阵乘法代码实现, 点积注意力速度更快且空间效率更高.
@@ -111,7 +111,7 @@ Transformer 在三个不同的方面使用多头注意力:
 除了注意力子层之外, 我们的编码器和解码器中的每一层都包含一个全连接前馈网络, 该网络对每个位置分开且一致地应用. 这包括两次线性变换, 中间有一个 ReLU 激活函数.
 
 $$
-\mathrm{FFN}(x)=\max(0,\mathrm{xW}_{1}+b_{1})W_{2}+b_{2}\tag{2}
+\mathrm{FFN}(x)=\max(0,\mathrm{xW}_{1}+b_{1})W_{2}+b_{2}
 $$
 
 虽然线性变换在不同位置上是相同的, 但它们在每一层使用的参数不同. 另一种描述方法是将其视为两个卷积, 卷积核大小为 1. 输入和输出的维度为 $d_{\mathrm{model}}=512$, 内层的维度为 $d_{\mathrm{ff}}=2048$.
@@ -175,7 +175,7 @@ $$
 我们使用了 Adam 优化器 [Kin15], 配合 $\beta_{1}=0.9$, $\beta_{2}=0.98$ 和 $\epsilon=10^{-9}$. 我们根据以下公式在训练过程中调整学习率:
 
 $$
-\mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})\tag{3}
+\mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})
 $$
 
 这对应于在前 $\mathrm{warmup}\_\mathrm{steps}$ 个训练步骤线性增加学习率, 然后随后按步骤数的平方根倒数比例下降. 我们使用了 $\mathrm{warmup}\_\mathrm{steps}=4000$.

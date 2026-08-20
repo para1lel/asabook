@@ -73,7 +73,6 @@ RL 微调过程的马尔可夫决策过程 (MDP) 可以形式化为七元素元�
 
 $$
 \langle\mathcal{S}_{\mathrm{trad}},\mathcal{A}_{\mathrm{trad}},\mathcal{P}_{\mathrm{trad}},\mathcal{R}_{\mathrm{trad}},T=1,\gamma=1\rangle.
-\tag{1}
 $$
 
 **Agentic RL.** Agentic RL 的 RL 训练过程被建模为 POMDP:
@@ -82,7 +81,6 @@ $$
 
 $$
 \langle\mathcal{S}_{\mathrm{agent}},\mathcal{A}_{\mathrm{agent}},\mathcal{P}_{\mathrm{agent}},\mathcal{R}_{\mathrm{agent}},\gamma,\mathcal{O}\rangle.
-\tag{2}
 $$
 
 其中智能体接收基于状态 $s_{t}\in\mathcal{S}_{\mathrm{agent}}$ 的观测结果 $o_{t}=O(s_{t})$. PBRFT 和 Agentic RL 之间的主要区别在[表 1](#table-01) 中描述. 总之, PBRFT 在完整观察下优化固定数据集中的输出句子序列, 而 Agentic RL 优化以部分观察为特征的可变环境中的语义级行为.
@@ -103,7 +101,6 @@ $$
 
 $$
 \mathcal{S}_{\mathrm{trad}}=\{\mathrm{prompt}\}.
-\tag{3}
 $$
 
 **智能体 RL.** LLM 智能体在 POMDP 中的多个时间步上起作用. 令 $s_{t}\in\mathcal{S}_{\mathrm{agent}}$ 表示完整的世界状态, LLM 智能体根据当前状态 $o_{t}=\mathcal{O}(s_{t})$ 获得观测值 $O_{t}$. LLM 智能体根据当前观察 $o_{t}$ 选择一个动作 $a_{t}$, 并且状态随着时间的推移而演变:
@@ -112,7 +109,6 @@ $$
 
 $$
 s_{t+1}\sim P(s_{t+1}\mid s_{t},a_{t}).
-\tag{4}
 $$
 
 当智能体积累中间信号时, 例如检索到的工具结果、用户消息或环境反馈. 因此, 这种相互作用本质上是动态的并且在时间上是延长的.
@@ -127,7 +123,6 @@ $$
 
 $$
 \mathcal{A}_{\mathrm{agent}}=\mathcal{A}_{\mathrm{text}}\cup\mathcal{A}_{\mathrm{action}}.
-\tag{5}
 $$
 
 这里, $\mathcal{A}_{\mathrm{text}}$ 表示通过自回归解码发出的自由形式自然语言标记的空间, 而 $\mathcal{A}_{\mathrm{action}}$ 表示抽象的非语言动作的空间, 通常在输出流中由特殊标记 `<action_start>` 和 `<action_end>` 分隔. 这些操作可能会调用外部工具 (例如, `call("search", "Einstein")`) 或与环境交互 (例如, `move("north")`), 具体取决于任务要求.
@@ -146,7 +141,6 @@ $$
 
 $$
 \mathcal{P}(s_{1}\mid s_{0},a)=1,\quad\mathrm{where\ there\ is\ no\ uncertainty.}
-\tag{6}
 $$
 
 **智能体强化学习.** 在智能体强化学习中, 环境根据以下公式在不确定性下演化
@@ -155,7 +149,6 @@ $$
 
 $$
 s_{t+1}\sim\mathcal{P}(s_{t+1}\mid s_{t},a_{t}),\quad a_{t}\in\mathcal{A}_{\mathrm{text}}\cup\mathcal{A}_{\mathrm{action}}.
-\tag{7}
 $$
 
 文本操作 $(\mathcal{A}_{\mathrm{text}})$ 生成自然语言输出, 而不改变环境状态. 结构化操作 $(\mathcal{A}_{\mathrm{action}})$, 由`<action_start>`和`<action_end>`分隔, 可以查询外部工具或直接修改环境. 这种顺序表述与 PBRFT 的一次性映射形成对比, 从而实现迭代地结合通信、信息获取和环境操纵的策略.
@@ -170,7 +163,6 @@ $$
 
 $$
 \mathcal{R}_{\mathrm{trad}}(s_{0},a)=r(a).
-\tag{8}
 $$
 
 其中 $r:\mathcal{A}\!\to\!\mathbb{R}$ 是由人类或人工智能偏好模型提供的标量分数, 没有中间反馈.
@@ -183,7 +175,6 @@ $$
 \mathcal{R}_{\mathrm{agent}}(s_{t},a_{t})=\begin{cases}r_{\mathrm{task}}&\mathrm{on\ task\ completion},\\[2.0pt]
 r_{\mathrm{sub}}(s_{t},a_{t})&\mathrm{for\ step\!-\!level\ progress},\\[2.0pt]
 0&\mathrm{otherwise}.\end{cases}
-\tag{9}
 $$
 
 允许密集、稀疏或学习奖励 (*例如*, 单元测试通过, 符号验证者成功).
@@ -198,7 +189,6 @@ $$
 
 $$
 J_{\mathrm{trad}}(\theta)=\mathbb{E}_{a\sim\pi_{\theta}}\bigl[r(a)\bigr].
-\tag{10}
 $$
 
 不需要折扣系数; 优化类似于最大预期奖励序列建模.
@@ -209,7 +199,6 @@ $$
 
 $$
 J_{\mathrm{agent}}(\theta)=\mathbb{E}_{\tau\sim\pi_{\theta}}\left[\,\sum_{t=0}^{T-1}\gamma^{t}R_{\mathrm{agent}}(s_{t},a_{t})\right],\qquad 0\lt\gamma\lt1.
-\tag{11}
 $$
 
 这一目标通过策略梯度法或基于价值的方法优化, 同时涉及探索和长期信用分配.
@@ -228,7 +217,6 @@ PBRFT 关注单轮文本质量对齐, 不显式涉及规划、工具使用或环
 
 $$
 \nabla_{\theta}J(\theta)=\mathbb{E}_{s_{0}}\left[\frac{1}{N}\sum_{i=1}^{N}\left(\mathcal{R}(s_{0},a^{(i)})-b(s_{0})\right)\nabla_{\theta}\log\pi_{\theta}(a^{(i)}|s_{0})\right].
-\tag{12}
 $$
 
 其中, $a^{(i)}\sim\pi_{\theta}(a|s_{0})$ 是第 $i$ 个采样响应, $\mathcal{R}(s_{0},a)$ 表示任务完成时收到的最终奖励, $b(s)$ 是用于减小策略梯度估计方差的基线函数. 一般而言, $b(s)$ 可以是包括随机变量在内的任意函数. 实践中, $b(s)$ 通常取值函数 $V(s)$. REINFORCE 的优点是公式简洁且易于实现, 缺点则包括梯度估计方差大、样本效率低、对学习率敏感, 以及缺少 Critic (价值估计器).
@@ -239,7 +227,6 @@ $$
 
 $$
 L_{\mathrm{PPO}}(\theta)=\frac{1}{N}\sum_{i=1}^{N}\min\left(\frac{\pi_{\theta}(a_{t}^{(i)}|s_{t})}{\pi_{\theta_{old}}(a_{t}^{(i)}|s_{t})}A(s_{t},a_{t}^{(i)}),\;\;\mathrm{clip}\left(\frac{\pi_{\theta}(a_{t}^{(i)}|s_{t})}{\pi_{\theta_{old}}(a_{t}^{(i)}|s_{t})},1-\epsilon,1+\epsilon\right)A(s_{t},a_{t}^{(i)})\right).
-\tag{13}
 $$
 
 其中 $a_{t}^{(i)}\sim\pi_{\theta_{old}}(a|s_{t})$ 是来自旧策略 $\pi_{\theta_{old}}$ 的第 $i$ 采样响应, 其更新被延迟. $A_{t}$ 是由下式给出的估计优势
@@ -248,7 +235,6 @@ $$
 
 $$
 A(s_{t},a_{t})=\mathcal{R}(s_{t},a_{t})-V(s_{t}).
-\tag{14}
 $$
 
 其中, $V_{\theta}(s)$ 是学习得到的价值函数, 即期望 $\mathbb{E}_{a\sim\pi_{\theta}(a|s)}[\mathcal{R}(s,a)]$. 它通常来自一个与策略网络规模相同的 Critic 网络, 但并非必须如此. 裁剪项防止概率比过度偏离 1, 从而保证更新稳定. 优势函数估计对 PPO 的性能影响很大. 近期变体分别着眼于减小优势估计的偏差 [Kaz24] 或方差 [Yue25a], 另一些工作则改进稳定的策略更新机制 [Liu25s], 或缓解稀疏奖励问题 [Dai25]. 不过, PPO 仍依赖独立的 Critic 网络估计优势, 显著增加了训练时的参数量.
@@ -259,7 +245,6 @@ $$
 
 $$
 L_{\mathrm{DPO}}(\pi_{\theta};\pi_{ref})=-\mathbb{E}_{(x,y_{w},y_{l})\sim D}\left[\log\sigma\left(\beta\log\frac{\pi_{\theta}(y_{w}|x)}{\pi_{ref}(y_{w}|x)}-\beta\log\frac{\pi_{\theta}(y_{l}|x)}{\pi_{ref}(y_{l}|x)}\right)\right].
-\tag{15}
 $$
 
 其中, $\pi_{ref}$ 是参考策略 (通常为初始 SFT 模型), $\beta$ 是超参数. DPO 虽然不再需要 Critic, 但性能仍从根本上取决于静态偏好数据集的质量和覆盖范围. 一些变体通过引入外部或在线数据 [Eth24, Hon24] 来克服这一限制; 另一些工作则采用更一般的优化目标 [Aza24] 或更精细的隐式奖励机制 [Men24, Lai24, Hon25].
@@ -270,7 +255,6 @@ $$
 
 $$
 L_{\mathrm{GRPO}}=\frac{1}{G}\sum_{g=1}^{G}\min\left(\frac{\pi_{\theta}(a_{t}^{(g)}|s_{t}^{(g)})}{\pi_{\theta_{old}}(a_{t}^{(g)}|s_{t}^{(g)})}\hat{A}(s_{t}^{(g)},a_{t}^{(g)}),\;\;\mathrm{clip}\left(\frac{\pi_{\theta}(a_{t}^{(g)}|s_{t}^{(g)})}{\pi_{\theta_{old}}(a_{t}^{(g)}|s_{t}^{(g)})},1-\epsilon,1+\epsilon\right)\hat{A}(s_{t}^{(g)},a_{t}^{(g)})\right).
-\tag{16}
 $$
 
 其中一组输出 $\{(s_{0}^{(g)},a_{0}^{(g)},\ldots,s_{T-1}^{(g)},a_{T-1}^{(g)})\}_{g=1}^{G}$ 是从旧策略 $\pi_{\theta_{old}}$ 中采样的. 优势函数估计为
@@ -279,7 +263,6 @@ $$
 
 $$
 \hat{A}(s_{t},a_{t})=\frac{\mathcal{R}(s_{t},a_{t})-\mathrm{mean}(\mathcal{R}(s_{t}^{(1)},a_{t}^{(1)}),\ldots,\mathcal{R}(s_{t}^{(G)},a_{t}^{(G)}))}{\mathrm{std}(\mathcal{R}(s_{t}^{(1)},a_{t}^{(1)}),\ldots,\mathcal{R}(s_{t}^{(G)},a_{t}^{(G)}))}.
-\tag{17}
 $$
 
 这种组相对方法的样本效率很高, 也能降低计算开销. 但基于组的优势估计容易出现方差高、精度低的问题. 因此, 后续工作提出了一系列由 GRPO 框架衍生的新算法 (见[表 2](#table-02)), 旨在显著改进优势估计.

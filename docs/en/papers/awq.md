@@ -53,13 +53,15 @@ We propose an alternative method to reduce the quantization error of the salient
 Analyzing the quantization error. We start by analyzing the error from weight-only quantization. Consider a group/block of weight $\mathbf{w}$; the linear operation can be written as $y=\mathbf{w}\mathbf{x}$, and the quantized counterpart is $y=Q(\mathbf{w})\mathbf{x}$. Specifically, the quantization function is defined as:
 
 $$
-Q(\mathbf{w})=\Delta\cdot\mathrm{Round}(\frac{\mathbf{w}}{\Delta}),\quad\Delta=\frac{\max(|\mathbf{w}|)}{2^{N-1}},\tag{1}
+Q(\mathbf{w})=\Delta\cdot\mathrm{Round}(\frac{\mathbf{w}}{\Delta}),\quad\Delta=\frac{\max(|\mathbf{w}|)}{2^{N-1}},
 $$
 
 where $N$ is the number of quantization bits, and $\Delta$ is the quantization scaler determined by the absolute maximum value. Now consider a weight element $w\in\mathbf{w}$, if we multiply $w$ with $s>1$ and the inversely scale $x$, we will have $Q(w\cdot s)(x/s)$, which is:
 
+<span id="S2.E2"></span>
+
 $$
-Q(w\cdot s)\cdot\frac{x}{s}=\Delta^{ {}^{\prime}}\cdot\mathrm{Round}(\frac{\mathrm{ws}}{\Delta})\cdot x\cdot\frac{1}{s},\tag{2}
+Q(w\cdot s)\cdot\frac{x}{s}=\Delta^{ {}^{\prime}}\cdot\mathrm{Round}(\frac{\mathrm{ws}}{\Delta})\cdot x\cdot\frac{1}{s},
 $$
 
 where $\Delta^{ {}^{\prime}}$ is the new quantization scaler after applying $s$. We empirically find that: (1) The expected error from $\mathrm{Round}(\cdot)$ (denoted as $\mathrm{RoundErr}$) does not vary: since the round function maps a floating-point number to an integer, the error is roughly uniformly distributed from 0-0.5, resulting in an average error of  0.25; (2) Scaling up a single element $w$ usually does not change the extreme value from the group $\mathbf{w}$. Therefore we have $\Delta^{ {}^{\prime}}\approx\Delta$; (3) The error from equation [2](#S2.E2 "In 2.2 Protecting Salient Weights by Activation-aware Scaling ‣ 2 AWQ: Activation-aware Weight Quantization ‣ AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration") can be expressed as $\mathrm{Err}^{ {}^{\prime}}=\Delta^{ {}^{\prime}}\cdot \mathrm{RoundErr}\cdot\frac{1}{s}$, the ratio compared to the original error $\mathrm{RoundErr}$ is $\frac{\Delta^{ {}^{\prime}}}{\Delta}\cdot\frac{1}{s}$. Given $\Delta^{ {}^{\prime}}\approx\Delta$ and $s>1$, the relative error is smaller for the salient weight $w$.
@@ -81,15 +83,17 @@ To verify the idea, we multiply the 1% salient channels with $s>1$ for the OPT-6
 Searching to scale. To consider both salient and non-salient weights, we choose to automatically search for an optimal (per input channel) scaling factor that minimizes the output difference after quantization for a certain layer. Formally, we want to optimize the following objective:
 
 $$
-\mathbf{s}^{*}=\mathrm{arg\,min}_{\mathbf{s}}\mathcal{L}(\mathbf{s}),\quad\mathcal{L}(\mathbf{s})=\| Q(\mathbf{W}\cdot\mathbf{s})(\mathbf{s^{-1}}\cdot\mathbf{X})-\mathbf{W}\mathbf{X}\|\tag{3}
+\mathbf{s}^{*}=\mathrm{arg\,min}_{\mathbf{s}}\mathcal{L}(\mathbf{s}),\quad\mathcal{L}(\mathbf{s})=\| Q(\mathbf{W}\cdot\mathbf{s})(\mathbf{s^{-1}}\cdot\mathbf{X})-\mathbf{W}\mathbf{X}\|
 $$
 
 Here $Q$ means the weight quantization function (*e.g*., INT3/INT4 quantization with group size 128), $\mathbf{W}$ is the original weights in FP16, and $\mathbf{X}$ is the input features cached from a small calibration set (we take a small calibration set from he pre-training dataset in order not to overfit to a specific task). $\mathbf{s}$ is a per-(input) channel scaling factor; for $\mathbf{s^{-1}}\cdot\mathbf{X}$, it can usually be fused into the previous operator [Wei22, Xia23]. Since the quantization function is not differentiable, we are not able to directly optimize the problem with vanilla backpropagation. There are some techniques relying on approximated gradients [Ben13, Ess19], which we found still suffers from unstable convergence.
 
 To make the process more stable, we define a *search space* for the optimal scale by analyzing the factors that will affect the choice of scaling factor. As shown in the last section, the saliency of weight channels is actually determined by the activation scale (thus “activation-awareness”). Therefore, we simply use a very simple search space:
 
+<span id="S2.E4"></span>
+
 $$
-\mathbf{s}=\mathbf{s_{X}}^{\alpha},\quad\alpha^{*}=\mathrm{arg\,min}_{\alpha}\mathcal{L}(\mathbf{s_{X}}^{\alpha})\tag{4}
+\mathbf{s}=\mathbf{s_{X}}^{\alpha},\quad\alpha^{*}=\mathrm{arg\,min}_{\alpha}\mathcal{L}(\mathbf{s_{X}}^{\alpha})
 $$
 
 $\mathbf{s}$ is only related to the magnitude of activation $\mathbf{s_{X}}$, and we use a single hyper-parameter $\alpha$ to balance between the protection of salient and non-salient channels. We can find the best $\alpha$ by a fast grid search over the interval of $[0,1]$ ($0$ means we do not scale; $1$ corresponds to the most aggressive scaling). We further apply weight clipping also by minimizing the MSE error, since clipping the weights can further help to reduce $\Delta^{ {}^{\prime}}$ in Equation [2](#S2.E2 "In 2.2 Protecting Salient Weights by Activation-aware Scaling ‣ 2 AWQ: Activation-aware Weight Quantization ‣ AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration"); thus reducing quantization error. We provide an ablation study on OPT models under INT3-g128 quantization in [Table 3](#table-03); AWQ consistently outperforms round-to-nearest quantization (RTN) and achieves comparable performance as mixed-precision (1% FP16) while being more hardware-friendly.

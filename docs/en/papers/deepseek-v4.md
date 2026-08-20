@@ -63,7 +63,7 @@ As shown in [Figure 2](#figure-02), DeepSeek-V4 series incorporate Manifold-Cons
 **Standard Hyper-Connections.** The standard HC expands the width of the residual stream by a factor of $n_{\mathrm{hc}}$. Specifically, the shape of the residual stream is expanded from $\mathbb{R}^{d}$ to $\mathbb{R}^{n_{\mathrm{hc}}\times d}$, where $d$ is the hidden size of the actual layer input. Let $X_{l}=[\mathbf{x}_{l,1};\ldots;\mathbf{x}_{l,n_{\mathrm{hc}}}]^\top\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$ be the residual state before the $l$-th layer. HC introduces three linear mappings: an input mapping $A_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, a residual transformation $B_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$, and an output mapping $C_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$. The update of the residual state is then formulated as:
 
 $$
-X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),\tag{1}
+X_{l+1}=B_{l}X_{l}+C_{l}\mathcal{F}_{l}(A_{l}X_{l}),
 $$
 
 where $\mathcal{F}_{l}$ denotes the $l$-th layer (e.g., an MoE layer), whose input and output shapes are both $\mathbb{R}^{d}$. Note that the actual layer input $A_{l}X_{l}\in\mathbb{R}^{d}$ is also $d$-dimensional, so the expanded residual width does not influence the design of the inner layers. HC decouples the residual width from the actual hidden size, offering a complementary scaling axis with minimal computational overhead, as $n_{\mathrm{hc}}$ is typically much smaller than the hidden size $d$. However, even though HC has demonstrated potential in improving model performance, we find that the training will frequently exhibit numerical instability when stacking multiple layers, which hinders the scaling of HC.
@@ -71,7 +71,7 @@ where $\mathcal{F}_{l}$ denotes the $l$-th layer (e.g., an MoE layer), whose inp
 **Manifold-Constrained Residual Mapping.** The core innovation of *m*HC is to constrain the residual mapping matrix $B_{l}$ to the manifold of doubly stochastic matrices (the Birkhoff polytope) $\mathcal{M}$, and thus enhance the stability of signal propagation across layers:
 
 $$
-B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.\tag{2}
+B_{l}\in\mathcal{M}\coloneq\{M\in\mathbb{R}^{n\times n}\mid M\mathbf{1}_{n}=\mathbf{1}_{n},\;\mathbf{1}_{n}^\top M=\mathbf{1}_{n}^\top,\;M\geqslant 0\}.
 $$
 
 This constraint ensures that the spectral norm of the mapping matrix $\|B_{l}\|_{2}$ is bounded by 1, so the residual transformation is non-expansive, which increases the numerical stability during both the forward pass and backpropagation. Besides, the set $\mathcal{M}$ is closed under multiplication, which guarantees stability in the scenarios of deep stacks of *m*HC. In addition, the input transformation $A_{l}$ and output transformation $C_{l}$ are also constrained to be non-negative and bounded via a Sigmoid function to avoid the risk of signal cancellation.
@@ -79,15 +79,15 @@ This constraint ensures that the spectral norm of the mapping matrix $\|B_{l}\|_
 **Dynamic Parameterization.** The parameters of three linear mappings are dynamically generated, which are decomposed into a dynamic (input-dependent) component and a static (input-independent) component. Given the input $X_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times d}$, it is first flattened and normalized: $\hat{X}_{l}=\mathrm{RMSNorm}(\mathrm{vec}(X_{l}))\in\mathbb{R}^{1\times n_{\mathrm{hc}}d}$. Then, we follow the conventional HC to generate the unconstrained raw parameters $\tilde{A}_{l}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, $\tilde{B}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$, and $\tilde{C}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$:
 
 $$
-\tilde{A}_{l} =\alpha_{l}^{\mathrm{pre}}\cdot(\hat{X}_{l}W^{\mathrm{pre}}_{l})+S_{l}^{\mathrm{pre}},\tag{3}
+\tilde{A}_{l} =\alpha_{l}^{\mathrm{pre}}\cdot(\hat{X}_{l}W^{\mathrm{pre}}_{l})+S_{l}^{\mathrm{pre}},
 $$
 
 $$
-\tilde{B}_{l} =\alpha_{l}^{\mathrm{res}}\cdot\mathrm{Mat}(\hat{X}_{l}W^{\mathrm{res}}_{l})+S_{l}^{\mathrm{res}},\tag{4}
+\tilde{B}_{l} =\alpha_{l}^{\mathrm{res}}\cdot\mathrm{Mat}(\hat{X}_{l}W^{\mathrm{res}}_{l})+S_{l}^{\mathrm{res}},
 $$
 
 $$
-\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},\tag{5}
+\tilde{C}_{l} =\alpha_{l}^{\mathrm{post}}\cdot(\hat{X}_{l}W^{\mathrm{post}}_{l})^\top+S_{l}^{\mathrm{post}},
 $$
 
 where $W^{\mathrm{pre}}_{l},W^{\mathrm{post}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}}$ and $W^{\mathrm{res}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d\times n_{\mathrm{hc}}^{2}}$ are learnable parameters for generating the dynamic components; $\mathrm{Mat}(\cdot)$ reshapes a vector of size $1\times n_{\mathrm{hc}}^{2}$ into a matrix of size $n_{\mathrm{hc}}\times n_{\mathrm{hc}}$; $S_{l}^{\mathrm{pre}}\in\mathbb{R}^{1\times n_{\mathrm{hc}}}$, $S_{l}^{\mathrm{post}}\in\mathbb{R}^{n_{\mathrm{hc}}\times 1}$, and $S_{l}^{\mathrm{res}}\in\mathbb{R}^{n_{\mathrm{hc}}\times n_{\mathrm{hc}}}$ are learnable static biases; and $\alpha_{l}^{\mathrm{pre}}$, $\alpha_{l}^{\mathrm{res}}$, $\alpha_{l}^{\mathrm{post}}\in\mathbb{R}$ are learnable gating factors initialized to small values.
@@ -95,17 +95,17 @@ where $W^{\mathrm{pre}}_{l},W^{\mathrm{post}}_{l}\in\mathbb{R}^{n_{\mathrm{hc}}d
 **Applying Parameter Constraints.** After obtaining the unconstrained raw parameters $\tilde{A}_{l},\tilde{B}_{l},\tilde{C}_{l}$, we then apply constraints described earlier to them to enhance the numerical stability. To be specific, for the input and output mappings, we employ a Sigmoid function $\sigma(\cdot)$ to ensure their non-negativity and boundedness:
 
 $$
-A_{l} =\sigma(\tilde{A}_{l}),\tag{6}
+A_{l} =\sigma(\tilde{A}_{l}),
 $$
 
 $$
-C_{l} =2\sigma(\tilde{C}_{l}).\tag{7}
+C_{l} =2\sigma(\tilde{C}_{l}).
 $$
 
 As for the residual mapping $\tilde{B}_{l}$, we project it onto the manifold of doubly stochastic matrices $\mathcal{M}$. This is achieved by the Sinkhorn-Knopp algorithm, which first applies an exponential function to $\tilde{B}_{l}$ to ensure positivity, getting $M^{(0)}=\exp(\tilde{B}_{l})$, and then iteratively performs column and row normalization:
 
 $$
-M^{(t)}=\mathcal{T}_{r}(\mathcal{T}_{c}(M^{(t-1)})),\tag{8}
+M^{(t)}=\mathcal{T}_{r}(\mathcal{T}_{c}(M^{(t-1)})),
 $$
 
 where $\mathcal{T}_{r}$ and $\mathcal{T}_{c}$ denote row and column normalization, respectively. This iteration converges to a constrained doubly stochastic matrix $B_{l}=M^{(t_{\max})}$. We choose $t_{\max}=20$ as a practical value.
@@ -127,21 +127,21 @@ The core architecture of CSA is illustrated in [Figure 3](#figure-03), which fir
 **Compressed Key-Value Entries.** Let $H\in\mathbb{R}^{n\times d}$ be a sequence of input hidden states, where $n$ is the sequence length and $d$ is the hidden size. CSA first computes two series of KV entries $C^{a},C^{b}\in\mathbb{R}^{n\times c}$ and their corresponding compression weights $Z^{a},Z^{b}\in\mathbb{R}^{n\times c}$, where $c$ is the head dimension:
 
 $$
-C^{a} =H\cdot W^{a\mathrm{KV}},\quad C^{b}=H\cdot W^{b\mathrm{KV}},\tag{9}
+C^{a} =H\cdot W^{a\mathrm{KV}},\quad C^{b}=H\cdot W^{b\mathrm{KV}},
 $$
 
 $$
-Z^{a} =H\cdot W^{aZ},\quad\ \ Z^{b}=H\cdot W^{bZ},\tag{10}
+Z^{a} =H\cdot W^{aZ},\quad\ \ Z^{b}=H\cdot W^{bZ},
 $$
 
 where $W^{a\mathrm{KV}},W^{b\mathrm{KV}},W^{aZ},W^{bZ}\in\mathbb{R}^{d\times c}$ are trainable parameters. Next, each $m$ KV entries in $C^{a}$ and $C^{b}$ will be compressed into one entry according to their compression weights and learnable positional biases $B^{a},B^{b}\in\mathbb{R}^{m\times c}$, producing $C^{\mathrm{Comp}}\in\mathbb{R}^{\frac{n}{m}\times c}$. Each compressed entry $C^{\mathrm{Comp}}_{i}\in\mathbb{R}^{c}$ is computed by
 
 $$
-[S^{a}_{mi:m(i+1)-1};S^{b}_{m(i-1):mi-1}] =\mathrm{Softmax}_{\mathrm{row}}([Z^{a}_{mi:m(i+1)-1}+B^{a};Z^{b}_{m(i-1):mi-1}+B^{b}]),\tag{11}
+[S^{a}_{mi:m(i+1)-1};S^{b}_{m(i-1):mi-1}] =\mathrm{Softmax}_{\mathrm{row}}([Z^{a}_{mi:m(i+1)-1}+B^{a};Z^{b}_{m(i-1):mi-1}+B^{b}]),
 $$
 
 $$
-C^{\mathrm{Comp}}_{i} =\sum_{j=mi}^{m(i+1)-1}S^{a}_{j}\odot C^{a}_{j}+\sum_{j=m(i-1)}^{mi-1}S^{b}_{j}\odot C^{b}_{j},\tag{12}
+C^{\mathrm{Comp}}_{i} =\sum_{j=mi}^{m(i+1)-1}S^{a}_{j}\odot C^{a}_{j}+\sum_{j=m(i-1)}^{mi-1}S^{b}_{j}\odot C^{b}_{j},
 $$
 
 where $\odot$ denotes the Hadamard product; $\mathrm{Softmax}_{\mathrm{row}}(\cdot)$ denotes the softmax operation along the row dimension, which performs normalization across the total of $2m$ elements from both $Z^{a}$ and $Z^{b}$. When $i=0$, $Z^{b}_{m(i-1):mi-1}$ is padded with negative infinity and $C^{b}_{m(i-1):mi-1}$ is padded with zeros. Note that each $C^{\mathrm{Comp}}_{i}$ is derived from $2m$ KV entries, but the indexes of $C^{b}$ used for $C^{\mathrm{Comp}}_{i}$ and the indexes of $C^{a}$ used for $C^{\mathrm{Comp}}_{i-1}$ are overlapped. Therefore, CSA in fact compresses the sequence length to $\frac{1}{m}$ times.
@@ -149,39 +149,39 @@ where $\odot$ denotes the Hadamard product; $\mathrm{Softmax}_{\mathrm{row}}(\cd
 **Lightning Indexer for Sparse Selection.** After obtaining the compressed KV entries $C^{\mathrm{Comp}}$, CSA applies the DSA strategy to select top-k compressed KV entries for core attention. First, CSA performs the same compression operation used for $C^{\mathrm{Comp}}$ to get compressed indexer keys $K^{\mathrm{IComp}}\in\mathbb{R}^{\frac{n}{m}\times c^{I}}$, where $c^{I}$ is the indexer head dimension. Then, for a query token $t$, we produce the indexer queries $\{\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}\}$ in a low-rank manner:
 
 $$
-\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},\tag{13}
+\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},
 $$
 
 $$
-[\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}]=\mathbf{q}_{t}^{I} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{IUQ}},\tag{14}
+[\mathbf{q}_{t,1}^{I};\mathbf{q}_{t,2}^{I};...;\mathbf{q}_{t,n_{h}^{I}}^{I}]=\mathbf{q}_{t}^{I} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{IUQ}},
 $$
 
 where $\mathbf{h}_{t}\in\mathbb{R}^{d}$ is the input hidden state of the query token $t$; $\mathbf{c}_{t}^{Q}\in\mathbb{R}^{d_{c}}$ is the compressed latent vector for queries; $d_{c}$ denotes the query compression dimension; $n_{h}^{I}$ denotes the number of indexer query heads; $W^{\mathrm{DQ}}\in\mathbb{R}^{d\times d_{c}}$ and $W^{\mathrm{IUQ}}\in\mathbb{R}^{d_{c}\times c^{I}n_{h}^{I}}$ are the down-projection and up-projection matrices for indexer queries, respectively. Next, the index score $I_{t,s}\in\mathbb{R}$ between the query token $t$ and a preceding compressed block $s$ ($s$ < $\mathrm{Floor}(\frac{t}{m})$) is computed by
 
 $$
-[w_{t,1}^{I};w_{t,2}^{I};...;w_{t,n_{h}^{I}}^{I}]=\mathbf{w}_{t}^{I} =\mathbf{h}_{t}\cdot W^{w},\tag{15}
+[w_{t,1}^{I};w_{t,2}^{I};...;w_{t,n_{h}^{I}}^{I}]=\mathbf{w}_{t}^{I} =\mathbf{h}_{t}\cdot W^{w},
 $$
 
 $$
-I_{t,s} =\sum_{h=1}^{n_{h}^{I}}w_{t,h}^{I}\cdot\mathrm{ReLU}\left(\mathbf{q}^{I}_{t,h}\cdot K^{\mathrm{IComp}}_{s}\right),\tag{16}
+I_{t,s} =\sum_{h=1}^{n_{h}^{I}}w_{t,h}^{I}\cdot\mathrm{ReLU}\left(\mathbf{q}^{I}_{t,h}\cdot K^{\mathrm{IComp}}_{s}\right),
 $$
 
 where $W^{w}\in\mathbb{R}^{d\times n_{h}^{I}}$ is a learnable matrix; $w_{t,h}^{I}\in\mathbb{R}$ is the weight of the $h$-th indexer head. For a query token $t$, given its index scores $I_{t,:}$, we employ a top-k selector to selectively retain a subset of compressed KV entries $\mathcal{C}^{\mathrm{SprsComp}}_{t}$ for subsequent core attention:
 
 $$
-\mathcal{C}^{\mathrm{SprsComp}}_{t}=\left\{C^{\mathrm{Comp}}_{s}\ \Big|\ I_{t,s}\in\mathrm{Top-k}(I_{t,:})\right\}.\tag{17}
+\mathcal{C}^{\mathrm{SprsComp}}_{t}=\left\{C^{\mathrm{Comp}}_{s}\ \Big|\ I_{t,s}\in\mathrm{Top-k}(I_{t,:})\right\}.
 $$
 
 **Shared Key-Value MQA.** After selecting the sparse KV entries, CSA then performs core attention in a Multi-Query Attention (MQA) [Sha19] manner, where each compressed KV entry in $\mathcal{C}^{\mathrm{SprsComp}}_{t}$ serves as both attention key and value. To be specific, for a query token $t$, we first produce attention queries $\{\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}\}$ from the compressed latent vector $\mathbf{c}_{t}^{Q}$:
 
 $$
-[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t}=\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},\tag{18}
+[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t}=\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},
 $$
 
 where $n_{h}$ denotes the number of query heads; $W^{\mathrm{UQ}}\in\mathbb{R}^{d_{c}\times cn_{h}}$ is the up-projection matrices for queries. Note that the latent query vector $\mathbf{c}_{t}^{Q}$ is shared with that used for the indexer queries. Next, we perform MQA on $\{\mathbf{q}_{t,i}\}$ and $\mathcal{C}^{\mathrm{SprsComp}}_{t}$:
 
 $$
-\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}\mathcal{C}^{\mathrm{SprsComp}}_{t},\texttt{value=}\mathcal{C}^{\mathrm{SprsComp}}_{t}\right),\tag{19}
+\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}\mathcal{C}^{\mathrm{SprsComp}}_{t},\texttt{value=}\mathcal{C}^{\mathrm{SprsComp}}_{t}\right),
 $$
 
 where $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ is the core attention output of the $i$-th head at the $t$-th token; $\mathrm{CoreAttn}(\cdot)$ denotes the core attention operation.
@@ -201,21 +201,21 @@ The core architecture of HCA is illustrated in [Figure 4](#figure-04), which com
 **Compressed Key-Value Entries.** By and large, the compression strategy of HCA is similar to that of CSA, but employs a larger compression rate $m^{\prime}$ ($\gg m$) and does not perform overlapped compression. Let $H\in\mathbb{R}^{n\times d}$ be a sequence of input hidden states, HCA first computes the original KV entries $C\in\mathbb{R}^{n\times c}$ and their corresponding compression weights $Z\in\mathbb{R}^{n\times c}$:
 
 $$
-C =H\cdot W^{\mathrm{KV}},\tag{20}
+C =H\cdot W^{\mathrm{KV}},
 $$
 
 $$
-Z =H\cdot W^{Z},\tag{21}
+Z =H\cdot W^{Z},
 $$
 
 where $W^{\mathrm{KV}},W^{Z}\in\mathbb{R}^{d\times c}$ are trainable parameters. Next, each $m^{\prime}$ KV entries in $C$ will be compressed into one according to the compression weights and learnable positional biases $B\in\mathbb{R}^{m^{\prime}\times c}$, producing $C^{\mathrm{Comp}}\in\mathbb{R}^{\frac{n}{m^{\prime}}\times c}$. Each compressed entry $C^{\mathrm{Comp}}_{i}\in\mathbb{R}^{c}$ is computed by
 
 $$
-S_{m^{\prime}i:m^{\prime}(i+1)-1} =\mathrm{Softmax}_{\mathrm{row}}(Z_{m^{\prime}i:m^{\prime}(i+1)-1}+B),\tag{22}
+S_{m^{\prime}i:m^{\prime}(i+1)-1} =\mathrm{Softmax}_{\mathrm{row}}(Z_{m^{\prime}i:m^{\prime}(i+1)-1}+B),
 $$
 
 $$
-C^{\mathrm{Comp}}_{i} =\sum_{j=m^{\prime}i}^{m^{\prime}(i+1)-1}S_{j}\odot C_{j}.\tag{23}
+C^{\mathrm{Comp}}_{i} =\sum_{j=m^{\prime}i}^{m^{\prime}(i+1)-1}S_{j}\odot C_{j}.
 $$
 
 Through this compression operation, HCA compresses the sequence length to $\frac{1}{m^{\prime}}$ times.
@@ -223,17 +223,17 @@ Through this compression operation, HCA compresses the sequence length to $\frac
 **Shared Key-Value MQA and Grouped Output Projection.** HCA also employs the shared KV MQA and grouped output projection strategies as CSA does. After the KV compression, for a query token $t$, HCA first produces attention queries $\{\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}\}$ in a low-rank manner:
 
 $$
-\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},\tag{24}
+\mathbf{c}_{t}^{Q} =\mathbf{h}_{t}\cdot W^{\mathrm{DQ}},
 $$
 
 $$
-[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},\tag{25}
+[\mathbf{q}_{t,1};\mathbf{q}_{t,2};...;\mathbf{q}_{t,n_{h}}]=\mathbf{q}_{t} =\mathbf{c}_{t}^{Q}\cdot W^{\mathrm{UQ}},
 $$
 
 where $\mathbf{h}_{t}\in\mathbb{R}^{d}$ is the input hidden state of the query token $t$; $n_{h}$ denotes the number of query heads; $W^{\mathrm{DQ}}\in\mathbb{R}^{d\times d_{c}}$ and $W^{\mathrm{UQ}}\in\mathbb{R}^{d_{c}\times cn_{h}}$ are the down-projection and up-projection matrices for queries, respectively. Next, we perform MQA on $\{\mathbf{q}_{t,i}\}$ and $C^{\mathrm{Comp}}$:
 
 $$
-\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}C^{\mathrm{Comp}},\texttt{value=}C^{\mathrm{Comp}}\right),\tag{26}
+\mathbf{o}_{t,i}=\mathrm{CoreAttn}\left(\texttt{query=}\mathbf{q}_{t,i},\texttt{key=}C^{\mathrm{Comp}},\texttt{value=}C^{\mathrm{Comp}}\right),
 $$
 
 where $\mathbf{o}_{t,i}\in\mathbb{R}^{c}$ is the core attention output of the $i$-th head at the $t$-th token. Next, as CSA does, HCA splits $n_{h}$ outputs into $g$ groups, and for each group of output $\mathbf{o}^{G}_{t,i}\in\mathbb{R}^{c\frac{n_{h}}{g}}$, HCA projects it to a $d_{g}$-dimensional intermediate output $\mathbf{o}^{G^{\prime}}_{t,i}\in\mathbb{R}^{d_{g}}$, where $d_{g}<c\frac{n_{h}}{g}$. Finally, HCA projects the intermediate output $[\mathbf{o}^{G^{\prime}}_{t,1};\mathbf{o}^{G^{\prime}}_{t,2};...;\mathbf{o}^{G^{\prime}}_{t,g}]\in\mathbb{R}^{d_{g}g}$ to the final attention output $\mathbf{\hat{o}}_{t}\in\mathbb{R}^{d}$.
@@ -251,7 +251,7 @@ In addition to the core architectures of CSA and HCA described above, our hybrid
 **Attention Sink.** In the core attention of CSA and HCA, we employ the trick of attention sink [Xia24a, Ope25c]. To be specific, we set a series of learnable sink logits $\{z^{\prime}_{1},z^{\prime}_{2},...,z^{\prime}_{n_{h}}\}$. For the $h$-th attention head, $\mathrm{Exp}(z^{\prime}_{h})$ will be added to the denominator of the attention score:
 
 $$
-s_{h,i,j}=\frac{\mathrm{Exp}(z_{h,i,j})}{\sum_{k}\mathrm{Exp}(z_{h,i,k})+\mathrm{Exp}(z^{\prime}_{h})},\tag{27}
+s_{h,i,j}=\frac{\mathrm{Exp}(z_{h,i,j})}{\sum_{k}\mathrm{Exp}(z_{h,i,k})+\mathrm{Exp}(z^{\prime}_{h})},
 $$
 
 where $s_{h,i,j},z_{h,i,j}\in\mathbb{R}$ denote the attention score and attention logit of the $h$-th attention head between the $i$-th query token and the $j$-th preceding token or compressed block. This technique allows each query head to adjust its total attention scores to be not equal to 1, and even to be near 0.
@@ -282,7 +282,7 @@ We employ the Muon [Kel24, Liu25] optimizer for the majority of modules in DeepS
 **Hybrid Newton-Schulz Iterations.** For a given matrix $M$, let its Singular Value Decomposition (SVD) be $M=U\Sigma V^\top$. The Newton-Schulz iterations aim to approximately orthogonalize $M$ to be $U V^\top$. Usually, $M$ will be first normalized as $M_{0}=M/\|M\|_{F}$ to ensure its maximum singular value does not exceed 1. Then, each Newton-Schulz iteration performs the following operation:
 
 $$
-M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.\tag{28}
+M_{k}=aM_{k-1}+b(M_{k-1}M_{k-1}^\top)M_{k-1}+c(M_{k-1}M_{k-1}^\top)^{2}M_{k-1}.
 $$
 
 Our hybrid Newton-Schulz performs 10 iterations over two distinct stages. During the first 8 steps, we use coefficients $(a,b,c)=(3.4445,-4.7750,2.0315)$ to drive rapid convergence, bringing the singular values close to 1. In the final 2 steps, we switch to coefficients $(a,b,c)=(2,-1.5,0.5)$, which stabilize the singular values precisely at 1.
@@ -548,7 +548,7 @@ As with DeepSeek-V3.2, agent frameworks that simulate tool interactions via user
 After training multiple domain-specific experts via specialized fine-tuning and reinforcement learning, we employ multi-teacher On-Policy Distillation (OPD; [Lu25, Gu25]) as the primary technique for merging expert capabilities into the final model. OPD has emerged as an effective post-training paradigm for efficiently transferring the knowledge and capabilities of domain experts to a single, unified model. This is achieved by having the student learn from the output distributions of teacher models on its own generated trajectories. Formally, given a set of $N$ expert models $\{\pi_{E_{1}},\pi_{E_{2}},\dots,\pi_{E_{N}}\}$, the OPD objective function is defined as:
 
 $$
-\mathcal{L}_{\mathrm{OPD}}(\theta)=\sum_{i=1}^{N}w_{i}\cdot\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right).\tag{29}
+\mathcal{L}_{\mathrm{OPD}}(\theta)=\sum_{i=1}^{N}w_{i}\cdot\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right).
 $$
 
 In this formulation, $w_{i}$ represents the assigned weight for each expert, typically determined by the relative importance of the expert. Computing the reverse KL loss $\mathrm{D}_{\mathrm{KL}}\left(\pi_{\theta}\parallel\pi_{E_{i}}\right)$ requires sampling training trajectories from the student $\pi_{\theta}$ to maintain on-policy learning. The underlying logic ensures that the unified policy $\pi_{\theta}$ selectively learns from the specialized expert relevant to the current task context (e.g., aligning with the mathematics expert for math reasoning tasks and the coding expert for programming tasks). Through this mechanism, the knowledge from physically distinct expert weights is consolidated into a unified parameter space via logits-level alignment, practically circumventing the performance degradation often encountered in traditional weight-merging or mixed RL techniques. In this stage, more than ten teacher models covering various domains are employed to distill a single student model.

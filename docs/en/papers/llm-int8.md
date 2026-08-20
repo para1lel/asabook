@@ -52,27 +52,27 @@ where $\lfloor{}\rceil{}$ indicates rounding to the nearest integer.
 **Zeropoint quantization** shifts the input distribution into the full range $[-127,127]$ by scaling with the normalized dynamic range $\mathit{nd}_{x}$ and then shifting by the zeropoint $\mathit{zp}_{x}$. With this affine transformation, any input tensors will use all bits of the data type, thus *reducing the quantization error for asymmetric distributions*. For example, for ReLU outputs, in absmax quantization all values in $[-127,0)$ go unused, whereas in zeropoint quantization the full $[-127,127]$ range is used. Zeropoint quantization is given by the following equations:
 
 $$
-\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}\tag{1}
+\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}
 $$
 
 $$
-\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil\tag{2}
+\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil
 $$
 
 $$
-\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil\tag{3}
+\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil
 $$
 
 To use zeropoint quantization in an operation we feed both the tensor $\mathbf{X}_{\mathrm{i8}}$ and the zeropoint $\mathit{zp}_{x_{\mathrm{i16}}}$ into a special instruction [+3] which adds $\mathit{zp}_{x_{\mathrm{i16}}}$ to each element of $\mathbf{X}_{\mathrm{i8}}$ before performing a 16-bit integer operation. For example, to multiply two zeropoint quantized numbers $A_{\mathrm{i8}}$ and $B_{\mathrm{i8}}$ along with their zeropoints $\mathit{zp}_{a_{\mathrm{i16}}}$ and $\mathit{zp}_{b_{\mathrm{i16}}}$ we calculate:
 
 $$
-C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})\tag{4}
+C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})
 $$
 
 where unrolling is required if the instruction multiplyi16 is not available such as on GPUs or TPUs:
 
 $$
-C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},\tag{5}
+C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},
 $$
 
 where $A_{\mathrm{i8}}B_{\mathrm{i8}}$ is computed with Int8 precision while the rest is computed in Int16/32 precision. As such, zeropoint quantization can be slow if the multiply$_{\mathrm{i16}}$ instruction is not available. In both cases, the outputs are accumulated as a 32-bit integer $C_{\mathrm{i32}}$. To dequantize $C_{\mathrm{i32}}$, we divide by the scaling constants $\mathit{nd}_{a_{\mathrm{f16}}}$ and $\mathit{nd}_{b_{\mathrm{f16}}}$.
@@ -83,7 +83,7 @@ $$
 \begin{aligned}
 \mathbf{X}_{\mathrm{f16}}\mathbf{W}_{\mathrm{f16}}=\mathbf{C}_{\mathrm{f16}}&\approx\frac{1}{c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S_{\mathrm{f16}}\cdot\mathbf{C}_{\mathrm{i32}}\\
 &\approx S_{\mathrm{f16}}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=S_{\mathrm{f16}}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
-\end{aligned}\tag{6}
+\end{aligned}
 $$
 
 Where $Q(\cdot)$ is either absmax or zeropoint quantization and $c_{x_{\mathrm{f16}}}$ and $c_{w_{\mathrm{f16}}}$ are the respective tensor-wise scaling constants $s_{x}$ and $s_{w}$ for absmax or $\mathit{nd}_{x}$ and $\mathit{nd}_{w}$ for zeropoint quantization.
@@ -103,7 +103,7 @@ Vector-wise quantization and mixed-precision decomposition are shown in [Figure 
 One way to increase the number of scaling constants for matrix multiplication is to view matrix multiplication as a sequence of independent inner products. Given the hidden states $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{b\times h}$ and weight matrix $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$, we can assign a different scaling constant $c_{x_{\mathrm{f16}}}$to each row of $\mathbf{X}_{\mathrm{f16}}$ and $c_{w}$ to each column of $\mathbf{W}_{\mathrm{f16}}$. To dequantize, we denormalize each inner product result by $1/(c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}})$. For the whole matrix multiplication this is equivalent to denormalization by the outer product $\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}$, where $\mathbf{c}_{x}\in\mathbb{R}^{s}$ and $\mathbf{c}_{w}\in\mathbb{R}^{o}$. As such the full equation for matrix multiplication with row and column constants is given by:
 
 $$
-\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),\tag{7}
+\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
 $$
 
 which we term vector-wise quantization for matrix multiplication.
@@ -115,7 +115,7 @@ In our analysis, we demonstrate that a significant problem for billion-scale 8-b
 We find that given input matrix $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{s\times h}$, these outliers occur systematically for almost all sequence dimensions $s$ but are limited to specific feature/hidden dimensions $h$. As such, we propose mixed-precision decomposition for matrix multiplication where we separate outlier feature dimensions into the set ${O=\{i\mid i\in\mathbb{Z},0\leq i\leq h\}}$, which contains all dimensions of $h$ which have at least one outlier with a magnitude larger than the threshold $\alpha$. In our work, we find that $\alpha=6.0$ is sufficient to reduce transformer performance degradation close to zero. Using Einstein notation where all indices are superscripts, given the weight matrix $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$, mixed-precision decomposition for matrix multiplication is defined as follows:
 
 $$
-\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}\tag{8}
+\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}
 $$
 
 where $\mathbf{S}_{\mathrm{f16}}$ is the denormalization term for the Int8 inputs and weight matrices $\mathbf{X}_{\mathrm{i8}}$ and $\mathbf{W}_{\mathrm{i8}}$.

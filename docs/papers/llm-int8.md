@@ -52,27 +52,27 @@ $$
 **零点量化.** 先用归一化动态范围 $\mathit{nd}_{x}$ 缩放, 再按零点 $\mathit{zp}_{x}$ 平移, 即可将输入分布映射至完整的 $[-127,127]$ 范围. 经过这一仿射变换, 任意输入张量都会用满该数据类型的全部位, 从而减小非对称分布的量化误差. 例如, 对 ReLU 输出采用绝对最大值量化时, $[-127,0)$ 完全闲置; 零点量化则会使用完整的 $[-127,127]$ 范围. 其公式如下:
 
 $$
-\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}\tag{1}
+\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}
 $$
 
 $$
-\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil\tag{2}
+\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil
 $$
 
 $$
-\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil\tag{3}
+\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil
 $$
 
 在运算中使用零点量化时, 需要把张量 $\mathbf{X}_{\mathrm{i8}}$ 和零点 $\mathit{zp}_{x_{\mathrm{i16}}}$ 一并送入一条特殊指令 [+3]. 该指令先把 $\mathit{zp}_{x_{\mathrm{i16}}}$ 加到 $\mathbf{X}_{\mathrm{i8}}$ 的每个元素上, 再执行 16 位整数运算. 例如, 两个零点量化数 $A_{\mathrm{i8}}$ 和 $B_{\mathrm{i8}}$ 及其零点 $\mathit{zp}_{a_{\mathrm{i16}}}$ 和 $\mathit{zp}_{b_{\mathrm{i16}}}$ 的乘法为:
 
 $$
-C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})\tag{4}
+C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})
 $$
 
 若没有 multiply$_{\mathrm{i16}}$ 指令, 例如在 GPU 或 TPU 上, 则需将其展开:
 
 $$
-C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},\tag{5}
+C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},
 $$
 
 其中 $A_{\mathrm{i8}}B_{\mathrm{i8}}$ 以 Int8 精度计算, 其余项以 Int16/32 精度计算. 因而, 没有 multiply$_{\mathrm{i16}}$ 指令时, 零点量化可能很慢. 两种情况下, 输出都累加为 32 位整数 $C_{\mathrm{i32}}$. 将 $C_{\mathrm{i32}}$ 除以缩放常数 $\mathit{nd}_{a_{\mathrm{f16}}}$ 和 $\mathit{nd}_{b_{\mathrm{f16}}}$, 即可反量化.
@@ -83,7 +83,7 @@ $$
 \begin{aligned}
 \mathbf{X}_{\mathrm{f16}}\mathbf{W}_{\mathrm{f16}}=\mathbf{C}_{\mathrm{f16}}&\approx\frac{1}{c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S_{\mathrm{f16}}\cdot\mathbf{C}_{\mathrm{i32}}\\
 &\approx S_{\mathrm{f16}}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=S_{\mathrm{f16}}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
-\end{aligned}\tag{6}
+\end{aligned}
 $$
 
 其中, $Q(\cdot)$ 可以是绝对最大值量化或零点量化. $c_{x_{\mathrm{f16}}}$ 与 $c_{w_{\mathrm{f16}}}$ 是对应的张量级缩放常数: 对绝对最大值量化而言是 $s_{x}$ 和 $s_{w}$, 对零点量化而言是 $\mathit{nd}_{x}$ 和 $\mathit{nd}_{w}$.
@@ -103,7 +103,7 @@ $$
 增加矩阵乘法缩放常数数量的一种方式, 是把矩阵乘法看成一系列独立的内积. 给定隐藏状态 $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{b\times h}$ 和权重矩阵 $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$, 可以为 $\mathbf{X}_{\mathrm{f16}}$ 的每一行分别设置缩放常数 $c_{x_{\mathrm{f16}}}$, 为 $\mathbf{W}_{\mathrm{f16}}$ 的每一列分别设置 $c_{w}$. 反量化时, 每个内积结果都乘以 $1/(c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}})$ 做反归一化. 对整个矩阵乘法而言, 这等价于用外积 $\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}$ 反归一化, 其中 $\mathbf{c}_{x}\in\mathbb{R}^{s}$, $\mathbf{c}_{w}\in\mathbb{R}^{o}$. 因而, 带行、列缩放常数的完整矩阵乘法为:
 
 $$
-\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),\tag{7}
+\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
 $$
 
 我们将其称为矩阵乘法的逐向量量化.
@@ -115,7 +115,7 @@ $$
 给定输入矩阵 $\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{s\times h}$, 这些离群值会有规律地出现在几乎所有序列维度 $s$ 上, 却只落在少数特定的特征/隐藏维度 $h$ 上. 因此, 我们提出矩阵乘法的混合精度分解, 把离群特征维度分离为集合 ${O=\{i\mid i\in\mathbb{Z},0\leq i\leq h\}}$. 只要 $h$ 的某个维度上至少有一个幅值超过阈值 $\alpha$ 的离群值, 该维度就属于 $O$. 实验发现, 取 $\alpha=6.0$ 足以让 Transformer 的性能损失接近于零. 使用所有索引均为上标的爱因斯坦记号, 给定权重矩阵 $\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$, 混合精度矩阵乘法定义为:
 
 $$
-\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}\tag{8}
+\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}
 $$
 
 其中 $\mathbf{S}_{\mathrm{f16}}$ 是 Int8 输入矩阵 $\mathbf{X}_{\mathrm{i8}}$ 和权重矩阵 $\mathbf{W}_{\mathrm{i8}}$ 的反归一化项.

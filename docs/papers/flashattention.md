@@ -398,7 +398,7 @@ $$
 <span id="A2.E1"></span>
 
 $$
-L_{i}=\sum_{j}e^{q_{i}^{\top}k_{j}}.\tag{1}
+L_{i}=\sum_{j}e^{q_{i}^{\top}k_{j}}.
 $$
 
 令 $v_{j}$ 为 $j$-th 列的 $\mathbf{V}$, 则输出的 $i$-th 列为:
@@ -409,7 +409,7 @@ $$
 \begin{aligned}
 o_{i} &= P_{i:}\mathbf{V}
  = \sum_{j}P_{\mathrm{ij}}v_{j}\\
- &= \sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}.\tag{2}
+ &= \sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}.
 \end{aligned}
 $$
 
@@ -433,7 +433,7 @@ $$
 $$
 \begin{aligned}
 \mathrm{dv}_{j} &= \sum_{i}P_{\mathrm{ij}}\mathrm{do}_{i}
- = \sum_{i}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}\mathrm{do}_{i}.\tag{3}
+ = \sum_{i}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}\mathrm{do}_{i}.
 \end{aligned}
 $$
 
@@ -467,7 +467,6 @@ D_{i} &= P_{i:}^{\top}\mathrm{dP}_{i:}
  = \sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}\mathrm{do}_{i}^{\top}v_{j}\\
 &= \mathrm{do}_{i}^{\top}\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}
  = \mathrm{do}_{i}^{\top}o_{i}.
-\tag{4}
 \end{aligned}
 $$
 
@@ -496,7 +495,6 @@ $$
 \mathrm{dq}_{i} &= \sum_{j}\mathrm{dS}_{\mathrm{ij}}k_{j}
  = \sum_{j}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})k_{j}\\
 &= \sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}(\mathrm{do}_{i}^{\top}v_{j}-D_{i})k_{j}.
-\tag{5}
 \end{aligned}
 $$
 
@@ -509,7 +507,6 @@ $$
 \mathrm{dk}_{j} &= \sum_{i}\mathrm{dS}_{\mathrm{ij}}q_{i}
  = \sum_{i}P_{\mathrm{ij}}(\mathrm{dP}_{\mathrm{ij}}-D_{i})q_{i}\\
 &= \sum_{i}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}(\mathrm{do}_{i}^{\top}v_{j}-D_{i})q_{i}.
-\tag{6}
 \end{aligned}
 $$
 

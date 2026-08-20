@@ -65,7 +65,7 @@ permalink: /ja/papers/attention-is-all-you-need/
 実際には、一度に複数のクエリのセットに対して注意関数を計算し、それらを一つの行列$Q$にまとめます。キーとバリューもそれぞれ行列$K$および$V$にまとめます。出力の行列は次のように計算されます：
 
 $$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(\frac{\mathrm{QK}^\top}{\sqrt{d_{k}}})V\tag{1}
+\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(\frac{\mathrm{QK}^\top}{\sqrt{d_{k}}})V
 $$
 
 最も一般的に使用される注意機構は、加算注意機構（additive attention [Bah14]）とドット積（乗算）注意機構です。ドット積注意機構は、$\frac{1}{\sqrt{d_{k}}}$ のスケーリング係数を除けば、私たちのアルゴリズムと同一です。加算注意機構は、単一の隠れ層を持つフィードフォワードネットワークを用いて、互換性関数を計算します。理論的な計算複雑性としては両者は類似していますが、ドット積注意機構は、非常に最適化された行列乗算コードを使用して実装できるため、実際にははるかに高速でメモリ効率も良いです。
@@ -111,7 +111,7 @@ Transformerはマルチヘッドアテンションを3つの異なる方法で�
 注意サブレイヤーに加えて、エンコーダとデコーダの各層には完全結合のフィードフォワードネットワークが含まれており、各位置ごとに個別かつ同一に適用されます。これは、間に ReLU 活性化関数を挟んだ2つの線形変換で構成されています。
 
 $$
-\mathrm{FFN}(x)=\max(0,\mathrm{xW}_{1}+b_{1})W_{2}+b_{2}\tag{2}
+\mathrm{FFN}(x)=\max(0,\mathrm{xW}_{1}+b_{1})W_{2}+b_{2}
 $$
 
 線形変換は異なる位置で同じであるが、層ごとに異なるパラメータを使用する。これを別の方法で説明すると、カーネルサイズ1の2つの畳み込みとして表すことができる。入力と出力の次元は$d_{\mathrm{model}}=512$であり、内部層の次元は$d_{\mathrm{ff}}=2048$である。
@@ -175,7 +175,7 @@ $$
 我々はAdamオプティマイザ[Kin15]を使用しました$\beta_{1}=0.9$、$\beta_{2}=0.98$および$\epsilon=10^{-9}$。訓練中に学習率は次の式に従って変化させました：
 
 $$
-\mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})\tag{3}
+\mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})
 $$
 
 これは最初の $\mathrm{warmup}\_\mathrm{steps}$ トレーニングステップの間に学習率を線形に増加させ、その後はステップ数の逆平方根に比例して減少させることに対応しています。私たちは $\mathrm{warmup}\_\mathrm{steps}=4000$ を使用しました。

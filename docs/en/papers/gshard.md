@@ -81,15 +81,15 @@ Each training example consists of a pair of sequences of subword tokens. Each to
 The Mixture-of-Experts (MoE) layer used in our model is based on [Sha17] with variations in the sparse gating function and the auxiliary loss being used. A MoE layer for Transformer consists of $E$ feed-forward networks $\mathrm{FFN}_{1}\dots\mathrm{FFN}_{E}$:
 
 $$
-\mathcal{G}_{s,E}=\mathrm{GATE}(x_s)\tag{1}
+\mathcal{G}_{s,E}=\mathrm{GATE}(x_s)
 $$
 
 $$
-\mathrm{FFN}_e(x_s)=\mathit{wo}_e\cdot\mathrm{ReLU}(\mathit{wi}_e\cdot x_s)\tag{2}
+\mathrm{FFN}_e(x_s)=\mathit{wo}_e\cdot\mathrm{ReLU}(\mathit{wi}_e\cdot x_s)
 $$
 
 $$
-y_s=\sum^E_{e=1}\mathcal{G}_{s,e}\cdot\mathrm{FFN}_e(x_s)\tag{3}
+y_s=\sum^E_{e=1}\mathcal{G}_{s,e}\cdot\mathrm{FFN}_e(x_s)
 $$
 
 where $x_s$ is the input token to the MoE layer, $\mathit{wi}$ and $\mathit{wo}$ being the input and output projection matrices for the feed-forward layer (an expert). Vector $\mathcal{G}_{s,E}$ is computed by a gating network. $\mathcal{G}_{s,E}$ has one non-negative for each expert, most of which are zeros meaning the token is not dispatched to that expert. The token is dispatched to a very small number of experts. We choose to let each token dispatched to at most two experts. The corresponding entries in $\mathcal{G}_{s,E}$ are non-zeros, representing how much an expert contributes to the final network output. Every expert $\mathrm{FFN}_e$ applies to $x_s$ a fully-connected 2-layer network using ReLU [Nai10] activation function. The output of the MoE layer, $y_s$, is the weighted average of outputs from all the selected experts.

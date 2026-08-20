@@ -80,7 +80,6 @@ $$
 
 $$
 {\mathbf{S}}_{[t+1]}={\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}+{\mathbf{V}}_{[t]}^\top{\color{#ffd54f}\overrightarrow{{\mathbf{K}}_{[t]}}}\in\mathbb{R}^{d_v\times d_k},\qquad {\mathbf{O}}_{[t]}={\color{#ffd54f}\overleftarrow{{\mathbf{Q}}_{[t]}}}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\color{#ffd54f}\Gamma_{[t]}}\right){\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
-\tag{1}
 $$
 
 ここで ${\color{#ffd54f}(\Gamma_{[t]})_{ij}=\frac{\gamma_{[t]}^i}{\gamma_{[t]}^j},\ \gamma_{[t]}^j=\prod_{j=tC+1}^{tC+j}\alpha_j}$ である。[+1] 左矢印 ($\overleftarrow{\cdot}$) と右矢印 ($\overrightarrow{\cdot}$) は、それぞれ変数を各チャンクの先頭位置と末尾位置まで減衰させることを表す。
@@ -97,7 +96,6 @@ $$
 
 $$
 {\color{#ffd54f}\overrightarrow{{\mathbf{S}}_{[t]}}}={\color{#ffd54f}\gamma_{[t]}^C}{\mathbf{S}}_{[t]}\qquad\mathrm{decaying\ the\ state\ matrix\ over\ the\ entire\ chunk}\ t
-\tag{2}
 $$
 
 ほかの変数（例えば ${\color{#ffd54f}\overrightarrow{\bm{v}}}$）も同様である。Mamba2 の SSD 分解アルゴリズムは、このチャンクアルゴリズムとほぼ等価である。[Yan24a] はさらに、細粒度の減衰を組み込む一般化チャンクアルゴリズムを提案した。
@@ -118,7 +116,6 @@ $$
 
 $$
 {\mathbf{S}}_{[t]}^r={\mathbf{S}}_{[t]}\underbrace{\left(\prod_{i=1}^r{\mathbf{I}}-\beta_{[t]}^i{\bm{k}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\right)}_{:={\mathbf{P}}_{[t]}^r}+\underbrace{\sum_{i=1}^r\left(\beta_{[t]}^i{\bm{v}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\prod_{j=i+1}^r\left({\mathbf{I}}-\beta_{[t]}^j{\bm{k}}_{[t]}^j{\bm{k}}_{[t]}^{j\top}\right)\right)}_{:={\mathbf{H}}_{[t]}^r}
-\tag{3}
 $$
 
 ${\mathbf{P}}_{[t]}^j$ は一般化 Householder 行列の累積積を含み、古典的な WY 表現 [Bis85] で最適化できる。
@@ -127,7 +124,6 @@ ${\mathbf{P}}_{[t]}^j$ は一般化 Householder 行列の累積積を含み、�
 
 $$
 {\mathbf{P}}_{[t]}^r={\mathbf{I}}-\sum_{i=1}^r{\bm{w}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_k\times d_k},\qquad {\bm{w}}_{[t]}^r=\beta_{[t]}^r\left({\bm{k}}_{[t]}^r-\sum_{i=1}^{r-1}{\bm{w}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_k}
-\tag{4}
 $$
 
 同様に、${\mathbf{H}}_{[t]}^r$ は次のように表せる。
@@ -136,7 +132,6 @@ $$
 
 $$
 {\mathbf{H}}_{[t]}^r=\sum_{i=1}^r{\bm{u}}_{[t]}^i{\bm{k}}_{[t]}^{i\top}\in\mathbb{R}^{d_v\times d_k},\qquad {\bm{u}}_{[t]}^r=\beta_{[t]}^r\left({\bm{v}}_{[t]}^r-\sum_{i=1}^{r-1}{\bm{u}}_{[t]}^i\left({\bm{k}}_{[t]}^{i\top}{\bm{k}}_{[t]}^r\right)\right)\in\mathbb{R}^{d_v}
-\tag{5}
 $$
 
 行列形式では、 ${\mathbf{P}}_{[t]}={\mathbf{I}}-{\mathbf{W}}_{[t]}^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_k\times d_k}$, ${\mathbf{H}}_{[t]}={\mathbf{U}}_{[t]}^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_v\times d_k}$。UT 変換 [Jof06] を用いると、 ${\mathbf{W}}$ と ${\mathbf{U}}$ はさらに次の行列形式になる。
@@ -145,14 +140,12 @@ $$
 
 $$
 {\mathbf{T}}_{[t]}=\left[{\mathbf{I}}+\mathrm{strictLower}\left(\mathrm{diag}(\beta_{[t]}){\mathbf{K}}_{[t]}{\mathbf{K}}_{[t]}^\top\right)\right]^{-1}\mathrm{diag}(\beta_{[t]})\in\mathbb{R}^{C\times C}
-\tag{6}
 $$
 
 <span id="equation-07"></span>
 
 $$
 {\mathbf{W}}_{[t]}={\mathbf{T}}_{[t]}{\mathbf{K}}_{[t]}\in\mathbb{R}^{C\times d_k},\qquad {\mathbf{U}}_{[t]}={\mathbf{T}}_{[t]}{\mathbf{V}}_{[t]}\in\mathbb{R}^{C\times d_v}
-\tag{7}
 $$
 
 これらを[式 3](#equation-03)へ代入すると、行列乗算を利用して Tensor Core で最適化できる DeltaNet のチャンクアルゴリズムが得られる。
@@ -161,14 +154,12 @@ $$
 
 $$
 {\mathbf{S}}_{[t+1]}={\mathbf{S}}_{[t]}{\mathbf{P}}_{[t]}+{\mathbf{H}}_{[t]}={\mathbf{S}}_{[t]}+\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^\top\right)^\top{\mathbf{K}}_{[t]}\in\mathbb{R}^{d_v\times d_k}
-\tag{8}
 $$
 
 <span id="equation-09"></span>
 
 $$
 {\mathbf{O}}_{[t]}={\mathbf{Q}}_{[t]}{\mathbf{S}}_{[t]}^\top+\left({\mathbf{Q}}_{[t]}{\mathbf{K}}_{[t]}^\top\odot{\mathbf{M}}\right)\left({\mathbf{U}}_{[t]}-{\mathbf{W}}_{[t]}{\mathbf{S}}_{[t]}^\top\right)\in\mathbb{R}^{C\times d_v}
-\tag{9}
 $$
 
 ## 3 ゲーテッドデルタネットワーク
@@ -181,7 +172,6 @@ $$
 
 $$
 {\mathbf{S}}_t={\mathbf{S}}_{t-1}\left({\color{#ffd54f}\alpha_t}\left({\mathbf{I}}-\beta_t{\bm{k}}_t{\bm{k}}_t^\top\right)\right)+\beta_t{\bm{v}}_t{\bm{k}}_t^\top
-\tag{10}
 $$
 
 データ依存のゲーティング項 ${\color{#ffd54f}\alpha_t}\in(0,1)$ が状態の減衰を制御する。この形式では、ゲーティング項がメモリを適応的に管理し、delta 更新構造がキー・バリュー対応を学習する。

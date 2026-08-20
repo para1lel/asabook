@@ -59,7 +59,7 @@ Mixture-of-Experts（MoE）層は、一連の$n$「エキスパートネット�
 与えられた入力$x$に対して、ゲーティングネットワークの出力と$i$番目のエキスパートネットワークの出力を、それぞれ$G(x)$および$E_{i}(x)$で表すことにします。MoEモジュールの出力$y$は以下のように表すことができます：
 
 $$
-y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)\tag{1}
+y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)
 $$
 
 我々は$G(x)$の出力のスパース性に基づいて計算を節約します。$G(x)_{i}=0$がある場合には、$E_{i}(x)$を計算する必要はありません。我々の実験では、専門家の数は最大で数千に達しますが、各例について評価する必要があるのはごく一部です。専門家の数が非常に多い場合、二段階の階層型MoEを使用することで分岐係数を減らすことができます。階層型MoEでは、一次ゲーティングネットワークが「専門家」のスパースな加重組み合わせを選択し、各専門家自体が独自のゲーティングネットワークを持つ二次混合専門家です。以下では、通常のMoEに焦点を当てます。階層型MoEの詳細については付録[B](#appendix-b)を参照してください。
@@ -71,7 +71,7 @@ $$
 **ソフトマックスゲーティング：** 非スパースなゲーティング関数の簡単な選択肢[Jor94]は、入力に学習可能な重み行列$W_{g}$を掛け、その後$\mathrm{Softmax}$関数を適用することです。
 
 $$
-G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})\tag{2}
+G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})
 $$
 
 <span id="noisy-top-k-gating"></span>
@@ -79,18 +79,18 @@ $$
 **ノイジートップKゲーティング：** 我々は、Softmaxゲーティングネットワークに2つの要素、すなわちスパース性とノイズを追加します。Softmax関数を適用する前に調整可能なガウスノイズを加え、上位k個の値だけを保持し、残りを$-\infty$に設定します（これにより、対応するゲート値は$0$になります）。このスパース性は、前述のように計算を節約するために使用されます。この形のスパース性は、理論上ゲーティング関数の出力にいくつかの不連続を引き起こす可能性がありますが、実際には問題が観察されたことはありません。ノイズ項は負荷分散に役立ちます。詳細は付録[A](#appendix-a)で説明します。コンポーネントごとのノイズ量は、第2の訓練可能な重み行列$W_{\mathrm{noise}}$によって制御されます。
 
 $$
-G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))\tag{3}
+G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))
 $$
 
 $$
-H(x)_{i}=(x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot \mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})\tag{4}
+H(x)_{i}=(x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot \mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})
 $$
 
 $$
 \mathrm{KeepTopK}(v,k)_{i}=\begin{cases}
 v_{i}, & \mathrm{if}\ v_{i}\ \mathrm{is\ in\ the\ top}\ k\ \mathrm{elements\ of}\ v,\\
 -\infty, & \mathrm{otherwise.}
-\end{cases}\tag{5}
+\end{cases}
 $$
 
 **ゲーティングネットワークの訓練** 我々は、モデルの残り部分とともに単純なバックプロパゲーションでゲーティングネットワークを訓練します。もし$k>1$を選択した場合、上位k人のエキスパートのゲート値はゲーティングネットワークの重みに関して非ゼロの導関数を持ちます。この種の時折感度のある挙動は、ノイズ付き整流器（noisy rectifiers）に関して[Ben13]で説明されています。勾配はゲーティングネットワークを通じてその入力に逆伝播されます。我々の手法はここで[Ben15]と異なり、彼らはブールゲートとREINFORCEスタイルの手法を用いてゲーティングネットワークを訓練します。
@@ -126,11 +126,11 @@ $$
 我々はソフト制約のアプローチを取ります。エキスパートの重要性をトレーニング例のバッチに相対的に定義し、そのバッチ内でのゲート値の合計として定義します。追加の損失 $L_{\mathrm{importance}}$ を定義し、これはモデルの全体の損失関数に加えられます。この損失は、重要性値の集合の変動係数の二乗に、手動で調整されたスケーリング係数 $w_{\mathrm{importance}}$ を掛けたものに等しいです。この追加損失は、すべてのエキスパートが等しい重要性を持つことを促します。
 
 $$
-\mathrm{Importance}(X)=\sum_{x\in X}G(x)\tag{6}
+\mathrm{Importance}(X)=\sum_{x\in X}G(x)
 $$
 
 $$
-L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}\tag{7}
+L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}
 $$
 
 この損失関数は重要度の均等性を保証できますが、専門家は依然として非常に異なる数の例を受け取る可能性があります。例えば、1人の専門家は大きな重みを持つ少数の例を受け取り、別の専門家は小さな重みを持つ多数の例を受け取ることがあります。これは分散ハードウェア上でメモリや性能の問題を引き起こす可能性があります。この問題を解決するために、負荷のバランスを保証する第2の損失関数$L_{\mathrm{load}}$を導入します。附録 [A](#appendix-a) には、この関数の定義と実験結果が含まれています。
@@ -243,25 +243,25 @@ $$
 \begin{aligned}
 P(x,i)=\Pr\Bigl(& (x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})\\
 &>\mathrm{kth\_excluding}(H(x),k,i)\Bigr)
-\end{aligned}\tag{8}
+\end{aligned}
 $$
 
 ここで$\mathrm{kth}\_\mathrm{excluding}(v,k,i)$は$i$を除く$v$のk番目に高い成分を意味します。簡単化すると、次のようになります：
 
 $$
-P(x,i)=\Phi\Bigl(\frac{(x\cdot W_{g})_{i}-\mathrm{kth\_excluding}(H(x),k,i)}{\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})}\Bigr)\tag{9}
+P(x,i)=\Phi\Bigl(\frac{(x\cdot W_{g})_{i}-\mathrm{kth\_excluding}(H(x),k,i)}{\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})}\Bigr)
 $$
 
 ここで$\Phi$は標準正規分布の累積分布関数（CDF）です。
 
 $$
-\mathrm{Load}(X)_{i}=\sum_{x\in X}P(x,i)\tag{10}
+\mathrm{Load}(X)_{i}=\sum_{x\in X}P(x,i)
 $$
 
 これで、負荷ベクトルの変動係数の二乗に手動調整のスケーリング係数$w_{\mathrm{load}}$を掛けた負荷損失を定義できます。
 
 $$
-L_{\mathrm{load}}(X)=w_{\mathrm{load}}\cdot \mathrm{CV}(\mathrm{Load}(X))^{2}\tag{11}
+L_{\mathrm{load}}(X)=w_{\mathrm{load}}\cdot \mathrm{CV}(\mathrm{Load}(X))^{2}
 $$
 
 **初期負荷不均衡：** メモリ不足エラーを回避するためには、ネットワークをほぼ等しい専門家負荷の状態で初期化する必要があります（ソフト制約が機能するまでに時間がかかるため）。これを達成するために、行列 $W_{g}$ と $W_{\mathrm{noise}}$ をすべてゼロで初期化します。これにより信号は発生せず、ある程度のノイズだけが生じます。
@@ -284,17 +284,17 @@ $$
 [+3] 階層的MoEが$a$ のグループ、各グループに$b$ の専門家で構成されている場合、一次ゲーティングネットワークは$G_{\mathrm{primary}}$、二次ゲーティングネットワークは$(G_{1},G_{2}..G_{a})$、専門家ネットワークは$(E_{0,0},E_{0,1}..E_{a,b})$と表します。MoEの出力は次の式で表されます：
 
 $$
-y_{H}=\sum_{i=1}^{a}\sum_{j=1}^{b}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\cdot E_{i,j}(x)\tag{12}
+y_{H}=\sum_{i=1}^{a}\sum_{j=1}^{b}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\cdot E_{i,j}(x)
 $$
 
 専門家利用の指標は次のように変わります：
 
 $$
-\mathrm{Importance}_{H}(X)_{i,j}=\sum_{x\in X}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\tag{13}
+\mathrm{Importance}_{H}(X)_{i,j}=\sum_{x\in X}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}
 $$
 
 $$
-\mathrm{Load}_{H}(X)_{i,j}=\frac{\mathrm{Load}_{\mathrm{primary}}(X)_{i}\cdot \mathrm{Load}_{i}(X^{(i)})_{j}}{|X^{(i)}|}\tag{14}
+\mathrm{Load}_{H}(X)_{i,j}=\frac{\mathrm{Load}_{\mathrm{primary}}(X)_{i}\cdot \mathrm{Load}_{i}(X^{(i)})_{j}}{|X^{(i)}|}
 $$
 
 $\mathrm{Load}_{\mathrm{primary}}$ および $\mathrm{Load}_{i}$ は、それぞれ一次ゲーティングネットワークと第 $i$ 二次ゲーティングネットワークの $\mathrm{Load}$ 関数を示します。$X^{(i)}$ は、$G_{\mathrm{primary}}(x)_{i}>0$ を満たす $X$ の部分集合です。
@@ -406,13 +406,13 @@ Adam オプティマイザー [Kin15] はパラメータごとの勾配につい
 ソフトマックスゲーティング関数を次のように定義することを思い出してください：
 
 $$
-G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})\tag{15}
+G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})
 $$
 
 **スパースゲーティング（代替の定式化）：** スパースなゲーティングベクトルを得るために、$G_{\sigma}(x)$ をスパースマスク $M(G_{\sigma}(x))$ と要素ごとに掛け、出力を正規化します。マスク自体は $G_{\sigma}(x)$ の関数であり、各入力例に割り当てられるエキスパートを指定します：
 
 $$
-G(x)_{i}=\frac{G_{\sigma}(x)_{i}M(G_{\sigma}(x))_{i}}{\sum_{j=1}^{n}G_{\sigma}(x)_{j}M(G_{\sigma}(x))_{j}}\tag{16}
+G(x)_{i}=\frac{G_{\sigma}(x)_{i}M(G_{\sigma}(x))_{i}}{\sum_{j=1}^{n}G_{\sigma}(x)_{j}M(G_{\sigma}(x))_{j}}
 $$
 
 **Top-K マスク：** この定式化で top-k ゲーティングを実装するには、$M(v)=\mathrm{TopK}(v,k)$ とし、ここで：
@@ -421,7 +421,7 @@ $$
 \mathrm{TopK}(v,k)_{i}=\begin{cases}
 1, & \mathrm{if}\ v_{i}\ \mathrm{is\ in\ the\ top}\ k\ \mathrm{elements\ of}\ v,\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{17}
+\end{cases}
 $$
 
 **バッチごとのマスク：** 各エキスパートが正確に同じ数の例を受け取るように強制するために、入力ベクトルのバッチ上で動作する代替マスク関数 $M_{\mathrm{batchwise}}(X,m)$ を導入します。各例ごとに上位 $k$ の値を保持する代わりに、学習バッチ全体で各エキスパートごとに上位 $m$ の値を保持します。ここで $m=\frac{k|X|}{n}$ は、各例が平均で $k$ 人のエキスパートに送られるようにします。
@@ -430,7 +430,7 @@ $$
 M_{\mathrm{batchwise}}(X,m)_{j,i}=\begin{cases}
 1, & \mathrm{if}\ X_{j,i}\ \mathrm{is\ in\ the\ top}\ m\ \mathrm{values\ for\ expert}\ i,\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{18}
+\end{cases}
 $$
 
 我々の実験が示すように、また [Iof15] でも観察されているように、学習中にバッチ単位の関数（$M_{\mathrm{batchwise}}$ など）を使用する場合、大きな例のバッチがない場合の推論時には変更が必要です。我々の解決策は、各エキスパートの閾値値をベクトル $T$ として学習させ、バッチ単位マスクの効果を近似することです。推論時には次のマスクを使用します：
@@ -439,7 +439,7 @@ $$
 M_{\mathrm{threshold}}(x,T)_{i}=\begin{cases}
 1, & \mathrm{if}\ x_{i}>T_{i},\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{19}
+\end{cases}
 $$
 
 閾値値を学習するために、学習時に追加の損失を適用し、バッチ単位マスクと閾値マスクが一致する場合に最小化されるようにします。
@@ -449,7 +449,7 @@ $$
 L_{\mathrm{batchwise}}(X,T,m)
 &=\sum_{j=1}^{|X|}\sum_{i=1}^{n}\bigl(M_{\mathrm{threshold}}(x,T)_{i}-M_{\mathrm{batchwise}}(X,m)_{j,i}\bigr)\\
 &\quad\cdot(X_{j,i}-T_{i})
-\end{aligned}\tag{20}
+\end{aligned}
 $$
 
 <span id="appendix-g"></span>
@@ -459,7 +459,7 @@ $$
 GNMT [Wu17] で記述されているアテンションメカニズムは、学習された「アテンション関数」 $A(x_{i},y_{j})$ を含み、これは「ソースベクトル」 $x_{i}$ と「ターゲットベクトル」 $y_{j}$ を取り、各ソースタイムステップ $i$ およびターゲットタイムステップ $j$ ごとに計算される必要があります。GNMT では、アテンション関数は隠れ層のサイズ $n$ を持つフィードフォワードニューラルネットワークとして実装されています。次のように表現できます：
 
 $$
-A_{\mathrm{GNMT}}(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d}+(y_{j}W)_{d})\tag{21}
+A_{\mathrm{GNMT}}(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d}+(y_{j}W)_{d})
 $$
 
 ここで $U$ と $W$ は学習可能な重み行列であり、$V$ は学習可能な重みベクトルです。
@@ -467,7 +467,7 @@ $$
 パフォーマンスの理由から、我々のモデルでは、わずかに異なる注意関数を使用しました：
 
 $$
-A(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d})\tanh((y_{j}W)_{d})\tag{22}
+A(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d})\tanh((y_{j}W)_{d})
 $$
 
 我々の注意関数を使うと、最適化された行列積を用いて、複数のソースタイムステップと複数のターゲットタイムステップに対して同時に注意関数を計算できます。二つの関数の間で品質にほとんど差はないことがわかりました。

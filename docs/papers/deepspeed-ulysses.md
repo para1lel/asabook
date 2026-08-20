@@ -89,7 +89,7 @@ permalink: /papers/deepspeed-ulysses/
 [图 2](#figure-02) 展示了 DeepSpeed-Ulysses 的核心设计. 与已知的 Transformer 架构类似, 该设计由输入序列 *N* 组成, 并划分到 *P* 个可用设备上. 每个本地 *N/P* 分区被投影为查询 (*Q*), 键 (*K*) 和值 (*V*) 嵌入. 接下来, 通过参与计算设备之间高度优化的 all-to-all 集体操作, 将 (*QKV*) 嵌入收集到全局 *QKV* 中. all-to-all 集体操作之后, 是每个头的注意力计算, 形式如下:
 
 $$
-\mathrm{Outputcontext}=\mathrm{Softmax}((\mathrm{QK}^\top)/\sqrt{(}d))V\tag{1}
+\mathrm{Outputcontext}=\mathrm{Softmax}((\mathrm{QK}^\top)/\sqrt{(}d))V
 $$
 
 注意力计算之后, 另一次 all-to-all 集体操作将注意力计算的输出上下文张量变换为序列 (*N/P*) 并行, 以便在 Transformer 层块的后续模块中进行后续运算 (MLP 矩阵乘法, 层归一化等).

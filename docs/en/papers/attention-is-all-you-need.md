@@ -65,7 +65,7 @@ We call our particular attention "Scaled Dot-Product Attention" ([Figure 2](#fig
 In practice, we compute the attention function on a set of queries simultaneously, packed together into a matrix $Q$. The keys and values are also packed together into matrices $K$ and $V$. We compute the matrix of outputs as:
 
 $$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(\frac{\mathrm{QK}^\top}{\sqrt{d_{k}}})V\tag{1}
+\mathrm{Attention}(Q,K,V)=\mathrm{softmax}(\frac{\mathrm{QK}^\top}{\sqrt{d_{k}}})V
 $$
 
 The two most commonly used attention functions are additive attention [Bah14], and dot-product (multiplicative) attention. Dot-product attention is identical to our algorithm, except for the scaling factor of $\frac{1}{\sqrt{d_{k}}}$. Additive attention computes the compatibility function using a feed-forward network with a single hidden layer. While the two are similar in theoretical complexity, dot-product attention is much faster and more space-efficient in practice, since it can be implemented using highly optimized matrix multiplication code.
@@ -111,7 +111,7 @@ The Transformer uses multi-head attention in three different ways:
 In addition to attention sub-layers, each of the layers in our encoder and decoder contains a fully connected feed-forward network, which is applied to each position separately and identically. This consists of two linear transformations with a ReLU activation in between.
 
 $$
-\mathrm{FFN}(x)=\max(0,\mathrm{xW}_{1}+b_{1})W_{2}+b_{2}\tag{2}
+\mathrm{FFN}(x)=\max(0,\mathrm{xW}_{1}+b_{1})W_{2}+b_{2}
 $$
 
 While the linear transformations are the same across different positions, they use different parameters from layer to layer. Another way of describing this is as two convolutions with kernel size 1. The dimensionality of input and output is $d_{\mathrm{model}}=512$, and the inner-layer has dimensionality $d_{\mathrm{ff}}=2048$.
@@ -175,7 +175,7 @@ We trained our models on one machine with 8 NVIDIA P100 GPUs. For our base model
 We used the Adam optimizer [Kin15] with $\beta_{1}=0.9$, $\beta_{2}=0.98$ and $\epsilon=10^{-9}$. We varied the learning rate over the course of training, according to the formula:
 
 $$
-\mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})\tag{3}
+\mathrm{lrate}=d_{\mathrm{model}}^{-0.5}\cdot\min({\mathrm{step}\_\mathrm{num}}^{-0.5},{\mathrm{step}\_\mathrm{num}}\cdot{\mathrm{warmup}\_\mathrm{steps}}^{-1.5})
 $$
 
 This corresponds to increasing the learning rate linearly for the first $\mathrm{warmup}\_\mathrm{steps}$ training steps, and decreasing it thereafter proportionally to the inverse square root of the step number. We used $\mathrm{warmup}\_\mathrm{steps}=4000$.

@@ -45,7 +45,7 @@ $$
 \begin{aligned}
 X_{\mathrm{FP}k} = {(-1)}^{s}2^{p-\mathrm{bias}}(1.\mathrm{mantissa})={(-1)}^{s}2^{p-\mathrm{bias}} \\
 \left(1+\frac{d_{1}}{2}+\frac{d_{2}}{2^{2}}+\ldots+\frac{d_{m}}{2^{m}}\right),
-\end{aligned}\tag{1}
+\end{aligned}
 $$
 
 其中, $s$ 是符号位, $p$ 是指数整数, $\mathrm{bias}$ 是施加在指数上的偏置, $m$ 是有效数字中尾数位的总数, $d_{1},d_{2},\ldots,d_{m}$ 表示二进制格式尾数部分的各位数字. 对于一个 $\mathrm{FP}k$ 数值, $s$, $p$ 和 $m$ 的位数之和应为 $k$.
@@ -58,7 +58,7 @@ $$
 \begin{aligned}
 X^{\mathrm{NF}}_{i} =\frac{1}{2}\Bigl(\mathrm{quantile}\!\left(N(0,1),\frac{i}{2^{k}+1}\right) \\
 \quad+\,\mathrm{quantile}\!\left(N(0,1),\frac{i+1}{2^{k}+1}\right)\Bigr),
-\end{aligned}\tag{2}
+\end{aligned}
 $$
 
 其中, $\mathrm{quantile}(\cdot,q)$ 表示输入的第 $q$ 分位数, $N(0,1)$ 表示标准正态分布. 对于取值范围不在 -1 到 1 之间的张量, 需要先用其最大绝对值缩放. 为确保能够精确表示零, NF 通过估计负值部分的 $2^{k-1}$ 个 $X^{\mathrm{NF}}_{i}$ 和正值部分的 $2^{k-1}-1$ 个 $X^{\mathrm{NF}}_{i}$ 对数据进行非对称划分, 再删除两组中重复的一个零. 这样估计出的 NF 会使每个量化区间内的期望样本数近似相等, 从而尽可能保留量化数据的信息.
@@ -68,7 +68,7 @@ $$
 **整数.** 整数量化是量化技术出现以来研究最广泛的数据格式, 它将浮点数划分为 $2^{k}$ 个等间距的离散整数. 公式为:
 
 $$
-X_{\mathrm{INT}_{k}}=(-1)^{s}(d_{1}2^{m}+d_{2}2^{m-1}+\cdots+d_{m}2^{0}),\quad x\in\mathbb{N}^{+},\tag{3}
+X_{\mathrm{INT}_{k}}=(-1)^{s}(d_{1}2^{m}+d_{2}2^{m-1}+\cdots+d_{m}2^{0}),\quad x\in\mathbb{N}^{+},
 $$
 
 对于有符号整数, $m=k-1$ 且 $s\in\{0,1\}$; 对于无符号整数, $m=k$ 且可以视为 $s=0$. 因此, 有符号整数的范围是 $[-2^{k-1},2^{k-1}-1]$, 无符号整数的范围是 $[0,2^{k}-1]$. 在 LLM 出现之前, 整数量化已用于 BERT 类语言模型 [She20].
@@ -96,7 +96,7 @@ p&=\begin{cases}
 4+\mathrm{LZD}(b_{2}b_{1}b_{0}),&b_{3}=1,
 \end{cases}\\
 \mathrm{mantissa}&=b_{2}b_{1}b_{0}\mathbin{\texttt{<<}}(\mathrm{LZD}(b_{2}b_{1}b_{0})+1),
-\end{aligned}\tag{4}
+\end{aligned}
 $$
 
 其中, `LZD` 表示前导零检测器 (Leading Zero Detector) [Okl94], 用于统计位串左侧的连续零; `<<` 表示左移操作; 基于浮点实现的 Flint4 取 $\mathrm{bias}=1$. Flint 将指数编码进整数, 从而扩展表示范围. 与纯整数相比, 它能用有限位数表示更大的范围, 因而更契合 LLM 参数分布.
@@ -104,7 +104,7 @@ $$
 **Adaptive Biased Float (Abfloat).** Outlier-Victim Pair Quantization (OVP) [Guo23] 最早提出 Abfloat 来处理离群值. 它与 Flint 的区别在于, Abfloat 对指数使用更大的 $\mathrm{bias}$, 并左移 $m$ 位以放大 `mantissa` 前的 $1$, 从而覆盖量级更大的离群值. $\mathrm{E}e\mathrm{M}m$ Abfloat 可以表示为:
 
 $$
-X_{\mathrm{Abfloat}}=(-1)^{s}\times 2^{p+\mathrm{bias}}\times(2^{m}+\mathrm{mantissa}).\tag{5}
+X_{\mathrm{Abfloat}}=(-1)^{s}\times 2^{p+\mathrm{bias}}\times(2^{m}+\mathrm{mantissa}).
 $$
 
 当 $\mathrm{bias}=0$ 时, 其范围与 $\mathrm{Flint}4$ 类似. 对 E2M1 取 $\mathrm{bias}=2$ 时, 范围变为 $\{12,\dots,96\}$; 取 $\mathrm{bias}=3$ 时, 范围进一步扩展为 $\{24,\dots,192\}$. 另一个区别是, Abfloat 仅用于离群值, 普通值仍以 INT4/8 或 Flint4 存储. 这两种格式都需要定制系统支持, 以定义加法和乘法等基础操作的行为.
@@ -112,13 +112,13 @@ $$
 **Student Float (SF).** [Dot24] SF 沿用浮点格式, 但为量化设置了特定的固定点, 因而不同于前两类格式. SF 改进了第 2.1.1 节的 NF, 并假设参数服从 Student t 分布 $S(t;\nu)$, 其概率密度函数为:
 
 $$
-S(t;\nu)=\frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{t^{2}}{\nu}\right)^{-\frac{\nu+1}{2}},\tag{6}
+S(t;\nu)=\frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{t^{2}}{\nu}\right)^{-\frac{\nu+1}{2}},
 $$
 
 其中, $t$ 是自变量, $\nu$ 是自由度, $\Gamma$ 是广义阶乘函数.
 
 $$
-\tilde{X}^{\mathrm{SF}}_{i}=\mathrm{quantile}\left(S(t;\nu),q_{i}\right),\quad q_{i}=\begin{cases}\omega+(\frac{1}{2}-\omega)\frac{i-1}{7}&i\in\{1,\dots,8\}\\ \frac{1}{2}+(\frac{1}{2}-\omega)\frac{i-8}{8}&i\in\{9,\dots,16\}\end{cases},\tag{7}
+\tilde{X}^{\mathrm{SF}}_{i}=\mathrm{quantile}\left(S(t;\nu),q_{i}\right),\quad q_{i}=\begin{cases}\omega+(\frac{1}{2}-\omega)\frac{i-1}{7}&i\in\{1,\dots,8\}\\ \frac{1}{2}+(\frac{1}{2}-\omega)\frac{i-8}{8}&i\in\{9,\dots,16\}\end{cases},
 $$
 
 其中, $\omega=\frac{1}{2}(\frac{1}{32}+\frac{1}{30})$, $\{q_{1},\dots,q_{8}\}$ 和 $\{q_{9},\dots,q_{16}\}$ 是两组等间距分位点. 随后通过 ${X}^{\mathrm{SF}}_{i}=\frac{\tilde{X}^{\mathrm{SF}}_{i}}{\max_{i}|\tilde{X}^{\mathrm{SF}}_{i}|}$ 将 $\tilde{X}^{\mathrm{SF}}$ 归一化到 $[-1,1]$. 随着 $\nu$ 增大, t 分布的峰值降低并变宽, SF4 的取值分布也随之展开. 当 $\nu\to\infty$ 时, 它收敛到标准正态分布 (NF). 与 NF 相同, SF 用于仅权重量化 (见第 3.2.1 节), 因而无需从底层定义基础运算, 但需要定制从 SF 到标准格式的反量化过程.
@@ -339,7 +339,7 @@ KV cache 量化主要包括四类技术.
 首先用缩放因子 $s\in\mathbb{R}^{+}$ 除浮点数, 将其缩放到 $\mathrm{INT}k$ 的表示区间, 再加入零点 $z\in\mathbb{Z}$ 平移截断范围 [Wu20]. $\mathrm{round}(\cdot)$ 表示就近舍入, $\mathrm{clamp}(\cdot,q^{\min},q^{\max})$ 将数值限制在 $k$ 位表示区间内. 对称量化中 $q^{\min}=-2^{k-1},q^{\max}=2^{k-1}-1$, 非对称量化中 $q^{\min}=0,q^{\max}=2^{k}-1$. 整体公式为:
 
 $$
-X_{\mathrm{INT}_{k}}=\mathrm{clamp}\left(\mathrm{round}\left(\frac{X_{\mathrm{FP}}}{s}\right)+z,q^{\min},q^{\max}\right),\tag{8}
+X_{\mathrm{INT}_{k}}=\mathrm{clamp}\left(\mathrm{round}\left(\frac{X_{\mathrm{FP}}}{s}\right)+z,q^{\min},q^{\max}\right),
 $$
 
 缩放因子可以初始化为 $s_{0}=({X_{\mathrm{FP}}^{\max}-X_{\mathrm{FP}}^{\min}})/$ $({q^{\max}-q^{\min}}),$ 其中 $X_{\mathrm{FP}}^{\max}$ 和 $X_{\mathrm{FP}}^{\min}$ 分别为最大值和最小值.
@@ -373,17 +373,17 @@ $$
 整数反量化通过乘以缩放因子, 将整数投影回实数:
 
 $$
-\hat{X}_{\mathrm{FP}}=s\cdot(X_{\mathrm{INT}x}-z)\approx X_{\mathrm{FP}}.\tag{9}
+\hat{X}_{\mathrm{FP}}=s\cdot(X_{\mathrm{INT}x}-z)\approx X_{\mathrm{FP}}.
 $$
 
 许多工作还会从候选值中搜索最优 $s$ 进行初始化 [Wei23]:
 
 $$
-s_{\mathrm{candidate}} =\frac{i}{\mathrm{num}_{i}}s_{0},\qquad i\in\mathbb{Z}^{+},i\in(0,\mathrm{num}_{i}).\tag{10}
+s_{\mathrm{candidate}} =\frac{i}{\mathrm{num}_{i}}s_{0},\qquad i\in\mathbb{Z}^{+},i\in(0,\mathrm{num}_{i}).
 $$
 
 $$
-\mathrm{s.t.}\;\min\|{X}_{\mathrm{FP}}-\hat{X}_{\mathrm{FP}}\|_{p}.\tag{11}
+\mathrm{s.t.}\;\min\|{X}_{\mathrm{FP}}-\hat{X}_{\mathrm{FP}}\|_{p}.
 $$
 
 其中, $\mathrm{num}_{i}$ 是候选值数量, 通常设为 50 或 100 等 [Yua24a, Wei23]. $s$ 也可以作为可学习参数 [Wei23, Sha23]. 在 LLM 出现前, 如何寻找更优 $s$ 已得到广泛研究 [Din24, Wei23a, Tia24a].
@@ -395,7 +395,7 @@ $$
 二值化使用 `sign` 或 `bool` 函数提取符号:
 
 $$
-X_{\mathrm{sign}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ -1,&X_{\mathrm{FP}}<0,\end{cases}\quad X_{\mathrm{bool}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ 0,&X_{\mathrm{FP}}<0.\end{cases}\tag{12}
+X_{\mathrm{sign}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ -1,&X_{\mathrm{FP}}<0,\end{cases}\quad X_{\mathrm{bool}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ 0,&X_{\mathrm{FP}}<0.\end{cases}
 $$
 
 使用 `sign` 还是 `bool` 取决于算法希望每个比特表示什么值. 例如, 二值 Transformer 通常对注意力分数和 ReLU 后的激活使用 `bool`, 对线性函数中的权重和激活使用 `sign`. 硬件始终把比特视为 0 或 1, 因而可以组装指令来实现所需的矩阵乘法 ([链接](https://github.com/yifu-ding/BGEMM-CUDA)). 例如, NVIDIA GPU 的 `mma` 指令接收 0/1 位矩阵, 并在执行按位累加 `popcount` 时将其视为 0 和 1. 为得到正确累加结果, `popcount` 可以采用不同算术规则; 若每遇到一个 0 就减 1, 即可得到 `sign` 函数的结果. 加速实现包括查找表 ([链接](https://github.com/WojciechMula)), nifty popcnt [Wil58], hacker popcnt [War12] 和 hakmem popcnt ([链接](https://en.wikipedia.org/w/index.php?title=HAKMEM&oldid=1228234783)) 等.
@@ -426,15 +426,15 @@ $$
 **FP8 训练.** NVIDIA 和 AMD 等硬件厂商已推出支持 FP8 或 FP4 的新架构. 若希望以较少改动获得可观加速, 可以使用厂商提供的 Transformer Engine. FP8 的动态范围足以单独存储任一激活或梯度, 却不足以同时覆盖所有激活和梯度. 因而适用于 FP16 的单一损失缩放因子无法直接用于 FP8 训练, 必须为每个 FP8 张量设置独立缩放因子. 缩放过程可表示为:
 
 $$
-\mathrm{FP8\_MAX}=\mathrm{maximum\_representable\_value}(\mathrm{fp8\_format}),\tag{13}
+\mathrm{FP8\_MAX}=\mathrm{maximum\_representable\_value}(\mathrm{fp8\_format}),
 $$
 
 $$
-\mathrm{exp}=\mathrm{get\_exponent}(\mathrm{FP8\_MAX}/\mathrm{amax}),\tag{14}
+\mathrm{exp}=\mathrm{get\_exponent}(\mathrm{FP8\_MAX}/\mathrm{amax}),
 $$
 
 $$
-\mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.\tag{15}
+\mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.
 $$
 
 $\mathrm{fp8\_format}$ 表示 E4M3 或 E5M2 等格式, $\mathrm{FP8\_MAX}$ 是该格式的相应最大值, $\mathrm{amax}$ 是张量的最大绝对值, 再由 $\mathrm{exp}$ 计算 $\mathrm{new\_scaling\_factor}$. 但在线计算 $\mathrm{new\_scaling\_factor}$ 会引入大量额外内存访问, 因而最佳实践是延迟缩放. 该策略根据此前若干轮迭代观察到的最大绝对值来选择缩放因子, 可以充分发挥 FP8 计算性能, 但需要额外保存历史最大值作为 FP8 算子的参数. 当前先进模型之一 DeepSeek V3 [Dee24a] 采用细粒度逐块 FP8 量化, 实现高精度 FP8 训练. [表 3](#table-03) 列出支持低比特浮点训练的主流框架和引擎, 包括 Microsoft 的 DeepSpeed ([链接](https://github.com/microsoft/DeepSpeed)), NVIDIA 的 Megatron-LM ([链接](https://github.com/NVIDIA/Megatron-LM)) 和 Graphcore 的 UnitScaling ([链接](https://github.com/graphcore-research/unit-scaling)).
@@ -468,7 +468,7 @@ QST [Zha24c] 同时优化三项主要内存来源: 模型权重, 优化器状态
 QLoRA [Det24] 等方法对量化后的 LLM 微调 LoRA, 借助低比特量化进一步降低内存占用. 它们首先使用 PTQ 方法将预训练 LLM 量化至低比特:
 
 $$
-\textbf{W}_{q}\leftarrow \mathrm{quant}(\textbf{W}),\tag{16}
+\textbf{W}_{q}\leftarrow \mathrm{quant}(\textbf{W}),
 $$
 
 其中, **W** 是各层的权重.
@@ -476,7 +476,7 @@ $$
 随后冻结全部权重参数, 在微调时只更新 LoRA, 其前向传播为:
 
 $$
-\textbf{Y}=\textbf{X}\cdot \mathrm{dequant}(\textbf{W}_{q})+\textbf{X}\cdot\textbf{A}\textbf{B},\tag{17}
+\textbf{Y}=\textbf{X}\cdot \mathrm{dequant}(\textbf{W}_{q})+\textbf{X}\cdot\textbf{A}\textbf{B},
 $$
 
 其中, **X** 是各层的输入.
@@ -534,13 +534,13 @@ $$
 在所有解决离群值问题的算法中, 等价变换是最具代表性且最有效的方法之一. Outlier Suppression (OS) [Wei22] 是较早将等价变换用于语言模型的工作. OS 拆分 LayerNorm 函数并迁移其参数 $\gamma$, 以避开离群值:
 
 $$
-\textbf{X}_{j}=\textbf{X}^{\prime}_{j}\cdot\gamma_{j}\tag{18}
+\textbf{X}_{j}=\textbf{X}^{\prime}_{j}\cdot\gamma_{j}
 $$
 
 此时 LayerNorm 不再执行缩放, 下一层的权重则可以吸收 $\gamma$:
 
 $$
-\textbf{W}(x\odot\begin{bmatrix}\gamma_{1}\\ \gamma_{2}\\ \cdots\\ \gamma_{n}\end{bmatrix})=(\textbf{W}\odot\begin{bmatrix}\gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \cdots\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\end{bmatrix})x\tag{19}
+\textbf{W}(x\odot\begin{bmatrix}\gamma_{1}\\ \gamma_{2}\\ \cdots\\ \gamma_{n}\end{bmatrix})=(\textbf{W}\odot\begin{bmatrix}\gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \cdots\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\end{bmatrix})x
 $$
 
 OS 由此抑制离群值. 在它之后, 大量等价变换技术相继出现. 多数方法通过使权重或激活中的离群值分布更加对称, 平滑, 减轻离群值对量化的影响. 该过程可以写为:
@@ -549,7 +549,7 @@ $$
 \begin{aligned}
 \textbf{Y}&=\textbf{X}\textbf{W}+\textbf{B} \\
 &=[(\textbf{X}-\Delta)\cdot\textbf{M}^{-1}]\cdot[\textbf{M}\cdot\textbf{W}]+(\textbf{B}+\Delta\cdot\textbf{W}),
-\end{aligned}\tag{20}
+\end{aligned}
 $$
 
 其中, $\Delta$ 是让输入离群值分布更对称的平移因子, **M** 是让分布更加平滑的矩阵. 借助上述等价变换, 许多现有量化方法在不同量化设置与场景下取得了当前最佳 (SOTA) 性能.
@@ -567,19 +567,19 @@ $$
 LLM 的离群值在不同通道间呈非对称分布. 这种非对称表示会让原本由小范围通道组成的张量呈现很大的整体范围, 增加量化难度. 为解决这一问题, OS+ [Wei23] 首先提出逐通道平移变换, 按照下式调整各通道的激活, 减轻非对称性的影响:
 
 $$
-\hat{X}=X-\Delta,\tag{21}
+\hat{X}=X-\Delta,
 $$
 
 其中, $\Delta\in\mathbb{R}^{c\times 1}$ 作为行向量, 分别平移激活的每个通道. 需要注意, 这不是对称量化中常见的平移操作, 而是逐通道作用, 为逐张量量化提供更合适的分布. 具体而言, OS+ 以人工规则定义 $\Delta$:
 
 $$
-\Delta_{j}=\frac{\max(\textbf{X}_{:,j})+\min(\textbf{X}_{:,j})}{2}.\tag{22}
+\Delta_{j}=\frac{\max(\textbf{X}_{:,j})+\min(\textbf{X}_{:,j})}{2}.
 $$
 
 经过逐通道平移, 张量的范围会缩小至最大的通道范围, 从而消除非对称离群值的影响. 但以人工规则设定等价参数通常无法得到最优结果. OmniQuant [Sha23] 因此通过最小化逐块量化误差, 以可微方式求解最优平移参数:
 
 $$
-\underset{\Delta}{\mathrm{arg}\,\min}\,\|\mathcal{O}(\textbf{W},\textbf{X})-\mathcal{O}\big(Q_{w}\left(\textbf{W};\Delta\right),Q_{a}\left(\textbf{X};\Delta\right)\big)\|,\tag{23}
+\underset{\Delta}{\mathrm{arg}\,\min}\,\|\mathcal{O}(\textbf{W},\textbf{X})-\mathcal{O}\big(Q_{w}\left(\textbf{W};\Delta\right),Q_{a}\left(\textbf{X};\Delta\right)\big)\|,
 $$
 
 其中, $\mathcal{O}$ 表示 LLM 中 Transformer 块的映射函数, $Q_{w}(\cdot)$ 与 $Q_{a}(\cdot)$ 分别表示权重量化器和激活量化器, $\Delta$ 是平移参数. 逐块最小化易于优化, 所需资源也很少. 因此, 与 OS+ 的直接计算相比, 逐块优化目标函数能够以高效, 节省资源的方式得到更有效的平移向量. 不过, OmniQuant 需要微调可学习参数, 否则容易出现梯度爆炸等问题. 与 OmniQuant 类似, AffineQuant [Ma24a] 也采用基于学习的平移操作.
@@ -597,13 +597,13 @@ $$
 平移变换能有效处理激活离群值的非对称分布, 缩小由非对称性造成的巨大范围. 但它只对逐张量量化有帮助, 无法降低逐通道量化的难度, 因为各通道中的离群值并未从根本上消失. 为进一步减小离群值对量化的影响, SmoothQuant [Xia23] 首先提出缩放变换. 该方法基于一个关键观察: 尽管离群值使激活比权重更难量化, 不同 token 在各通道上的变化模式却较为相似 [Det22]. 基于这一观察, SmoothQuant 引入数学等价的逐通道缩放变换, 离线地将量化难度从激活迁移到权重, 并显著平滑不同通道的数值幅度:
 
 $$
-\textbf{Y}=(\textbf{X}\mathrm{diag}(\Phi)^{-1})\cdot(\mathrm{diag}(\Phi)\textbf{W})=\hat{\textbf{X}}\hat{\textbf{W}},\tag{24}
+\textbf{Y}=(\textbf{X}\mathrm{diag}(\Phi)^{-1})\cdot(\mathrm{diag}(\Phi)\textbf{W})=\hat{\textbf{X}}\hat{\textbf{W}},
 $$
 
 其中, $\Phi$ 是平滑因子. $\mathrm{diag}(\Phi)$ 对应式 (20) 中的矩阵 **M**, 但它是用于逐通道平滑的对角矩阵. SmoothQuant 引入超参数 $\alpha$ 作为迁移强度, 控制从激活迁移到权重的量化难度:
 
 $$
-\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)^{\alpha}}{\max(|\textbf{W}_{j}|)^{1-\alpha}}.\tag{25}
+\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)^{\alpha}}{\max(|\textbf{W}_{j}|)^{1-\alpha}}.
 $$
 
 不过, 不同模型需要经过多次尝试才能确定最佳迁移强度. 例如, 对全部 OPT [Zha22] 与 BLOOM [Les23] 模型而言, $\alpha=0.5$ 是相对均衡的取值.
@@ -611,7 +611,7 @@ $$
 受 SmoothQuant 启发, FPTQ [Li23c] 认为计算激活平滑尺度时没有必要考虑权重, 但必须使用非线性无损映射保留所有激活值. 该映射应满足两项条件: (1) 温和处理正常值; (2) 强力抑制离群值. 因此, 它采用对数函数改进平滑矩阵 $\Phi$ 的计算:
 
 $$
-\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)}{\log_{2}(2+\max(\textbf{X}_{j}))}.\tag{26}
+\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)}{\log_{2}(2+\max(\textbf{X}_{j}))}.
 $$
 
 除 FPTQ 外, 还有许多工作沿用了 SmoothQuant 的思路. OS+ 与 AWQ [Lin24] 都通过搜索寻找平滑尺度, 但二者的优化目标和搜索空间不同. OS+ 的优化目标为:
@@ -620,13 +620,13 @@ $$
 \begin{aligned}
 \Phi^{*} = \underset{\Phi}{\mathrm{arg}\,\min}\,\mathbb{E}\|Q\big((\textbf{X}-\Delta)\cdot \mathrm{diag}(\Phi)^{-1}\big)Q\big(\mathrm{diag}(\Phi)\cdot\textbf{W}^{\mathsf{T}}\big) \\
 +\hat{\textbf{b}}-(\textbf{X}\textbf{W}^{\mathsf{T}}+\textbf{b})\|^{2}_{F}.
-\end{aligned}\tag{27}
+\end{aligned}
 $$
 
 为简化搜索空间, OS+ 只优化离群值阈值 $t$: 将激活范围超过 $t$ 的通道压缩至 $(-t,t)$, 其余通道保持不变. 这样便把问题缩减为单变量优化, 随后通过网格搜索寻找使目标函数最小的 $t$. 得到最优 $t$ 后, 缩放向量按下式计算:
 
 $$
-\Phi_{j}=\max(1.0,\frac{\max(\textbf{X}_{:,j}-\Delta_{j})}{t}).\tag{28}
+\Phi_{j}=\max(1.0,\frac{\max(\textbf{X}_{:,j}-\Delta_{j})}{t}).
 $$
 
 AWQ 发现, 权重通道的显著性实际上由激活尺度决定. 因此, 它采用激活感知的优化目标与非常简洁的搜索空间:
@@ -635,7 +635,7 @@ $$
 \begin{aligned}
 \Phi ={\Phi_{x}}^{\alpha}, \\
 \alpha^{*} =\underset{\alpha}{\mathrm{arg}\,\min}\,\left\|Q\!\left(\textbf{W}\cdot\mathrm{diag}({\Phi_{x}}^{\alpha})\right)(\mathrm{diag}({\Phi_{x}}^{\alpha}))^{-1}\textbf{X}-\textbf{W}\textbf{X}\right\|,
-\end{aligned}\tag{29}
+\end{aligned}
 $$
 
 其中, ${\Phi_{x}}$ 是逐通道激活幅度的平均值, 单一超参数 $\alpha$ 用于平衡对显著通道和非显著通道的保护.
@@ -649,7 +649,7 @@ $$
 QuIP [Che24b] 最早将旋转变换引入量化. QuIP 的核心观察是, 当权重矩阵与 Hessian 矩阵具有不相干性时, 量化效果更好. 也就是说, 权重应具有相近的幅度, 需要精确舍入的方向也不应与坐标轴对齐. 具体而言, 若满足下式, 权重矩阵便具有 $\mu$-不相干性:
 
 $$
-\max(\textbf{W})\leq\mu\|\textbf{W}\|_{F}/\sqrt{mn},\tag{30}
+\max(\textbf{W})\leq\mu\|\textbf{W}\|_{F}/\sqrt{mn},
 $$
 
 其中, $mn$ 是矩阵元素数量, $\|\cdot\|_{F}$ 是 Frobenius 范数. QuIP 表明, 在权重矩阵左右分别乘以正交矩阵可以降低相干性, 这等价于对权重矩阵执行旋转变换. QuIP 使用具有 Kronecker 结构的正交矩阵, 从而快速完成附加计算. 在此基础上, QuIP# [Tse24] 改用 Hadamard 矩阵, 通过更好的不相干性增强量化, 同时加快前向传播. 这是因为 Hadamard 变换只需 $\mathcal{O}(n\log n)$ 次加法即可计算.
@@ -665,7 +665,7 @@ $$
 然而, QuIP 的正交矩阵以及 QuIP#, QuaRot 的 Hadamard 矩阵都是随机生成的. 尽管这些研究表明随机矩阵可以在一定程度上缓解离群值问题, 它们并非最优解. SpinQuant [Liu24b] 发现, 不同旋转矩阵会使量化网络的性能产生显著差异. 例如, 在 MMLU 基准上, 不同旋转可令下游零样本推理任务的平均准确率相差多达 13 个百分点. SpinQuant 因此提出基于学习的旋转变换, 使用 Cayley SGD 学习旋转矩阵, 优化目标为:
 
 $$
-\textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).\tag{31}
+\textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).
 $$
 
 其中, $\mathcal{M}$ 表示 Stiefel 流形, 即全部正交矩阵的集合, $\mathcal{L}_{Q}(\cdot)$ 表示任务损失. 与随机矩阵相比, 学得的矩阵可以显著提高性能并减小方差. SpinQuant [Liu24b] 中的图清晰展示了旋转变换的整体过程, 本文将其借用为[图 11](#figure-11). 对 QuaRot [Ash24] 而言, 由于 $R_{2}$ 处采用逐头旋转变换, 量化注意力输出之前必须插入在线 Hadamard 矩阵, 才能实现等价变换. DuQuant [Lin24b] 发现这些方法在平滑极端离群值方面存在局限, 因而采用基于先验知识的旋转和置换变换. 与 SpinQuant 不同, 它使用贪心搜索优化旋转矩阵. PrefixQuant [Che24c] 发现了逐 token 离群值, 它们尤其常见于起始 token 与低语义信息 token. 由于这些 token 在所有输入中保持不变, PrefixQuant 通过离线预填充保存其 KV 缓存.
@@ -679,11 +679,11 @@ $$
 逐个量化权重的方法在较小模型上表现良好, 但扩展至大模型时计算开销过高. 为加速量化, GPTQ [Fra22] 逐列量化权重, 并使用二阶信息补偿舍入误差. 具体而言, 该算法通过更新量 $\boldsymbol{\delta}_{R}$ 调整全精度权重子集 $R$, 以补偿量化权重 $\mathrm{Quant}(\mathbf{W}_{i})$ 引入的量化误差:
 
 $$
-\mathbf{W}_{i}=\underset{\mathbf{W}_{i}}{\mathrm{arg}\,\min}\,\frac{(\mathrm{Quant}(\mathbf{W}_{i})-\mathbf{W}_{i})^{2}}{[\mathbf{H}_{R}^{-1}]_{ii}}.\tag{32}
+\mathbf{W}_{i}=\underset{\mathbf{W}_{i}}{\mathrm{arg}\,\min}\,\frac{(\mathrm{Quant}(\mathbf{W}_{i})-\mathbf{W}_{i})^{2}}{[\mathbf{H}_{R}^{-1}]_{ii}}.
 $$
 
 $$
-\boldsymbol{\delta}_{R}=-\frac{\mathbf{W}_{i}-\mathrm{Quant}(\mathbf{W}_{i})}{[\mathbf{H}_{R}^{-1}]_{ii}}\cdot(\mathbf{H}_{R}^{-1})_{:,i}.\tag{33}
+\boldsymbol{\delta}_{R}=-\frac{\mathbf{W}_{i}-\mathrm{Quant}(\mathbf{W}_{i})}{[\mathbf{H}_{R}^{-1}]_{ii}}\cdot(\mathbf{H}_{R}^{-1})_{:,i}.
 $$
 
 其中, Hessian 矩阵为 $\mathbf{H}_{R}=2\mathbf{X}_{R}\mathbf{X}_{R}^{\top}$. 在 GPTQ 基础上, 研究者又陆续提出多种方法. QuantEase [Beh23] 使用坐标下降, 为未量化权重计算更精确的补偿. QQQ [Zha24a] 则对经 OS+ [Wei23] 变换的权重采用 GPTQ.
@@ -724,7 +724,7 @@ $$
 \textbf{A}_{ij} =\max(\hat{\textbf{Y}}_{:i})-\min(\hat{\textbf{Y}}_{:i}), \\
 \mathrm{where}\qquad\hat{\textbf{Y}}=\textbf{X}\cdot(\Theta(\textbf{W};i;j))^{\mathsf{T}}, \\
 \textbf{S}_{ij} =\textbf{I}_{ij}+\lambda\textbf{A}_{ij}.
-\end{aligned}\tag{34}
+\end{aligned}
 $$
 
 其中, $\Theta(\textbf{W};i;j)$ 表示将 **W** 第 $i$ 行, 第 $j$ 列的元素置为 0 后得到的辅助权重矩阵, $\lambda$ 是折中因子. 使用这一指标可以在保留离群值所含信息与缩小激活范围以利量化之间取得更好的平衡.
@@ -754,7 +754,7 @@ Normal Float [Det21, Det24] 与 Quantile Quantization 一同提出, 它假设权
 向量量化 (VQ) 联合量化多个向量维度. 它会学习码本 $C_{1},...,C_{M}$, 每个码本包含 $2^{B}$ 个向量 (用于 B 位编码). 编码给定数据库向量时, VQ 将其条目拆成若干子组, 再从学习到的码本中选择一个向量来编码每组. 第 $i$ 层的一部分权重通过从每个码本选择一个编码并求和来表示:
 
 $$
-\widehat{W}_{i,j}=\sum_{m=1}^{M}{C_{m}d_{ijm}}\tag{35}
+\widehat{W}_{i,j}=\sum_{m=1}^{M}{C_{m}d_{ijm}}
 $$
 
 其中, $d_{ijm}\in\mathbb{R}^{2^{B}}$ 表示第 $i$ 个输出单元, 第 $j$ 个输入维度组和第 $m$ 个码本对应的 one-hot 编码.
@@ -762,7 +762,7 @@ $$
 要表示第 $i$ 层的完整权重, 只需进行拼接:
 
 $$
-\widehat{W}_{i}=\widehat{W}_{1}\oplus...\oplus\widehat{W}_{d_{\mathrm{in}}/g}\tag{36}
+\widehat{W}_{i}=\widehat{W}_{1}\oplus...\oplus\widehat{W}_{d_{\mathrm{in}}/g}
 $$
 
 其中, $\oplus$ 表示拼接.

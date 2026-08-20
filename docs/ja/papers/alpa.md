@@ -163,7 +163,7 @@ Alpa は、デバイスメッシュ内の演算子内並列計画を最適化す
 <span id="equation-01"></span>
 
 $$
-\min_{s}\ \sum_{v\in V}s_{v}^{\top}(c_{v}+d_{v})+\sum_{(v,u)\in E}s_{v}^{\top}R_{vu}s_{u}.\tag{1}
+\min_{s}\ \sum_{v\in V}s_{v}^{\top}(c_{v}+d_{v})+\sum_{(v,u)\in E}s_{v}^{\top}R_{vu}s_{u}.
 $$
 
 第 1 項はノード $v$ の計算コストと通信コスト、第 2 項はエッジ $(v,u)$ のリシャーディングコストである。この定式化では $s$ が変数であり、残りは定数となる。式 [1](#equation-01) の項 $s_{v}^{\top}R_{vu}s_{u}$ は二次式なので、ILP ソルバへ直接入力できない。ノード $v$ と $u$ の間のリシャーディング判断を表す新たな決定ベクトル $e_{vu}\in\{0,1\}^{k_{v}\cdot k_{u}}$ を導入し、この二次項を線形化する [For20]。
@@ -187,7 +187,7 @@ ILP が並列計画を決定した後、適用できる場合は all-reduce を 
 <span id="equation-02"></span>
 
 $$
-T^{*}=\min_{\substack{s_{1},\ldots,s_{S};\\(n_{1},m_{1}),\ldots,(n_{S},m_{S})}}\left\{\sum_{i=1}^{S}t_{i}+(B-1)\cdot\max_{1\leq j\leq S}\{t_{j}\}\right\}.\tag{2}
+T^{*}=\min_{\substack{s_{1},\ldots,s_{S};\\(n_{1},m_{1}),\ldots,(n_{S},m_{S})}}\left\{\sum_{i=1}^{S}t_{i}+(B-1)\cdot\max_{1\leq j\leq S}\{t_{j}\}\right\}.
 $$
 
 総遅延は二つの項からなる。第 1 項は全ステージの遅延の和であり、最初のマイクロバッチがパイプラインを通過する遅延と解釈できる。第 2 項は残る $B-1$ 個のマイクロバッチのパイプライン実行時間であり、最も遅いステージ、すなわち[図 5](#figure-05) のステージ 3 によって制限される。
@@ -221,7 +221,7 @@ F(s,k,d;t_{\max})
 \bigm|\;&t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)\leq t_{\max}
 \end{aligned}
 \right\}.
-\end{aligned}\tag{3}
+\end{aligned}
 $$
 
 最適な総遅延は次式で求める。
@@ -229,7 +229,7 @@ $$
 <span id="equation-04"></span>
 
 $$
-T^{*}(t_{\max})=\min_{s}\{F(s,0,N\cdot M;t_{\max})\}+(B-1)\cdot t_{\max}.\tag{4}
+T^{*}(t_{\max})=\min_{s}\{F(s,0,N\cdot M;t_{\max})\}+(B-1)\cdot t_{\max}.
 $$
 
 $t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)$ の値は演算子内パスが決める。これは、後続ステージが $s$ 個あるとき、サブグラフ $(o_{k},\ldots,o_{i})$ をメッシュ $\mathit{Mesh}(n_{s},m_{s})$ 上で実行する最小遅延である。$\mathit{Mesh}(n_{s},m_{s})$ は物理デバイス群なので、$n_{l}\cdot m_{l}=n_{s}\cdot m_{s}$ を満たす論理デバイスメッシュ形状 $(n_{l},m_{l})$ をすべて列挙する。各候補について、サブグラフ $(o_{k},\ldots,o_{i})$、論理メッシュ $(n_{l},m_{l})$、その他の演算子内オプションを入力として演算子内パスへ問い合わせ、演算子内計画を得る。次に、この計画と、融合やメモリ計画などほかの低レベルコンパイラ最適化を使ってサブグラフをコンパイルし、正確なプロファイリングに用いる実行ファイルを生成する。この実行ファイルをプロファイルして、ステージ遅延 $t_{l}$、各デバイスでステージを実行するためのメモリ $\mathit{mem}_{\mathit{stage}}$、中間アクティベーションを保存するためのメモリ $\mathit{mem}_{\mathit{act}}$ を得る。選択したパイプライン実行スケジュールに従い、必要なメモリがデバイスメモリ $\mathit{mem}_{\mathit{device}}$ に収まるかを確認する。例えば、1F1B スケジュール [Fan21a, Nar21b] では、次の条件を確認する。
@@ -237,7 +237,7 @@ $t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)$ の値�
 <span id="equation-05"></span>
 
 $$
-\mathit{mem}_{\mathit{stage}}+s\cdot\mathit{mem}_{\mathit{act}}\leq\mathit{mem}_{\mathit{device}}.\tag{5}
+\mathit{mem}_{\mathit{stage}}+s\cdot\mathit{mem}_{\mathit{act}}\leq\mathit{mem}_{\mathit{device}}.
 $$
 
 $t_{l}$ を最小化し、デバイスメモリに収まる論理メッシュ形状を選ぶ。どの形状も収まらなければ、$t_{\mathit{intra}}=\infty$ とする。
@@ -303,7 +303,7 @@ G(k,r)
 \bigm|\;&\mathrm{FLOP}(o_{i},\ldots,o_{k})\leq\frac{(1+\delta)\mathrm{FLOP}_{\mathit{total}}}{L}
 \end{aligned}
 \right\}.
-\end{aligned}\tag{6}
+\end{aligned}
 $$
 
 ここで $C(i,k)$ は、$(o_{i},\ldots,o_{k})$ が $(o_{1},\ldots,o_{i-1})$ から受け取る入力の総サイズを表す。また、$\mathit{FLOP}_{\mathit{total}}=\mathit{FLOP}(o_{1},\ldots,o_{K})$ は計算グラフ全体の総 FLOP である。通信を最小化しながら、各クラスタ化レイヤーの FLOP が、レイヤー当たり平均 FLOP の $1+\delta$ 倍以内になるようにする。通信コストが同じ解については、レイヤーごとの FLOP の分散も最小化し、最も均一な構造を選ぶ。この DP アルゴリズムにより、最良のレイヤークラスタリングを $O(K^{2}L)$ 時間で計算できる。ここで $L$ はアルゴリズムのハイパーパラメータである。実際には、デバイス数とグラフ内の計算量が大きい演算子の数に応じて、小さい $L$ を選ぶ。$L$ の選択が最終性能へ与える影響は小さいことを確認した。
@@ -520,7 +520,7 @@ Megatron-LM の手動計画でグリッド探索したパラメータを調べ�
 <span id="equation-07"></span>
 
 $$
-2^{p_{1}}+\cdots+2^{p_{S}}=N\cdot 2^{m}.\tag{7}
+2^{p_{1}}+\cdots+2^{p_{S}}=N\cdot 2^{m}.
 $$
 
 式 [7](#equation-07) が成り立つ。$m$ について帰納法を用いる。$m=1$ ではすべての $p_{i}=0$ であり、すべてのサブメッシュが形状 $(1,1)$ なので、全体メッシュを覆える。$m=1,2,\ldots,k-1$ で成立すると仮定する。$m=k$ のとき、$p_{i}=0$ のサブメッシュ数は偶数でなければならない。そうでなければ式 [7](#equation-07) の左辺は奇数になるが、右辺は常に偶数だからである。$p_{i}=0$ のサブメッシュを二つずつ組にして並べ、$(1,2)$ メッシュを作る。この変換後はすべての $p_{i}>0$ となるため、各 $p_{i}$ と $m$ から 1 を引けば $m=k-1$ の場合に帰着する。よって定理は帰納法で成り立つ。

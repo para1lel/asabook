@@ -163,7 +163,7 @@ For node $v$, the number of possible parallel algorithms is $k_{v}$. It then has
 <span id="equation-01"></span>
 
 $$
-\min_{s}\ \sum_{v\in V}s_{v}^{\top}(c_{v}+d_{v})+\sum_{(v,u)\in E}s_{v}^{\top}R_{vu}s_{u}.\tag{1}
+\min_{s}\ \sum_{v\in V}s_{v}^{\top}(c_{v}+d_{v})+\sum_{(v,u)\in E}s_{v}^{\top}R_{vu}s_{u}.
 $$
 
 where the first term is the compute and communication cost of node $v$, and the second is the resharding cost of the edge $(v,u)$. In this formulation, $s$ is the variable, and the rest are constant values. The term $s_{v}^{\top}R_{vu}s_{u}$ in Eq. [1](#equation-01) is quadratic, and cannot be fed into an ILP solver. We linearize [For20] the quadratic term by introducing a new decision vector $e_{vu}\in\{0,1\}^{k_{v}\cdot k_{u}}$ which represents the resharding decision between node $v$ and $u$.
@@ -187,7 +187,7 @@ Assume the computational graph contains a sequence of operators following the to
 <span id="equation-02"></span>
 
 $$
-T^{*}=\min_{\substack{s_{1},\ldots,s_{S};\\(n_{1},m_{1}),\ldots,(n_{S},m_{S})}}\left\{\sum_{i=1}^{S}t_{i}+(B-1)\cdot\max_{1\leq j\leq S}\{t_{j}\}\right\}.\tag{2}
+T^{*}=\min_{\substack{s_{1},\ldots,s_{S};\\(n_{1},m_{1}),\ldots,(n_{S},m_{S})}}\left\{\sum_{i=1}^{S}t_{i}+(B-1)\cdot\max_{1\leq j\leq S}\{t_{j}\}\right\}.
 $$
 
 The overall latency contains two terms: the first term is the total latency of all stages, interpreted as the latency of the first microbatch going through the pipeline; the second term is the pipelined execution time for the rest of $B-1$ microbatches, which is bounded by the slowest stage (stage 3 in [Fig. 5](#figure-05)).
@@ -221,7 +221,7 @@ F(s,k,d;t_{\max})
 \bigm|\;&t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)\leq t_{\max}
 \end{aligned}
 \right\}.
-\end{aligned}\tag{3}
+\end{aligned}
 $$
 
 and derive the optimal total latency as
@@ -229,7 +229,7 @@ and derive the optimal total latency as
 <span id="equation-04"></span>
 
 $$
-T^{*}(t_{\max})=\min_{s}\{F(s,0,N\cdot M;t_{\max})\}+(B-1)\cdot t_{\max}.\tag{4}
+T^{*}(t_{\max})=\min_{s}\{F(s,0,N\cdot M;t_{\max})\}+(B-1)\cdot t_{\max}.
 $$
 
 The value of $t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)$ is determined by the intra-op pass. It is the lowest latency of executing the subgraph $(o_{k},\ldots,o_{i})$ on mesh $\mathit{Mesh}(n_{s},m_{s})$ with $s$ subsequent stages. Note that $\mathit{Mesh}(n_{s},m_{s})$ is a set of physical devices — hence, we enumerate all the potential choices of logical device mesh shapes $(n_{l},m_{l})$ satisfying $n_{l}\cdot m_{l}=n_{s}\cdot m_{s}$. For each choice, we query the intra-op pass with subgraph $(o_{k},\ldots,o_{i})$, logical mesh $(n_{l},m_{l})$, and other intra-op options as inputs and get an intra-op plan. We then compile the subgraph with this plan and all other low-level compiler optimizations (e.g., fusion, memory planning) to get an executable for precise profiling. The executable is profiled in order to get the stage latency $(t_{l})$ and the memory required on each device to run the stage ($\mathit{mem}_{\mathit{stage}}$) and to store the intermediate activations ($\mathit{mem}_{\mathit{act}}$). We check whether the required memory fits the device memory ($\mathit{mem}_{\mathit{device}}$) according to the chosen pipeline execution schedule. For example, for 1F1B schedule [Fan21a, Nar21b], we check
@@ -237,7 +237,7 @@ The value of $t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s})
 <span id="equation-05"></span>
 
 $$
-\mathit{mem}_{\mathit{stage}}+s\cdot\mathit{mem}_{\mathit{act}}\leq\mathit{mem}_{\mathit{device}}.\tag{5}
+\mathit{mem}_{\mathit{stage}}+s\cdot\mathit{mem}_{\mathit{act}}\leq\mathit{mem}_{\mathit{device}}.
 $$
 
 We pick the logical mesh shape that minimizes $t_{l}$ and fits into the device memory. If none of them fits, we set $t_{\mathit{intra}}=\infty$.
@@ -303,7 +303,7 @@ G(k,r)
 \bigm|\;&\mathrm{FLOP}(o_{i},\ldots,o_{k})\leq\frac{(1+\delta)\mathrm{FLOP}_{\mathit{total}}}{L}
 \end{aligned}
 \right\}.
-\end{aligned}\tag{6}
+\end{aligned}
 $$
 
 where $C(i,k)$ denotes the total size of inputs of $(o_{i}$, $\ldots,o_{k})$ received from $(o_{1},\ldots,o_{i-1})$ and $\mathit{FLOP}_{\mathit{total}}$ $=\mathit{FLOP}(o_{1},\ldots,o_{K})$ is the total FLOP of the whole computational graph. We make sure that each clustered layer’s FLOP is within $1+\delta$ times of the average FLOP per layer while minimizing the communication. For the solutions with the same communication cost, we choose the one with the most uniform structure by also minimizing the variance of per-layer FLOP. With our DP algorithm, we can compute the best layer clustering in $O(K^{2}L)$ time. Note that $L$ here is a hyperparameter to the algorithm. In practice, we choose a small $L$ based on the number of devices and the number of heavy operators in the graph. We find different choices of $L$ do not affect the final performance significantly.
@@ -520,7 +520,7 @@ We start with putting the second type submesh into the full mesh. In this case, 
 <span id="equation-07"></span>
 
 $$
-2^{p_{1}}+\cdots+2^{p_{S}}=N\cdot 2^{m}.\tag{7}
+2^{p_{1}}+\cdots+2^{p_{S}}=N\cdot 2^{m}.
 $$
 
 We start an induction on $m$. When $m=1$, we have all $p_{i}=0$ and thus all the submeshes are of shape $(1,1)$, which means that all the submeshes can definitely cover the full mesh. Assume the above hold for all $m=1,2,\ldots,k-1$. When $m=k$, note that in this case the number of submeshes with $p_{i}=0$ should be an even number, because otherwise the left hand side of Eq. [7](#equation-07) will be an odd number while the right hand side is always an even number. Then we can split all submeshes with shape $p_{i}=0$ into pairs, and we co-locate each pair to form a $(1,2)$ mesh. After this transformation, we have all $p_{i}>0$, so we can subtract all $p_{i}$ and $m$ by 1 and reduce to $m=k-1$ case. Therefore, the theorem holds by induction.

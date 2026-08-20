@@ -163,7 +163,7 @@ Alpa 负责优化设备网格内部的算子内并行计划. 它采用 SPMD 风�
 <span id="equation-01"></span>
 
 $$
-\min_{s}\ \sum_{v\in V}s_{v}^{\top}(c_{v}+d_{v})+\sum_{(v,u)\in E}s_{v}^{\top}R_{vu}s_{u}.\tag{1}
+\min_{s}\ \sum_{v\in V}s_{v}^{\top}(c_{v}+d_{v})+\sum_{(v,u)\in E}s_{v}^{\top}R_{vu}s_{u}.
 $$
 
 第一项是节点 $v$ 的计算与通信成本, 第二项是边 $(v,u)$ 的重分片成本. 其中只有 $s$ 是变量, 其余均为常数. 式 [1](#equation-01) 中的 $s_{v}^{\top}R_{vu}s_{u}$ 是二次项, 无法直接交给 ILP 求解器. 我们引入新的决策向量 $e_{vu}\in\{0,1\}^{k_{v}\cdot k_{u}}$, 表示节点 $v$ 与 $u$ 之间的重分片决策, 从而将该二次项线性化 [For20].
@@ -187,7 +187,7 @@ $$
 <span id="equation-02"></span>
 
 $$
-T^{*}=\min_{\substack{s_{1},\ldots,s_{S};\\(n_{1},m_{1}),\ldots,(n_{S},m_{S})}}\left\{\sum_{i=1}^{S}t_{i}+(B-1)\cdot\max_{1\leq j\leq S}\{t_{j}\}\right\}.\tag{2}
+T^{*}=\min_{\substack{s_{1},\ldots,s_{S};\\(n_{1},m_{1}),\ldots,(n_{S},m_{S})}}\left\{\sum_{i=1}^{S}t_{i}+(B-1)\cdot\max_{1\leq j\leq S}\{t_{j}\}\right\}.
 $$
 
 总延迟由两项组成: 第一项是所有阶段的延迟之和, 即第一个微批次通过整条流水线的延迟; 第二项是余下 $B-1$ 个微批次的流水线执行时间, 受最慢阶段限制, 即[图 5](#figure-05) 中的阶段 3.
@@ -221,7 +221,7 @@ F(s,k,d;t_{\max})
 \bigm|\;&t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)\leq t_{\max}
 \end{aligned}
 \right\}.
-\end{aligned}\tag{3}
+\end{aligned}
 $$
 
 最优总延迟为
@@ -229,7 +229,7 @@ $$
 <span id="equation-04"></span>
 
 $$
-T^{*}(t_{\max})=\min_{s}\{F(s,0,N\cdot M;t_{\max})\}+(B-1)\cdot t_{\max}.\tag{4}
+T^{*}(t_{\max})=\min_{s}\{F(s,0,N\cdot M;t_{\max})\}+(B-1)\cdot t_{\max}.
 $$
 
 $t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)$ 由算子内流程给出, 表示子图 $(o_{k},\ldots,o_{i})$ 在网格 $\mathit{Mesh}(n_{s},m_{s})$ 上执行且后面还有 $s$ 个阶段时的最低延迟. $\mathit{Mesh}(n_{s},m_{s})$ 是一组物理设备, 因此我们会枚举所有满足 $n_{l}\cdot m_{l}=n_{s}\cdot m_{s}$ 的逻辑设备网格形状 $(n_{l},m_{l})$. 对每种选择, 以子图 $(o_{k},\ldots,o_{i})$, 逻辑网格 $(n_{l},m_{l})$ 和其他算子内选项为输入查询算子内流程, 得到一份算子内计划. 随后按该计划编译子图, 同时应用融合, 内存规划等底层编译器优化, 生成可执行程序以便精确剖析. 通过剖析得到阶段延迟 $t_{l}$, 每个设备运行该阶段所需的内存 $\mathit{mem}_{\mathit{stage}}$, 以及保存中间激活值所需的内存 $\mathit{mem}_{\mathit{act}}$. 再根据所选流水线调度, 检查所需内存能否装入设备内存 $\mathit{mem}_{\mathit{device}}$. 例如, 对 1F1B 调度 [Fan21a, Nar21b], 要检查
@@ -237,7 +237,7 @@ $t_{\mathit{intra}}((o_{k},\ldots,o_{i}),\mathit{Mesh}(n_{s},m_{s}),s)$ 由算�
 <span id="equation-05"></span>
 
 $$
-\mathit{mem}_{\mathit{stage}}+s\cdot\mathit{mem}_{\mathit{act}}\leq\mathit{mem}_{\mathit{device}}.\tag{5}
+\mathit{mem}_{\mathit{stage}}+s\cdot\mathit{mem}_{\mathit{act}}\leq\mathit{mem}_{\mathit{device}}.
 $$
 
 在能装入设备内存的逻辑网格形状中, 选择使 $t_{l}$ 最小的一个. 若没有可行形状, 则令 $t_{\mathit{intra}}=\infty$.
@@ -303,7 +303,7 @@ G(k,r)
 \bigm|\;&\mathrm{FLOP}(o_{i},\ldots,o_{k})\leq\frac{(1+\delta)\mathrm{FLOP}_{\mathit{total}}}{L}
 \end{aligned}
 \right\}.
-\end{aligned}\tag{6}
+\end{aligned}
 $$
 
 其中, $C(i,k)$ 表示 $(o_{i},\ldots,o_{k})$ 从 $(o_{1},\ldots,o_{i-1})$ 接收的输入总大小, $\mathit{FLOP}_{\mathit{total}}=\mathit{FLOP}(o_{1},\ldots,o_{K})$ 表示整张计算图的总 FLOP. 算法在最小化通信量的同时, 保证每个聚类层的 FLOP 不超过平均每层 FLOP 的 $1+\delta$ 倍. 若多个解的通信成本相同, 还会最小化逐层 FLOP 的方差, 选择结构最均匀的解. 该 DP 算法可在 $O(K^{2}L)$ 时间内求出最佳层聚类. $L$ 是算法的超参数; 实际使用时, 根据设备数量和图中重算子的数量选取较小的 $L$. 实验发现, $L$ 的不同取值不会显著影响最终性能.
@@ -520,7 +520,7 @@ MoE 的基线采用 DeepSpeed [Ras20], 它提供了在 GPU 上训练 MoE 的先�
 <span id="equation-07"></span>
 
 $$
-2^{p_{1}}+\cdots+2^{p_{S}}=N\cdot 2^{m}.\tag{7}
+2^{p_{1}}+\cdots+2^{p_{S}}=N\cdot 2^{m}.
 $$
 
 对 $m$ 使用归纳法. 当 $m=1$ 时, 所有 $p_{i}=0$, 因而全部子网格的形状都是 $(1,1)$, 显然可以覆盖完整网格. 假设结论对 $m=1,2,\ldots,k-1$ 均成立. 当 $m=k$ 时, $p_{i}=0$ 的子网格数必须为偶数; 否则式 [7](#equation-07) 左侧为奇数, 右侧却始终为偶数. 把所有 $p_{i}=0$ 的子网格两两分组, 每组并置成一个 $(1,2)$ 网格. 变换后所有 $p_{i}>0$, 因此可以把每个 $p_{i}$ 和 $m$ 都减 1, 将问题归约为 $m=k-1$ 的情形. 所以定理由归纳法成立.

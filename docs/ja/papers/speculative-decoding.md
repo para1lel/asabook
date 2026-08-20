@@ -91,7 +91,7 @@ $E(\beta)$ は $M_{q}$ が $M_{p}$ をどれだけよく近似するかの自然
 <span id="equation-01"></span>
 
 $$
-E(\#\ \mathrm{generated}\ \mathrm{tokens})=\frac{1-\alpha^{\gamma+1}}{1-\alpha}\tag{1}
+E(\#\ \mathrm{generated}\ \mathrm{tokens})=\frac{1-\alpha^{\gamma+1}}{1-\alpha}
 $$
 
 <span id="figure-02"></span>

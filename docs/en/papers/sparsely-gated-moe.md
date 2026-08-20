@@ -59,7 +59,7 @@ The Mixture-of-Experts (MoE) layer consists of a set of $n$ "expert networks" $E
 Let us denote by $G(x)$ and $E_{i}(x)$ the output of the gating network and the output of the $i$-th expert network for a given input $x$. The output $y$ of the MoE module can be written as follows:
 
 $$
-y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)\tag{1}
+y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)
 $$
 
 We save computation based on the sparsity of the output of $G(x)$. Wherever $G(x)_{i}=0$, we need not compute $E_{i}(x)$. In our experiments, we have up to thousands of experts, but only need to evaluate a handful of them for every example. If the number of experts is very large, we can reduce the branching factor by using a two-level hierarchical MoE. In a hierarchical MoE, a primary gating network chooses a sparse weighted combination of "experts", each of which is itself a secondary mixture-of-experts with its own gating network. In the following we focus on ordinary MoEs. We provide more details on hierarchical MoEs in Appendix [B](#appendix-b).
@@ -71,7 +71,7 @@ Our implementation is related to other models of conditional computation. A MoE 
 **Softmax Gating:** A simple choice of non-sparse gating function [Jor94] is to multiply the input by a trainable weight matrix $W_{g}$ and then apply the $\mathrm{Softmax}$ function.
 
 $$
-G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})\tag{2}
+G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})
 $$
 
 <span id="noisy-top-k-gating"></span>
@@ -79,18 +79,18 @@ $$
 **Noisy Top-K Gating:** We add two components to the Softmax gating network: sparsity and noise. Before taking the softmax function, we add tunable Gaussian noise, then keep only the top k values, setting the rest to $-\infty$ (which causes the corresponding gate values to equal $0$). The sparsity serves to save computation, as described above. While this form of sparsity creates some theoretically scary discontinuities in the output of gating function, we have not yet observed this to be a problem in practice. The noise term helps with load balancing, as will be discussed in Appendix [A](#appendix-a). The amount of noise per component is controlled by a second trainable weight matrix $W_{\mathrm{noise}}$.
 
 $$
-G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))\tag{3}
+G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))
 $$
 
 $$
-H(x)_{i}=(x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot \mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})\tag{4}
+H(x)_{i}=(x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot \mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})
 $$
 
 $$
 \mathrm{KeepTopK}(v,k)_{i}=\begin{cases}
 v_{i}, & \mathrm{if}\ v_{i}\ \mathrm{is\ in\ the\ top}\ k\ \mathrm{elements\ of}\ v,\\
 -\infty, & \mathrm{otherwise.}
-\end{cases}\tag{5}
+\end{cases}
 $$
 
 **Training the Gating Network** We train the gating network by simple back-propagation, along with the rest of the model. If we choose $k>1$, the gate values for the top k experts have nonzero derivatives with respect to the weights of the gating network. This type of occasionally-sensitive behavior is described in [Ben13] with respect to noisy rectifiers. Gradients also back-propagate through the gating network to its inputs. Our method differs here from [Ben15] who use boolean gates and a REINFORCE-style approach to train the gating network.
@@ -126,11 +126,11 @@ We have observed that the gating network tends to converge to a state where it a
 We take a soft constraint approach. We define the importance of an expert relative to a batch of training examples to be the batchwise sum of the gate values for that expert. We define an additional loss $L_{\mathrm{importance}}$, which is added to the overall loss function for the model. This loss is equal to the square of the coefficient of variation of the set of importance values, multiplied by a hand-tuned scaling factor $w_{\mathrm{importance}}$. This additional loss encourages all experts to have equal importance.
 
 $$
-\mathrm{Importance}(X)=\sum_{x\in X}G(x)\tag{6}
+\mathrm{Importance}(X)=\sum_{x\in X}G(x)
 $$
 
 $$
-L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}\tag{7}
+L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}
 $$
 
 While this loss function can ensure equal importance, experts may still receive very different numbers of examples. For example, one expert may receive a few examples with large weights, and another may receive many examples with small weights. This can cause memory and performance problems on distributed hardware. To solve this problem, we introduce a second loss function, $L_{\mathrm{load}}$ , which ensures balanced loads. Appendix [A](#appendix-a) contains the definition of this function, along with experimental results.
@@ -243,25 +243,25 @@ $$
 \begin{aligned}
 P(x,i)=\Pr\Bigl(& (x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})\\
 &>\mathrm{kth\_excluding}(H(x),k,i)\Bigr)
-\end{aligned}\tag{8}
+\end{aligned}
 $$
 
 Where $\mathrm{kth}\_\mathrm{excluding}(v,k,i)$ means the kth highest component of $v$, excluding component $i$. Simplifying, we get:
 
 $$
-P(x,i)=\Phi\Bigl(\frac{(x\cdot W_{g})_{i}-\mathrm{kth\_excluding}(H(x),k,i)}{\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})}\Bigr)\tag{9}
+P(x,i)=\Phi\Bigl(\frac{(x\cdot W_{g})_{i}-\mathrm{kth\_excluding}(H(x),k,i)}{\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})}\Bigr)
 $$
 
 Where $\Phi$ is the CDF of the standard normal distribution.
 
 $$
-\mathrm{Load}(X)_{i}=\sum_{x\in X}P(x,i)\tag{10}
+\mathrm{Load}(X)_{i}=\sum_{x\in X}P(x,i)
 $$
 
 We can now define the load loss to be the square of the coefficient of variation of the load vector, multiplied by a hand-tuned scaling factor $w_{\mathrm{load}}$.
 
 $$
-L_{\mathrm{load}}(X)=w_{\mathrm{load}}\cdot \mathrm{CV}(\mathrm{Load}(X))^{2}\tag{11}
+L_{\mathrm{load}}(X)=w_{\mathrm{load}}\cdot \mathrm{CV}(\mathrm{Load}(X))^{2}
 $$
 
 **Initial Load Imbalance:** To avoid out-of-memory errors, we need to initialize the network in a state of approximately equal expert load (since the soft constraints need some time to work). To accomplish this, we initialize the matrices $W_{g}$ and $W_{\mathrm{noise}}$ to all zeros, which yields no signal and some noise.
@@ -283,17 +283,17 @@ $$
 If the number of experts is very large, we can reduce the branching factor by using a two-level hierarchical MoE. In a hierarchical MoE, a primary gating network chooses a sparse weighted combination of "experts", each of which is itself a secondary mixture-of-experts with its own gating network. [+3] If the hierarchical MoE consists of $a$ groups of $b$ experts each, we denote the primary gating network by $G_{\mathrm{primary}}$, the secondary gating networks by $(G_{1},G_{2}..G_{a})$, and the expert networks by $(E_{0,0},E_{0,1}..E_{a,b})$. The output of the MoE is given by:
 
 $$
-y_{H}=\sum_{i=1}^{a}\sum_{j=1}^{b}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\cdot E_{i,j}(x)\tag{12}
+y_{H}=\sum_{i=1}^{a}\sum_{j=1}^{b}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\cdot E_{i,j}(x)
 $$
 
 Our metrics of expert utilization change to the following:
 
 $$
-\mathrm{Importance}_{H}(X)_{i,j}=\sum_{x\in X}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\tag{13}
+\mathrm{Importance}_{H}(X)_{i,j}=\sum_{x\in X}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}
 $$
 
 $$
-\mathrm{Load}_{H}(X)_{i,j}=\frac{\mathrm{Load}_{\mathrm{primary}}(X)_{i}\cdot \mathrm{Load}_{i}(X^{(i)})_{j}}{|X^{(i)}|}\tag{14}
+\mathrm{Load}_{H}(X)_{i,j}=\frac{\mathrm{Load}_{\mathrm{primary}}(X)_{i}\cdot \mathrm{Load}_{i}(X^{(i)})_{j}}{|X^{(i)}|}
 $$
 
 $\mathrm{Load}_{\mathrm{primary}}$ and $\mathrm{Load}_{i}$ deonte the $\mathrm{Load}$ functions for the primary gating network and $i^{\mathrm{th}}$ secondary gating network respectively. $X^{(i)}$ denotes the subset of $X$ for which $G_{\mathrm{primary}}(x)_{i}>0$.
@@ -405,13 +405,13 @@ Due to some peculiarities in our infrastructure which have since been fixed, at 
 Recall that we define the softmax gating function to be:
 
 $$
-G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})\tag{15}
+G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})
 $$
 
 **Sparse Gating (alternate formulation):** To obtain a sparse gating vector, we multiply $G_{\sigma}(x)$ component-wise with a sparse mask $M(G_{\sigma}(x))$ and normalize the output. The mask itself is a function of $G_{\sigma}(x)$ and specifies which experts are assigned to each input example:
 
 $$
-G(x)_{i}=\frac{G_{\sigma}(x)_{i}M(G_{\sigma}(x))_{i}}{\sum_{j=1}^{n}G_{\sigma}(x)_{j}M(G_{\sigma}(x))_{j}}\tag{16}
+G(x)_{i}=\frac{G_{\sigma}(x)_{i}M(G_{\sigma}(x))_{i}}{\sum_{j=1}^{n}G_{\sigma}(x)_{j}M(G_{\sigma}(x))_{j}}
 $$
 
 **Top-K Mask:** To implement top-k gating in this formulation, we would let $M(v)=\mathrm{TopK}(v,k)$, where:
@@ -420,7 +420,7 @@ $$
 \mathrm{TopK}(v,k)_{i}=\begin{cases}
 1, & \mathrm{if}\ v_{i}\ \mathrm{is\ in\ the\ top}\ k\ \mathrm{elements\ of}\ v,\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{17}
+\end{cases}
 $$
 
 **Batchwise Mask:** To force each expert to receive the exact same number of examples, we introduce an alternative mask function, $M_{\mathrm{batchwise}}(X,m)$, which operates over batches of input vectors. Instead of keeping the top $k$ values per example, we keep the top $m$ values per expert across the training batch, where $m=\frac{k|X|}{n}$, so that each example is sent to an average of $k$ experts.
@@ -429,7 +429,7 @@ $$
 M_{\mathrm{batchwise}}(X,m)_{j,i}=\begin{cases}
 1, & \mathrm{if}\ X_{j,i}\ \mathrm{is\ in\ the\ top}\ m\ \mathrm{values\ for\ expert}\ i,\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{18}
+\end{cases}
 $$
 
 As our experiments suggest and also observed in  [Iof15], using a batchwise function during training (such as $M_{\mathrm{batchwise}}$) requires modifications to the inference when we may not have a large batch of examples. Our solution to this is to train a vector $T$ of per-expert threshold values to approximate the effects of the batchwise mask. We use the following mask at inference time:
@@ -438,7 +438,7 @@ $$
 M_{\mathrm{threshold}}(x,T)_{i}=\begin{cases}
 1, & \mathrm{if}\ x_{i}>T_{i},\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{19}
+\end{cases}
 $$
 
 To learn the threshold values, we apply an additional loss at training time which is minimized when the batchwise mask and the threshold mask are identical.
@@ -448,7 +448,7 @@ $$
 L_{\mathrm{batchwise}}(X,T,m)
 &=\sum_{j=1}^{|X|}\sum_{i=1}^{n}\bigl(M_{\mathrm{threshold}}(x,T)_{i}-M_{\mathrm{batchwise}}(X,m)_{j,i}\bigr)\\
 &\quad\cdot(X_{j,i}-T_{i})
-\end{aligned}\tag{20}
+\end{aligned}
 $$
 
 <span id="appendix-g"></span>
@@ -458,7 +458,7 @@ $$
 The attention mechanism described in GNMT  [Wu17] involves a learned "Attention Function" $A(x_{i},y_{j})$ which takes a "source vector" $x_{i}$ and a "target vector" $y_{j}$, and must be computed for every source time step $i$ and target time step $j$. In GNMT, the attention function is implemented as a feed forward neural network with a hidden layer of size $n$. It can be expressed as:
 
 $$
-A_{\mathrm{GNMT}}(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d}+(y_{j}W)_{d})\tag{21}
+A_{\mathrm{GNMT}}(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d}+(y_{j}W)_{d})
 $$
 
 Where $U$ and $W$ are trainable weight matrices and $V$ is a trainable weight vector.
@@ -466,7 +466,7 @@ Where $U$ and $W$ are trainable weight matrices and $V$ is a trainable weight ve
 For performance reasons, in our models, we used a slightly different attention function:
 
 $$
-A(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d})\tanh((y_{j}W)_{d})\tag{22}
+A(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d})\tanh((y_{j}W)_{d})
 $$
 
 With our attention function, we can simultaneously compute the attention function on multiple source time steps and multiple target time steps using optimized matrix multiplications. We found little difference in quality between the two functions.

@@ -59,7 +59,7 @@ permalink: /papers/sparsely-gated-moe/
 设 $G(x)$ 和 $E_{i}(x)$ 分别为门控网络的输出和给定输入 $x$ 的第 $i$ 个专家网络的输出. MoE 模块的输出 $y$ 可以写成如下形式:
 
 $$
-y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)\tag{1}
+y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)
 $$
 
 我们根据 $G(x)$ 输出的稀疏性来节省计算. 在任何 $G(x)_{i}=0$ 的情况下, 我们都不需要计算 $E_{i}(x)$. 在我们的实验中, 专家数量可多达数千, 但每个样本只需评估其中少数几个. 如果专家数量非常大, 我们可以通过使用两级层次化 MoE 来减少分支因子. 在层次化 MoE 中, 主门控网络选择专家的稀疏加权组合, 每个专家本身也是带有自己门控网络的二级混合专家. 在下面, 我们将重点关注普通 MoE. 关于层次化 MoE 的更多细节, 请参见附录 [B](#appendix-b).
@@ -71,7 +71,7 @@ $$
 **Softmax 门控:** 非稀疏门控函数的一个简单选择 [Jor94] 是将输入乘以可训练的权重矩阵 $W_{g}$, 然后应用 $\mathrm{Softmax}$ 函数.
 
 $$
-G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})\tag{2}
+G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})
 $$
 
 <span id="noisy-top-k-gating"></span>
@@ -79,18 +79,18 @@ $$
 **噪声 Top-K 门控:** 我们在 Softmax 门控网络中加入两个组件: 稀疏性和噪声. 在应用 softmax 函数前, 先加入可调的高斯噪声, 再只保留最大的 k 个值, 其余值设为 $-\infty$ (对应的门值因此为 $0$). 稀疏性用于节省计算, 如上所述. 这种稀疏形式在理论上会使门控函数的输出出现令人担忧的不连续, 但我们在实践中还没有观察到问题. 噪声项有助于负载均衡, 详见附录 [A](#appendix-a). 每个分量的噪声大小由第二个可训练权重矩阵 $W_{\mathrm{noise}}$ 控制.
 
 $$
-G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))\tag{3}
+G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))
 $$
 
 $$
-H(x)_{i}=(x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot \mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})\tag{4}
+H(x)_{i}=(x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot \mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})
 $$
 
 $$
 \mathrm{KeepTopK}(v,k)_{i}=\begin{cases}
 v_{i}, & \mathrm{if}\ v_{i}\ \mathrm{is\ in\ the\ top}\ k\ \mathrm{elements\ of}\ v,\\
 -\infty, & \mathrm{otherwise.}
-\end{cases}\tag{5}
+\end{cases}
 $$
 
 **训练门控网络** 我们使用普通的反向传播, 与模型其余部分一起训练门控网络. 当 $k>1$ 时, 排名前 k 的专家对应的门值对门控网络权重具有非零导数. [Ben13] 在讨论带噪整流函数时描述了这种偶发的敏感行为. 梯度也会通过门控网络反向传播到输入. 这与 [Ben15] 的做法不同; 后者使用布尔门和 REINFORCE 风格的方法训练门控网络.
@@ -126,11 +126,11 @@ $$
 我们采用软约束方法. 我们将专家相对于一批训练样本的重要性定义为该专家的门值在该批次中的总和. 我们定义了一个额外的损失 $L_{\mathrm{importance}}$, 该损失被加到模型的整体损失函数中. 该损失等于重要性值集合的变异系数的平方, 乘以一个手动调节的缩放因子 $w_{\mathrm{importance}}$. 这个额外的损失鼓励所有专家具有相等的重要性.
 
 $$
-\mathrm{Importance}(X)=\sum_{x\in X}G(x)\tag{6}
+\mathrm{Importance}(X)=\sum_{x\in X}G(x)
 $$
 
 $$
-L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}\tag{7}
+L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}
 $$
 
 虽然这个损失函数可以确保同等重要性, 但各个专家仍可能收到数量非常不同的样本. 例如, 一个专家可能收到少量但权重很大的样本, 而另一个专家可能收到大量但权重很小的样本. 这可能在分布式硬件上引发内存和性能问题. 为了解决这个问题, 我们引入了第二个损失函数 $L_{\mathrm{load}}$, 它可以确保负载均衡. 附录 [A](#appendix-a) 包含了该函数的定义以及实验结果.
@@ -243,25 +243,25 @@ $$
 \begin{aligned}
 P(x,i)=\Pr\Bigl(& (x\cdot W_{g})_{i}+\mathrm{StandardNormal}()\cdot\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})\\
 &>\mathrm{kth\_excluding}(H(x),k,i)\Bigr)
-\end{aligned}\tag{8}
+\end{aligned}
 $$
 
 其中 $\mathrm{kth}\_\mathrm{excluding}(v,k,i)$ 表示 $v$ 中除分量 $i$ 外的第 $k$ 大分量. 简化后得到:
 
 $$
-P(x,i)=\Phi\Bigl(\frac{(x\cdot W_{g})_{i}-\mathrm{kth\_excluding}(H(x),k,i)}{\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})}\Bigr)\tag{9}
+P(x,i)=\Phi\Bigl(\frac{(x\cdot W_{g})_{i}-\mathrm{kth\_excluding}(H(x),k,i)}{\mathrm{Softplus}((x\cdot W_{\mathrm{noise}})_{i})}\Bigr)
 $$
 
 其中 $\Phi$ 是标准正态分布的累积分布函数.
 
 $$
-\mathrm{Load}(X)_{i}=\sum_{x\in X}P(x,i)\tag{10}
+\mathrm{Load}(X)_{i}=\sum_{x\in X}P(x,i)
 $$
 
 我们现在可以定义负载损失为负载向量的变异系数平方, 再乘以一个人工调节的缩放因子 $w_{\mathrm{load}}$.
 
 $$
-L_{\mathrm{load}}(X)=w_{\mathrm{load}}\cdot \mathrm{CV}(\mathrm{Load}(X))^{2}\tag{11}
+L_{\mathrm{load}}(X)=w_{\mathrm{load}}\cdot \mathrm{CV}(\mathrm{Load}(X))^{2}
 $$
 
 **初始负载不平衡:** 为了避免内存不足错误, 我们需要把网络初始化为专家负载大致均衡的状态 (因为软约束需要一段时间才能生效). 为此, 我们将矩阵 $W_{g}$ 和 $W_{\mathrm{noise}}$ 初始化为全零, 此时没有信号, 只有少量噪声.
@@ -283,17 +283,17 @@ $$
 如果专家数量非常多, 我们可以通过使用两级分层 MoE 来减少分支因子. 在分层 MoE 中, 主要门控网络选择“专家”的稀疏加权组合, 每个专家本身都是具有自己门控网络的二级专家混合. [+3] 如果分层 MoE 由 $a$ 组, 每组有 $b$ 个专家组成, 我们将主要门控网络记为 $G_{\mathrm{primary}}$, 二级门控网络记为 $(G_{1},G_{2}..G_{a})$, 专家网络记为 $(E_{0,0},E_{0,1}..E_{a,b})$. MoE 的输出为:
 
 $$
-y_{H}=\sum_{i=1}^{a}\sum_{j=1}^{b}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\cdot E_{i,j}(x)\tag{12}
+y_{H}=\sum_{i=1}^{a}\sum_{j=1}^{b}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\cdot E_{i,j}(x)
 $$
 
 专家使用度指标相应变为:
 
 $$
-\mathrm{Importance}_{H}(X)_{i,j}=\sum_{x\in X}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}\tag{13}
+\mathrm{Importance}_{H}(X)_{i,j}=\sum_{x\in X}G_{\mathrm{primary}}(x)_{i}\cdot G_{i}(x)_{j}
 $$
 
 $$
-\mathrm{Load}_{H}(X)_{i,j}=\frac{\mathrm{Load}_{\mathrm{primary}}(X)_{i}\cdot \mathrm{Load}_{i}(X^{(i)})_{j}}{|X^{(i)}|}\tag{14}
+\mathrm{Load}_{H}(X)_{i,j}=\frac{\mathrm{Load}_{\mathrm{primary}}(X)_{i}\cdot \mathrm{Load}_{i}(X^{(i)})_{j}}{|X^{(i)}|}
 $$
 
 $\mathrm{Load}_{\mathrm{primary}}$ 和 $\mathrm{Load}_{i}$ 分别表示主要门控网络和第 $i$ 个二级门控网络的 $\mathrm{Load}$ 函数. $X^{(i)}$ 表示 $X$ 中满足 $G_{\mathrm{primary}}(x)_{i}>0$ 的子集.
@@ -405,13 +405,13 @@ Adam 优化器 [Kin15] 会保留每个参数梯度的一阶和二阶矩估计. �
 回顾一下, 我们定义的 softmax 门控函数为:
 
 $$
-G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})\tag{15}
+G_{\sigma}(x)=\mathrm{Softmax}(x\cdot W_{g})
 $$
 
 **稀疏门控 (备用公式):** 为了得到稀疏门控向量, 我们将 $G_{\sigma}(x)$ 与稀疏掩码 $M(G_{\sigma}(x))$ 按分量相乘, 并对输出进行归一化. 掩码本身是 $G_{\sigma}(x)$ 的函数, 并指定每个输入样本分配到哪些专家:
 
 $$
-G(x)_{i}=\frac{G_{\sigma}(x)_{i}M(G_{\sigma}(x))_{i}}{\sum_{j=1}^{n}G_{\sigma}(x)_{j}M(G_{\sigma}(x))_{j}}\tag{16}
+G(x)_{i}=\frac{G_{\sigma}(x)_{i}M(G_{\sigma}(x))_{i}}{\sum_{j=1}^{n}G_{\sigma}(x)_{j}M(G_{\sigma}(x))_{j}}
 $$
 
 **Top-K 掩码:** 为在此公式中实现 top-k 门控, 令 $M(v)=\mathrm{TopK}(v,k)$, 其中:
@@ -420,7 +420,7 @@ $$
 \mathrm{TopK}(v,k)_{i}=\begin{cases}
 1, & \mathrm{if}\ v_{i}\ \mathrm{is\ in\ the\ top}\ k\ \mathrm{elements\ of}\ v,\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{17}
+\end{cases}
 $$
 
 **批次掩码:** 为强制每个专家接收完全相同数量的样本, 我们引入替代掩码函数 $M_{\mathrm{batchwise}}(X,m)$, 它作用于输入向量的批次. 我们不再为每个样本保留前 $k$ 个值, 而是在整个训练批次中为每个专家保留前 $m$ 个值, 其中 $m=\frac{k|X|}{n}$, 使每个样本平均发送给 $k$ 个专家.
@@ -429,7 +429,7 @@ $$
 M_{\mathrm{batchwise}}(X,m)_{j,i}=\begin{cases}
 1, & \mathrm{if}\ X_{j,i}\ \mathrm{is\ in\ the\ top}\ m\ \mathrm{values\ for\ expert}\ i,\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{18}
+\end{cases}
 $$
 
 正如我们的实验所示, 并且在 [Iof15] 中也观察到的, 在训练时使用批次函数 (例如 $M_{\mathrm{batchwise}}$) 在推理时需要进行修改, 因为我们可能没有大量样本. 为此, 我们的解决方案是训练一个向量 $T$, 用于每个专家的阈值, 以近似批次掩码的效果. 在推理时, 我们使用以下掩码:
@@ -438,7 +438,7 @@ $$
 M_{\mathrm{threshold}}(x,T)_{i}=\begin{cases}
 1, & \mathrm{if}\ x_{i}>T_{i},\\
 0, & \mathrm{otherwise.}
-\end{cases}\tag{19}
+\end{cases}
 $$
 
 为了学习阈值, 我们在训练时应用额外的损失, 当批次掩码和阈值掩码相同时, 该损失达到最小.
@@ -448,7 +448,7 @@ $$
 L_{\mathrm{batchwise}}(X,T,m)
 &=\sum_{j=1}^{|X|}\sum_{i=1}^{n}\bigl(M_{\mathrm{threshold}}(x,T)_{i}-M_{\mathrm{batchwise}}(X,m)_{j,i}\bigr)\\
 &\quad\cdot(X_{j,i}-T_{i})
-\end{aligned}\tag{20}
+\end{aligned}
 $$
 
 <span id="appendix-g"></span>
@@ -458,7 +458,7 @@ $$
 GNMT 中描述的注意力机制 [Wu17] 涉及一个学习的“注意力函数” $A(x_{i},y_{j})$, 该函数接受一个“源向量” $x_{i}$ 和一个“目标向量” $y_{j}$, 并且必须对每个源时间步 $i$ 和目标时间步 $j$ 进行计算. 在 GNMT 中, 注意力函数被实现为一个具有大小为 $n$ 的隐藏层的前馈神经网络. 它可以表示为:
 
 $$
-A_{\mathrm{GNMT}}(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d}+(y_{j}W)_{d})\tag{21}
+A_{\mathrm{GNMT}}(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d}+(y_{j}W)_{d})
 $$
 
 其中 $U$ 和 $W$ 是可训练的权重矩阵, 而 $V$ 是可训练的权重向量.
@@ -466,7 +466,7 @@ $$
 出于性能原因, 在我们的模型中, 我们使用了稍微不同的注意力函数:
 
 $$
-A(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d})\tanh((y_{j}W)_{d})\tag{22}
+A(x_{i},y_{j})=\sum_{d=1}^{n}V_{d}\tanh((x_{i}U)_{d})\tanh((y_{j}W)_{d})
 $$
 
 使用我们的注意力函数, 我们可以同时在多个源时间步和多个目标时间步上计算注意力函数, 使用优化的矩阵乘法. 我们发现这两种函数在质量上几乎没有差异.

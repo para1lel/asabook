@@ -40,8 +40,10 @@ Based on this observation, SmoothQuant offline migrates the quantization difficu
 
 Quantization maps a high-precision value into discrete levels. We study integer uniform quantization [Jac18] (specifically INT8) for better hardware support and efficiency. The quantization process can be expressed as:
 
+<span id="S2.E1"></span>
+
 $$
-\bar{\mathbf{X}}^{\mathrm{INT8}}=\lceil\frac{\mathbf{X^{\mathrm{FP16}}}}{\Delta}\rfloor,\quad\Delta=\frac{\max(|\mathbf{X}|)}{2^{N-1}-1},\tag{1}
+\bar{\mathbf{X}}^{\mathrm{INT8}}=\lceil\frac{\mathbf{X^{\mathrm{FP16}}}}{\Delta}\rfloor,\quad\Delta=\frac{\max(|\mathbf{X}|)}{2^{N-1}-1},
 $$
 
 where $\mathbf{X}$ is the floating-point tensor, $\bar{\mathbf{X}}$ is the quantized counterpart, $\Delta$ is the quantization step size, $\lceil\cdot\rfloor$ is the rounding function, and $N$ is the number of bits (8 in our case). Here we assume the tensor is *symmetric* at 0 for simplicity; the discussion is similar for asymmetric cases (e.g., after ReLU) by adding a zero-point [Jac18].
@@ -85,7 +87,7 @@ Due to the persistence of outliers and the small variance inside each channel, i
 However, per-channel activation quantization does not map well to hardware-accelerated GEMM kernels, that rely on a sequence of operations executed at a high throughput (e.g., Tensor Core MMAs) and do not tolerate the insertion of instructions with a lower throughput (e.g., conversions or CUDA Core FMAs) in that sequence. In those kernels, scaling can only be performed along the outer dimensions of the matrix multiplication (i.e., token dimension of activations $T$, output channel dimension of weights $C_{o}$, see [Figure 3](#figure-03)), which can be applied after the matrix multiplication finishes:
 
 $$
-\mathbf{Y}=\mathrm{diag}(\mathbf{\Delta}_{\mathbf{X}}^{\mathrm{FP16}})\cdot(\mathbf{\bar{X}}^{\mathrm{INT8}}\cdot\mathbf{\bar{W}}^{\mathrm{INT8}})\cdot\mathrm{diag}(\mathbf{\Delta}_{\mathbf{W}}^{\mathrm{FP16}})\tag{2}
+\mathbf{Y}=\mathrm{diag}(\mathbf{\Delta}_{\mathbf{X}}^{\mathrm{FP16}})\cdot(\mathbf{\bar{X}}^{\mathrm{INT8}}\cdot\mathbf{\bar{W}}^{\mathrm{INT8}})\cdot\mathrm{diag}(\mathbf{\Delta}_{\mathbf{W}}^{\mathrm{FP16}})
 $$
 
 Therefore, previous works all use per-token activation quantization for linear layers [Det22, Yao22], although they cannot address the difficulty of activation quantization (only slightly better than per-tensor).
@@ -95,7 +97,7 @@ Therefore, previous works all use per-token activation quantization for linear l
 Instead of per-channel activation quantization (which is infeasible), we propose to “smooth” the input activation by dividing it by a per-channel smoothing factor $\mathbf{s}\in\mathbb{R}^{C_{i}}$. To keep the mathematical equivalence of a linear layer, we scale the weights accordingly in the reversed direction:
 
 $$
-\mathbf{Y}=(\mathbf{X}\mathrm{diag}(\mathbf{s})^{-1})\cdot(\mathrm{diag}(\mathbf{s})\mathbf{W})=\hat{\mathbf{X}}\hat{\mathbf{W}}\tag{3}
+\mathbf{Y}=(\mathbf{X}\mathrm{diag}(\mathbf{s})^{-1})\cdot(\mathrm{diag}(\mathbf{s})\mathbf{W})=\hat{\mathbf{X}}\hat{\mathbf{W}}
 $$
 
 Considering input $\mathbf{X}$ is usually produced from previous linear operations (e.g., linear layers, layer norms, etc.), we can easily fuse the smoothing factor into previous layers’ parameters offline, which doe not incur kernel call overhead from an extra scaling. For some other cases, when the input is from a residual add, we can add an extra scaling to the residual branch similar to [Wei22].
@@ -112,8 +114,10 @@ We aim to choose a per-channel smoothing factor $\mathbf{s}$ such that $\hat{\ma
 
 Here we introduce a hyper-parameter, migration strength $\alpha$, to control how much difficulty we want to migrate from activation to weights, using the following equation:
 
+<span id="S4.E4"></span>
+
 $$
-\mathbf{s}_{j}=\max(|\mathbf{X}_{j}|)^{\alpha}/\max(|\mathbf{W}_{j}|)^{1-\alpha}\tag{4}
+\mathbf{s}_{j}=\max(|\mathbf{X}_{j}|)^{\alpha}/\max(|\mathbf{W}_{j}|)^{1-\alpha}
 $$
 
 We find that for most of the models, e.g., all OPT [Zha22] and BLOOM [Les23] models, $\alpha=0.5$ is a well-balanced point to evenly split the quantization difficulty, especially when we are using the same quantizer for weights and activations (e.g., per-tensor, static quantization). The formula ensures that the weights and activations at the corresponding channel share a similar maximum value, thus sharing the same quantization difficulty. [Figure 5](#figure-05) illustrates the smoothing transformation when we take $\alpha=0.5$. For some other models where activation outliers are more significant (e.g., GLM-130B [Zen22] has $\sim$30% outliers, which are more difficult for activation quantization), we can choose a larger $\alpha$ to migrate more quantization difficulty to weights (like 0.75).

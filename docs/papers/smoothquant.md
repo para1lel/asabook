@@ -40,8 +40,10 @@ permalink: /papers/smoothquant/
 
 量化将高精度数值映射到离散级别. 我们研究整数均匀量化 [Jac18] (具体为 INT8) 以获得更好的硬件支持和效率. 量化过程可以表示为:
 
+<span id="S2.E1"></span>
+
 $$
-\bar{\mathbf{X}}^{\mathrm{INT8}}=\lceil\frac{\mathbf{X^{\mathrm{FP16}}}}{\Delta}\rfloor,\quad\Delta=\frac{\max(|\mathbf{X}|)}{2^{N-1}-1},\tag{1}
+\bar{\mathbf{X}}^{\mathrm{INT8}}=\lceil\frac{\mathbf{X^{\mathrm{FP16}}}}{\Delta}\rfloor,\quad\Delta=\frac{\max(|\mathbf{X}|)}{2^{N-1}-1},
 $$
 
 其中 $\mathbf{X}$ 是浮点张量, $\bar{\mathbf{X}}$ 是量化后的对应张量, $\Delta$ 是量化步长, $\lceil\cdot\rfloor$ 是取整函数, $N$ 是比特数 (在我们的例子中为 8 位). 这里我们假设张量在 0 点是*对称*的以简化讨论; 对非对称情况 (例如 ReLU 后) 也可以通过添加零点 [Jac18] 类似地讨论.
@@ -85,7 +87,7 @@ $$
 然而, 每通道激活量化与依赖高吞吐量执行一系列操作的硬件加速 GEMM 内核 (例如, Tensor Core MMAs) 不太匹配, 并且在该序列中不能容忍插入低吞吐量的指令 (例如, 转换或 CUDA Core FMAs). 在这些内核中, 缩放只能沿矩阵乘法的外层维度进行 (即激活的 token 维度 $T$, 权重的输出通道维度 $C_{o}$, 见 [图 3](#figure-03)), 可以在矩阵乘法完成后应用:
 
 $$
-\mathbf{Y}=\mathrm{diag}(\mathbf{\Delta}_{\mathbf{X}}^{\mathrm{FP16}})\cdot(\mathbf{\bar{X}}^{\mathrm{INT8}}\cdot\mathbf{\bar{W}}^{\mathrm{INT8}})\cdot\mathrm{diag}(\mathbf{\Delta}_{\mathbf{W}}^{\mathrm{FP16}})\tag{2}
+\mathbf{Y}=\mathrm{diag}(\mathbf{\Delta}_{\mathbf{X}}^{\mathrm{FP16}})\cdot(\mathbf{\bar{X}}^{\mathrm{INT8}}\cdot\mathbf{\bar{W}}^{\mathrm{INT8}})\cdot\mathrm{diag}(\mathbf{\Delta}_{\mathbf{W}}^{\mathrm{FP16}})
 $$
 
 因此, 以往的工作在全连接层均使用每 token 激活量化 [Det22, Yao22], 尽管它们无法解决激活量化的难题 (仅比每张量略好).
@@ -95,7 +97,7 @@ $$
 我们提出, 不采用每通道激活量化 (不可行), 而是通过除以每通道平滑因子 $\mathbf{s}\in\mathbb{R}^{C_{i}}$ 来“平滑”输入激活. 为了保持线性层的数学等价性, 我们相应地按照相反方向缩放权重:
 
 $$
-\mathbf{Y}=(\mathbf{X}\mathrm{diag}(\mathbf{s})^{-1})\cdot(\mathrm{diag}(\mathbf{s})\mathbf{W})=\hat{\mathbf{X}}\hat{\mathbf{W}}\tag{3}
+\mathbf{Y}=(\mathbf{X}\mathrm{diag}(\mathbf{s})^{-1})\cdot(\mathrm{diag}(\mathbf{s})\mathbf{W})=\hat{\mathbf{X}}\hat{\mathbf{W}}
 $$
 
 考虑到输入 $\mathbf{X}$ 通常是由先前的线性操作生成的 (例如线性层, 层归一化等), 我们可以轻松地将平滑因子离线融合到先前层的参数中, 这不会因为额外的缩放而产生内核调用开销. 在其他一些情况下, 当输入来自残差相加时, 我们可以像 [Wei22] 那样在残差分支上添加额外的缩放.
@@ -112,8 +114,10 @@ $$
 
 我们在这里引入一个超参数, 迁移强度 $\alpha$, 用来控制我们希望将多少难度从激活迁移到权重, 使用以下方程:
 
+<span id="S4.E4"></span>
+
 $$
-\mathbf{s}_{j}=\max(|\mathbf{X}_{j}|)^{\alpha}/\max(|\mathbf{W}_{j}|)^{1-\alpha}\tag{4}
+\mathbf{s}_{j}=\max(|\mathbf{X}_{j}|)^{\alpha}/\max(|\mathbf{W}_{j}|)^{1-\alpha}
 $$
 
 我们发现对于大多数模型, 例如所有 OPT [Zha22] 和 BLOOM [Les23] 模型, $\alpha=0.5$ 是一个平衡点, 可以均匀地分配量化难度, 特别是在我们对权重和激活使用相同量化器 (例如每张量, 静态量化) 时. 该公式确保对应通道的权重和激活具有相似的最大值, 从而共享相同的量化难度. [图 5](#figure-05) 展示了当我们采用 $\alpha=0.5$ 时的平滑转换. 对于一些激活异常值更显著的其他模型 (例如 GLM-130B [Zen22] 有 $\sim$ 30%的异常值, 这些对激活量化更困难), 我们可以选择更大的 $\alpha$ 将更多的量化难度迁移到权重 (如 0.75).

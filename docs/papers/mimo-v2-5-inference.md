@@ -200,7 +200,7 @@ HiCache 对 L2 命中率非常敏感. L2 Cache 未命中时, 系统必须从 L3 
 路由器通过在 Radix 前缀树中维护已分发的请求, 实现 KVCache 亲和调度. 在多个 Prefill 实例之间, 它优先选择已经缓存当前请求前缀的节点, 同时平衡负载, 避免负载向热点倾斜. 该策略部署后, L2 缓存命中率提高约 **25%**, 单节点输入吞吐提高约 **30%**. 核心公式大致如下:
 
 $$
-\mathrm{score}(\mathrm{worker}) = \mathrm{matchWeight} \times \mathrm{prefixMatchPercentage} - \mathrm{normalizedLoad}\tag{1}
+\mathrm{score}(\mathrm{worker}) = \mathrm{matchWeight} \times \mathrm{prefixMatchPercentage} - \mathrm{normalizedLoad}
 $$
 
 <span id="section-4-2"></span>

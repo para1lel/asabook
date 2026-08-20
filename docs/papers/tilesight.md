@@ -99,7 +99,6 @@ $$
 \mathbf{u}(o)=
 \langle t_{\mathrm{TC}}, t_{\mathrm{CUDA}}, t_{\mathrm{SFU}}, t_{\mathrm{TMEM}},
 t_{\mathrm{SMEM}}, t_{\mathrm{L1.5}}, t_{\mathrm{L2}}, t_{\mathrm{DDR}}, t_{\mathrm{Net}}\rangle .
-\tag{1}
 $$
 
 该向量根据 tile 的操作, footprint, src/dst placement 和通过一次性 microbenchmark 校准的速率计算. 纯 tensor-core matmul tile 只填充 TC 项; Blackwell attention tile 还会为 softmax 和 correction load/store 计入显式 TMEM 流量; 来自 DDR 的 load tile 填充 DDR 项 (若访问命中 cache, 也填充 L1.5/L2); remote-load tile 填充 Net 项. 该向量比 Roofline 标量更富表现力, 因为位于不同 pipeline 上的 tile 可以重叠, 而竞争同一 pipeline 的 tile 会串行化, 远程移动也能通过同一套机制与本地计算组合. $\mathbf{u}(o)$ 的两个项并非由孤立的 tile 固定: memory tile 的 L1.5/L2/DDR 划分取决于访问是否命中 cache, 由第 3.5 节的 tile 复用距离推导; remote tile 的 `Net` 项取决于底层通信阶段的路由代价, 由第 3.6 节推导. 算法 1 概述了所有组件如何接入主循环; 后续小节将详细说明每个部分.
@@ -144,14 +143,12 @@ T =
 T_{\mathrm{pro}} +
 \max(N-d,0)\,T_{\mathrm{steady}} +
 T_{\mathrm{epi}},
-\tag{2}
 $$
 
 其中 $T_{\mathrm{pro}}$ 是填充代价, $T_{\mathrm{steady}}$ 是每个重复单元的重叠代价, $T_{\mathrm{epi}}$ 是排空代价. 同一个 envelope 递归应用于 tile execution plan 的每一层: 外层 envelope (遍历 tile-block wave) 的 steady-state body 本身可以是 pipeline (遍历 $K$-loop), 后者的 steady body 又可以是遍历内部 action 序列的 pipeline. 有效深度将显式 software-pipeline stage 与 resident tile 交错结合起来:
 
 $$
 d = \mathrm{stages} \times \mathrm{resident\_tiles\_per\_SM} - 1 .
-\tag{3}
 $$
 
 因此, 每个 SM 两个 block 的调度不是特殊情形: 它会加深 pipeline, 因为一个 SM 可以在一个 resident tile-block 等待内存时 issue 另一个的工作.
@@ -163,7 +160,6 @@ T_{\mathrm{steady}}(\sigma)
 =
 \max_{r}
 \sum_{o \in \sigma} u_r(o),
-\tag{4}
 $$
 
 并受 DAG 中所有数据依赖 edge 约束. 选择的 steady state 是最佳合法顺序:
@@ -171,7 +167,6 @@ $$
 $$
 T_{\mathrm{steady}} =
 \min_{\sigma \in \mathrm{Topo}(D)} T_{\mathrm{steady}}(\sigma).
-\tag{5}
 $$
 
 实践中的搜索规模很小, 因为真实融合 kernel DAG 受到很强约束. 对 MLA decode, 11 个 tile action 从 $11!$ 个无约束排列缩减为 132 个合法拓扑顺序. 该搜索并非 autotuning run: 它是对 tile plan 的分析调度步骤, 因而仍足够廉价, 可以在 cost model 内运行.
@@ -232,7 +227,6 @@ TileSight 为 tile grid 关联的每个张量引入一个 *tensor access*: 包�
 
 $$
 \mathrm{key}(\mathbf{x}, R)=\mathrm{Linearize}\bigl(x_d\mid d\notin R\bigr),
-\tag{6}
 $$
 
 其中 $\mathbf{x}$ 是 tile 坐标, $R$ 是复用维度集合. 对 GEMM 的 A 矩阵, $R=\{N_t\}$, 同一 M-row 中的所有 tile 共享同一个 A key. 对 B, 同一 N-column 中的所有 tile 共享同一个 B key. 具体的 tile 执行顺序, 包括 swizzle 和 row-panel traversal, 决定这些 key 出现的序列, 从而决定其复用距离.
@@ -247,7 +241,6 @@ P(h \mid D_T) =
 \binom{D_T}{a}
 \left(\frac{A}{B_T}\right)^a
 \left(\frac{B_T-A}{B_T}\right)^{D_T-a},
-\tag{7}
 $$
 
 其中 $A$ 是 cache associativity, $B_T$ 是以 tile 为单位的 cache 容量. 该二项式形式虽然准确, 但对大型 tile grid 中的每个 tensor key 计算会很昂贵.
@@ -260,7 +253,6 @@ P(h \mid D_T)_{\mathrm{approx}}
 1 - Q\!\left(
 \frac{|A-1-\mu|}{\sqrt{\sigma^2}}
 \right),
-\tag{8}
 $$
 
 其中
@@ -272,7 +264,6 @@ $$
 D_T \cdot \frac{A}{B_T}
 \cdot
 \left(1-\frac{A}{B_T}\right).
-\tag{9}
 $$
 
 $Q(x)$ 表示标准正态分布的互补累积分布函数 (CDF). 为进一步降低开销, 我们对 CDF $\Phi(x)$ 使用 Zelen-Severo 近似 [Abr65]:
@@ -283,7 +274,6 @@ $$
 1 -
 \left(a_1t-a_2t^2+a_3t^3\right)
 \frac{e^{-x^2/2}}{\sqrt{2\pi}},
-\tag{10}
 $$
 
 其中 $t=(1+0.33267x)^{-1}$, $a_1,a_2,a_3$ 为常数.
@@ -313,7 +303,6 @@ T_k
 \underbrace{
 \max_{l\in\mathcal{L}} \beta_l B_{l,k}
 }_{\mathrm{bottleneck\ link\ serialization}},
-\tag{11}
 $$
 
 其中 $\mathcal{E}_k$ 是阶段 $k$ 中的逻辑 exchange 集合, $\mathcal{P}_{sd}$ 是 $(s,d,b)$ 的物理 route, $B_{l,k}$ 是通过 link $l$ 路由的 byte 数, $\alpha_l,\beta_l$ 分别是 link $l$ 经校准的启动延迟和带宽倒数. 一个推断通信序列的代价是其阶段的有序总和 $T_c=\sum_{k\in\mathcal{K}_c}T_k$. 对 ring collective 等具有重复相同阶段的算法, TileSight 评估一个阶段并乘以阶段数. 结果进入式 1 的 `Net` 维度, 因而跨设备移动被表示为 tile 内资源需求, 并通过与其他部分相同的 steady-state 机制与本地计算重叠.

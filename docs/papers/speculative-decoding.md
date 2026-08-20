@@ -91,7 +91,7 @@ $E(\beta)$ 可以自然地衡量 $M_{q}$ 对 $M_{p}$ 的近似程度. 若作简�
 <span id="equation-01"></span>
 
 $$
-E(\# \mathrm{generated} \mathrm{tokens})=\frac{1-\alpha^{\gamma+1}}{1-\alpha}\tag{1}
+E(\# \mathrm{generated} \mathrm{tokens})=\frac{1-\alpha^{\gamma+1}}{1-\alpha}
 $$
 
 <span id="figure-02"></span>

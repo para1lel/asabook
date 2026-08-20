@@ -200,7 +200,7 @@ HiCache is highly sensitive to L2 hit rates. When L2 cache misses, the system mu
 The router implements KVCache affinity scheduling by maintaining dispatched requests in a Radix prefix tree. Among multiple Prefill instances, it prioritizes nodes that have already cached the current request's prefix while simultaneously balancing load to avoid load skew toward hotspots. After deployment, this strategy improved L2 cache hit rates by approximately **25%** and per-node input throughput by approximately **30%**. The core formula is roughly as follows:
 
 $$
-\mathrm{score}(\mathrm{worker}) = \mathrm{matchWeight} \times \mathrm{prefixMatchPercentage} - \mathrm{normalizedLoad}\tag{1}
+\mathrm{score}(\mathrm{worker}) = \mathrm{matchWeight} \times \mathrm{prefixMatchPercentage} - \mathrm{normalizedLoad}
 $$
 
 <span id="section-4-2"></span>

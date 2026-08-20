@@ -52,27 +52,27 @@ $$
 **ゼロポイント量子化。** 正規化動的範囲$\mathit{nd}_{x}$でスケーリングし、ゼロポイント$\mathit{zp}_{x}$だけ移動することで、入力分布を$[-127,127]$の全範囲へ写します。このアフィン変換ではデータ型の全ビットが使われるため、非対称分布の量子化誤差が減少します。たとえばReLUの出力では、絶対最大値量子化だと$[-127,0)$が使われませんが、ゼロポイント量子化なら$[-127,127]$の全範囲を利用できます。式は次のとおりです。
 
 $$
-\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}\tag{1}
+\mathit{nd}_{x_{\mathrm{f16}}}=\dfrac{2\cdot127}{\max\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})-\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})}
 $$
 
 $$
-\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil\tag{2}
+\mathit{zp}_{x_{\mathrm{i16}}}=\left\lfloor\mathbf{X}_{\mathrm{f16}}\cdot\min\limits_{ij}(\mathbf{X}_{\mathrm{f16}}^{ij})\right\rceil
 $$
 
 $$
-\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil\tag{3}
+\mathbf{X}_{\mathrm{i8}}=\left\lfloor\mathit{nd}_{x_{\mathrm{f16}}}\mathbf{X}_{\mathrm{f16}}\right\rceil
 $$
 
 演算でゼロポイント量子化を使うには、テンソル$\mathbf{X}_{\mathrm{i8}}$とゼロポイント$\mathit{zp}_{x_{\mathrm{i16}}}$を特殊命令 [+3] へ渡します。この命令は$\mathbf{X}_{\mathrm{i8}}$の各要素に$\mathit{zp}_{x_{\mathrm{i16}}}$を加えてから、16ビット整数演算を行います。たとえば、ゼロポイント量子化された$A_{\mathrm{i8}}$と$B_{\mathrm{i8}}$を、それぞれのゼロポイント$\mathit{zp}_{a_{\mathrm{i16}}}$、$\mathit{zp}_{b_{\mathrm{i16}}}$とともに乗算する場合、次のように計算します。
 
 $$
-C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})\tag{4}
+C_{\mathrm{i32}}=\mathrm{multiply}_{\mathrm{i16}}(A_{\mathit{zp}_{a_{\mathrm{i16}}}},B_{\mathit{zp}_{b_{\mathrm{i16}}}})=(A_{\mathrm{i8}}+\mathit{zp}_{a_{\mathrm{i16}}})(B_{\mathrm{i8}}+\mathit{zp}_{b_{\mathrm{i16}}})
 $$
 
 乗算命令 multiplyi16 が GPU や TPU のように利用できない場合、展開が必要です。
 
 $$
-C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},\tag{5}
+C_{\mathrm{i32}}=A_{\mathrm{i8}}B_{\mathrm{i8}}+A_{\mathrm{i8}}\mathit{zp}_{b_{\mathrm{i16}}}+B_{\mathrm{i8}}\mathit{zp}_{a_{\mathrm{i16}}}+\mathit{zp}_{a_{\mathrm{i16}}}\mathit{zp}_{b_{\mathrm{i16}}},
 $$
 
 ここで$A_{\mathrm{i8}}B_{\mathrm{i8}}$はInt8精度で計算し、残りはInt16/32精度で計算します。そのため、multiply$_{\mathrm{i16}}$命令が利用できない場合、ゼロポイント量子化は低速になりえます。いずれの場合も、出力は32ビット整数$C_{\mathrm{i32}}$へ累積します。$C_{\mathrm{i32}}$を逆量子化するには、スケーリング定数$\mathit{nd}_{a_{\mathrm{f16}}}$と$\mathit{nd}_{b_{\mathrm{f16}}}$で割ります。
@@ -83,7 +83,7 @@ $$
 \begin{aligned}
 \mathbf{X}_{\mathrm{f16}}\mathbf{W}_{\mathrm{f16}}=\mathbf{C}_{\mathrm{f16}}&\approx\frac{1}{c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S_{\mathrm{f16}}\cdot\mathbf{C}_{\mathrm{i32}}\\
 &\approx S_{\mathrm{f16}}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=S_{\mathrm{f16}}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
-\end{aligned}\tag{6}
+\end{aligned}
 $$
 
 ここで$Q(\cdot)$は絶対最大値量子化またはゼロポイント量子化です。$c_{x_{\mathrm{f16}}}$と$c_{w_{\mathrm{f16}}}$は、それぞれテンソル単位のスケーリング定数であり、絶対最大値量子化では$s_{x}$と$s_{w}$、ゼロポイント量子化では$\mathit{nd}_{x}$と$\mathit{nd}_{w}$です。
@@ -103,7 +103,7 @@ $$
 行列乗算のスケーリング定数を増やす方法の一つは、行列乗算を独立した内積の列として捉えることです。隠れ状態$\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{b\times h}$と重み行列$\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$があるとき、$\mathbf{X}_{\mathrm{f16}}$の各行に異なるスケーリング定数$c_{x_{\mathrm{f16}}}$を、$\mathbf{W}_{\mathrm{f16}}$の各列に$c_{w}$を割り当てられます。逆量子化では、各内積の結果を$1/(c_{x_{\mathrm{f16}}}c_{w_{\mathrm{f16}}})$で非正規化します。行列乗算全体では、外積$\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}$による非正規化に相当します。ここで$\mathbf{c}_{x}\in\mathbb{R}^{s}$、$\mathbf{c}_{w}\in\mathbb{R}^{o}$です。したがって、行と列の定数を用いた行列乗算は次式で表されます。
 
 $$
-\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),\tag{7}
+\mathbf{C}_{\mathrm{f16}}\approx\frac{1}{\mathbf{c}_{x_{\mathrm{f16}}}\otimes\mathbf{c}_{w_{\mathrm{f16}}}}\mathbf{C}_{\mathrm{i32}}=S\cdot\mathbf{C}_{\mathrm{i32}}=\mathbf{S}\cdot\mathbf{A}_{\mathrm{i8}}\mathbf{B}_{\mathrm{i8}}=\mathbf{S}\cdot Q(\mathbf{A}_{\mathrm{f16}})\phantom{.}Q(\mathbf{B}_{\mathrm{f16}}),
 $$
 
 これを行列積のベクトル単位量子化と呼びます。
@@ -115,7 +115,7 @@ $$
 入力行列$\mathbf{X}_{\mathrm{f16}}\in\mathbb{R}^{s\times h}$では、外れ値はほぼすべてのシーケンス次元$s$に規則的に現れますが、特定の特徴/隠れ次元$h$に限られます。そこで、外れ値特徴の次元を集合${O=\{i\mid i\in\mathbb{Z},0\leq i\leq h\}}$へ分離する、行列乗算の混合精度分解を提案します。$O$には、しきい値$\alpha$を超える外れ値を少なくとも一つ含む$h$の全次元が入ります。本研究では、$\alpha=6.0$とすればTransformerの性能低下をほぼゼロに抑えられます。すべての添字を上付きで表すEinstein記法を用いると、重み行列$\mathbf{W}_{\mathrm{f16}}\in\mathbb{R}^{h\times o}$に対する混合精度分解は次式で定義されます。
 
 $$
-\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}\tag{8}
+\mathbf{C}_{\mathrm{f16}}\approx\sum\limits_{h\in O}\mathbf{X}_{\mathrm{f16}}^{h}\mathbf{W}_{\mathrm{f16}}^{h}+\mathbf{S}_{\mathrm{f16}}\cdot\sum\limits_{h\notin O}\mathbf{X}_{\mathrm{i8}}^{h}\mathbf{W}_{\mathrm{i8}}^{h}
 $$
 
 ここで$\mathbf{S}_{\mathrm{f16}}$は、Int8の入力行列$\mathbf{X}_{\mathrm{i8}}$と重み行列$\mathbf{W}_{\mathrm{i8}}$に対する非正規化項です。

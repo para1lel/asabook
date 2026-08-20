@@ -99,7 +99,6 @@ $$
 \mathbf{u}(o)=
 \langle t_{\mathrm{TC}}, t_{\mathrm{CUDA}}, t_{\mathrm{SFU}}, t_{\mathrm{TMEM}},
 t_{\mathrm{SMEM}}, t_{\mathrm{L1.5}}, t_{\mathrm{L2}}, t_{\mathrm{DDR}}, t_{\mathrm{Net}}\rangle .
-\tag{1}
 $$
 
 computed from the tile's operation, footprint, src/dst placement, and one-shot microbenchmark-calibrated rates. A pure tensor-core matmul tile populates only the TC entry; a Blackwell attention tile also charges explicit TMEM traffic for softmax and correction loads/stores; a load tile from DDR populates DDR (and L1.5/L2 if the access hits cache); a remote-load tile populates Net. This vector is more expressive than a roofline scalar because tiles on different pipelines may overlap, while tiles contending for the same pipeline serialize, and remote movement composes with local compute through the same machinery. Two entries of $\mathbf{u}(o)$ are not fixed by the tile in isolation: the L1.5/L2/DDR split for a memory tile depends on whether its access hits cache, derived from tile reuse distance in Section 3.5; the `Net` entry for a remote tile depends on the routed cost of the underlying communication stage, derived in Section 3.6. Algorithm 1 sketches how all components plug into the master loop; subsequent subsections detail each block.
@@ -144,14 +143,12 @@ T =
 T_{\mathrm{pro}} +
 \max(N-d,0)\,T_{\mathrm{steady}} +
 T_{\mathrm{epi}},
-\tag{2}
 $$
 
 where $T_{\mathrm{pro}}$ is the fill cost, $T_{\mathrm{steady}}$ is the overlapped cost per repeated unit, and $T_{\mathrm{epi}}$ is the drain cost. The same envelope applies recursively at every level of the tile execution plan: the steady-state body of an outer envelope (over tile-block waves) can itself be a pipeline (over a $K$-loop), whose steady body can in turn be a pipeline over the inner action sequence. The effective depth combines explicit software-pipeline stages with resident tile interleaving:
 
 $$
 d = \mathrm{stages} \times \mathrm{resident\_tiles\_per\_SM} - 1 .
-\tag{3}
 $$
 
 A two-block-per-SM schedule is therefore not a special case: it deepens the pipeline because an SM can issue work from one resident tile-block while another waits on memory.
@@ -163,7 +160,6 @@ T_{\mathrm{steady}}(\sigma)
 =
 \max_{r}
 \sum_{o \in \sigma} u_r(o),
-\tag{4}
 $$
 
 subject to all data-dependency edges in the DAG. The selected steady state is the best legal ordering:
@@ -171,7 +167,6 @@ subject to all data-dependency edges in the DAG. The selected steady state is th
 $$
 T_{\mathrm{steady}} =
 \min_{\sigma \in \mathrm{Topo}(D)} T_{\mathrm{steady}}(\sigma).
-\tag{5}
 $$
 
 This is a small search in practice because real fused-kernel DAGs are heavily constrained. For MLA decode, 11 tile actions reduce from $11!$ unconstrained permutations to 132 legal topological orders. The search is not an autotuning run: it is an analytical scheduling step over the tile plan, so it remains cheap enough to run inside a cost model.
@@ -232,7 +227,6 @@ For a tensor with `reuse_dims`, TileSight computes a reuse key from the tile's n
 
 $$
 \mathrm{key}(\mathbf{x}, R)=\mathrm{Linearize}\bigl(x_d\mid d\notin R\bigr),
-\tag{6}
 $$
 
 where $\mathbf{x}$ is the tile coordinate and $R$ is the set of reuse dimensions. For GEMM's A matrix with $R=\{N_t\}$, all tiles in the same M-row share the same A key. For B, all tiles in the same N-column share the same B key. The concrete tile execution order, including swizzles and row-panel traversal, determines the sequence in which these keys appear and therefore their reuse distances.
@@ -247,7 +241,6 @@ P(h \mid D_T) =
 \binom{D_T}{a}
 \left(\frac{A}{B_T}\right)^a
 \left(\frac{B_T-A}{B_T}\right)^{D_T-a},
-\tag{7}
 $$
 
 where $A$ is cache associativity and $B_T$ is cache capacity measured in tiles. While accurate, this binomial form is expensive to compute for every tensor key in a large tile grid.
@@ -260,7 +253,6 @@ P(h \mid D_T)_{\mathrm{approx}}
 1 - Q\!\left(
 \frac{|A-1-\mu|}{\sqrt{\sigma^2}}
 \right),
-\tag{8}
 $$
 
 where
@@ -272,7 +264,6 @@ $$
 D_T \cdot \frac{A}{B_T}
 \cdot
 \left(1-\frac{A}{B_T}\right).
-\tag{9}
 $$
 
 $Q(x)$ denotes the complementary cumulative distribution function (CDF) of the standard normal distribution. To further reduce overhead, we apply the Zelen-Severo approximation [Abr65] for the CDF $\Phi(x)$:
@@ -283,7 +274,6 @@ $$
 1 -
 \left(a_1t-a_2t^2+a_3t^3\right)
 \frac{e^{-x^2/2}}{\sqrt{2\pi}},
-\tag{10}
 $$
 
 where $t=(1+0.33267x)^{-1}$ and $a_1,a_2,a_3$ are constants.
@@ -313,7 +303,6 @@ T_k
 \underbrace{
 \max_{l\in\mathcal{L}} \beta_l B_{l,k}
 }_{\mathrm{bottleneck\ link\ serialization}},
-\tag{11}
 $$
 
 where $\mathcal{E}_k$ is the set of logical exchanges in stage $k$, $\mathcal{P}_{sd}$ the physical route for $(s,d,b)$, $B_{l,k}$ the bytes routed through link $l$, and $\alpha_l,\beta_l$ are the calibrated startup latency and inverse bandwidth of link $l$. The cost of an inferred communication sequence is the ordered sum over its stages, $T_c=\sum_{k\in\mathcal{K}_c}T_k$. For algorithms with repeated identical stages such as ring collectives, TileSight evaluates one stage and multiplies by the stage count. The result enters the `Net` dimension of Eq. 1, so cross-device movement is represented as an intra-tile resource requirement and overlaps with local compute through the same steady-state machinery as everything else.

@@ -91,7 +91,7 @@ $E(\beta)$ is then a natural measure of how well $M_{q}$ approximates $M_{p}$. I
 <span id="equation-01"></span>
 
 $$
-E(\#\ \mathrm{generated}\ \mathrm{tokens})=\frac{1-\alpha^{\gamma+1}}{1-\alpha}\tag{1}
+E(\#\ \mathrm{generated}\ \mathrm{tokens})=\frac{1-\alpha^{\gamma+1}}{1-\alpha}
 $$
 
 <span id="figure-02"></span>

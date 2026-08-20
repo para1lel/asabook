@@ -21,7 +21,7 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 
 - Use the same concise English title in all languages and keep it at 50 characters or fewer. Preserve the full source title in the provenance link when shortening it.
 - Preserve numbered section and subsection structure unless a heading exists only for print layout rather than content. Remove an empty generic `Appendix`, `附录`, or `付録` heading when the next heading is the actual Appendix A section.
-- Preserve citations and equation, figure, table, and algorithm numbering.
+- Preserve citations and figure, table, and algorithm numbering. Preserve source equation numbers in stable anchors and linked reference labels, but do not display number tags beside formulas.
 - Reproduce the complete substantive paper in source order. Do not abridge, summarize, expand, or omit body material, but omit the standalone reference list.
 - Render a source run-in paragraph heading such as `\paragraph{Heading.}` at the start of the same Markdown paragraph: `**Heading.** Paragraph text...`. Keep exactly one space after the closing bold marker; never separate the heading from its paragraph with a blank line or line break.
 - Preserve the wording and punctuation of run-in headings in English and translate them faithfully in Chinese and Japanese. Keep actual section headings, figure and table captions, algorithm titles, and labels introducing block content as separate blocks.
@@ -93,9 +93,10 @@ Localized summaries use the same body structure:
 
 ## Math
 
-- Use `$...$` for inline math and `$$...$$` for display math. Keep `\tag{N}` inside the same display-math delimiters as its equation.
+- Use `$...$` for inline math and `$$...$$` for display math. Never add `\tag{N}` or another visible number tag to a formula.
+- Keep a stable HTML anchor immediately before every formula referenced elsewhere, and link the localized reference label to it, for example `[Equation 2](#equation-02)`, `[式 2](#equation-02)`, or `[式 2](#equation-02)`.
 - Write every matrix transpose as `^\top`, never `^{T}`.
-- Verify every numbered display equation in the built page. A literal `\tag{N}` in prose or outside math is invalid.
+- Verify every display equation in the built page. No literal `\tag{N}` may remain in article Markdown.
 - Put prose words, units, abbreviations, and textual subscripts or superscripts inside `\mathrm{}`. Do not infer textual meaning from length alone: products of adjacent single-letter variables such as `RD`, `thm`, `sl_i`, `nst_2`, and `8Bh`, as well as multi-index symbols such as `a_{ij}`, must remain mathematical italics. Use `\mathit{}` for a genuine multi-letter variable name when the source treats the whole sequence as one identifier. The checker reports ambiguous sequences as warnings for source review, not as instructions to add `\mathrm{}`. Examples: `X_{\mathrm{FP}32}`, `X^{\mathrm{unscaled}}`, `\mathrm{round}(x)`, `\mathrm{LZD}(b)`, `RD<1`, and `T_1=C_1(4th^2+2thm)`.
 - Leave single-letter mathematical variables such as `x`, `m`, `W`, and `R` unwrapped.
 - Use semantic built-in operators where available. In particular, use `\min` and `\max`, never raw `min`/`max`, `\mathrm{min}`, or `\mathrm{max}`.
@@ -189,7 +190,7 @@ Example:
 - Confirm every run-in paragraph heading remains bold at the start of its paragraph and that no blank line splits it from the following prose.
 - Compare the canonical kind-and-number sequence of every formal statement across all three languages. Confirm every label is bold and shares its paragraph with the statement.
 - Compare proof-container counts across all three languages. Confirm the summaries are `Proof`, `证明`, and `証明`, every proof is closed by default, and no visible proof prefix or terminal QED mark remains.
-- Compare equation tags, citation-token sets, image basenames, and algorithm step counts.
+- Compare equation anchors, citation-token sets, image basenames, and algorithm step counts.
 - Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
 - Confirm no standalone reference-list or empty generic appendix heading remains.
 - Confirm every title is at most 50 characters and every matrix transpose uses `^\top`.

@@ -47,7 +47,7 @@ $$
 \begin{aligned}
 X_{\mathrm{FP}k} = {(-1)}^{s}2^{p-\mathrm{bias}}(1.\mathrm{mantissa})={(-1)}^{s}2^{p-\mathrm{bias}} \\
 \left(1+\frac{d_{1}}{2}+\frac{d_{2}}{2^{2}}+\ldots+\frac{d_{m}}{2^{m}}\right),
-\end{aligned}\tag{1}
+\end{aligned}
 $$
 
 where $s$ is the sign bit, $p$ is the exponent integer, $\mathrm{bias}$ is applied to the exponent, $m$ is the total number of mantissa bits in the significand, and $d_{1},d_{2},\ldots,d_{m}$ represent the digits of the mantissa part in the binary format.
@@ -65,7 +65,7 @@ $$
 \begin{aligned}
 X^{\mathrm{NF}}_{i} =\frac{1}{2}\Bigl(\mathrm{quantile}\!\left(N(0,1),\frac{i}{2^{k}+1}\right) \\
 \quad+\,\mathrm{quantile}\!\left(N(0,1),\frac{i+1}{2^{k}+1}\right)\Bigr),
-\end{aligned}\tag{2}
+\end{aligned}
 $$
 
 where
@@ -79,7 +79,7 @@ which aims to establish a unified standard for fine-grained sub-blocks of tensor
 The formula is:
 
 $$
-X_{\mathrm{INT}_{k}}=(-1)^{s}(d_{1}2^{m}+d_{2}2^{m-1}+\cdots+d_{m}2^{0}),\quad x\in\mathbb{N}^{+},\tag{3}
+X_{\mathrm{INT}_{k}}=(-1)^{s}(d_{1}2^{m}+d_{2}2^{m-1}+\cdots+d_{m}2^{0}),\quad x\in\mathbb{N}^{+},
 $$
 
 where $m=k-1$ and $s\in\{0,1\}$ for signed integers. $m=k$ for unsigned integers while we regard $s=0$. Therefore, the signed integers range from $[-2^{k-1},2^{k-1}-1]$, and the unsigned one $[0,2^{k}-1]$. Before the advent of LLMs, integer quantization had been applied in BERT-based language models, as demonstrated by [She20].
@@ -109,7 +109,7 @@ p&=\begin{cases}
 4+\mathrm{LZD}(b_{2}b_{1}b_{0}),&b_{3}=1,
 \end{cases}\\
 \mathrm{mantissa}&=b_{2}b_{1}b_{0}\mathbin{\texttt{<<}}(\mathrm{LZD}(b_{2}b_{1}b_{0})+1),
-\end{aligned}\tag{4}
+\end{aligned}
 $$
 
 where the `LZD` denotes the `L`eading `Z`ero `D`etector [Okl94] which accumulates the leading zeros on the left of the bitstring, `<<` is the left shift operation, and $\mathrm{bias}=1$ for float-based Flint4. It expands the range by integrating exponents into the integers, therefore. Compared to pure integers, Flint can represent a larger range with a limited number of bits, which better fits the distribution of LLM parameters.
@@ -117,7 +117,7 @@ where the `LZD` denotes the `L`eading `Z`ero `D`etector [Okl94] which accumulate
 **Adaptive Biased Float (Abfloat)** is first proposed in Outlier-Victim Pair Quantization (OVP) [Guo23] to deal with outliers. The difference to Flint is that Abfloat applies a bigger $\mathrm{bias}$ to the exponent, and left shifts $m$-bit to enlarge the $1$ before `mantissa`, making the magnitude even larger to cover the outliers. The $\mathrm{E}e\mathrm{M}m$ Abfloat value can be expressed as:
 
 $$
-X_{\mathrm{Abfloat}}=(-1)^{s}\times 2^{p+\mathrm{bias}}\times(2^{m}+\mathrm{mantissa}).\tag{5}
+X_{\mathrm{Abfloat}}=(-1)^{s}\times 2^{p+\mathrm{bias}}\times(2^{m}+\mathrm{mantissa}).
 $$
 
 When $\mathrm{bias}=0$, the range is similar to $\mathrm{Flint}4$. With $\mathrm{bias}=2$ for E2M1, the range changes to $\{12,\dots,96\}$. With $\mathrm{bias}=3$, the range further extends to $\{24,\dots,192\}$.
@@ -126,13 +126,13 @@ The other difference to Flint is that Abfloat is only adopted on outliers, but t
 **Student Float (SF)** [Dot24] follows the floating-point format but has specific fixed points for quantization, which is different from the above two types. SF is an improvement of NF in Section 2.1.1 and holds the view that the parameters obey Student’s t-distribution $S(t;\nu)$, of which the probability density function is:
 
 $$
-S(t;\nu)=\frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{t^{2}}{\nu}\right)^{-\frac{\nu+1}{2}},\tag{6}
+S(t;\nu)=\frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{t^{2}}{\nu}\right)^{-\frac{\nu+1}{2}},
 $$
 
 where $t$ and $\nu$ are the independent variable and degrees of freedom, respectively, and $\Gamma$ is generalized factorial.
 
 $$
-\tilde{X}^{\mathrm{SF}}_{i}=\mathrm{quantile}\left(S(t;\nu),q_{i}\right),\quad q_{i}=\begin{cases}\omega+(\frac{1}{2}-\omega)\frac{i-1}{7}&i\in\{1,\dots,8\}\\ \frac{1}{2}+(\frac{1}{2}-\omega)\frac{i-8}{8}&i\in\{9,\dots,16\}\end{cases},\tag{7}
+\tilde{X}^{\mathrm{SF}}_{i}=\mathrm{quantile}\left(S(t;\nu),q_{i}\right),\quad q_{i}=\begin{cases}\omega+(\frac{1}{2}-\omega)\frac{i-1}{7}&i\in\{1,\dots,8\}\\ \frac{1}{2}+(\frac{1}{2}-\omega)\frac{i-8}{8}&i\in\{9,\dots,16\}\end{cases},
 $$
 
 where $\omega=\frac{1}{2}(\frac{1}{32}+\frac{1}{30})$, $\{q_{1},\dots,q_{8}\}$ and $\{q_{9},\dots,q_{16}\}$ are two groups of evenly spaced quantiles. Then we normalize $\tilde{X}^{\mathrm{SF}}$ to $[-1,1]$ by ${X}^{\mathrm{SF}}_{i}=\frac{\tilde{X}^{\mathrm{SF}}_{i}}{\max_{i}|\tilde{X}^{\mathrm{SF}}_{i}|}$.
@@ -369,7 +369,7 @@ Dequantizing floating-point numbers to higher bitwidth is straightforward. In th
 We first scale the floating-point numbers to the representation span of $\mathrm{INT}k$ by dividing the scaling factor $s\in\mathbb{R}^{+}$, and adding a zero-point $z\in\mathbb{Z}$ to shift the clamped range [Wu20]. $\mathrm{round}(\cdot)$ is the round-to-the-nearest function, and $\mathrm{clamp}(\cdot,q^{\min},q^{\max})$ restricts values to be within the representation span of $k$-bit with $q^{\min}=-2^{k-1},q^{\max}=2^{k-1}-1$ in symmetric quantization and $q^{\min}=0,q^{\max}=2^{k}-1$ in asymmetric quantization. Therefore, the overall quantization formulation can be written as:
 
 $$
-X_{\mathrm{INT}_{k}}=\mathrm{clamp}\left(\mathrm{round}\left(\frac{X_{\mathrm{FP}}}{s}\right)+z,q^{\min},q^{\max}\right),\tag{8}
+X_{\mathrm{INT}_{k}}=\mathrm{clamp}\left(\mathrm{round}\left(\frac{X_{\mathrm{FP}}}{s}\right)+z,q^{\min},q^{\max}\right),
 $$
 
 where the scaling factor $s$ can be initialized as $s_{0}=({X_{\mathrm{FP}}^{\max}-X_{\mathrm{FP}}^{\min}})/$ $({q^{\max}-q^{\min}}),$
@@ -407,17 +407,17 @@ QQQ [Zha24a] designs a faster FP16 to INT8 conversion, named `FastFP16toINT8`. I
 It means projecting the integers back to the real numbers by multiplying the scaling factors, which can be expressed as:
 
 $$
-\hat{X}_{\mathrm{FP}}=s\cdot(X_{\mathrm{INT}x}-z)\approx X_{\mathrm{FP}}.\tag{9}
+\hat{X}_{\mathrm{FP}}=s\cdot(X_{\mathrm{INT}x}-z)\approx X_{\mathrm{FP}}.
 $$
 
 Therefore, in many works $s$ can also be initialized by searching from candidates to find an optimal [Wei23]:
 
 $$
-s_{\mathrm{candidate}} =\frac{i}{\mathrm{num}_{i}}s_{0},\qquad i\in\mathbb{Z}^{+},i\in(0,\mathrm{num}_{i}).\tag{10}
+s_{\mathrm{candidate}} =\frac{i}{\mathrm{num}_{i}}s_{0},\qquad i\in\mathbb{Z}^{+},i\in(0,\mathrm{num}_{i}).
 $$
 
 $$
-\mathrm{s.t.}\;\min\|{X}_{\mathrm{FP}}-\hat{X}_{\mathrm{FP}}\|_{p}.\tag{11}
+\mathrm{s.t.}\;\min\|{X}_{\mathrm{FP}}-\hat{X}_{\mathrm{FP}}\|_{p}.
 $$
 
 where $\mathrm{num}_{i}$ means the number of candidates, which is always set as 50, 100 and so on [Yua24a, Wei23]. $s$ can also be a learnable parameter [Wei23, Sha23]. The way to find a better $s$ has been widely studied before LLMs emerged [Din24, Wei23a, Tia24a].
@@ -429,7 +429,7 @@ For system support, we first unpack the elements according to the way we pack th
 It takes the `sign` or `bool` function to abstract the sign:
 
 $$
-X_{\mathrm{sign}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ -1,&X_{\mathrm{FP}}<0,\end{cases}\quad X_{\mathrm{bool}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ 0,&X_{\mathrm{FP}}<0.\end{cases}\tag{12}
+X_{\mathrm{sign}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ -1,&X_{\mathrm{FP}}<0,\end{cases}\quad X_{\mathrm{bool}}=\begin{cases}1,&X_{\mathrm{FP}}\geq 0,\\ 0,&X_{\mathrm{FP}}<0.\end{cases}
 $$
 
 Using `sign` or `bool` depends on the algorithm design, i.e. what value we expect the bits to represent. For example, binarized transformers always use `bool` function on attention scores and the post-ReLU activation. While the weight and activation in linear functions take `sign` function. Since the hardware always regards the bits as 0 or 1, we can assemble instructions to achieve any desired matrix multiplication ([Link](https://github.com/yifu-ding/BGEMM-CUDA)).
@@ -464,15 +464,15 @@ There are different strategies to accelerate the training of Large Language Mode
 **FP8 training.** Since some hardware vendors like NVIDIA or AMD have designated new architectures supporting FP8 or FP4 formats. To achieve satisfactory acceleration with little modification, we can utilize the library Transformer Engine provided by vendors. While the dynamic range provided by the FP8 types is sufficient to store any particular activation or gradient, it is not sufficient for all of them at the same time. This makes the single loss scaling factor strategy, which worked for FP16, infeasible for FP8 training and instead requires using distinct scaling factors for each FP8 tensor. The scaling process can be formulated as:
 
 $$
-\mathrm{FP8\_MAX}=\mathrm{maximum\_representable\_value}(\mathrm{fp8\_format}),\tag{13}
+\mathrm{FP8\_MAX}=\mathrm{maximum\_representable\_value}(\mathrm{fp8\_format}),
 $$
 
 $$
-\mathrm{exp}=\mathrm{get\_exponent}(\mathrm{FP8\_MAX}/\mathrm{amax}),\tag{14}
+\mathrm{exp}=\mathrm{get\_exponent}(\mathrm{FP8\_MAX}/\mathrm{amax}),
 $$
 
 $$
-\mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.\tag{15}
+\mathrm{new\_scaling\_factor}=2.0^{\mathrm{exp}}.
 $$
 
 $\mathrm{fp8\_format}$ indicates the formats like E4M3 or E5M2. $\mathrm{FP8\_MAX}$ is the relevant max value under that format. $\mathrm{amax}$ is the maximal absolute value of the tensor. Then we can calculate the $\mathrm{new\_scaling\_factor}$ with $\mathrm{exp}$. However, the calculation of $\mathrm{new\_scaling\_factor}$ can not be online since it will introduce much more memory access. The best practice is to employ delayed scaling. This strategy chooses the scaling factor based on the maximums of absolute values seen in some number of previous iterations. This enables the full performance of FP8 computation but requires storing the history of maximums as additional parameters of the FP8 operators. Deepseek V3 [Dee24a], one of the state-of-the-art models, introduces fine-grained block-wise FP8 quantization, enabling highly accurate FP8 training. In [Table 3](#table-03), we list the prevalent frameworks and engines that support low-bit floating-point training, including the Deepspeed ([Link](https://github.com/microsoft/DeepSpeed)) from Microsoft, Megatron-LM ([Link](https://github.com/NVIDIA/Megatron-LM)) from NVIDIA, and UnitScaling ([Link](https://github.com/graphcore-research/unit-scaling)) from GraphCore.
@@ -508,7 +508,7 @@ Low-Rank Adaptation (LoRA) [Hu21] freezes the pre-trained weights and only train
 Methods like QLoRA [Det24] utilize low-bit quantization to further reduce the memory occupation by fine-tuning the LoRA for quantized LLMs. They first quantize the pre-trained LLM to low bits using PTQ methods:
 
 $$
-\textbf{W}_{q}\leftarrow \mathrm{quant}(\textbf{W}),\tag{16}
+\textbf{W}_{q}\leftarrow \mathrm{quant}(\textbf{W}),
 $$
 
 Where **W** is the weight of each layer.
@@ -516,7 +516,7 @@ Where **W** is the weight of each layer.
 Then, they freeze all weight parameters and update only the LoRA during fine-tuning, with the forward pass as follows:
 
 $$
-\textbf{Y}=\textbf{X}\cdot \mathrm{dequant}(\textbf{W}_{q})+\textbf{X}\cdot\textbf{A}\textbf{B},\tag{17}
+\textbf{Y}=\textbf{X}\cdot \mathrm{dequant}(\textbf{W}_{q})+\textbf{X}\cdot\textbf{A}\textbf{B},
 $$
 
 Where **X** is the input of each layer.
@@ -573,13 +573,13 @@ Many studies [Luo20, Bon21, Wei23, Xia23] have highlighted the presence of signi
 Among all the algorithms addressing the outlier problem, equivalent transformation is one of the most representative and effective methods. One of the pioneering works in applying the equivalent transformation to language models is the Outlier Suppression (OS) [Wei22]. OS splits the LayerNorm function and migrates $\gamma$, which is a parameter of LayerNorm, to avoid the outlier.
 
 $$
-\textbf{X}_{j}=\textbf{X}^{\prime}_{j}\cdot\gamma_{j}\tag{18}
+\textbf{X}_{j}=\textbf{X}^{\prime}_{j}\cdot\gamma_{j}
 $$
 
 Then the LayerNorm becomes the non-scaling one, and the weight of the next layer can absorb the $\gamma$:
 
 $$
-\textbf{W}(x\odot\begin{bmatrix}\gamma_{1}\\ \gamma_{2}\\ \cdots\\ \gamma_{n}\end{bmatrix})=(\textbf{W}\odot\begin{bmatrix}\gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \cdots\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\end{bmatrix})x\tag{19}
+\textbf{W}(x\odot\begin{bmatrix}\gamma_{1}\\ \gamma_{2}\\ \cdots\\ \gamma_{n}\end{bmatrix})=(\textbf{W}\odot\begin{bmatrix}\gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\\ \cdots\\ \gamma_{1}&\gamma_{2}&\cdots&\gamma_{n}\end{bmatrix})x
 $$
 
 By doing so, OS can suppress the outliers. Starting from the OS method, numerous subsequent equivalent transformation techniques have emerged. Most equivalent transformation methods alleviate the impact of outliers on quantization by making the outliers in weights or activations more symmetrical and smooth, which can be formulated as follows:
@@ -588,7 +588,7 @@ $$
 \begin{aligned}
 \textbf{Y}&=\textbf{X}\textbf{W}+\textbf{B} \\
 &=[(\textbf{X}-\Delta)\cdot\textbf{M}^{-1}]\cdot[\textbf{M}\cdot\textbf{W}]+(\textbf{B}+\Delta\cdot\textbf{W}),
-\end{aligned}\tag{20}
+\end{aligned}
 $$
 
 where $\Delta$ is a shifting factor used to make the distribution of outliers in the input symmetrical, and **M** is a matrix used to make the distribution smoother. By adopting the aforementioned equivalent transformation, many existing quantization methods have achieved state-of-the-art (SOTA) performance under various quantization settings and scenarios.
@@ -606,19 +606,19 @@ Based on the implementation, equivalent transformation can be further subdivided
 Outliers in LLMs are asymmetrically distributed across different channels. This asymmetrical representation can cause a tensor composed of channels with small ranges to exhibit a very large overall range, resulting in difficulty in the quantization process. To address this issue, OS+ [Wei23] first proposes the channel-wise shifting transformation, which adjusts activations across channels to mitigate the impact of asymmetry as the following equation:
 
 $$
-\hat{X}=X-\Delta,\tag{21}
+\hat{X}=X-\Delta,
 $$
 
 where $\Delta\in\mathbb{R}^{c\times 1}$ serves as a row vector and shifts each channel of the activations. Note that this operation is not the conventional shifting operation used in symmetric quantization. Instead, it operates on a channel-wise basis and provides a better distribution for per-tensor quantization. In detail, OS+ defined $\Delta$ in a handicraft-way:
 
 $$
-\Delta_{j}=\frac{\max(\textbf{X}_{:,j})+\min(\textbf{X}_{:,j})}{2}.\tag{22}
+\Delta_{j}=\frac{\max(\textbf{X}_{:,j})+\min(\textbf{X}_{:,j})}{2}.
 $$
 
 With the channel-wise shifting in place, the tensor range is reduced to the largest channel range, eliminating the influence of asymmetric outliers. However, handcrafting the equivalent parameters leads to sub-optimal results. Hence OmniQuant [Sha23] is proposed to determine the optimal shifting parameters in a differentiable way by including the block-wise quantization error minimization:
 
 $$
-\underset{\Delta}{\mathrm{arg}\,\min}\,\|\mathcal{O}(\textbf{W},\textbf{X})-\mathcal{O}\big(Q_{w}\left(\textbf{W};\Delta\right),Q_{a}\left(\textbf{X};\Delta\right)\big)\|,\tag{23}
+\underset{\Delta}{\mathrm{arg}\,\min}\,\|\mathcal{O}(\textbf{W},\textbf{X})-\mathcal{O}\big(Q_{w}\left(\textbf{W};\Delta\right),Q_{a}\left(\textbf{X};\Delta\right)\big)\|,
 $$
 
 where $\mathcal{O}$ represents the mapping function for a transformer block in the LLM, $Q_{w}(\cdot)$ and $Q_{a}(\cdot)$ denote the weight and activation quantizer respectively, $\Delta$ is the shifting parameter. Block-wise minimization is easy to optimize with minimal resource requirements.
@@ -637,13 +637,13 @@ We illustrate the diagram of shifting transformation as shown in [Figure 9](#fig
 Shifting transformation effectively addresses the issue of asymmetrical distribution of outliers in activations, reducing the large range caused by the asymmetry. However, this only aids per-tensor quantization and does not reduce the difficulty of per-channel quantization, as it does not fundamentally eliminate the outliers distributed across channels in the activations. To further reduce the impact of outliers on quantization, SmoothQuant [Xia23] initially proposes to use a scaling transformation. It relies on a key observation: although activations are much more difficult to quantize than weights due to the presence of outliers, different tokens exhibit similar variations across their channels [Det22]. Based on this observation, SmoothQuant migrates the quantization difficulty from activations to weights offline by introducing a mathematically equivalent per-channel scaling transformation that significantly smooths the magnitudes across channels:
 
 $$
-\textbf{Y}=(\textbf{X}\mathrm{diag}(\Phi)^{-1})\cdot(\mathrm{diag}(\Phi)\textbf{W})=\hat{\textbf{X}}\hat{\textbf{W}},\tag{24}
+\textbf{Y}=(\textbf{X}\mathrm{diag}(\Phi)^{-1})\cdot(\mathrm{diag}(\Phi)\textbf{W})=\hat{\textbf{X}}\hat{\textbf{W}},
 $$
 
 where $s$ is a smoothing factor. Note that $\mathrm{diag}(\Phi)$ corresponds to the matrix $M$ in Equation 22, but it is a diagonal matrix used to achieve per-channel smoothing. SmoothQuant introduces a hyper-parameter $\alpha$ as the migration strength to control how much difficulty to migrate from activation to weights, using the following equation:
 
 $$
-\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)^{\alpha}}{\max(|\textbf{W}_{j}|)^{1-\alpha}}.\tag{25}
+\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)^{\alpha}}{\max(|\textbf{W}_{j}|)^{1-\alpha}}.
 $$
 
 However, this method requires multiple trials to determine the optimal migration strength for different models, i.e., $\alpha=0.5$ is a well-balanced point for all OPT [Zha22] and BLOOM [Les23] models.
@@ -652,7 +652,7 @@ Inspired by SmoothQuant, FPTQ [Li23c] argues that it is unnecessary to consider 
 function to improve the calculation of the smooth matrix $s$:
 
 $$
-\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)}{\log_{2}(2+\max(\textbf{X}_{j}))}.\tag{26}
+\Phi_{j}=\frac{\max(|\textbf{X}_{j}|)}{\log_{2}(2+\max(\textbf{X}_{j}))}.
 $$
 
 In addition to FPTQ, many other works have followed the approach of SmoothQuant. Both OS+ and AWQ [Lin24] use searching-based methods to find the smooth scale. However, the optimization objectives and search spaces of the two methods differ. The optimization objective of OS+ is:
@@ -661,13 +661,13 @@ $$
 \begin{aligned}
 \Phi^{*} = \underset{\Phi}{\mathrm{arg}\,\min}\,\mathbb{E}\|Q\big((\textbf{X}-\Delta)\cdot \mathrm{diag}(\Phi)^{-1}\big)Q\big(\mathrm{diag}(\Phi)\cdot\textbf{W}^{\mathsf{T}}\big) \\
 +\hat{\textbf{b}}-(\textbf{X}\textbf{W}^{\mathsf{T}}+\textbf{b})\|^{2}_{F}.
-\end{aligned}\tag{27}
+\end{aligned}
 $$
 
 To simplify the search space, OS+ optimizes the outlier threshold $t$, compressing channels with an activation range over $t$ into $(-t,t)$ and leaving others unchanged. This reduces the problem to a single variable. A grid search is then used for $t$ to minimize the objective. After finding the optimal $t$, the scaling vector is calculated as follows:
 
 $$
-\Phi_{j}=\max(1.0,\frac{\max(\textbf{X}_{:,j}-\Delta_{j})}{t}).\tag{28}
+\Phi_{j}=\max(1.0,\frac{\max(\textbf{X}_{:,j}-\Delta_{j})}{t}).
 $$
 
 AWQ finds that the saliency of weight channels is actually determined by the activation scale. To this end, it adopts an activation-awareness optimization objective and uses a very simple search space:
@@ -676,7 +676,7 @@ $$
 \begin{aligned}
 \Phi ={\Phi_{x}}^{\alpha}, \\
 \alpha^{*} =\underset{\alpha}{\mathrm{arg}\,\min}\,\left\|Q\!\left(\textbf{W}\cdot\mathrm{diag}({\Phi_{x}}^{\alpha})\right)(\mathrm{diag}({\Phi_{x}}^{\alpha}))^{-1}\textbf{X}-\textbf{W}\textbf{X}\right\|,
-\end{aligned}\tag{29}
+\end{aligned}
 $$
 
 where ${\Phi_{x}}$ is the average magnitude of activation (per channel), and use a single hyper-parameter $\alpha$ to balance between the protection of salient and non-salient channels.
@@ -690,7 +690,7 @@ We also illustrate the diagram of scaling transformation in [Figure 10](#figure-
 Rotation transformation was first introduced by QuIP [Che24b]. QuIP is based on the insight that quantization works better when the weight and Hessian matrices are incoherent. This means that the weights should have similar magnitudes and the directions that require precise rounding should not align with the coordinate axes. To make it straight, a weight matrix is $\mu$-incoherent if:
 
 $$
-\max(\textbf{W})\leq\mu\|\textbf{W}\|_{F}/\sqrt{mn},\tag{30}
+\max(\textbf{W})\leq\mu\|\textbf{W}\|_{F}/\sqrt{mn},
 $$
 
 where $mn$ is the number of the matrix elements and $\|\cdot\|_{F}$ is the Frobenius norm. QuIP shows that multiplying a weight matrix on the left and right by an orthogonal matrix can reduce incoherence, which is equal to performing a rotation transformation on the weight matrix. QuIP utilizes Kronecker-structured orthogonal matrices, allowing for rapid additional computations. Building on this, QuIP# [Tse24] replaces these with Hadamard matrices, enhancing quantization through better incoherence and speeding up the forward pass, as the Hadamard transform can be computed in $\mathcal{O}(n\log n)$ addition operations.
@@ -707,7 +707,7 @@ However, both the orthogonal matrices in QuIP and the Hadamard matrices in QuIP#
 SpinQuant [Liu24b] finds that the performance of a quantized network can vary significantly with different rotation matrices. For example, the average accuracy on downstream zero-shot reasoning tasks can fluctuate by up to 13 points depending on the rotation used on the MMLU benchmark. Therefore SpinQuant proposes a learning-based rotation transformation. The rotation matrix is learned using the Cayley SGD method, with the following optimization objective:
 
 $$
-\textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).\tag{31}
+\textbf{R}^{*}=\underset{\textbf{R}\in\mathcal{M}}{\mathrm{arg}\,\min}\,\mathcal{L}_{Q}(\textbf{R}|\textbf{W},\textbf{X}).
 $$
 
 Here, $\mathcal{M}$ presents the Stiefel manifold, i.e., the set of all orthogonal matrices. $\mathcal{L}_{Q}(\cdot)$ denotes the task loss. By employing the learned matrix, the performance is improved significantly and the variance becomes much smaller compared with randomized matrices. The diagram in SpinQuant [Liu24b] effectively illustrates the overall process of the rotation transformation, so we have borrowed it for our purposes as shown in [Figure 11](#figure-11). Specifically, for Quarot [Ash24], since it employs a head-wise rotation transformation at $R_{2}$, an online Hadamard matrix needs to be inserted before quantizing the attention output to achieve an equivalent transformation. DuQuant [Lin24b] identifies the limitations of these methods in smoothing massive outliers and therefore utilizes rotation and permutation transformations based on prior knowledge. Meanwhile, unlike SpinQuant, a greedy search strategy is employed to optimize the rotation matrix. PrefixQuant [Che24c] discovers the token-wise outliers, especially appearing in initial tokens and low-semantic tokens. Since these tokens remain unchanged across all inputs, PrefixQuant stores their KV cache through offline prefilling.
@@ -721,11 +721,11 @@ The weight compensation technique, originally stemming from Optimal Brain Damage
 Although one-by-one weight quantization methods have achieved satisfactory performance on smaller models, the computational overhead becomes prohibitive when scaling to larger models. To accelerate quantization, GPTQ [Fra22] quantizes the weights column-by-column, and the rounding errors are compensated using second-order information. Specifically, this algorithm compensates for the quantization error induced by the quantized weights $\mathrm{Quant}(\mathbf{W}_{i})$ by adjusting the subset R of full-precision weights $R$ with an update $\boldsymbol{\delta}_{R}$:
 
 $$
-\mathbf{W}_{i}=\underset{\mathbf{W}_{i}}{\mathrm{arg}\,\min}\,\frac{(\mathrm{Quant}(\mathbf{W}_{i})-\mathbf{W}_{i})^{2}}{[\mathbf{H}_{R}^{-1}]_{ii}}.\tag{32}
+\mathbf{W}_{i}=\underset{\mathbf{W}_{i}}{\mathrm{arg}\,\min}\,\frac{(\mathrm{Quant}(\mathbf{W}_{i})-\mathbf{W}_{i})^{2}}{[\mathbf{H}_{R}^{-1}]_{ii}}.
 $$
 
 $$
-\boldsymbol{\delta}_{R}=-\frac{\mathbf{W}_{i}-\mathrm{Quant}(\mathbf{W}_{i})}{[\mathbf{H}_{R}^{-1}]_{ii}}\cdot(\mathbf{H}_{R}^{-1})_{:,i}.\tag{33}
+\boldsymbol{\delta}_{R}=-\frac{\mathbf{W}_{i}-\mathrm{Quant}(\mathbf{W}_{i})}{[\mathbf{H}_{R}^{-1}]_{ii}}\cdot(\mathbf{H}_{R}^{-1})_{:,i}.
 $$
 
 where the Hessian matrix is $\mathbf{H}_{R}=2\mathbf{X}_{R}\mathbf{X}_{R}^{\top}$. Based on GPTQ, several works have been successively proposed. QuantEase [Beh23] utilizes the Coordinate Descent to compute more precise compensation for the unquantized weights. QQQ [Zha24a] adopts the GPTQ for the transferred weights by OS+ [Wei23].
@@ -767,7 +767,7 @@ $$
 \textbf{A}_{ij} =\max(\hat{\textbf{Y}}_{:i})-\min(\hat{\textbf{Y}}_{:i}), \\
 \mathrm{where}\qquad\hat{\textbf{Y}}=\textbf{X}\cdot(\Theta(\textbf{W};i;j))^{\mathsf{T}}, \\
 \textbf{S}_{ij} =\textbf{I}_{ij}+\lambda\textbf{A}_{ij}.
-\end{aligned}\tag{34}
+\end{aligned}
 $$
 
 Here, $\Theta(\textbf{W};i;j)$ denotes an auxiliary weight matrix when setting the element at $i$th row and $j$th column as 0 in **W**. $\lambda$ is a trade-off factor. By using this metric, a better trade-off between preserving outliers for more information and minimizing the activation range for better quantization can be achieved.
@@ -797,7 +797,7 @@ Floating-Point (FP) quantization offers better hardware support compared to NF/S
 Vector Quantization (VQ) quantizes multiple vector dimensions jointly. It achieves this by learning codebooks $C_{1},...,C_{M}$, each containing $2^{B}$ vectors (for B-bit codes). To encode a given database vector, VQ splits it into sub-groups of entries, and then encodes every group by choosing a vector from the learned codebook. A part of the weights of $i$-th layer is encoded by choosing a single code from each codebook and summing them up:
 
 $$
-\widehat{W}_{i,j}=\sum_{m=1}^{M}{C_{m}d_{ijm}}\tag{35}
+\widehat{W}_{i,j}=\sum_{m=1}^{M}{C_{m}d_{ijm}}
 $$
 
 where $d_{ijm}\in\mathbb{R}^{2^{B}}$ represents a one-hot code for the $i$-th output unit, $j$-th group of input dimensions and $m$-th codebook.
@@ -805,7 +805,7 @@ where $d_{ijm}\in\mathbb{R}^{2^{B}}$ represents a one-hot code for the $i$-th ou
 To represent the full weights of $i$-th layer, simply concatenate:
 
 $$
-\widehat{W}_{i}=\widehat{W}_{1}\oplus...\oplus\widehat{W}_{d_{\mathrm{in}}/g}\tag{36}
+\widehat{W}_{i}=\widehat{W}_{1}\oplus...\oplus\widehat{W}_{d_{\mathrm{in}}/g}
 $$
 
 where $\oplus$ denotes concatenation.

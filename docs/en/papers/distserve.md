@@ -114,22 +114,28 @@ After disaggregation, the prefill phase generates the first token by processing 
 
 We start by developing notations using the single-device case without parallelism: each request’s execution time, denoted as $D$, remains constant due to uniform prefill length. Since one request saturates the GPU, we schedule requests via First-Come-First-Served (FCFS) without batching. Suppose the Poisson arrival rate is $R$ and the utilization condition of $R D<1$, the average TTFT ($\mathit{Avg\_TTFT}$) can be modeled by the M/D/1 queue [Sho18] in close form:
 
+<span id="S3.E1"></span>
+
 $$
-\small \mathit{Avg\_TTFT}=D+\frac{R D^{2}}{2(1-R D)}.\tag{1}
+\small \mathit{Avg\_TTFT}=D+\frac{R D^{2}}{2(1-R D)}.
 $$
 
 where the first term represents the execution time and the second corresponds to the queuing delay. Based on Eq. [1](#S3.E1 "Equation 1 ‣ 3.1 Analysis for Prefill Instance ‣ 3 Tradeoff Analysis ‣ DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving"), we incorporate parallelism below.
 
 With 2-way inter-op parallelism, we assume the request-level latency becomes $D_{s}$, and the slowest stage takes $D_{m}$ to finish. We have $D\approx D_{s}\approx 2\times D_{m}$, due to negligible inter-layer activation communication [Zhe22, Li23j]. The average TTFT with 2-way inter-op parallelism is derived as:
 
+<span id="S3.E2"></span>
+
 $$
-\small \mathit{Avg\_TTFT}_{\mathrm{inter}}=D_{s}+\frac{R D_{m}^{2}}{2(1-R D_{m})}=D+\frac{R D^{2}}{4(2-R D)}.\tag{2}
+\small \mathit{Avg\_TTFT}_{\mathrm{inter}}=D_{s}+\frac{R D_{m}^{2}}{2(1-R D_{m})}=D+\frac{R D^{2}}{4(2-R D)}.
 $$
 
 For intra-op parallelism, we introduce a speedup coefficient $K$, where $1<K<2$, reflecting the imperfect speedup caused by high communication overheads of intra-op parallelism. With the execution time $D_{s}=\frac{D}{K}$, the average TTFT for 2-degree intra-op parallelism is:
 
+<span id="S3.E3"></span>
+
 $$
-\small \mathit{Avg\_TTFT}_{\mathrm{intra}}=\frac{D}{K}+\frac{R D^{2}}{2K(K-R D)}.\tag{3}
+\small \mathit{Avg\_TTFT}_{\mathrm{intra}}=\frac{D}{K}+\frac{R D^{2}}{2K(K-R D)}.
 $$
 
 Comparing Eq. [2](#S3.E2 "Equation 2 ‣ 3.1 Analysis for Prefill Instance ‣ 3 Tradeoff Analysis ‣ DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving") and Eq. [3](#S3.E3 "Equation 3 ‣ 3.1 Analysis for Prefill Instance ‣ 3 Tradeoff Analysis ‣ DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving"): at lower rates, where execution time (first term) is the primary factor, intra-op parallelism’s reduction in execution time makes it more efficient. As the rate increases and the queuing delay (second term) becomes more significant, inter-op parallelism becomes advantageous, concurred with [Figure 4](#figure-04)(a).

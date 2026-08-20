@@ -105,8 +105,18 @@ function numberedHeadings(markdown) {
   return [...markdown.matchAll(/^#{2,6}\s+(\d+(?:\.\d+)*)\b/gm)].map((match) => match[1])
 }
 
-function equationTags(markdown) {
-  return [...markdown.matchAll(/\\tag\{([^}]+)\}/g)].map((match) => match[1])
+function equationAnchors(markdown) {
+  return [...markdown.matchAll(/<span id="([^"]+)"><\/span>\s*\$\$/g)].map((match) => match[1])
+}
+
+function validateFormulaReferenceTargets(markdown, label) {
+  const anchors = new Set(
+    [...markdown.matchAll(/<span\s+id="([^"]+)"><\/span>/g)].map((match) => match[1]),
+  )
+  const targetPattern = /\]\(#((?:equation-[^)\s"]+)|(?:[AS]\d+(?:\.[A-Z]+)*\.E\d+))(?:\s+["'][^)]*["'])?\)/g
+  for (const match of markdown.matchAll(targetPattern)) {
+    if (!anchors.has(match[1])) fail(label + ': formula reference target #' + match[1] + ' does not exist')
+  }
 }
 
 function consecutiveHyphenLines(markdown) {
@@ -538,8 +548,7 @@ for (const page of pages) {
     }
   })
 
-  const withoutMath = markdown.replace(/\$\$[\s\S]*?\$\$/g, '').replace(/(?<!\\)\$(?!\$)[^$\n]+?(?<!\\)\$/g, '')
-  if (/\\tag\{[^}]+\}/.test(withoutMath)) fail(`${label}: equation tag appears outside math delimiters`)
+  if (/\\tag\s*\{[^}]+\}/.test(markdown)) fail(`${label}: visible equation tags are not allowed`)
   if (/^```pseudocode/m.test(markdown)) {
     warn(`${label}: review pseudocode fence; math-heavy algorithms must use nested unordered lists`)
   }
@@ -547,6 +556,7 @@ for (const page of pages) {
   validateRunInParagraphHeadings(markdown, label)
   const formalContent = validateFormalStatementsAndProofs(markdown, page.locale, label)
   validateNoTypesetTables(markdown, label)
+  validateFormulaReferenceTargets(markdown, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {
     fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)
@@ -561,7 +571,7 @@ for (const page of pages) {
     citations: extractCitations(markdown),
     images: extractImageBasenames(markdown, page.path, label),
     headings: numberedHeadings(markdown),
-    tags: equationTags(markdown),
+    equationAnchors: equationAnchors(markdown),
     figureTableCaptions,
     formalStatements: formalContent.statements,
     proofCount: formalContent.proofCount,
@@ -574,7 +584,7 @@ if (pageData.length === pages.length) {
     if (page.frontmatter.title !== base.frontmatter.title) {
       fail(`${page.label}: title differs from ${base.label}`)
     }
-    for (const field of ['headings', 'tags', 'images', 'figureTableCaptions', 'formalStatements']) {
+    for (const field of ['headings', 'equationAnchors', 'images', 'figureTableCaptions', 'formalStatements']) {
       if (JSON.stringify(page[field]) !== JSON.stringify(base[field])) {
         fail(`${page.label}: ${field} sequence differs from ${base.label}`)
       }

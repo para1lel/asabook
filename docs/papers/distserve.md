@@ -114,22 +114,28 @@ DistServe 将预填充与解码计算分配到不同的 GPU, 从而消除两者�
 
 我们先从不使用并行的单设备情形定义符号: 由于预填充长度相同, 每个请求的执行时间 $D$ 保持不变. 单个请求就能使 GPU 饱和, 因此请求采用先到先服务 (FCFS) 调度, 不做批处理. 假设泊松到达率为 $R$, 利用率条件为 $R D<1$, 则平均 TTFT ($\mathit{Avg\_TTFT}$) 可由 M/D/1 队列 [Sho18] 的闭式解建模:
 
+<span id="S3.E1"></span>
+
 $$
-\small \mathit{Avg\_TTFT}=D+\frac{R D^{2}}{2(1-R D)},\tag{1}
+\small \mathit{Avg\_TTFT}=D+\frac{R D^{2}}{2(1-R D)},
 $$
 
 其中第一项代表执行时间, 第二项对应排队延迟. 基于公式 [1](#S3.E1), 我们结合了并行性.
 
 在 2 路算子间并行情况下, 我们假设请求级延迟变为 $D_{s}$, 且最慢阶段需要 $D_{m}$ 完成. 由于层间激活通信可以忽略不计 [Zhe22, Li23j], 有 $D\approx D_{s}\approx 2\times D_{m}$. 2 路算子间并行的平均 TTFT 推导如下:
 
+<span id="S3.E2"></span>
+
 $$
-\small \mathit{Avg\_TTFT}_{\mathrm{inter}}=D_{s}+\frac{R D_{m}^{2}}{2(1-R D_{m})}=D+\frac{R D^{2}}{4(2-R D)}.\tag{2}
+\small \mathit{Avg\_TTFT}_{\mathrm{inter}}=D_{s}+\frac{R D_{m}^{2}}{2(1-R D_{m})}=D+\frac{R D^{2}}{4(2-R D)}.
 $$
 
 对于算子内并行, 我们引入加速系数 $K$, 其中 $1<K<2$, 反映了算子内并行的高通信开销导致的非理想加速. 当执行时间为 $D_{s}=\frac{D}{K}$ 时, 2 路算子内并行的平均 TTFT 为:
 
+<span id="S3.E3"></span>
+
 $$
-\small \mathit{Avg\_TTFT}_{\mathrm{intra}}=\frac{D}{K}+\frac{R D^{2}}{2K(K-R D)}.\tag{3}
+\small \mathit{Avg\_TTFT}_{\mathrm{intra}}=\frac{D}{K}+\frac{R D^{2}}{2K(K-R D)}.
 $$
 
 对比公式 [2](#S3.E2) 和 [3](#S3.E3) 可知: 在较低速率下, 执行时间 (第一项) 占主导, 算子内并行减少执行时间, 因而更高效. 随着速率增加, 排队延迟 (第二项) 变得更重要, 算子间并行开始占优, 这与 [图 4](#figure-04)(a) 一致.
