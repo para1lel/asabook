@@ -67,7 +67,11 @@ FlashAttentionがモデルのトレーニングを高速化し、より長い文
 入力シーケンスが与えられた場合$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ ここで$N$はシーケンス長、$d$はヘッド次元であり、アテンション出力$\mathbf{O}\in\mathbb{R}^{N\times d}$を計算したい：
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 ここで$\mathrm{softmax}$は行ごとに適用される。
@@ -107,17 +111,28 @@ HBM に与えられた入力 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\t
 **タイル処理。** ブロックごとにアテンションを計算します。Softmax は $\mathbf{K}$ の列同士を結合するため、大きな softmax をスケーリング [Mil18, Kit20, Rab21] で分解します。数値の安定性のために、ベクトル $x\in\mathbb{R}^{B}$ の softmax は次のように計算されます：
 
 $$
-m(x):=\max_{i}\ \ x_{i},\quad f(x):=\begin{bmatrix}e^{x_{1}-m(x)}&\ldots&e^{x_{B}-m(x)}\end{bmatrix},\quad\ell(x):=\sum_{i}f(x)_{i},\quad\mathrm{softmax}(x):=\frac{f(x)}{\ell(x)}.
+\begin{aligned}
+m(x) &:= \max_{i}\ \ x_{i},\\
+f(x) &:= \begin{bmatrix}e^{x_{1}-m(x)}&\ldots&e^{x_{B}-m(x)}\end{bmatrix},\\
+\ell(x) &:= \sum_{i}f(x)_{i},\\
+\mathrm{softmax}(x) &:= \frac{f(x)}{\ell(x)}.
+\end{aligned}
 $$
 
 ベクトル $x^{(1)},x^{(2)}\in\mathbb{R}^{B}$ に対して、連結された $x=\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix}\in\mathbb{R}^{2B}$ の softmax を次のように分解することができます：
 
 $$
-m(x)=m(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=\max(m(x^{(1)}),m(x^{(2)})),\quad f(x)=\begin{bmatrix}e^{m(x^{(1)})-m(x)}f(x^{(1)})&e^{m(x^{(2)})-m(x)}f(x^{(2)})\end{bmatrix},
+\begin{aligned}
+m(x) &= m(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=\max(m(x^{(1)}),m(x^{(2)})),\\
+f(x) &= \begin{bmatrix}e^{m(x^{(1)})-m(x)}f(x^{(1)})&e^{m(x^{(2)})-m(x)}f(x^{(2)})\end{bmatrix},
+\end{aligned}
 $$
 
 $$
-\ell(x)=\ell(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=e^{m(x^{(1)})-m(x)}\ell(x^{(1)})+e^{m(x^{(2)})-m(x)}\ell(x^{(2)}),\quad\mathrm{softmax}(x)=\frac{f(x)}{\ell(x)}.
+\begin{aligned}
+\ell(x) &= \ell(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=e^{m(x^{(1)})-m(x)}\ell(x^{(1)})+e^{m(x^{(2)})-m(x)}\ell(x^{(2)}),\\
+\mathrm{softmax}(x) &= \frac{f(x)}{\ell(x)}.
+\end{aligned}
 $$
 
 したがって、いくつかの追加統計情報を追跡すれば（$m(x),\ell(x)$）、ソフトマックスを一度にブロックごとに計算することができます。[+2] そのため、入力をブロックに分割します（$\mathbf{Q},\mathbf{K},\mathbf{V}$ [アルゴリズム1](#alg1) の行 [3](#alg1.l3)）、追加統計情報と共にソフトマックス値を計算し（[アルゴリズム1](#alg1) の行 [10](#alg1.l10)）、結果を結合します（[アルゴリズム1](#alg1) の行 [12](#alg1.l12)）。
@@ -191,7 +206,11 @@ $d$（64-128）および$M$（約100KB）の典型的な値に対して、$d^{2}
 入力$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$とマスク行列$\tilde{\mathbf{M}}\in\{0,1\}^{N\times N}$が与えられた場合、次を計算したい：
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 ここで $(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})_{kl}=\mathbf{S}_{kl}$ は $\tilde{\mathbf{M}}_{kl}=1$ の場合、$-\infty$ は $\mathbf{M}_{kl}=0$ の場合とする。我々は $\tilde{\mathbf{M}}$ がブロック形式を持つことを要求する：いくつかのブロックサイズ $B_{r},B_{c}$ に対して、すべての $k,l$ について、$\tilde{\mathbf{M}}_{k,l}=\mathbf{M}_{ij}$ が $i=\lfloor k/B_{r}\rfloor,j=\lfloor l/B_{c}\rfloor$ であるようにして、いくつかの $\mathbf{M}\in\{0,1\}^{N/B_{r}\times N/B_{c}}$ が存在する。
@@ -343,7 +362,11 @@ IO対応ディープラーニング。私たちは、IO対応のアプローチ�
 入力シーケンス$\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$が与えられたとき、注意出力$\mathbf{O}\in\mathbb{R}^{N\times d}$を計算したいことを思い出してください：
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d}.
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d}.
+\end{aligned}
 $$
 
 我々には次のことがあります $S_{ij}=q_{i}^\top k_{j}$ ここで $q_{i}$ と $k_{j}$ は、それぞれ $i$ 列と $j$ 列です $\mathbf{Q}$ と $\mathbf{K}$ の。ソフトマックスの正規化定数を定義します：
@@ -359,7 +382,11 @@ $v_{j}$を$j$番目の$\mathbf{V}$の列とすると、出力の$i$番目の列�
 <span id="A2.E2"></span>
 
 $$
-o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{ij}v_{j}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}.
+\begin{aligned}
+o_{i} &= P_{i:}\mathbf{V}\\
+&= \sum_{j}P_{ij}v_{j}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}.
+\end{aligned}
 $$
 
 となります。$L_{i}$が計算されると、$\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}$を繰り返し加算することで追加メモリなしで$o_{i}$を計算できることがわかります。したがって、順方向計算は$O(n)$の追加メモリで計算可能です：
@@ -373,28 +400,34 @@ $$
 
 注意機構の逆伝播を導出し、線形メモリで計算できることを示します。[Rab21] は、メモリ効率の良い順伝播に勾配チェックポイントを適用することで、二次的な追加メモリなしに逆伝播が可能であることを示唆しています。我々は代わりに逆伝播を明示的に導出し、どのようにメモリ効率良く計算できるかを示します。
 
-スカラー損失関数 $\phi$ があると仮定し、出力勾配を $\mathbf{dO}\in\mathbb{R}^{n\times d}$ とします（ここで $\mathbf{dO}$ は $\frac{\partial\phi}{\partial\mathbf{O}}$ を表します）。入力勾配 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{n\times d}$ を計算したいと思います（ここで $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$ はそれぞれ $\frac{\partial\phi}{\partial\mathbf{Q}},\frac{\partial\phi}{\partial\mathbf{K}},\frac{\partial\phi}{\partial\mathbf{V}}$ を表します）。
+スカラー損失関数 $\phi$ があると仮定し、出力勾配を $\mathrm{d}\mathbf{O}\in\mathbb{R}^{n\times d}$ とします（ここで $\mathrm{d}\mathbf{O}$ は $\frac{\partial\phi}{\partial\mathbf{O}}$ を表します）。入力勾配 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{n\times d}$ を計算したいと思います（ここで $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$ はそれぞれ $\frac{\partial\phi}{\partial\mathbf{Q}},\frac{\partial\phi}{\partial\mathbf{K}},\frac{\partial\phi}{\partial\mathbf{V}}$ を表します）。
 
-勾配 $\mathbf{dV}$ は簡単に理解できます。手動で逆モード自動微分（別名連鎖律）を適用すると、（行列表記で） $\mathbf{dV}=\mathbf{P}^\top\mathbf{dO}$ を得ます。したがって：
+勾配 $\mathrm{d}\mathbf{V}$ は簡単に理解できます。手動で逆モード自動微分（別名連鎖律）を適用すると、（行列表記で） $\mathrm{d}\mathbf{V}=\mathbf{P}^\top\mathrm{d}\mathbf{O}$ を得ます。したがって：
 
 <span id="A2.E3"></span>
 
 $$
-dv_{j}=\sum_{i}P_{ij}do_{i}=\sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}do_{i}.
+\begin{aligned}
+\mathrm{d}v_{j} &= \sum_{i}P_{ij}\mathrm{d}o_{i}\\
+&= \sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}\mathrm{d}o_{i}.
+\end{aligned}
 $$
 
-すでに $L_{i}$ を計算しているので、$dv_{j}$ は追加のメモリを使わずに繰り返し和を取ることで計算できます。
+すでに $L_{i}$ を計算しているので、$\mathrm{d}v_{j}$ は追加のメモリを使わずに繰り返し和を取ることで計算できます。
 
-勾配 $\mathbf{dQ}$ と $\mathbf{dK}$ は少し複雑です。まず勾配 $\mathbf{dP}$ と $\mathbf{dS}$ を確認します。[式 2](#A2.E2) から、$\mathbf{dP}=\mathbf{dO}\mathbf{V}^\top$ となり、したがって：
+勾配 $\mathrm{d}\mathbf{Q}$ と $\mathrm{d}\mathbf{K}$ は少し複雑です。まず勾配 $\mathrm{d}\mathbf{P}$ と $\mathrm{d}\mathbf{S}$ を確認します。[式 2](#A2.E2) から、$\mathrm{d}\mathbf{P}=\mathrm{d}\mathbf{O}\mathbf{V}^\top$ となり、したがって：
 
 $$
-dP_{ij}=do_{i}^\top v_{j}.
+\mathrm{d}P_{ij}=\mathrm{d}o_{i}^\top v_{j}.
 $$
 
 $P_{i:}=\mathrm{softmax}(S_{i:})$ を思い出してください。$y=\mathrm{softmax}(x)$ のヤコビアンが $\mathrm{diag}(y)-\mathrm{yy}^\top$ であるという事実を使うと、次のようになります。
 
 $$
-dS_{i:}=(\mathrm{diag}(P_{i:})-P_{i:}P_{i:}^\top)dP_{i:}=P_{i:}\circ dP_{i:}-(P_{i:}^\top dP_{i:})P_{i:},
+\begin{aligned}
+\mathrm{d}S_{i:} &= (\mathrm{diag}(P_{i:})-P_{i:}P_{i:}^\top)\mathrm{d}P_{i:}\\
+&= P_{i:}\circ \mathrm{d}P_{i:}-(P_{i:}^\top \mathrm{d}P_{i:})P_{i:},
+\end{aligned}
 $$
 
 ここで $\circ$ は要素ごとの積を表します。
@@ -404,27 +437,39 @@ $$
 <span id="A2.E4"></span>
 
 $$
-D_{i}=P_{i:}^\top dP_{i:}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}do_{i}^\top v_{j}=do_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=do_{i}^\top o_{i},
+\begin{aligned}
+D_{i} &= P_{i:}^\top \mathrm{d}P_{i:}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}\mathrm{d}o_{i}^\top v_{j}\\
+&= \mathrm{d}o_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}\\
+&= \mathrm{d}o_{i}^\top o_{i},
+\end{aligned}
 $$
 
 すると
 
 $$
-dS_{i:}=P_{i:}\circ dP_{i:}-D_{i}P_{i:}.
+\mathrm{d}S_{i:}=P_{i:}\circ \mathrm{d}P_{i:}-D_{i}P_{i:}.
 $$
 
 ゆえに
 
 $$
-dS_{ij}=P_{ij}dP_{ij}-D_{i}P_{ij}=P_{ij}(dP_{ij}-D_{i}).
+\begin{aligned}
+\mathrm{d}S_{ij} &= P_{ij}\mathrm{d}P_{ij}-D_{i}P_{ij}\\
+&= P_{ij}(\mathrm{d}P_{ij}-D_{i}).
+\end{aligned}
 $$
 
-これで勾配 $\mathbf{dQ}$ と $\mathbf{dK}$ を取得できます。$S_{ij}=q_{i}^\top k_{j}$ を思い出してください。次に、
+これで勾配 $\mathrm{d}\mathbf{Q}$ と $\mathrm{d}\mathbf{K}$ を取得できます。$S_{ij}=q_{i}^\top k_{j}$ を思い出してください。次に、
 
 <span id="A2.E5"></span>
 
 $$
-dq_{i}=\sum_{j}dS_{ij}k_{j}=\sum_{j}P_{ij}(dP_{ij}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(do_{i}^\top v_{j}-D_{i})k_{j}.
+\begin{aligned}
+\mathrm{d}q_{i} &= \sum_{j}\mathrm{d}S_{ij}k_{j}\\
+&= \sum_{j}P_{ij}(\mathrm{d}P_{ij}-D_{i})k_{j}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(\mathrm{d}o_{i}^\top v_{j}-D_{i})k_{j}.
+\end{aligned}
 $$
 
 同様に、
@@ -432,15 +477,19 @@ $$
 <span id="A2.E6"></span>
 
 $$
-dk_{j}=\sum_{i}dS_{ij}q_{i}=\sum_{i}P_{ij}(dP_{ij}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(do_{i}^\top v_{j}-D_{i})q_{i}.
+\begin{aligned}
+\mathrm{d}k_{j} &= \sum_{i}\mathrm{d}S_{ij}q_{i}\\
+&= \sum_{i}P_{ij}(\mathrm{d}P_{ij}-D_{i})q_{i}\\
+&= \sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(\mathrm{d}o_{i}^\top v_{j}-D_{i})q_{i}.
+\end{aligned}
 $$
 
 したがって逆伝播は追加メモリ $O(n)$ を使っても計算できます：
 
-1. すべての $j$ に対して [Eq. 3](#A2.E3) に従って $dv_{j}$ を計算します。これには $O(d)$ の追加メモリが必要です。
+1. すべての $j$ に対して [Eq. 3](#A2.E3) に従って $\mathrm{d}v_{j}$ を計算します。これには $O(d)$ の追加メモリが必要です。
 2. すべての $i$ に対して [Eq. 4](#A2.E4) に従って $D_{i}$ を計算します。これには $O(n)$ の追加メモリが必要です。
-3. すべての $i$ に対して [Eq. 5](#A2.E5) に従って $dq_{i}$ を計算します。これには $O(d)$ の追加メモリが必要です。
-4. すべての $j$ に対して [Eq. 6](#A2.E6) に従って $dk_{j}$ を計算します。これには $O(d)$ の追加メモリが必要です。
+3. すべての $i$ に対して [Eq. 5](#A2.E5) に従って $\mathrm{d}q_{i}$ を計算します。これには $O(d)$ の追加メモリが必要です。
+4. すべての $j$ に対して [Eq. 6](#A2.E6) に従って $\mathrm{d}k_{j}$ を計算します。これには $O(d)$ の追加メモリが必要です。
 
 <span id="A2.SS3"></span>
 
@@ -449,11 +498,18 @@ $$
 FlashAttention のフォワードパスの詳細を説明します。入力シーケンス $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ が与えられた場合、私たちは注意出力 $\mathbf{O}\in\mathbb{R}^{N\times d}$ を計算したいです：
 
 $$
-\mathbf{S}=\tau\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{S}^{\mathrm{masked}}=\mathrm{mask}(S)\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S}^{\mathrm{masked}})\in\mathbb{R}^{N\times N},
+\begin{aligned}
+\mathbf{S} &= \tau\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{S}^{\mathrm{masked}} &= \mathrm{mask}(S)\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S}^{\mathrm{masked}})\in\mathbb{R}^{N\times N},
+\end{aligned}
 $$
 
 $$
-\mathbf{P}^{\mathrm{dropped}}=\mathrm{dropout}(\mathbf{P},p_{\mathrm{drop}}),\quad\mathbf{O}=\mathbf{P}^{\mathrm{dropped}}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{P}^{\mathrm{dropped}} &= \mathrm{dropout}(\mathbf{P},p_{\mathrm{drop}}),\\
+\mathbf{O} &= \mathbf{P}^{\mathrm{dropped}}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 ここで $\tau\in\mathbb{R}$ はいくつかのソフトマックススケーリング（通常 $\frac{1}{\sqrt{d}}$）、mask は入力のいくつかの要素を $-\infty$ に設定し、その他の要素は同じままにするマスキング関数（例えば、バッチ内のシーケンスの長さが同じでなくパディングされている場合のキー・パディング・マスク）、そして $\mathrm{dropout}(x,p)$ は $x$ に要素ごとにドロップアウトを適用する（つまり、各要素 $x$ ごとに確率 $1-p$ で $\frac{x}{1-p}$ を出力し、確率 $p$ で 0 を出力する）。
@@ -487,7 +543,7 @@ $$
 
 ### B.4 FlashAttention：逆伝播
 
-FlashAttention の逆伝播の詳細を説明する。入力シーケンス $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、出力 $\mathbf{O}\in\mathbb{R}^{N\times d}$、および出力勾配 $\mathbf{dO}$ が与えられた場合、入力勾配 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{N\times d}$ を計算したい。
+FlashAttention の逆伝播の詳細を説明する。入力シーケンス $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$、出力 $\mathbf{O}\in\mathbb{R}^{N\times d}$、および出力勾配 $\mathrm{d}\mathbf{O}$ が与えられた場合、入力勾配 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{N\times d}$ を計算したい。
 
 完全性のために、まず[アルゴリズム3](#alg3)で標準的なアテンションの逆伝播を説明します。
 
@@ -495,18 +551,18 @@ FlashAttention の逆伝播の詳細を説明する。入力シーケンス $\ma
 
 **アルゴリズム 3: 標準アテンション逆伝播**
 
-- **入力:** 行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{dO}\in\mathbb{R}^{N\times d}$、HBMにおける$\mathbf{P}\in\mathbb{R}^{N\times N}$。
-- HBMからブロック単位で$\mathbf{P},\mathbf{dO}$をロードし、$\mathbf{dV}=\mathbf{P}^{\top}\mathbf{dO}\in\mathbb{R}^{N\times d}$を計算し、HBMに$\mathbf{dV}$を書き込みます。
-- HBMからブロック単位で$\mathbf{dO},\mathbf{V}$を読み込み、$\mathbf{dP}=\mathbf{dO}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathbf{dP}$を書き込む。
-- HBMから$\mathbf{P},\mathbf{dP}$を読み込み、$dS_{ij}=P_{ij}(dP_{ij}-\sum_{l}P_{il}dP_{il})$ $\mathbf{dS}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathbf{dS}$を書き込む。
-- HBMからブロック単位で$\mathbf{dS}$・$\mathbf{K}$を読み込み、計算$\mathbf{dQ}=\mathbf{dS}\mathbf{K}$、HBMに$\mathbf{dQ}$を書き込む。
-- HBMからブロック単位で$\mathbf{dS}$・$\mathbf{Q}$を読み込み、$\mathbf{dK}=\mathbf{dS}^{\top}\mathbf{Q}$を計算し、HBMに$\mathbf{dK}$を書き込む。
-- **返却:** $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$を返す。
+- **入力:** 行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$、HBMにおける$\mathbf{P}\in\mathbb{R}^{N\times N}$。
+- HBMからブロック単位で$\mathbf{P},\mathrm{d}\mathbf{O}$をロードし、$\mathrm{d}\mathbf{V}=\mathbf{P}^{\top}\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$を計算し、HBMに$\mathrm{d}\mathbf{V}$を書き込みます。
+- HBMからブロック単位で$\mathrm{d}\mathbf{O},\mathbf{V}$を読み込み、$\mathrm{d}\mathbf{P}=\mathrm{d}\mathbf{O}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathrm{d}\mathbf{P}$を書き込む。
+- HBMから$\mathbf{P},\mathrm{d}\mathbf{P}$を読み込み、$\mathrm{d}S_{ij}=P_{ij}(\mathrm{d}P_{ij}-\sum_{l}P_{il}\mathrm{d}P_{il})$ $\mathrm{d}\mathbf{S}\in\mathbb{R}^{N\times N}$を計算し、HBMに$\mathrm{d}\mathbf{S}$を書き込む。
+- HBMからブロック単位で$\mathrm{d}\mathbf{S}$・$\mathbf{K}$を読み込み、計算$\mathrm{d}\mathbf{Q}=\mathrm{d}\mathbf{S}\mathbf{K}$、HBMに$\mathrm{d}\mathbf{Q}$を書き込む。
+- HBMからブロック単位で$\mathrm{d}\mathbf{S}$・$\mathbf{Q}$を読み込み、$\mathrm{d}\mathbf{K}=\mathrm{d}\mathbf{S}^{\top}\mathbf{Q}$を計算し、HBMに$\mathrm{d}\mathbf{K}$を書き込む。
+- **返却:** $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$を返す。
 
 次に FlashAttention の逆伝播について 2 つの観察を行います：
 
 1. フォワードパスからのサイズ $O(N^{2})$ のドロップアウトマスクを保存する必要はありません。代わりに、フォワードパスの疑似乱数生成器の状態を保存し、逆伝播でドロップアウトマスクを再生成できます。これにより、$O(N)$ の追加メモリのみを使用できます。
-2. ソフトマックスの勾配を計算する際、[式4](#A2.E4) を使用して、サイズが$N$の$P_{i:}$および$dP_{i:}$にわたって集約せずに$D_{i}=P_{i:}^{\top}dP_{i:}$を計算します（これらはSRAMに収まらない可能性があります）。代わりに$D_{i}=do_{i}^{\top}o_{i}$を書き換え、サイズ$d$のベクトル間でドット積を計算することができます。
+2. ソフトマックスの勾配を計算する際、[式4](#A2.E4) を使用して、サイズが$N$の$P_{i:}$および$\mathrm{d}P_{i:}$にわたって集約せずに$D_{i}=P_{i:}^{\top}\mathrm{d}P_{i:}$を計算します（これらはSRAMに収まらない可能性があります）。代わりに$D_{i}=\mathrm{d}o_{i}^{\top}o_{i}$を書き換え、サイズ$d$のベクトル間でドット積を計算することができます。
 
 フル FlashAttention の逆伝播アルゴリズムは [Algorithm 4](#alg4) にあります。概念的には、これは [Section B.2](#A2.SS2) の導出のブロック版に過ぎません。
 
@@ -514,31 +570,31 @@ FlashAttention の逆伝播の詳細を説明する。入力シーケンス $\ma
 
 **アルゴリズム 4: FlashAttention 逆伝播**
 
-- **入力:** HBM上の行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{dO}\in\mathbb{R}^{N\times d}$、HBM上のベクトル$\ell,m\in\mathbb{R}^{N}$、サイズ$M$のオンチップSRAM、ソフトマックススケーリング定数$\tau\in\mathbb{R}$、マスキング関数mask、ドロップアウト確率$p_{\mathrm{drop}}$、順伝播からの擬似乱数生成器の状態${\cal R}$。
+- **入力:** HBM上の行列$\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$、HBM上のベクトル$\ell,m\in\mathbb{R}^{N}$、サイズ$M$のオンチップSRAM、ソフトマックススケーリング定数$\tau\in\mathbb{R}$、マスキング関数mask、ドロップアウト確率$p_{\mathrm{drop}}$、順伝播からの擬似乱数生成器の状態${\cal R}$。
 - 疑似乱数生成器の状態を ${\cal R}$ に設定する。
 - ブロックサイズを $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$ に設定する。
 - $\mathbf{Q}$ を $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ ブロック $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ に分割し、それぞれのサイズは $B_{r}\times d$ とし、$\mathbf{K},\mathbf{V}$ を $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ ブロック $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ および $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$ に分割し、それぞれのサイズは $B_{c}\times d$ とする。
-- $\mathbf{O}$をサイズ$B_{r}\times d$の$\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ブロックの$T_{r}$に分割し、$\mathbf{dO}$をサイズ$B_{r}\times d$の$\mathbf{dO}_{i},\dots,\mathbf{dO}_{T_{r}}$ブロックの$T_{r}$に分割し、$\ell$をサイズ$B_{r}$の$\ell_{i},\dots,\ell_{T_{r}}$ブロックの$T_{r}$に分割し、$m$をサイズ$B_{r}$の$m_{1},\dots,m_{T_{r}}$ブロックの$T_{r}$に分割する。
-- HBMで$\mathbf{dQ}=(0)_{N\times d}$を初期化し、それを$T_{r}$ブロック$\mathbf{dQ}_{1},\dots,\mathbf{dQ}_{T_{r}}$に、各$B_{r}\times d$のサイズに分割する。HBMで$\mathbf{dK}=(0)_{N\times d},\mathbf{dV}=(0)_{N\times d}$を初期化し、$\mathbf{dK},\mathbf{dV}$を$T_{c}$ブロック$\mathbf{dK}_{1},\dots,\mathbf{dK}_{T_{c}}$および$\mathbf{dV}_{1},\dots,\mathbf{dV}_{T_{c}}$に、各$B_{c}\times d$のサイズに分割する。
+- $\mathbf{O}$をサイズ$B_{r}\times d$の$\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ブロックの$T_{r}$に分割し、$\mathrm{d}\mathbf{O}$をサイズ$B_{r}\times d$の$\mathrm{d}\mathbf{O}_{i},\dots,\mathrm{d}\mathbf{O}_{T_{r}}$ブロックの$T_{r}$に分割し、$\ell$をサイズ$B_{r}$の$\ell_{i},\dots,\ell_{T_{r}}$ブロックの$T_{r}$に分割し、$m$をサイズ$B_{r}$の$m_{1},\dots,m_{T_{r}}$ブロックの$T_{r}$に分割する。
+- HBMで$\mathrm{d}\mathbf{Q}=(0)_{N\times d}$を初期化し、それを$T_{r}$ブロック$\mathrm{d}\mathbf{Q}_{1},\dots,\mathrm{d}\mathbf{Q}_{T_{r}}$に、各$B_{r}\times d$のサイズに分割する。HBMで$\mathrm{d}\mathbf{K}=(0)_{N\times d},\mathrm{d}\mathbf{V}=(0)_{N\times d}$を初期化し、$\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$を$T_{c}$ブロック$\mathrm{d}\mathbf{K}_{1},\dots,\mathrm{d}\mathbf{K}_{T_{c}}$および$\mathrm{d}\mathbf{V}_{1},\dots,\mathrm{d}\mathbf{V}_{T_{c}}$に、各$B_{c}\times d$のサイズに分割する。
 - **$1\leq j\leq T_{c}$について実行:**
   - HBMからオンチップSRAMに$\mathbf{K}_{j},\mathbf{V}_{j}$をロードする。
-  - SRAM上で$\tilde{\mathbf{dK}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{dV}}_{j}=(0)_{B_{c}\times d}$を初期化する。
+  - SRAM上で$\tilde{\mathrm{d}\mathbf{K}}_{j}=(0)_{B_{c}\times d},\tilde{\mathrm{d}\mathbf{V}}_{j}=(0)_{B_{c}\times d}$を初期化する。
   - **$1\leq i\leq T_{r}$について実行:**
-    - HBMからオンチップSRAMに$\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{dO}_{i},\mathbf{dQ}_{i},\ell_{i},m_{i}$をロードする。
+    - HBMからオンチップSRAMに$\mathbf{Q}_{i},\mathbf{O}_{i},\mathrm{d}\mathbf{O}_{i},\mathrm{d}\mathbf{Q}_{i},\ell_{i},m_{i}$をロードする。
     - オンチップで$\mathbf{S}_{ij}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$を計算する。
     - オンチップで$\mathbf{S}_{ij}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{ij})$を計算する。
     - オンチップで$\mathbf{P}_{ij}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{ij}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算する。
     - チップ上で、各要素が確率$1-p_{\mathrm{drop}}$で値$\frac{1}{1-p_{\mathrm{drop}}}$を持ち、確率$p_{\mathrm{drop}}$で値0を持つドロップアウトマスク$\mathbf{Z}_{ij}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
     - チップ上で、$\mathbf{P}_{ij}^{\mathrm{dropped}}=\mathbf{P}_{ij}\circ\mathbf{Z}_{ij}$（要素ごとの掛け算）を計算します。
-    - チップ上で、$\tilde{\mathbf{dV}_{j}}\leftarrow\tilde{\mathbf{dV}_{j}}+(\mathbf{P}_{ij}^{\mathrm{dropped}})^{\top}\mathbf{dO}_{i}\in\mathbb{R}^{B_{c}\times d}$を計算します。
-    - チップ上で、$\mathbf{dP}_{ij}^{\mathrm{dropped}}=\mathbf{dO}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
-    - チップ上で、$\mathbf{dP}_{ij}=\mathbf{dP}_{ij}^{\mathrm{dropped}}\circ\mathbf{Z}_{ij}$（要素ごとの掛け算）を計算します。
-    - チップ上で、$D_{i}=\mathrm{rowsum}(\mathbf{dO}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$を計算します。
-    - チップ上で、$\mathbf{dS}_{ij}=\mathbf{P}_{ij}\circ(\mathbf{dP}_{ij}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
-    - $\mathbf{dQ}_{i}\leftarrow\mathbf{dQ}_{i}+\tau\mathbf{dS}_{ij}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$をHBMに書き込みます。
-    - チップ上で $\tilde{\mathbf{dK}}_{j}\leftarrow\tilde{\mathbf{dK}}_{j}+\tau\mathbf{dS}_{ij}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$ を計算する。
-  - $\mathbf{dK}_{j}\leftarrow\tilde{\mathbf{dK}_{j}},\mathbf{dV}_{j}\leftarrow\tilde{\mathbf{dV}_{j}}$ を HBM に書き込む。
-- **返却:** $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$ を返す。
+    - チップ上で、$\tilde{\mathrm{d}\mathbf{V}_{j}}\leftarrow\tilde{\mathrm{d}\mathbf{V}_{j}}+(\mathbf{P}_{ij}^{\mathrm{dropped}})^{\top}\mathrm{d}\mathbf{O}_{i}\in\mathbb{R}^{B_{c}\times d}$を計算します。
+    - チップ上で、$\mathrm{d}\mathbf{P}_{ij}^{\mathrm{dropped}}=\mathrm{d}\mathbf{O}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
+    - チップ上で、$\mathrm{d}\mathbf{P}_{ij}=\mathrm{d}\mathbf{P}_{ij}^{\mathrm{dropped}}\circ\mathbf{Z}_{ij}$（要素ごとの掛け算）を計算します。
+    - チップ上で、$D_{i}=\mathrm{rowsum}(\mathrm{d}\mathbf{O}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$を計算します。
+    - チップ上で、$\mathrm{d}\mathbf{S}_{ij}=\mathbf{P}_{ij}\circ(\mathrm{d}\mathbf{P}_{ij}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$を計算します。
+    - $\mathrm{d}\mathbf{Q}_{i}\leftarrow\mathrm{d}\mathbf{Q}_{i}+\tau\mathrm{d}\mathbf{S}_{ij}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$をHBMに書き込みます。
+    - チップ上で $\tilde{\mathrm{d}\mathbf{K}}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{K}}_{j}+\tau\mathrm{d}\mathbf{S}_{ij}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$ を計算する。
+  - $\mathrm{d}\mathbf{K}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{K}_{j}},\mathrm{d}\mathbf{V}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{V}_{j}}$ を HBM に書き込む。
+- **返却:** $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$ を返す。
 
 前向きパスと同様に、後向きパスは $O(N^{2})$ FLOPs を実行し、入力、出力、出力勾配、入力勾配に加えて $O(N)$ の追加メモリのみを必要とすることがわかる。
 
@@ -581,7 +637,11 @@ $$
 私たちは今、$0\leq j\leq T_{c}$ に対する $j$ に関して帰納法によってアルゴリズムの正しさを証明します。$\mathbf{K}$ の最初の $\mathrm{jB}_{c}$ 行を $\mathbf{K}_{:j}\in\mathbb{R}^{\mathrm{jB}_{c}\times d}$ とし、同様に $\mathbf{V}$ の最初の $\mathrm{jB}_{c}$ 行を $\mathbf{V}_{:j}\in\mathbb{R}^{\mathrm{jB}_{c}\times d}$ とします。$\mathbf{S}_{:,:j}=\mathbf{Q}\mathbf{K}_{:j}^{\top}\in\mathbb{R}^{N\times \mathrm{jB}_{c}}$ および $\mathbf{P}_{:,:j}=\mathrm{softmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N\times \mathrm{jB}_{c}}$（行ごとにソフトマックスを適用）とします。$j$ 回目の外側ループの後の HBM における $m,\ell,\mathbf{O}$ の値を $m^{j},\ell^{(j)},\mathbf{O}^{(j)}$ とします（[アルゴリズム 1](#alg1) の行 [5](#alg1.l5)）。（これらの $m,\ell,\mathbf{O}$ の値は、外側ループの各イテレーション後に更新されることに注意してください。）外側ループの $j$ 回目のイテレーション後に、HBM 内で次の計算が行われていることを示したい：
 
 $$
-m^{(j)}=\mathrm{rowmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N},\quad\ell^{(j)}=\mathrm{rowsum}(\exp(\mathbf{S}_{:,:j}-m^{(j)}))\in\mathbb{R}^{N},\quad\mathbf{O}^{(j)}=\mathbf{P}_{:,:j}\mathbf{V}_{:j}\in\mathbb{R}^{N\times d}.
+\begin{aligned}
+m^{(j)} &= \mathrm{rowmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N},\\
+\ell^{(j)} &= \mathrm{rowsum}(\exp(\mathbf{S}_{:,:j}-m^{(j)}))\in\mathbb{R}^{N},\\
+\mathbf{O}^{(j)} &= \mathbf{P}_{:,:j}\mathbf{V}_{:j}\in\mathbb{R}^{N\times d}.
+\end{aligned}
 $$
 
 初期化（[アルゴリズム 1](#alg1) の[第 2 行](#alg1.l2)）より、この主張は $j=0$、すなわち外側ループを一度も実行していない時点で成り立ちます。ある $j=0,\dots,T_{c}-1$ で主張が成り立つと仮定し、$j+1$ でも成り立つことを示します。外側ループの $(j+1)$ 回目に、内側ループで統計量を更新すると（[アルゴリズム 1](#alg1) の[第 10 行](#alg1.l10)）、$m^{(j+1)}=\max(m^{(j)},\tilde{m})$ となります。ここで $\tilde{m}\in\mathbb{R}^{N}$ は、$\mathbf{S}$ の第 $jB_{c}$ 列から第 $(j+1)B_{c}-1$ 列までのスライス $\mathbf{S}_{:,j:j+1}$ に対する行ごとの最大値です。したがって、
@@ -605,32 +665,29 @@ $$
 $\mathbf{V}_{j:j+1}$ を $\mathbf{V}$ の $\mathrm{jB}_{c}$ 列から $(j+1)B_{c}-1$ 列までのスライスとし、以下も更新します：
 
 $$
-\mathbf{O}^{(j+1)}\qquad =\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{O}^{(j)}+e^{\tilde{m}-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1}-\tilde{m})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{P}_{:,:j}\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathrm{diag}(\ell^{(j)})\exp(\mathbf{S}_{:,:j}-m^{(j)})\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(e^{-m^{(j+1)}}\exp(\mathbf{S}_{:,:j})\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\exp(\mathbf{S}_{:,:j}-m^{(j+1)})\mathbf{V}_{:j}+\exp(\mathbf{S}_{j:j+1}-m^{(j+1)})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}\left(\exp\left(\begin{bmatrix}\mathbf{S}_{:,:j}&\mathbf{S}_{j:j+1}\end{bmatrix}-m^{(j+1)}\right)\right)\begin{bmatrix}\mathbf{V}_{:j}\\
-\mathbf{V}_{j:j+1}\end{bmatrix}
-$$
-
-$$
-=\mathrm{softmax}(\mathbf{S}_{:j+1})\mathbf{V}_{:j+1}.
+\begin{aligned}
+\mathbf{O}^{(j+1)}
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{O}^{(j)}\\
+&\qquad {}+e^{\tilde{m}-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1}-\tilde{m})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{P}_{:,:j}\mathbf{V}_{:j}\\
+&\qquad {}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathrm{diag}(\ell^{(j)})\\
+&\qquad {}\cdot\exp(\mathbf{S}_{:,:j}-m^{(j)})\mathbf{V}_{:j}
+  +e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  e^{-m^{(j+1)}}\exp(\mathbf{S}_{:,:j})\mathbf{V}_{:j}\\
+&\qquad {}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \exp(\mathbf{S}_{:,:j}-m^{(j+1)})\mathbf{V}_{:j}\\
+&\qquad {}+\exp(\mathbf{S}_{j:j+1}-m^{(j+1)})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}
+  \exp\left(\begin{bmatrix}\mathbf{S}_{:,:j}&\mathbf{S}_{j:j+1}\end{bmatrix}-m^{(j+1)}\right)\\
+&\qquad {}\cdot\begin{bmatrix}\mathbf{V}_{:j}\\ \mathbf{V}_{j:j+1}\end{bmatrix}\\
+&= \mathrm{softmax}(\mathbf{S}_{:j+1})\mathbf{V}_{:j+1}.
+\end{aligned}
 $$
 
 このとき、主張は $j+1$ に対しても成り立つことがわかる。帰納法により、すべての $j=0,\dots,T_{c}$ に対して主張は成り立つ。
@@ -676,7 +733,10 @@ $$
 したがって、次のように設定します：
 
 $$
-B_{c}=\Theta\left(\frac{M}{d}\right),\qquad B_{r}=\Theta\left(\min\left(\frac{M}{d},\frac{M}{B_{c}}\right)\right)=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\begin{aligned}
+B_{c} &= \Theta\left(\frac{M}{d}\right),\\
+B_{r} &= \Theta\left(\min\left(\frac{M}{d},\frac{M}{B_{c}}\right)\right)=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\end{aligned}
 $$
 
 次の式を得ます：
@@ -714,18 +774,21 @@ $$
 
 AttentionのバックワードパスのIO複雑性は、AttentionのフォワードパスのIO複雑性と非常に似ています （[定理2](#Thmtheorem2)）。ここでは証明の概略を示します。
 
-まず、標準アテンションの逆伝播パスの IO 複雑度を分析します。入力 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{dO}\in\mathbb{R}^{N\times d}$ は HBM に存在し、アルゴリズムの最後に出力 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{N\times d}$ は HBM に書き込まれます。
+まず、標準アテンションの逆伝播パスの IO 複雑度を分析します。入力 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$ は HBM に存在し、アルゴリズムの最後に出力 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{N\times d}$ は HBM に書き込まれます。
 
 標準アテンション逆伝播パスの各ステップで、HBM からサイズ $Nd$ または $N^{2}$ の入力をロードする必要があり、サイズ $N^{2}$ または $Nd$ の出力を HBM に書き込む必要があります。これにより $\Theta(Nd+N^{2})$ 回の HBM アクセスが発生します。
 
 次にFlashAttentionバックワードパスのIO複雑性を分析します。
 
-は [定理 2](#Thmtheorem2) に類似しており、$\mathbf{K}$ と $\mathbf{V}$ の各要素は HBM から一度だけ読み込まれることがわかります。$\mathbf{dK}$ と $\mathbf{dV}$ の各要素は HBM に一度だけ書き込まれます。$T_{c}$ 回 $\mathbf{Q},\mathbf{O},\mathbf{dO}$ 上でパスを行い、各パスで $\mathbf{Q},\mathbf{O},\mathbf{dO}$ 全体を HBM に読み込みます。また、$T_{c}$ 回 $\mathbf{dQ}$ 上でパスを行い、各パスで $\mathbf{dQ}$ 全体を HBM から読み書きします。したがって、HBM アクセスの回数は $\Theta\left(Nd+NdT_{c}\right)=\Theta(NdT_{c})$ です。
+は [定理 2](#Thmtheorem2) に類似しており、$\mathbf{K}$ と $\mathbf{V}$ の各要素は HBM から一度だけ読み込まれることがわかります。$\mathrm{d}\mathbf{K}$ と $\mathrm{d}\mathbf{V}$ の各要素は HBM に一度だけ書き込まれます。$T_{c}$ 回 $\mathbf{Q},\mathbf{O},\mathrm{d}\mathbf{O}$ 上でパスを行い、各パスで $\mathbf{Q},\mathbf{O},\mathrm{d}\mathbf{O}$ 全体を HBM に読み込みます。また、$T_{c}$ 回 $\mathrm{d}\mathbf{Q}$ 上でパスを行い、各パスで $\mathrm{d}\mathbf{Q}$ 全体を HBM から読み書きします。したがって、HBM アクセスの回数は $\Theta\left(Nd+NdT_{c}\right)=\Theta(NdT_{c})$ です。
 
 [定理2](#Thmtheorem2) の証明と同様に、ブロックサイズの制約は次の通りです：
 
 $$
-B_{c}=\Theta\left(\frac{M}{d}\right),\qquad B_{r}=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\begin{aligned}
+B_{c} &= \Theta\left(\frac{M}{d}\right),\\
+B_{r} &= \Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\end{aligned}
 $$
 
 次の式を得ます：

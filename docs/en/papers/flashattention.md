@@ -67,7 +67,11 @@ We focus here on GPUs. Performance on other hardware accelerators are similar [J
 Given input sequences $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ where $N$ is the sequence length and $d$ is the head dimension, we want to compute the attention output $\mathbf{O}\in\mathbb{R}^{N\times d}$:
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 where $\mathrm{softmax}$ is applied row-wise.
@@ -107,17 +111,28 @@ We apply two established techniques (tiling, recomputation) to overcome the tech
 **Tiling.** We compute attention by blocks. Softmax couples columns of $\mathbf{K}$, so we decompose the large softmax with scaling [Mil18, Kit20, Rab21]. For numerical stability, the softmax of vector $x\in\mathbb{R}^{B}$ is computed as:
 
 $$
-m(x):=\max_{i}\ \ x_{i},\quad f(x):=\begin{bmatrix}e^{x_{1}-m(x)}&\ldots&e^{x_{B}-m(x)}\end{bmatrix},\quad\ell(x):=\sum_{i}f(x)_{i},\quad\mathrm{softmax}(x):=\frac{f(x)}{\ell(x)}.
+\begin{aligned}
+m(x) &:= \max_{i}\ \ x_{i},\\
+f(x) &:= \begin{bmatrix}e^{x_{1}-m(x)}&\ldots&e^{x_{B}-m(x)}\end{bmatrix},\\
+\ell(x) &:= \sum_{i}f(x)_{i},\\
+\mathrm{softmax}(x) &:= \frac{f(x)}{\ell(x)}.
+\end{aligned}
 $$
 
 For vectors $x^{(1)},x^{(2)}\in\mathbb{R}^{B}$, we can decompose the softmax of the concatenated $x=\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix}\in\mathbb{R}^{2B}$ as:
 
 $$
-m(x)=m(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=\max(m(x^{(1)}),m(x^{(2)})),\quad f(x)=\begin{bmatrix}e^{m(x^{(1)})-m(x)}f(x^{(1)})&e^{m(x^{(2)})-m(x)}f(x^{(2)})\end{bmatrix},
+\begin{aligned}
+m(x) &= m(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=\max(m(x^{(1)}),m(x^{(2)})),\\
+f(x) &= \begin{bmatrix}e^{m(x^{(1)})-m(x)}f(x^{(1)})&e^{m(x^{(2)})-m(x)}f(x^{(2)})\end{bmatrix},
+\end{aligned}
 $$
 
 $$
-\ell(x)=\ell(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=e^{m(x^{(1)})-m(x)}\ell(x^{(1)})+e^{m(x^{(2)})-m(x)}\ell(x^{(2)}),\quad\mathrm{softmax}(x)=\frac{f(x)}{\ell(x)}.
+\begin{aligned}
+\ell(x) &= \ell(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=e^{m(x^{(1)})-m(x)}\ell(x^{(1)})+e^{m(x^{(2)})-m(x)}\ell(x^{(2)}),\\
+\mathrm{softmax}(x) &= \frac{f(x)}{\ell(x)}.
+\end{aligned}
 $$
 
 Therefore if we keep track of some extra statistics ($m(x),\ell(x)$), we can compute softmax one block at a time. [+2] We thus split the inputs $\mathbf{Q},\mathbf{K},\mathbf{V}$ into blocks ([Algorithm 1](#alg1 "In 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") line [3](#alg1.l3 "In Algorithm 1 ‣ 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")), compute the softmax values along with extra statistics ([Algorithm 1](#alg1 "In 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") line [10](#alg1.l10 "In Algorithm 1 ‣ 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")), and combine the results ([Algorithm 1](#alg1 "In 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") line [12](#alg1.l12 "In Algorithm 1 ‣ 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")).
@@ -191,7 +206,11 @@ We extend FlashAttention to approximate attention: we propose block-sparse Flash
 Given inputs $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ and a mask matrix $\tilde{\mathbf{M}}\in\{0,1\}^{N\times N}$, we want to compute:
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 where $(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})_{kl}=\mathbf{S}_{kl}$ if $\tilde{\mathbf{M}}_{kl}=1$ and $-\infty$ if $\mathbf{M}_{kl}=0$. We require $\tilde{\mathbf{M}}$ to have block form: for some block sizes $B_{r},B_{c}$, for all $k,l$, $\tilde{\mathbf{M}}_{k,l}=\mathbf{M}_{ij}$ with $i=\lfloor k/B_{r}\rfloor,j=\lfloor l/B_{c}\rfloor$ for some $\mathbf{M}\in\{0,1\}^{N/B_{r}\times N/B_{c}}$.
@@ -343,7 +362,11 @@ For simplicity, we omit here the max-shifting step during softmax. The full algo
 Recall that given input sequences $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, we want to compute the attention output $\mathbf{O}\in\mathbb{R}^{N\times d}$:
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d}.
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d}.
+\end{aligned}
 $$
 
 We have that $S_{ij}=q_{i}^\top k_{j}$ where $q_{i}$ and $k_{j}$ are the $i$-th and $j$-th columns of $\mathbf{Q}$ and $\mathbf{K}$ respectively. Define the normalization constants of softmax:
@@ -359,7 +382,11 @@ Let $v_{j}$ be the $j$-th column of $\mathbf{V}$, then the $i$-th columns of the
 <span id="A2.E2"></span>
 
 $$
-o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{ij}v_{j}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}.
+\begin{aligned}
+o_{i} &= P_{i:}\mathbf{V}\\
+&= \sum_{j}P_{ij}v_{j}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}.
+\end{aligned}
 $$
 
 We see that once $L_{i}$ is computed, we can compute $o_{i}$ without extra memory by repeatedly summing $\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}$. Therefore the forward pass can be computed with $O(n)$ extra memory:
@@ -373,28 +400,34 @@ We see that once $L_{i}$ is computed, we can compute $o_{i}$ without extra memor
 
 We derive the backward pass of attention and show that it can also be computed with linear memory. [Rab21] suggests that the backward pass can be done without quadratic extra memory by applying gradient checkpointing to the memory-efficient forward pass. We instead derive the backward pass explicitly and show how it can be computed in a memory-efficient manner.
 
-Suppose that there is a scalar loss function $\phi$, and let the output gradient be $\mathbf{dO}\in\mathbb{R}^{n\times d}$ (where $\mathbf{dO}$ denotes $\frac{\partial\phi}{\partial\mathbf{O}}$). We want to compute the input gradients $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{n\times d}$ (where $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$ denote $\frac{\partial\phi}{\partial\mathbf{Q}},\frac{\partial\phi}{\partial\mathbf{K}},\frac{\partial\phi}{\partial\mathbf{V}}$ respectively).
+Suppose that there is a scalar loss function $\phi$, and let the output gradient be $\mathrm{d}\mathbf{O}\in\mathbb{R}^{n\times d}$ (where $\mathrm{d}\mathbf{O}$ denotes $\frac{\partial\phi}{\partial\mathbf{O}}$). We want to compute the input gradients $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{n\times d}$ (where $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$ denote $\frac{\partial\phi}{\partial\mathbf{Q}},\frac{\partial\phi}{\partial\mathbf{K}},\frac{\partial\phi}{\partial\mathbf{V}}$ respectively).
 
-The gradient $\mathbf{dV}$ is easy to see. Applying reverse-mode autodiff by hand (aka the chain rule), we obtain (in matrix notation) $\mathbf{dV}=\mathbf{P}^\top\mathbf{dO}$. Thus:
+The gradient $\mathrm{d}\mathbf{V}$ is easy to see. Applying reverse-mode autodiff by hand (aka the chain rule), we obtain (in matrix notation) $\mathrm{d}\mathbf{V}=\mathbf{P}^\top\mathrm{d}\mathbf{O}$. Thus:
 
 <span id="A2.E3"></span>
 
 $$
-dv_{j}=\sum_{i}P_{ij}do_{i}=\sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}do_{i}.
+\begin{aligned}
+\mathrm{d}v_{j} &= \sum_{i}P_{ij}\mathrm{d}o_{i}\\
+&= \sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}\mathrm{d}o_{i}.
+\end{aligned}
 $$
 
-Since we already computed $L_{i}$, $dv_{j}$ can be computed without extra memory by repeated summing.
+Since we already computed $L_{i}$, $\mathrm{d}v_{j}$ can be computed without extra memory by repeated summing.
 
-The gradients $\mathbf{dQ}$ and $\mathbf{dK}$ are a little more complicated. We go through the gradients $\mathbf{dP}$ and $\mathbf{dS}$ first. From [Eq. 2](#A2.E2 "In B.1 Memory-efficient forward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), we have that $\mathbf{dP}=\mathbf{dO}\mathbf{V}^\top$, and so:
+The gradients $\mathrm{d}\mathbf{Q}$ and $\mathrm{d}\mathbf{K}$ are a little more complicated. We go through the gradients $\mathrm{d}\mathbf{P}$ and $\mathrm{d}\mathbf{S}$ first. From [Eq. 2](#A2.E2 "In B.1 Memory-efficient forward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), we have that $\mathrm{d}\mathbf{P}=\mathrm{d}\mathbf{O}\mathbf{V}^\top$, and so:
 
 $$
-dP_{ij}=do_{i}^\top v_{j}.
+\mathrm{d}P_{ij}=\mathrm{d}o_{i}^\top v_{j}.
 $$
 
 Recall that $P_{i:}=\mathrm{softmax}(S_{i:})$. Using the fact that the Jacobian of $y=\mathrm{softmax}(x)$ is $\mathrm{diag}(y)-\mathrm{yy}^\top$, we have that
 
 $$
-dS_{i:}=(\mathrm{diag}(P_{i:})-P_{i:}P_{i:}^\top)dP_{i:}=P_{i:}\circ dP_{i:}-(P_{i:}^\top dP_{i:})P_{i:},
+\begin{aligned}
+\mathrm{d}S_{i:} &= (\mathrm{diag}(P_{i:})-P_{i:}P_{i:}^\top)\mathrm{d}P_{i:}\\
+&= P_{i:}\circ \mathrm{d}P_{i:}-(P_{i:}^\top \mathrm{d}P_{i:})P_{i:},
+\end{aligned}
 $$
 
 where $\circ$ denotes pointwise multiplication.
@@ -404,27 +437,39 @@ Define
 <span id="A2.E4"></span>
 
 $$
-D_{i}=P_{i:}^\top dP_{i:}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}do_{i}^\top v_{j}=do_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=do_{i}^\top o_{i},
+\begin{aligned}
+D_{i} &= P_{i:}^\top \mathrm{d}P_{i:}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}\mathrm{d}o_{i}^\top v_{j}\\
+&= \mathrm{d}o_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}\\
+&= \mathrm{d}o_{i}^\top o_{i},
+\end{aligned}
 $$
 
 then
 
 $$
-dS_{i:}=P_{i:}\circ dP_{i:}-D_{i}P_{i:}.
+\mathrm{d}S_{i:}=P_{i:}\circ \mathrm{d}P_{i:}-D_{i}P_{i:}.
 $$
 
 Hence
 
 $$
-dS_{ij}=P_{ij}dP_{ij}-D_{i}P_{ij}=P_{ij}(dP_{ij}-D_{i}).
+\begin{aligned}
+\mathrm{d}S_{ij} &= P_{ij}\mathrm{d}P_{ij}-D_{i}P_{ij}\\
+&= P_{ij}(\mathrm{d}P_{ij}-D_{i}).
+\end{aligned}
 $$
 
-Now we can get the gradients $\mathbf{dQ}$ and $\mathbf{dK}$. Recall that $S_{ij}=q_{i}^\top k_{j}$, so
+Now we can get the gradients $\mathrm{d}\mathbf{Q}$ and $\mathrm{d}\mathbf{K}$. Recall that $S_{ij}=q_{i}^\top k_{j}$, so
 
 <span id="A2.E5"></span>
 
 $$
-dq_{i}=\sum_{j}dS_{ij}k_{j}=\sum_{j}P_{ij}(dP_{ij}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(do_{i}^\top v_{j}-D_{i})k_{j}.
+\begin{aligned}
+\mathrm{d}q_{i} &= \sum_{j}\mathrm{d}S_{ij}k_{j}\\
+&= \sum_{j}P_{ij}(\mathrm{d}P_{ij}-D_{i})k_{j}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(\mathrm{d}o_{i}^\top v_{j}-D_{i})k_{j}.
+\end{aligned}
 $$
 
 Similarly,
@@ -432,15 +477,19 @@ Similarly,
 <span id="A2.E6"></span>
 
 $$
-dk_{j}=\sum_{i}dS_{ij}q_{i}=\sum_{i}P_{ij}(dP_{ij}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(do_{i}^\top v_{j}-D_{i})q_{i}.
+\begin{aligned}
+\mathrm{d}k_{j} &= \sum_{i}\mathrm{d}S_{ij}q_{i}\\
+&= \sum_{i}P_{ij}(\mathrm{d}P_{ij}-D_{i})q_{i}\\
+&= \sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(\mathrm{d}o_{i}^\top v_{j}-D_{i})q_{i}.
+\end{aligned}
 $$
 
 Therefore the backward pass can also be computed with $O(n)$ extra memory:
 
-1. Compute $dv_{j}$ for all $j$ according to [Eq. 3](#A2.E3 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+1. Compute $\mathrm{d}v_{j}$ for all $j$ according to [Eq. 3](#A2.E3 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
 2. Compute $D_{i}$ for all $i$ according to [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(n)$ extra memory.
-3. Compute $dq_{i}$ for all $i$ according to [Eq. 5](#A2.E5 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
-4. Compute $dk_{j}$ for all $j$ according to [Eq. 6](#A2.E6 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+3. Compute $\mathrm{d}q_{i}$ for all $i$ according to [Eq. 5](#A2.E5 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
+4. Compute $\mathrm{d}k_{j}$ for all $j$ according to [Eq. 6](#A2.E6 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), which takes $O(d)$ extra memory.
 
 <span id="A2.SS3"></span>
 
@@ -449,11 +498,18 @@ Therefore the backward pass can also be computed with $O(n)$ extra memory:
 We describe the full details of FlashAttention forward pass. Given input sequences $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, we want to compute the attention output $\mathbf{O}\in\mathbb{R}^{N\times d}$:
 
 $$
-\mathbf{S}=\tau\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{S}^{\mathrm{masked}}=\mathrm{mask}(S)\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S}^{\mathrm{masked}})\in\mathbb{R}^{N\times N},
+\begin{aligned}
+\mathbf{S} &= \tau\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{S}^{\mathrm{masked}} &= \mathrm{mask}(S)\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S}^{\mathrm{masked}})\in\mathbb{R}^{N\times N},
+\end{aligned}
 $$
 
 $$
-\mathbf{P}^{\mathrm{dropped}}=\mathrm{dropout}(\mathbf{P},p_{\mathrm{drop}}),\quad\mathbf{O}=\mathbf{P}^{\mathrm{dropped}}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{P}^{\mathrm{dropped}} &= \mathrm{dropout}(\mathbf{P},p_{\mathrm{drop}}),\\
+\mathbf{O} &= \mathbf{P}^{\mathrm{dropped}}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 where $\tau\in\mathbb{R}$ is some softmax scaling (typically $\frac{1}{\sqrt{d}}$), mask is some masking function that sets some entries of the input to $-\infty$ and keep other entries the same (e.g., key padding mask when sequences in the batch don’t have the same lengths and are padded), and $\mathrm{dropout}(x,p)$ applies dropout to $x$ elementwise (i.e., output $\frac{x}{1-p}$ with probability $1-p$ and output 0 with probability $p$ for each element $x$).
@@ -487,7 +543,7 @@ The full algorithm is in [Algorithm 2](#alg2 "In B.3 FlashAttention: Forward Pas
 
 ### B.4 FlashAttention: Backward Pass
 
-We describe the full details of FlashAttention backward pass. Given input sequences $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, the output $\mathbf{O}\in\mathbb{R}^{N\times d}$, and the output gradient $\mathbf{dO}$, we want to compute the input gradients $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{N\times d}$.
+We describe the full details of FlashAttention backward pass. Given input sequences $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, the output $\mathbf{O}\in\mathbb{R}^{N\times d}$, and the output gradient $\mathrm{d}\mathbf{O}$, we want to compute the input gradients $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{N\times d}$.
 
 We first describe the standard attention backward pass in [Algorithm 3](#alg3 "In B.4 FlashAttention: Backward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") for completeness.
 
@@ -495,18 +551,18 @@ We first describe the standard attention backward pass in [Algorithm 3](#alg3 "I
 
 **Algorithm 3: Standard Attention Backward Pass**
 
-- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{dO}\in\mathbb{R}^{N\times d}$, $\mathbf{P}\in\mathbb{R}^{N\times N}$ in HBM.
-- Load $\mathbf{P},\mathbf{dO}$ by blocks from HBM, compute $\mathbf{dV}=\mathbf{P}^{\top}\mathbf{dO}\in\mathbb{R}^{N\times d}$, write $\mathbf{dV}$ to HBM.
-- Load $\mathbf{dO},\mathbf{V}$ by blocks from HBM, compute $\mathbf{dP}=\mathbf{dO}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$, write $\mathbf{dP}$ to HBM.
-- Read $\mathbf{P},\mathbf{dP}$ from HBM, compute $\mathbf{dS}\in\mathbb{R}^{N\times N}$ where $dS_{ij}=P_{ij}(dP_{ij}-\sum_{l}P_{il}dP_{il})$, write $\mathbf{dS}$ to HBM.
-- Load $\mathbf{dS}$ and $\mathbf{K}$ by blocks from HBM, compute $\mathbf{dQ}=\mathbf{dS}\mathbf{K}$, write $\mathbf{dQ}$ to HBM.
-- Load $\mathbf{dS}$ and $\mathbf{Q}$ by blocks from HBM, compute $\mathbf{dK}=\mathbf{dS}^{\top}\mathbf{Q}$, write $\mathbf{dK}$ to HBM.
-- **Return:** $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$, $\mathbf{P}\in\mathbb{R}^{N\times N}$ in HBM.
+- Load $\mathbf{P},\mathrm{d}\mathbf{O}$ by blocks from HBM, compute $\mathrm{d}\mathbf{V}=\mathbf{P}^{\top}\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$, write $\mathrm{d}\mathbf{V}$ to HBM.
+- Load $\mathrm{d}\mathbf{O},\mathbf{V}$ by blocks from HBM, compute $\mathrm{d}\mathbf{P}=\mathrm{d}\mathbf{O}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$, write $\mathrm{d}\mathbf{P}$ to HBM.
+- Read $\mathbf{P},\mathrm{d}\mathbf{P}$ from HBM, compute $\mathrm{d}\mathbf{S}\in\mathbb{R}^{N\times N}$ where $\mathrm{d}S_{ij}=P_{ij}(\mathrm{d}P_{ij}-\sum_{l}P_{il}\mathrm{d}P_{il})$, write $\mathrm{d}\mathbf{S}$ to HBM.
+- Load $\mathrm{d}\mathbf{S}$ and $\mathbf{K}$ by blocks from HBM, compute $\mathrm{d}\mathbf{Q}=\mathrm{d}\mathbf{S}\mathbf{K}$, write $\mathrm{d}\mathbf{Q}$ to HBM.
+- Load $\mathrm{d}\mathbf{S}$ and $\mathbf{Q}$ by blocks from HBM, compute $\mathrm{d}\mathbf{K}=\mathrm{d}\mathbf{S}^{\top}\mathbf{Q}$, write $\mathrm{d}\mathbf{K}$ to HBM.
+- **Return:** $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$.
 
 We now make two observations about FlashAttention backward pass:
 
 1. We do not need to store the dropout mask of size $O(N^{2})$ from the forward pass. Instead, we can save the pseudo-random number generator states from the forward pass and re-generate the dropout mask in the backward pass. This allows us to only use $O(N)$ extra memory.
-2. When computing the softmax gradient, we use [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") to compute $D_{i}=P_{i:}^{\top}dP_{i:}$ without reducing over $P_{i:}$ and $dP_{i:}$ of size $N$ (they might not fit into SRAM). Instead we can rewrite $D_{i}=do_{i}^{\top}o_{i}$ and compute the dot product between vectors of size $d$.
+2. When computing the softmax gradient, we use [Eq. 4](#A2.E4 "In B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") to compute $D_{i}=P_{i:}^{\top}\mathrm{d}P_{i:}$ without reducing over $P_{i:}$ and $\mathrm{d}P_{i:}$ of size $N$ (they might not fit into SRAM). Instead we can rewrite $D_{i}=\mathrm{d}o_{i}^{\top}o_{i}$ and compute the dot product between vectors of size $d$.
 
 The full FlashAttention backward pass algorithm is in [Algorithm 4](#alg4 "In B.4 FlashAttention: Backward Pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"). Conceptually it is just a block version of the derivation in [Section B.2](#A2.SS2 "B.2 Memory-efficient backward pass ‣ Appendix B Algorithm Details ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness").
 
@@ -514,31 +570,31 @@ The full FlashAttention backward pass algorithm is in [Algorithm 4](#alg4 "In B.
 
 **Algorithm 4: FlashAttention Backward Pass**
 
-- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{dO}\in\mathbb{R}^{N\times d}$ in HBM, vectors $\ell,m\in\mathbb{R}^{N}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$, pseudo-random number generator state ${\cal R}$ from the forward pass.
+- **Input:** Matrices $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$ in HBM, vectors $\ell,m\in\mathbb{R}^{N}$ in HBM, on-chip SRAM of size $M$, softmax scaling constant $\tau\in\mathbb{R}$, masking function mask, dropout probability $p_{\mathrm{drop}}$, pseudo-random number generator state ${\cal R}$ from the forward pass.
 - Set the pseudo-random number generator state to ${\cal R}$.
 - Set block sizes $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
 - Divide $\mathbf{Q}$ into $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ blocks $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each, and divide $\mathbf{K},\mathbf{V}$ in to $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ blocks $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ and $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
-- Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\mathbf{dO}$ into $T_{r}$ blocks $\mathbf{dO}_{i},\dots,\mathbf{dO}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
-- Initialize $\mathbf{dQ}=(0)_{N\times d}$ in HBM and divide it into $T_{r}$ blocks $\mathbf{dQ}_{1},\dots,\mathbf{dQ}_{T_{r}}$ of size $B_{r}\times d$ each. Initialize $\mathbf{dK}=(0)_{N\times d},\mathbf{dV}=(0)_{N\times d}$ in HBM and divide $\mathbf{dK},\mathbf{dV}$ in to $T_{c}$ blocks $\mathbf{dK}_{1},\dots,\mathbf{dK}_{T_{c}}$ and $\mathbf{dV}_{1},\dots,\mathbf{dV}_{T_{c}}$, of size $B_{c}\times d$ each.
+- Divide $\mathbf{O}$ into $T_{r}$ blocks $\mathbf{O}_{i},\dots,\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\mathrm{d}\mathbf{O}$ into $T_{r}$ blocks $\mathrm{d}\mathbf{O}_{i},\dots,\mathrm{d}\mathbf{O}_{T_{r}}$ of size $B_{r}\times d$ each, divide $\ell$ into $T_{r}$ blocks $\ell_{i},\dots,\ell_{T_{r}}$ of size $B_{r}$ each, divide $m$ into $T_{r}$ blocks $m_{1},\dots,m_{T_{r}}$ of size $B_{r}$ each.
+- Initialize $\mathrm{d}\mathbf{Q}=(0)_{N\times d}$ in HBM and divide it into $T_{r}$ blocks $\mathrm{d}\mathbf{Q}_{1},\dots,\mathrm{d}\mathbf{Q}_{T_{r}}$ of size $B_{r}\times d$ each. Initialize $\mathrm{d}\mathbf{K}=(0)_{N\times d},\mathrm{d}\mathbf{V}=(0)_{N\times d}$ in HBM and divide $\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$ in to $T_{c}$ blocks $\mathrm{d}\mathbf{K}_{1},\dots,\mathrm{d}\mathbf{K}_{T_{c}}$ and $\mathrm{d}\mathbf{V}_{1},\dots,\mathrm{d}\mathbf{V}_{T_{c}}$, of size $B_{c}\times d$ each.
 - **For** $1\leq j\leq T_{c}$ **do:**
   - Load $\mathbf{K}_{j},\mathbf{V}_{j}$ from HBM to on-chip SRAM.
-  - Initialize $\tilde{\mathbf{dK}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{dV}}_{j}=(0)_{B_{c}\times d}$ on SRAM.
+  - Initialize $\tilde{\mathrm{d}\mathbf{K}}_{j}=(0)_{B_{c}\times d},\tilde{\mathrm{d}\mathbf{V}}_{j}=(0)_{B_{c}\times d}$ on SRAM.
   - **For** $1\leq i\leq T_{r}$ **do:**
-    - Load $\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{dO}_{i},\mathbf{dQ}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
+    - Load $\mathbf{Q}_{i},\mathbf{O}_{i},\mathrm{d}\mathbf{O}_{i},\mathrm{d}\mathbf{Q}_{i},\ell_{i},m_{i}$ from HBM to on-chip SRAM.
     - On chip, compute $\mathbf{S}_{ij}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
     - On chip, compute $\mathbf{S}_{ij}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{ij})$.
     - On chip, compute $\mathbf{P}_{ij}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{ij}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
     - On chip, compute dropout mask $\mathbf{Z}_{ij}\in\mathbb{R}^{B_{r}\times B_{c}}$ where each entry has value $\frac{1}{1-p_{\mathrm{drop}}}$ with probability $1-p_{\mathrm{drop}}$ and value 0 with probability $p_{\mathrm{drop}}$.
     - On chip, compute $\mathbf{P}_{ij}^{\mathrm{dropped}}=\mathbf{P}_{ij}\circ\mathbf{Z}_{ij}$ (pointwise multiply).
-    - On chip, compute $\tilde{\mathbf{dV}_{j}}\leftarrow\tilde{\mathbf{dV}_{j}}+(\mathbf{P}_{ij}^{\mathrm{dropped}})^{\top}\mathbf{dO}_{i}\in\mathbb{R}^{B_{c}\times d}$.
-    - On chip, compute $\mathbf{dP}_{ij}^{\mathrm{dropped}}=\mathbf{dO}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$.
-    - On chip, compute $\mathbf{dP}_{ij}=\mathbf{dP}_{ij}^{\mathrm{dropped}}\circ\mathbf{Z}_{ij}$ (pointwise multiply).
-    - On chip, compute $D_{i}=\mathrm{rowsum}(\mathbf{dO}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$.
-    - On chip, compute $\mathbf{dS}_{ij}=\mathbf{P}_{ij}\circ(\mathbf{dP}_{ij}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
-    - Write $\mathbf{dQ}_{i}\leftarrow\mathbf{dQ}_{i}+\tau\mathbf{dS}_{ij}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$ to HBM.
-    - On chip, compute $\tilde{\mathbf{dK}}_{j}\leftarrow\tilde{\mathbf{dK}}_{j}+\tau\mathbf{dS}_{ij}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$.
-  - Write $\mathbf{dK}_{j}\leftarrow\tilde{\mathbf{dK}_{j}},\mathbf{dV}_{j}\leftarrow\tilde{\mathbf{dV}_{j}}$ to HBM.
-- **Return:** $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$.
+    - On chip, compute $\tilde{\mathrm{d}\mathbf{V}_{j}}\leftarrow\tilde{\mathrm{d}\mathbf{V}_{j}}+(\mathbf{P}_{ij}^{\mathrm{dropped}})^{\top}\mathrm{d}\mathbf{O}_{i}\in\mathbb{R}^{B_{c}\times d}$.
+    - On chip, compute $\mathrm{d}\mathbf{P}_{ij}^{\mathrm{dropped}}=\mathrm{d}\mathbf{O}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - On chip, compute $\mathrm{d}\mathbf{P}_{ij}=\mathrm{d}\mathbf{P}_{ij}^{\mathrm{dropped}}\circ\mathbf{Z}_{ij}$ (pointwise multiply).
+    - On chip, compute $D_{i}=\mathrm{rowsum}(\mathrm{d}\mathbf{O}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$.
+    - On chip, compute $\mathrm{d}\mathbf{S}_{ij}=\mathbf{P}_{ij}\circ(\mathrm{d}\mathbf{P}_{ij}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - Write $\mathrm{d}\mathbf{Q}_{i}\leftarrow\mathrm{d}\mathbf{Q}_{i}+\tau\mathrm{d}\mathbf{S}_{ij}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$ to HBM.
+    - On chip, compute $\tilde{\mathrm{d}\mathbf{K}}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{K}}_{j}+\tau\mathrm{d}\mathbf{S}_{ij}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$.
+  - Write $\mathrm{d}\mathbf{K}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{K}_{j}},\mathrm{d}\mathbf{V}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{V}_{j}}$ to HBM.
+- **Return:** $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$.
 
 We see that similar to the forward pass, the backward pass performs $O(N^{2})$ FLOPs and only requires $O(N)$ extra memory beyond inputs, output, output gradient, and input gradients.
 
@@ -581,7 +637,11 @@ In terms of extra memory required, we see that we need $O(N)$ memory to store th
 We now prove the algorithm’s correctness by induction on $j$ for $0\leq j\leq T_{c}$. Let $\mathbf{K}_{:j}\in\mathbb{R}^{\mathrm{jB}_{c}\times d}$ be the first $\mathrm{jB}_{c}$ rows of $\mathbf{K}$, and similarly $\mathbf{V}_{:j}\in\mathbb{R}^{\mathrm{jB}_{c}\times d}$ the the first $\mathrm{jB}_{c}$ rows of $\mathbf{V}$. Let $\mathbf{S}_{:,:j}=\mathbf{Q}\mathbf{K}_{:j}^{\top}\in\mathbb{R}^{N\times \mathrm{jB}_{c}}$, and $\mathbf{P}_{:,:j}=\mathrm{softmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N\times \mathrm{jB}_{c}}$ (softmax applied row-wise). Let $m^{j},\ell^{(j)},\mathbf{O}^{(j)}$ be the values of $m,\ell,\mathbf{O}$ in HBM after the $j$-th iteration of the outer loop ([Algorithm 1](#alg1 "In 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") line [5](#alg1.l5 "In Algorithm 1 ‣ 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")). (Note that these values of $m,\ell,\mathbf{O}$ are updated after each iteration of the outer loop.) We want to show that after the $j$-th iteration of the outer loop, we have computed in HBM:
 
 $$
-m^{(j)}=\mathrm{rowmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N},\quad\ell^{(j)}=\mathrm{rowsum}(\exp(\mathbf{S}_{:,:j}-m^{(j)}))\in\mathbb{R}^{N},\quad\mathbf{O}^{(j)}=\mathbf{P}_{:,:j}\mathbf{V}_{:j}\in\mathbb{R}^{N\times d}.
+\begin{aligned}
+m^{(j)} &= \mathrm{rowmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N},\\
+\ell^{(j)} &= \mathrm{rowsum}(\exp(\mathbf{S}_{:,:j}-m^{(j)}))\in\mathbb{R}^{N},\\
+\mathbf{O}^{(j)} &= \mathbf{P}_{:,:j}\mathbf{V}_{:j}\in\mathbb{R}^{N\times d}.
+\end{aligned}
 $$
 
 Based on our initialization ([Algorithm 1](#alg1 "In 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") line [2](#alg1.l2 "In Algorithm 1 ‣ 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")), this claim is true for $j=0$ (i.e., before the any iteration of the outer loop is executed). Suppose that the claim holds for some $j=0,\dots,T_{c}-1$. We want to show that the claim also holds for $j+1$. Indeed, when we update the statistics in the inner loop ([Algorithm 1](#alg1 "In 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness") line [10](#alg1.l10 "In Algorithm 1 ‣ 3.1 An Efficient Attention Algorithm With Tiling and Recomputation ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")) on the $(j+1)$-th iteration of the outer loop, we update $m^{(j+1)}=\max(m^{(j)},\tilde{m})$ where $\tilde{m}\in\mathbb{R}^{N}$ is the row-max of $\mathbf{S}_{:,j:j+1}$, the slice of $\mathbf{S}$ from column $\mathrm{jB}_{c}$ to column $(j+1)B_{c}-1$. This implies that
@@ -605,32 +665,29 @@ $$
 Let $\mathbf{V}_{j:j+1}$ be the slice of $\mathbf{V}$ from column $\mathrm{jB}_{c}$ to column $(j+1)B_{c}-1$, we also update:
 
 $$
-\mathbf{O}^{(j+1)}\qquad =\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{O}^{(j)}+e^{\tilde{m}-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1}-\tilde{m})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{P}_{:,:j}\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathrm{diag}(\ell^{(j)})\exp(\mathbf{S}_{:,:j}-m^{(j)})\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(e^{-m^{(j+1)}}\exp(\mathbf{S}_{:,:j})\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\exp(\mathbf{S}_{:,:j}-m^{(j+1)})\mathbf{V}_{:j}+\exp(\mathbf{S}_{j:j+1}-m^{(j+1)})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}\left(\exp\left(\begin{bmatrix}\mathbf{S}_{:,:j}&\mathbf{S}_{j:j+1}\end{bmatrix}-m^{(j+1)}\right)\right)\begin{bmatrix}\mathbf{V}_{:j}\\
-\mathbf{V}_{j:j+1}\end{bmatrix}
-$$
-
-$$
-=\mathrm{softmax}(\mathbf{S}_{:j+1})\mathbf{V}_{:j+1}.
+\begin{aligned}
+\mathbf{O}^{(j+1)}
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{O}^{(j)}\\
+&\qquad {}+e^{\tilde{m}-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1}-\tilde{m})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{P}_{:,:j}\mathbf{V}_{:j}\\
+&\qquad {}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathrm{diag}(\ell^{(j)})\\
+&\qquad {}\cdot\exp(\mathbf{S}_{:,:j}-m^{(j)})\mathbf{V}_{:j}
+  +e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  e^{-m^{(j+1)}}\exp(\mathbf{S}_{:,:j})\mathbf{V}_{:j}\\
+&\qquad {}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \exp(\mathbf{S}_{:,:j}-m^{(j+1)})\mathbf{V}_{:j}\\
+&\qquad {}+\exp(\mathbf{S}_{j:j+1}-m^{(j+1)})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}
+  \exp\left(\begin{bmatrix}\mathbf{S}_{:,:j}&\mathbf{S}_{j:j+1}\end{bmatrix}-m^{(j+1)}\right)\\
+&\qquad {}\cdot\begin{bmatrix}\mathbf{V}_{:j}\\ \mathbf{V}_{j:j+1}\end{bmatrix}\\
+&= \mathrm{softmax}(\mathbf{S}_{:j+1})\mathbf{V}_{:j+1}.
+\end{aligned}
 $$
 
 We then see that the claim is also true for $j+1$. By induction, the claim is true for all $j=0,\dots,T_{c}$.
@@ -676,7 +733,10 @@ $$
 We therefore set:
 
 $$
-B_{c}=\Theta\left(\frac{M}{d}\right),\qquad B_{r}=\Theta\left(\min\left(\frac{M}{d},\frac{M}{B_{c}}\right)\right)=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\begin{aligned}
+B_{c} &= \Theta\left(\frac{M}{d}\right),\\
+B_{r} &= \Theta\left(\min\left(\frac{M}{d},\frac{M}{B_{c}}\right)\right)=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\end{aligned}
 $$
 
 We then have:
@@ -714,18 +774,21 @@ However, the input to attention (matrices $\mathbf{Q},\mathbf{K},\mathbf{V}$) an
 
 The IO complexity of the attention backward is very similar to the IO complexity of the attention forward ([Theorem 2](#Thmtheorem2 "Theorem 2. ‣ 3.2 Analysis: IO Complexity of FlashAttention ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness")). Here we provide a sketch of the proof.
 
-We first analyze the IO complexity of standard attention backward pass. The inputs $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{dO}\in\mathbb{R}^{N\times d}$ reside in HBM, and the at the end of the algorithm the outputs $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{N\times d}$ are written to HBM.
+We first analyze the IO complexity of standard attention backward pass. The inputs $\mathbf{Q},\mathbf{K},\mathbf{V},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$ reside in HBM, and the at the end of the algorithm the outputs $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{N\times d}$ are written to HBM.
 
 At each step of the standard attention backward pass, one needs to load inputs of size $Nd$ or $N^{2}$ from HBM, and needs to write the outputs of size $N^{2}$ or $Nd$ to HBM. This incurs $\Theta(Nd+N^{2})$ HBM accesses.
 
 We now analyze the IO complexity of FlashAttention backward pass.
 
-Similar to [Theorem 2](#Thmtheorem2 "Theorem 2. ‣ 3.2 Analysis: IO Complexity of FlashAttention ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), we see that each element of $\mathbf{K}$ and $\mathbf{V}$ is loaded from HBM once. Each element of $\mathbf{dK}$ and $\mathbf{dV}$ is only written to HBM once. We make $T_{c}$ passes over $\mathbf{Q},\mathbf{O},\mathbf{dO}$, each pass loading all of $\mathbf{Q},\mathbf{O},\mathbf{dO}$ to HBM. We also make $T_{c}$ passes over $\mathbf{dQ}$, each pass reading/writing all of $\mathbf{dQ}$ from/to HBM. Therefore the number of HBM accesses is $\Theta\left(Nd+NdT_{c}\right)=\Theta(NdT_{c})$.
+Similar to [Theorem 2](#Thmtheorem2 "Theorem 2. ‣ 3.2 Analysis: IO Complexity of FlashAttention ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), we see that each element of $\mathbf{K}$ and $\mathbf{V}$ is loaded from HBM once. Each element of $\mathrm{d}\mathbf{K}$ and $\mathrm{d}\mathbf{V}$ is only written to HBM once. We make $T_{c}$ passes over $\mathbf{Q},\mathbf{O},\mathrm{d}\mathbf{O}$, each pass loading all of $\mathbf{Q},\mathbf{O},\mathrm{d}\mathbf{O}$ to HBM. We also make $T_{c}$ passes over $\mathrm{d}\mathbf{Q}$, each pass reading/writing all of $\mathrm{d}\mathbf{Q}$ from/to HBM. Therefore the number of HBM accesses is $\Theta\left(Nd+NdT_{c}\right)=\Theta(NdT_{c})$.
 
 As in the proof of [Theorem 2](#Thmtheorem2 "Theorem 2. ‣ 3.2 Analysis: IO Complexity of FlashAttention ‣ 3 FlashAttention: Algorithm, Analysis, and Extensions ‣ FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"), the constraints on the block sizes are that:
 
 $$
-B_{c}=\Theta\left(\frac{M}{d}\right),\qquad B_{r}=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\begin{aligned}
+B_{c} &= \Theta\left(\frac{M}{d}\right),\\
+B_{r} &= \Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\end{aligned}
 $$
 
 We then have:

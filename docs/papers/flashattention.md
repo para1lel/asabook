@@ -67,7 +67,11 @@ Transformer [Vas17] 已成为自然语言处理、图像分类等应用中使用
 给定输入序列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, 其中 $N$ 是序列长度, $d$ 是头维度, 我们希望计算注意力输出 $\mathbf{O}\in\mathbb{R}^{N\times d}$:
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 其中 $\mathrm{softmax}$ 是按行应用的.
@@ -107,17 +111,28 @@ $$
 **分块.** 我们按块计算注意力. Softmax 将 $\mathbf{K}$ 的列耦合在一起, 因此我们分解带缩放 [Mil18, Kit20, Rab21] 的大 Softmax. 为了数值稳定, 向量 $x\in\mathbb{R}^{B}$ 的 Softmax 计算如下:
 
 $$
-m(x):=\max_{i}\ \ x_{i},\quad f(x):=\begin{bmatrix}e^{x_{1}-m(x)}&\ldots&e^{x_{B}-m(x)}\end{bmatrix},\quad\ell(x):=\sum_{i}f(x)_{i},\quad\mathrm{softmax}(x):=\frac{f(x)}{\ell(x)}.
+\begin{aligned}
+m(x) &:= \max_{i}\ \ x_{i},\\
+f(x) &:= \begin{bmatrix}e^{x_{1}-m(x)}&\ldots&e^{x_{B}-m(x)}\end{bmatrix},\\
+\ell(x) &:= \sum_{i}f(x)_{i},\\
+\mathrm{softmax}(x) &:= \frac{f(x)}{\ell(x)}.
+\end{aligned}
 $$
 
 对于向量 $x^{(1)},x^{(2)}\in\mathbb{R}^{B}$, 我们可以将连接的 $x=\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix}\in\mathbb{R}^{2B}$ 的 Softmax 分解如下:
 
 $$
-m(x)=m(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=\max(m(x^{(1)}),m(x^{(2)})),\quad f(x)=\begin{bmatrix}e^{m(x^{(1)})-m(x)}f(x^{(1)})&e^{m(x^{(2)})-m(x)}f(x^{(2)})\end{bmatrix},
+\begin{aligned}
+m(x) &= m(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=\max(m(x^{(1)}),m(x^{(2)})),\\
+f(x) &= \begin{bmatrix}e^{m(x^{(1)})-m(x)}f(x^{(1)})&e^{m(x^{(2)})-m(x)}f(x^{(2)})\end{bmatrix},
+\end{aligned}
 $$
 
 $$
-\ell(x)=\ell(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=e^{m(x^{(1)})-m(x)}\ell(x^{(1)})+e^{m(x^{(2)})-m(x)}\ell(x^{(2)}),\quad\mathrm{softmax}(x)=\frac{f(x)}{\ell(x)}.
+\begin{aligned}
+\ell(x) &= \ell(\begin{bmatrix}x^{(1)}\ x^{(2)}\end{bmatrix})=e^{m(x^{(1)})-m(x)}\ell(x^{(1)})+e^{m(x^{(2)})-m(x)}\ell(x^{(2)}),\\
+\mathrm{softmax}(x) &= \frac{f(x)}{\ell(x)}.
+\end{aligned}
 $$
 
 只要额外维护统计量 $m(x)$ 和 $\ell(x)$, softmax 就可以逐块计算. [+2] 因此, 我们先将输入 $\mathbf{Q},\mathbf{K},\mathbf{V}$ 分块 ([算法 1](#alg1) 第 3 行), 再计算各块的 softmax 值与附加统计量 (第 10 行), 最后合并结果 (第 12 行).
@@ -191,7 +206,11 @@ $$
 给定输入 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$ 和一个掩码矩阵 $\tilde{\mathbf{M}}\in\{0,1\}^{N\times N}$, 我们希望计算:
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S}\odot\mathbb{1}_{\tilde{\mathbf{M}}})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 其中, 当 $\tilde{\mathbf{M}}_{kl}=1$ 时, $(\mathbf{S}\odot\mathbf{1}_{\tilde{\mathbf{M}}})_{kl}=\mathbf{S}_{kl}$; 当 $\tilde{\mathbf{M}}_{kl}=0$ 时, 其值为 $-\infty$. 我们要求 $\tilde{\mathbf{M}}$ 具有分块结构: 对给定块大小 $B_{r},B_{c}$ 和某个 $\mathbf{M}\in\{0,1\}^{N/B_{r}\times N/B_{c}}$, 所有 $k,l$ 都满足 $\tilde{\mathbf{M}}_{k,l}=\mathbf{M}_{ij}$, 其中 $i=\lfloor k/B_{r}\rfloor$, $j=\lfloor l/B_{c}\rfloor$.
@@ -343,7 +362,11 @@ $$
 回顾一下, 给定输入序列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, 我们希望计算注意力输出 $\mathbf{O}\in\mathbb{R}^{N\times d}$:
 
 $$
-\mathbf{S}=\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\quad\mathbf{O}=\mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d}.
+\begin{aligned}
+\mathbf{S} &= \mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S})\in\mathbb{R}^{N\times N},\\
+\mathbf{O} &= \mathbf{P}\mathbf{V}\in\mathbb{R}^{N\times d}.
+\end{aligned}
 $$
 
 有 $S_{ij}=q_{i}^{\top}k_{j}$, 其中 $q_{i}$ 和 $k_{j}$ 分别是 $\mathbf{Q}$ 的第 $i$ 行与 $\mathbf{K}$ 的第 $j$ 行. 定义 softmax 的归一化常数:
@@ -359,7 +382,11 @@ $$
 <span id="A2.E2"></span>
 
 $$
-o_{i}=P_{i:}\mathbf{V}=\sum_{j}P_{ij}v_{j}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}.
+\begin{aligned}
+o_{i} &= P_{i:}\mathbf{V}\\
+&= \sum_{j}P_{ij}v_{j}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}v_{j}.
+\end{aligned}
 $$
 
 我们看到, 一旦计算出 $L_{i}$, 我们可以通过反复求和 $\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}$ 来在不使用额外内存的情况下计算 $o_{i}$. 因此前向传播可以用 $O(n)$ 额外内存计算:
@@ -373,28 +400,34 @@ $$
 
 我们推导了注意力的反向传播, 并展示了它也可以用线性内存计算. [Rab21] 表明, 通过对内存高效的前向传播应用梯度检查点, 可以无需二次额外内存完成反向传播. 我们则明确推导了反向传播, 并展示如何以内存高效的方式进行计算.
 
-假设有一个标量损失函数 $\phi$, 并且让输出梯度为 $\mathbf{dO}\in\mathbb{R}^{n\times d}$ (其中 $\mathbf{dO}$ 表示 $\frac{\partial\phi}{\partial\mathbf{O}}$). 我们想要计算输入梯度 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{n\times d}$ (其中 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$ 分别表示 $\frac{\partial\phi}{\partial\mathbf{Q}},\frac{\partial\phi}{\partial\mathbf{K}},\frac{\partial\phi}{\partial\mathbf{V}}$).
+假设有一个标量损失函数 $\phi$, 并且让输出梯度为 $\mathrm{d}\mathbf{O}\in\mathbb{R}^{n\times d}$ (其中 $\mathrm{d}\mathbf{O}$ 表示 $\frac{\partial\phi}{\partial\mathbf{O}}$). 我们想要计算输入梯度 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{n\times d}$ (其中 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$ 分别表示 $\frac{\partial\phi}{\partial\mathbf{Q}},\frac{\partial\phi}{\partial\mathbf{K}},\frac{\partial\phi}{\partial\mathbf{V}}$).
 
-梯度 $\mathbf{dV}$ 很容易看出. 手动应用反向模式自动微分 (也称链式法则), 我们得到 (矩阵表示) $\mathbf{dV}=\mathbf{P}^\top\mathbf{dO}$. 因此:
+梯度 $\mathrm{d}\mathbf{V}$ 很容易看出. 手动应用反向模式自动微分 (也称链式法则), 我们得到 (矩阵表示) $\mathrm{d}\mathbf{V}=\mathbf{P}^\top\mathrm{d}\mathbf{O}$. 因此:
 
 <span id="A2.E3"></span>
 
 $$
-dv_{j}=\sum_{i}P_{ij}do_{i}=\sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}do_{i}.
+\begin{aligned}
+\mathrm{d}v_{j} &= \sum_{i}P_{ij}\mathrm{d}o_{i}\\
+&= \sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}\mathrm{d}o_{i}.
+\end{aligned}
 $$
 
-由于我们已经计算了 $L_{i}$, $dv_{j}$ 可以通过重复求和在不增加额外内存的情况下计算.
+由于我们已经计算了 $L_{i}$, $\mathrm{d}v_{j}$ 可以通过重复求和在不增加额外内存的情况下计算.
 
-梯度 $\mathbf{dQ}$ 和 $\mathbf{dK}$ 稍微复杂一些. 我们先来看梯度 $\mathbf{dP}$ 和 $\mathbf{dS}$. 根据 [方程 2](#A2.E2), 我们有 $\mathbf{dP}=\mathbf{dO}\mathbf{V}^\top$, 因此:
+梯度 $\mathrm{d}\mathbf{Q}$ 和 $\mathrm{d}\mathbf{K}$ 稍微复杂一些. 我们先来看梯度 $\mathrm{d}\mathbf{P}$ 和 $\mathrm{d}\mathbf{S}$. 根据 [方程 2](#A2.E2), 我们有 $\mathrm{d}\mathbf{P}=\mathrm{d}\mathbf{O}\mathbf{V}^\top$, 因此:
 
 $$
-dP_{ij}=do_{i}^\top v_{j}.
+\mathrm{d}P_{ij}=\mathrm{d}o_{i}^\top v_{j}.
 $$
 
 回忆 $P_{i:}=\mathrm{softmax}(S_{i:})$. 利用 $y=\mathrm{softmax}(x)$ 的雅可比矩阵是 $\mathrm{diag}(y)-yy^\top$ 这一事实, 我们得到
 
 $$
-dS_{i:}=(\mathrm{diag}(P_{i:})-P_{i:}P_{i:}^\top)dP_{i:}=P_{i:}\circ dP_{i:}-(P_{i:}^\top dP_{i:})P_{i:},
+\begin{aligned}
+\mathrm{d}S_{i:} &= (\mathrm{diag}(P_{i:})-P_{i:}P_{i:}^\top)\mathrm{d}P_{i:}\\
+&= P_{i:}\circ \mathrm{d}P_{i:}-(P_{i:}^\top \mathrm{d}P_{i:})P_{i:},
+\end{aligned}
 $$
 
 其中 $\circ$ 表示逐点相乘.
@@ -404,27 +437,39 @@ $$
 <span id="A2.E4"></span>
 
 $$
-D_{i}=P_{i:}^\top dP_{i:}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}do_{i}^\top v_{j}=do_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}=do_{i}^\top o_{i},
+\begin{aligned}
+D_{i} &= P_{i:}^\top \mathrm{d}P_{i:}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}\mathrm{d}o_{i}^\top v_{j}\\
+&= \mathrm{d}o_{i}^\top\sum_{j}\frac{e^{q_{i}^{\top}k_{j}}}{L_{i}}v_{j}\\
+&= \mathrm{d}o_{i}^\top o_{i},
+\end{aligned}
 $$
 
 然后
 
 $$
-dS_{i:}=P_{i:}\circ dP_{i:}-D_{i}P_{i:}.
+\mathrm{d}S_{i:}=P_{i:}\circ \mathrm{d}P_{i:}-D_{i}P_{i:}.
 $$
 
 因此
 
 $$
-dS_{ij}=P_{ij}dP_{ij}-D_{i}P_{ij}=P_{ij}(dP_{ij}-D_{i}).
+\begin{aligned}
+\mathrm{d}S_{ij} &= P_{ij}\mathrm{d}P_{ij}-D_{i}P_{ij}\\
+&= P_{ij}(\mathrm{d}P_{ij}-D_{i}).
+\end{aligned}
 $$
 
-现在我们可以得到梯度 $\mathbf{dQ}$ 和 $\mathbf{dK}$. 回想一下 $S_{ij}=q_{i}^{\top}k_{j}$, 所以
+现在我们可以得到梯度 $\mathrm{d}\mathbf{Q}$ 和 $\mathrm{d}\mathbf{K}$. 回想一下 $S_{ij}=q_{i}^{\top}k_{j}$, 所以
 
 <span id="A2.E5"></span>
 
 $$
-dq_{i}=\sum_{j}dS_{ij}k_{j}=\sum_{j}P_{ij}(dP_{ij}-D_{i})k_{j}=\sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(do_{i}^\top v_{j}-D_{i})k_{j}.
+\begin{aligned}
+\mathrm{d}q_{i} &= \sum_{j}\mathrm{d}S_{ij}k_{j}\\
+&= \sum_{j}P_{ij}(\mathrm{d}P_{ij}-D_{i})k_{j}\\
+&= \sum_{j}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(\mathrm{d}o_{i}^\top v_{j}-D_{i})k_{j}.
+\end{aligned}
 $$
 
 类似地,
@@ -432,15 +477,19 @@ $$
 <span id="A2.E6"></span>
 
 $$
-dk_{j}=\sum_{i}dS_{ij}q_{i}=\sum_{i}P_{ij}(dP_{ij}-D_{i})q_{i}=\sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(do_{i}^\top v_{j}-D_{i})q_{i}.
+\begin{aligned}
+\mathrm{d}k_{j} &= \sum_{i}\mathrm{d}S_{ij}q_{i}\\
+&= \sum_{i}P_{ij}(\mathrm{d}P_{ij}-D_{i})q_{i}\\
+&= \sum_{i}\frac{e^{q_{i}^\top k_{j}}}{L_{i}}(\mathrm{d}o_{i}^\top v_{j}-D_{i})q_{i}.
+\end{aligned}
 $$
 
 因此反向传播也可以使用 $O(n)$ 的额外内存计算:
 
-1. 根据 [公式 3](#A2.E3) 计算所有 $j$ 的 $dv_{j}$, 这需要 $O(d)$ 的额外内存.
+1. 根据 [公式 3](#A2.E3) 计算所有 $j$ 的 $\mathrm{d}v_{j}$, 这需要 $O(d)$ 的额外内存.
 2. 根据 [公式 4](#A2.E4) 计算所有 $i$ 的 $D_{i}$, 这将占用 $O(n)$ 额外内存.
-3. 根据 [公式 5](#A2.E5) 计算所有 $i$ 的 $dq_{i}$, 这需要 $O(d)$ 的额外内存.
-4. 根据 [公式 6](#A2.E6) 计算所有 $j$ 的 $dk_{j}$, 这需要 $O(d)$ 的额外内存.
+3. 根据 [公式 5](#A2.E5) 计算所有 $i$ 的 $\mathrm{d}q_{i}$, 这需要 $O(d)$ 的额外内存.
+4. 根据 [公式 6](#A2.E6) 计算所有 $j$ 的 $\mathrm{d}k_{j}$, 这需要 $O(d)$ 的额外内存.
 
 <span id="A2.SS3"></span>
 
@@ -449,11 +498,18 @@ $$
 我们描述了 FlashAttention 前向传播的完整细节. 给定输入序列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, 我们希望计算注意力输出 $\mathbf{O}\in\mathbb{R}^{N\times d}$:
 
 $$
-\mathbf{S}=\tau\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\quad\mathbf{S}^{\mathrm{masked}}=\mathrm{mask}(S)\in\mathbb{R}^{N\times N},\quad\mathbf{P}=\mathrm{softmax}(\mathbf{S}^{\mathrm{masked}})\in\mathbb{R}^{N\times N},
+\begin{aligned}
+\mathbf{S} &= \tau\mathbf{Q}\mathbf{K}^{\top}\in\mathbb{R}^{N\times N},\\
+\mathbf{S}^{\mathrm{masked}} &= \mathrm{mask}(S)\in\mathbb{R}^{N\times N},\\
+\mathbf{P} &= \mathrm{softmax}(\mathbf{S}^{\mathrm{masked}})\in\mathbb{R}^{N\times N},
+\end{aligned}
 $$
 
 $$
-\mathbf{P}^{\mathrm{dropped}}=\mathrm{dropout}(\mathbf{P},p_{\mathrm{drop}}),\quad\mathbf{O}=\mathbf{P}^{\mathrm{dropped}}\mathbf{V}\in\mathbb{R}^{N\times d},
+\begin{aligned}
+\mathbf{P}^{\mathrm{dropped}} &= \mathrm{dropout}(\mathbf{P},p_{\mathrm{drop}}),\\
+\mathbf{O} &= \mathbf{P}^{\mathrm{dropped}}\mathbf{V}\in\mathbb{R}^{N\times d},
+\end{aligned}
 $$
 
 其中 $\tau\in\mathbb{R}$ 是某种 softmax 缩放 (通常是 $\frac{1}{\sqrt{d}}$), mask 是一种掩码函数, 它将输入的某些项设置为 $-\infty$, 而保持其他项不变 (例如, 当批次中的序列长度不同且被填充时的 key padding mask), $\mathrm{dropout}(x,p)$ 对 $x$ 进行逐元素的 dropout (即, 对于每个元素 $x$, 以概率 $1-p$ 输出 $\frac{x}{1-p}$, 以概率 $p$ 输出 0).
@@ -487,7 +543,7 @@ $$
 
 ### B.4 FlashAttention: 反向传播
 
-我们描述了 FlashAttention 反向传播的完整细节. 给定输入序列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, 输出 $\mathbf{O}\in\mathbb{R}^{N\times d}$ 和输出梯度 $\mathbf{dO}$, 我们希望计算输入梯度 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{N\times d}$.
+我们描述了 FlashAttention 反向传播的完整细节. 给定输入序列 $\mathbf{Q},\mathbf{K},\mathbf{V}\in\mathbb{R}^{N\times d}$, 输出 $\mathbf{O}\in\mathbb{R}^{N\times d}$ 和输出梯度 $\mathrm{d}\mathbf{O}$, 我们希望计算输入梯度 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{N\times d}$.
 
 为了完整起见, 我们首先在 [算法 3](#alg3) 中描述标准注意力反向传播.
 
@@ -495,18 +551,18 @@ $$
 
 **算法 3: 标准注意力反向传播**
 
-- **输入:** 矩阵 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{dO}\in\mathbb{R}^{N\times d}$, $\mathbf{P}\in\mathbb{R}^{N\times N}$ 在 HBM 中.
-- 从 HBM 按块加载 $\mathbf{P},\mathbf{dO}$, 计算 $\mathbf{dV}=\mathbf{P}^{\top}\mathbf{dO}\in\mathbb{R}^{N\times d}$, 将 $\mathbf{dV}$ 写入 HBM.
-- 从 HBM 按块加载 $\mathbf{dO},\mathbf{V}$, 计算 $\mathbf{dP}=\mathbf{dO}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$, 将 $\mathbf{dP}$ 写入 HBM.
-- 从 HBM 读取 $\mathbf{P},\mathbf{dP}$, 计算 $\mathbf{dS}\in\mathbb{R}^{N\times N}$, 其中 $dS_{ij}=P_{ij}(dP_{ij}-\sum_{l}P_{il}dP_{il})$, 将 $\mathbf{dS}$ 写入 HBM.
-- 从 HBM 按块加载 $\mathbf{dS}$ 和 $\mathbf{K}$, 计算 $\mathbf{dQ}=\mathbf{dS}\mathbf{K}$, 将 $\mathbf{dQ}$ 写入 HBM.
-- 从 HBM 按块加载 $\mathbf{dS}$ 和 $\mathbf{Q}$, 计算 $\mathbf{dK}=\mathbf{dS}^{\top}\mathbf{Q}$, 将 $\mathbf{dK}$ 写入 HBM.
-- **返回:** $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$.
+- **输入:** 矩阵 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$, $\mathbf{P}\in\mathbb{R}^{N\times N}$ 在 HBM 中.
+- 从 HBM 按块加载 $\mathbf{P},\mathrm{d}\mathbf{O}$, 计算 $\mathrm{d}\mathbf{V}=\mathbf{P}^{\top}\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$, 将 $\mathrm{d}\mathbf{V}$ 写入 HBM.
+- 从 HBM 按块加载 $\mathrm{d}\mathbf{O},\mathbf{V}$, 计算 $\mathrm{d}\mathbf{P}=\mathrm{d}\mathbf{O}\mathbf{V}^{\top}\in\mathbb{R}^{N\times N}$, 将 $\mathrm{d}\mathbf{P}$ 写入 HBM.
+- 从 HBM 读取 $\mathbf{P},\mathrm{d}\mathbf{P}$, 计算 $\mathrm{d}\mathbf{S}\in\mathbb{R}^{N\times N}$, 其中 $\mathrm{d}S_{ij}=P_{ij}(\mathrm{d}P_{ij}-\sum_{l}P_{il}\mathrm{d}P_{il})$, 将 $\mathrm{d}\mathbf{S}$ 写入 HBM.
+- 从 HBM 按块加载 $\mathrm{d}\mathbf{S}$ 和 $\mathbf{K}$, 计算 $\mathrm{d}\mathbf{Q}=\mathrm{d}\mathbf{S}\mathbf{K}$, 将 $\mathrm{d}\mathbf{Q}$ 写入 HBM.
+- 从 HBM 按块加载 $\mathrm{d}\mathbf{S}$ 和 $\mathbf{Q}$, 计算 $\mathrm{d}\mathbf{K}=\mathrm{d}\mathbf{S}^{\top}\mathbf{Q}$, 将 $\mathrm{d}\mathbf{K}$ 写入 HBM.
+- **返回:** $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$.
 
 现在我们对 FlashAttention 反向传播提出两点观察:
 
 1. 我们不需要存储前向传播中大小为 $O(N^{2})$ 的 dropout 掩码. 相反, 我们可以保存前向传播中的伪随机数生成器状态, 并在反向传播中重新生成 dropout 掩码. 这只需使用 $O(N)$ 的额外内存.
-2. 在计算 softmax 梯度时, 我们使用 [公式 4](#A2.E4) 来计算 $D_{i}=P_{i:}^{\top}dP_{i:}$, 而不对大小为 $N$ 的 $P_{i:}$ 和 $dP_{i:}$ 进行压缩 (它们可能无法放入 SRAM). 相反, 我们可以重写 $D_{i}=do_{i}^{\top}o_{i}$, 并计算大小为 $d$ 的向量之间的点积.
+2. 在计算 softmax 梯度时, 我们使用 [公式 4](#A2.E4) 来计算 $D_{i}=P_{i:}^{\top}\mathrm{d}P_{i:}$, 而不对大小为 $N$ 的 $P_{i:}$ 和 $\mathrm{d}P_{i:}$ 进行压缩 (它们可能无法放入 SRAM). 相反, 我们可以重写 $D_{i}=\mathrm{d}o_{i}^{\top}o_{i}$, 并计算大小为 $d$ 的向量之间的点积.
 
 完整的 FlashAttention 反向传播算法在 [算法 4](#alg4) 中. 概念上, 它只是 [第 B. 2 节](#A2.SS2) 推导的块版本.
 
@@ -514,31 +570,31 @@ $$
 
 **算法 4: FlashAttention 反向传播**
 
-- **输入:** HBM 中的矩阵 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathbf{dO}\in\mathbb{R}^{N\times d}$, HBM 中的向量 $\ell,m\in\mathbb{R}^{N}$, 大小为 $M$ 的片上 SRAM, softmax 缩放常数 $\tau\in\mathbb{R}$, 掩码函数 mask, dropout 概率 $p_{\mathrm{drop}}$, 来自前向传播的伪随机数生成器状态 ${\cal R}$.
+- **输入:** HBM 中的矩阵 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{O},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$, HBM 中的向量 $\ell,m\in\mathbb{R}^{N}$, 大小为 $M$ 的片上 SRAM, softmax 缩放常数 $\tau\in\mathbb{R}$, 掩码函数 mask, dropout 概率 $p_{\mathrm{drop}}$, 来自前向传播的伪随机数生成器状态 ${\cal R}$.
 - 将伪随机数生成器状态设置为 ${\cal R}$.
 - 设置块大小 $B_{c}=\left\lceil\frac{M}{4d}\right\rceil,B_{r}=\min\left(\left\lceil\frac{M}{4d}\right\rceil,d\right)$.
 - 将 $\mathbf{Q}$ 分成 $T_{r}=\left\lceil\frac{N}{B_{r}}\right\rceil$ 块, 每块 $\mathbf{Q}_{1},\dots,\mathbf{Q}_{T_{r}}$, 大小为 $B_{r}\times d$, 并将 $\mathbf{K},\mathbf{V}$ 分成 $T_{c}=\left\lceil\frac{N}{B_{c}}\right\rceil$ 块 $\mathbf{K}_{1},\dots,\mathbf{K}_{T_{c}}$ 和 $\mathbf{V}_{1},\dots,\mathbf{V}_{T_{c}}$, 每块大小为 $B_{c}\times d$.
-- 将 $\mathbf{O}$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}\times d$, 将 $\mathbf{dO}$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}\times d$, 将 $\ell$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}$, 将 $m$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}$.
-- 在 HBM 中初始化 $\mathbf{dQ}=(0)_{N\times d}$ 并将其划分为 $T_{r}$ 块, 每块大小为 $B_{r}\times d$. 在 HBM 中初始化 $\mathbf{dK}=(0)_{N\times d},\mathbf{dV}=(0)_{N\times d}$ 并将 $\mathbf{dK},\mathbf{dV}$ 划分为 $T_{c}$ 块 $\mathbf{dK}_{1},\dots,\mathbf{dK}_{T_{c}}$ 和 $\mathbf{dV}_{1},\dots,\mathbf{dV}_{T_{c}}$, 每块大小为 $B_{c}\times d$.
+- 将 $\mathbf{O}$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}\times d$, 将 $\mathrm{d}\mathbf{O}$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}\times d$, 将 $\ell$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}$, 将 $m$ 分成 $T_{r}$ 块, 每块大小为 $B_{r}$.
+- 在 HBM 中初始化 $\mathrm{d}\mathbf{Q}=(0)_{N\times d}$ 并将其划分为 $T_{r}$ 块, 每块大小为 $B_{r}\times d$. 在 HBM 中初始化 $\mathrm{d}\mathbf{K}=(0)_{N\times d},\mathrm{d}\mathbf{V}=(0)_{N\times d}$ 并将 $\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$ 划分为 $T_{c}$ 块 $\mathrm{d}\mathbf{K}_{1},\dots,\mathrm{d}\mathbf{K}_{T_{c}}$ 和 $\mathrm{d}\mathbf{V}_{1},\dots,\mathrm{d}\mathbf{V}_{T_{c}}$, 每块大小为 $B_{c}\times d$.
 - **对于** $1\leq j\leq T_{c}$ **执行:**
   - 将 $\mathbf{K}_{j},\mathbf{V}_{j}$ 从 HBM 加载到片上 SRAM.
-  - 在 SRAM 上初始化 $\tilde{\mathbf{dK}}_{j}=(0)_{B_{c}\times d},\tilde{\mathbf{dV}}_{j}=(0)_{B_{c}\times d}$.
+  - 在 SRAM 上初始化 $\tilde{\mathrm{d}\mathbf{K}}_{j}=(0)_{B_{c}\times d},\tilde{\mathrm{d}\mathbf{V}}_{j}=(0)_{B_{c}\times d}$.
   - **对于** $1\leq i\leq T_{r}$ **执行:**
-    - 将 $\mathbf{Q}_{i},\mathbf{O}_{i},\mathbf{dO}_{i},\mathbf{dQ}_{i},\ell_{i},m_{i}$ 从 HBM 加载到片上 SRAM.
+    - 将 $\mathbf{Q}_{i},\mathbf{O}_{i},\mathrm{d}\mathbf{O}_{i},\mathrm{d}\mathbf{Q}_{i},\ell_{i},m_{i}$ 从 HBM 加载到片上 SRAM.
     - 在片上计算 $\mathbf{S}_{ij}=\tau\mathbf{Q}_{i}\mathbf{K}_{j}^\top\in\mathbb{R}^{B_{r}\times B_{c}}$.
     - 在片上计算 $\mathbf{S}_{ij}^{\mathrm{masked}}=\mathrm{mask}(\mathbf{S}_{ij})$.
     - 在片上计算 $\mathbf{P}_{ij}=\mathrm{diag}(l_{i})^{-1}\exp(\mathbf{S}_{ij}^{\mathrm{masked}}-m_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
     - 在片上, 计算丢弃掩码 $\mathbf{Z}_{ij}\in\mathbb{R}^{B_{r}\times B_{c}}$, 其中每个条目的值为 $\frac{1}{1-p_{\mathrm{drop}}}$ 的概率为 $1-p_{\mathrm{drop}}$, 值为 0 的概率为 $p_{\mathrm{drop}}$.
     - 在片上, 计算 $\mathbf{P}_{ij}^{\mathrm{dropped}}=\mathbf{P}_{ij}\circ\mathbf{Z}_{ij}$ (逐点相乘).
-    - 在片上, 计算 $\tilde{\mathbf{dV}_{j}}\leftarrow\tilde{\mathbf{dV}_{j}}+(\mathbf{P}_{ij}^{\mathrm{dropped}})^{\top}\mathbf{dO}_{i}\in\mathbb{R}^{B_{c}\times d}$.
-    - 在片上, 计算 $\mathbf{dP}_{ij}^{\mathrm{dropped}}=\mathbf{dO}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$.
-    - 在片上, 计算 $\mathbf{dP}_{ij}=\mathbf{dP}_{ij}^{\mathrm{dropped}}\circ\mathbf{Z}_{ij}$ (逐点相乘).
-    - 在片上, 计算 $D_{i}=\mathrm{rowsum}(\mathbf{dO}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$.
-    - 在片上, 计算 $\mathbf{dS}_{ij}=\mathbf{P}_{ij}\circ(\mathbf{dP}_{ij}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
-    - 将 $\mathbf{dQ}_{i}\leftarrow\mathbf{dQ}_{i}+\tau\mathbf{dS}_{ij}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$ 写入 HBM.
-    - 在片上, 计算 $\tilde{\mathbf{dK}}_{j}\leftarrow\tilde{\mathbf{dK}}_{j}+\tau\mathbf{dS}_{ij}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$.
-  - 将 $\mathbf{dK}_{j}\leftarrow\tilde{\mathbf{dK}_{j}},\mathbf{dV}_{j}\leftarrow\tilde{\mathbf{dV}_{j}}$ 写入 HBM.
-- **返回:** $\mathbf{dQ},\mathbf{dK},\mathbf{dV}$.
+    - 在片上, 计算 $\tilde{\mathrm{d}\mathbf{V}_{j}}\leftarrow\tilde{\mathrm{d}\mathbf{V}_{j}}+(\mathbf{P}_{ij}^{\mathrm{dropped}})^{\top}\mathrm{d}\mathbf{O}_{i}\in\mathbb{R}^{B_{c}\times d}$.
+    - 在片上, 计算 $\mathrm{d}\mathbf{P}_{ij}^{\mathrm{dropped}}=\mathrm{d}\mathbf{O}_{i}\mathbf{V}_{j}^{\top}\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - 在片上, 计算 $\mathrm{d}\mathbf{P}_{ij}=\mathrm{d}\mathbf{P}_{ij}^{\mathrm{dropped}}\circ\mathbf{Z}_{ij}$ (逐点相乘).
+    - 在片上, 计算 $D_{i}=\mathrm{rowsum}(\mathrm{d}\mathbf{O}_{i}\circ\mathbf{O}_{i})\in\mathbb{R}^{B_{r}}$.
+    - 在片上, 计算 $\mathrm{d}\mathbf{S}_{ij}=\mathbf{P}_{ij}\circ(\mathrm{d}\mathbf{P}_{ij}-D_{i})\in\mathbb{R}^{B_{r}\times B_{c}}$.
+    - 将 $\mathrm{d}\mathbf{Q}_{i}\leftarrow\mathrm{d}\mathbf{Q}_{i}+\tau\mathrm{d}\mathbf{S}_{ij}\mathbf{K}_{j}\in\mathbb{R}^{B_{r}\times d}$ 写入 HBM.
+    - 在片上, 计算 $\tilde{\mathrm{d}\mathbf{K}}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{K}}_{j}+\tau\mathrm{d}\mathbf{S}_{ij}^{\top}\mathbf{Q}_{i}\in\mathbb{R}^{B_{c}\times d}$.
+  - 将 $\mathrm{d}\mathbf{K}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{K}_{j}},\mathrm{d}\mathbf{V}_{j}\leftarrow\tilde{\mathrm{d}\mathbf{V}_{j}}$ 写入 HBM.
+- **返回:** $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}$.
 
 我们看到, 类似于前向传播, 反向传播执行 $O(N^{2})$ FLOPs, 只需要除了输入, 输出, 输出梯度和输入梯度之外的 $O(N)$ 额外内存.
 
@@ -581,7 +637,11 @@ $$
 我们现在通过对 $j$ 关于 $0\leq j\leq T_{c}$ 进行归纳来证明算法的正确性. 设 $\mathbf{K}_{:j}\in\mathbb{R}^{\mathrm{jB}_{c}\times d}$ 为 $\mathbf{K}$ 的前 $\mathrm{jB}_{c}$ 行, 类似地, $\mathbf{V}_{:j}\in\mathbb{R}^{\mathrm{jB}_{c}\times d}$ 为 $\mathbf{V}$ 的前 $\mathrm{jB}_{c}$ 行. 设 $\mathbf{S}_{:,:j}=\mathbf{Q}\mathbf{K}_{:j}^{\top}\in\mathbb{R}^{N\times \mathrm{jB}_{c}}$, 以及 $\mathbf{P}_{:,:j}=\mathrm{softmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N\times \mathrm{jB}_{c}}$ (按行应用 softmax). 设 $m^{j},\ell^{(j)},\mathbf{O}^{(j)}$ 为在外层循环第 $j$ 次迭代后, HBM 中 $m,\ell,\mathbf{O}$ 的值 ([算法 1](#alg1) 第 5 行). (注意这些 $m,\ell,\mathbf{O}$ 的值在外层循环的每次迭代后都会被更新.) 我们想要证明, 在外层循环第 $j$ 次迭代后, 我们已经在 HBM 中计算了:
 
 $$
-m^{(j)}=\mathrm{rowmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N},\quad\ell^{(j)}=\mathrm{rowsum}(\exp(\mathbf{S}_{:,:j}-m^{(j)}))\in\mathbb{R}^{N},\quad\mathbf{O}^{(j)}=\mathbf{P}_{:,:j}\mathbf{V}_{:j}\in\mathbb{R}^{N\times d}.
+\begin{aligned}
+m^{(j)} &= \mathrm{rowmax}(\mathbf{S}_{:,:j})\in\mathbb{R}^{N},\\
+\ell^{(j)} &= \mathrm{rowsum}(\exp(\mathbf{S}_{:,:j}-m^{(j)}))\in\mathbb{R}^{N},\\
+\mathbf{O}^{(j)} &= \mathbf{P}_{:,:j}\mathbf{V}_{:j}\in\mathbb{R}^{N\times d}.
+\end{aligned}
 $$
 
 根据我们的初始化 ([算法 1](#alg1) 第 2 行), 这个结论对于 $j=0$ (即在外循环的任何迭代执行之前) 是成立的. 假设该结论对某个 $j=0,\dots,T_{c}-1$ 成立. 我们想要证明该结论也对 $j+1$ 成立. 确实, 当我们在外循环的 $(j+1)$ 次迭代中在内循环中更新统计数据 ([算法 1](#alg1) 第 10 行) 时, 我们更新 $m^{(j+1)}=\max(m^{(j)},\tilde{m})$, 其中 $\tilde{m}\in\mathbb{R}^{N}$ 是 $\mathbf{S}_{:,j:j+1}$ 的行最大值, $\mathbf{S}_{:,j:j+1}$ 是从 $\mathbf{S}$ 的第 $\mathrm{jB}_{c}$ 列到第 $(j+1)B_{c}-1$ 列的切片. 这意味着
@@ -605,32 +665,29 @@ $$
 设 $\mathbf{V}_{j:j+1}$ 为从列 $\mathrm{jB}_{c}$ 到列 $(j+1)B_{c}-1$ 的 $\mathbf{V}$ 的切片, 我们还更新如下:
 
 $$
-\mathbf{O}^{(j+1)}\qquad =\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{O}^{(j)}+e^{\tilde{m}-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1}-\tilde{m})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{P}_{:,:j}\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathrm{diag}(\ell^{(j)})\exp(\mathbf{S}_{:,:j}-m^{(j)})\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(e^{-m^{(j+1)}}\exp(\mathbf{S}_{:,:j})\mathbf{V}_{:j}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}(\exp(\mathbf{S}_{:,:j}-m^{(j+1)})\mathbf{V}_{:j}+\exp(\mathbf{S}_{j:j+1}-m^{(j+1)})\mathbf{V}_{j:j+1})
-$$
-
-$$
-=\mathrm{diag}(\ell^{(j+1)})^{-1}\left(\exp\left(\begin{bmatrix}\mathbf{S}_{:,:j}&\mathbf{S}_{j:j+1}\end{bmatrix}-m^{(j+1)}\right)\right)\begin{bmatrix}\mathbf{V}_{:j}\\
-\mathbf{V}_{j:j+1}\end{bmatrix}
-$$
-
-$$
-=\mathrm{softmax}(\mathbf{S}_{:j+1})\mathbf{V}_{:j+1}.
+\begin{aligned}
+\mathbf{O}^{(j+1)}
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{O}^{(j)}\\
+&\qquad {}+e^{\tilde{m}-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1}-\tilde{m})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathbf{P}_{:,:j}\mathbf{V}_{:j}\\
+&\qquad {}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \mathrm{diag}(\ell^{(j)})e^{m^{(j)}-m^{(j+1)}}\mathrm{diag}(\ell^{(j)})\\
+&\qquad {}\cdot\exp(\mathbf{S}_{:,:j}-m^{(j)})\mathbf{V}_{:j}
+  +e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  e^{-m^{(j+1)}}\exp(\mathbf{S}_{:,:j})\mathbf{V}_{:j}\\
+&\qquad {}+e^{-m^{(j+1)}}\exp(\mathbf{S}_{j:j+1})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}\Bigl(
+  \exp(\mathbf{S}_{:,:j}-m^{(j+1)})\mathbf{V}_{:j}\\
+&\qquad {}+\exp(\mathbf{S}_{j:j+1}-m^{(j+1)})\mathbf{V}_{j:j+1}\Bigr)\\
+&= \mathrm{diag}(\ell^{(j+1)})^{-1}
+  \exp\left(\begin{bmatrix}\mathbf{S}_{:,:j}&\mathbf{S}_{j:j+1}\end{bmatrix}-m^{(j+1)}\right)\\
+&\qquad {}\cdot\begin{bmatrix}\mathbf{V}_{:j}\\ \mathbf{V}_{j:j+1}\end{bmatrix}\\
+&= \mathrm{softmax}(\mathbf{S}_{:j+1})\mathbf{V}_{:j+1}.
+\end{aligned}
 $$
 
 然后我们看到该结论对于 $j+1$ 也是成立的. 通过归纳法, 该结论对所有 $j=0,\dots,T_{c}$ 都成立.
@@ -676,7 +733,10 @@ $$
 因此我们设定:
 
 $$
-B_{c}=\Theta\left(\frac{M}{d}\right),\qquad B_{r}=\Theta\left(\min\left(\frac{M}{d},\frac{M}{B_{c}}\right)\right)=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\begin{aligned}
+B_{c} &= \Theta\left(\frac{M}{d}\right),\\
+B_{r} &= \Theta\left(\min\left(\frac{M}{d},\frac{M}{B_{c}}\right)\right)=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\end{aligned}
 $$
 
 然后我们有:
@@ -714,18 +774,21 @@ $$
 
 注意力反向传播的 IO 复杂度与注意力前向传播的 IO 复杂度非常相似 ([定理 2](#Thmtheorem2)). 这里我们提供一个证明的概略.
 
-我们首先分析标准注意力反向传播的 IO 复杂度. 输入 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathbf{dO}\in\mathbb{R}^{N\times d}$ 位于 HBM 中, 而在算法结束时输出 $\mathbf{dQ},\mathbf{dK},\mathbf{dV}\in\mathbb{R}^{N\times d}$ 写入 HBM.
+我们首先分析标准注意力反向传播的 IO 复杂度. 输入 $\mathbf{Q},\mathbf{K},\mathbf{V},\mathrm{d}\mathbf{O}\in\mathbb{R}^{N\times d}$ 位于 HBM 中, 而在算法结束时输出 $\mathrm{d}\mathbf{Q},\mathrm{d}\mathbf{K},\mathrm{d}\mathbf{V}\in\mathbb{R}^{N\times d}$ 写入 HBM.
 
 在标准注意力反向传播的每一步中, 需要从 HBM 加载大小为 $Nd$ 或 $N^{2}$ 的输入, 并需要将大小为 $N^{2}$ 或 $Nd$ 的输出写入 HBM. 这会导致 $\Theta(Nd+N^{2})$ 次 HBM 访问.
 
 现在我们分析 FlashAttention 反向传播的 IO 复杂度.
 
-类似于 [定理 2](#Thmtheorem2), 我们看到 $\mathbf{K}$ 和 $\mathbf{V}$ 的每个元素只从 HBM 加载一次. $\mathbf{dK}$ 和 $\mathbf{dV}$ 的每个元素只写入 HBM 一次. 我们对 $\mathbf{Q},\mathbf{O},\mathbf{dO}$ 做 $T_{c}$ 次遍历, 每次遍历将所有 $\mathbf{Q},\mathbf{O},\mathbf{dO}$ 加载到 HBM. 我们还对 $\mathbf{dQ}$ 做 $T_{c}$ 次遍历, 每次遍历从/向 HBM 读取/写入所有 $\mathbf{dQ}$. 因此 HBM 访问次数为 $\Theta\left(Nd+NdT_{c}\right)=\Theta(NdT_{c})$.
+类似于 [定理 2](#Thmtheorem2), 我们看到 $\mathbf{K}$ 和 $\mathbf{V}$ 的每个元素只从 HBM 加载一次. $\mathrm{d}\mathbf{K}$ 和 $\mathrm{d}\mathbf{V}$ 的每个元素只写入 HBM 一次. 我们对 $\mathbf{Q},\mathbf{O},\mathrm{d}\mathbf{O}$ 做 $T_{c}$ 次遍历, 每次遍历将所有 $\mathbf{Q},\mathbf{O},\mathrm{d}\mathbf{O}$ 加载到 HBM. 我们还对 $\mathrm{d}\mathbf{Q}$ 做 $T_{c}$ 次遍历, 每次遍历从/向 HBM 读取/写入所有 $\mathrm{d}\mathbf{Q}$. 因此 HBM 访问次数为 $\Theta\left(Nd+NdT_{c}\right)=\Theta(NdT_{c})$.
 
 如同 [定理 2](#Thmtheorem2) 的证明中, 对块大小的约束为:
 
 $$
-B_{c}=\Theta\left(\frac{M}{d}\right),\qquad B_{r}=\Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\begin{aligned}
+B_{c} &= \Theta\left(\frac{M}{d}\right),\\
+B_{r} &= \Theta\left(\min\left(\frac{M}{d},d\right)\right).
+\end{aligned}
 $$
 
 然后我们有:
