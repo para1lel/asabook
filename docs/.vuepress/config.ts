@@ -3073,6 +3073,12 @@ const paperAbbreviations = {
   'Gev21': 'Mor Geva, Daniel Khashabi, Elad Segal, Tushar Khot, Dan Roth, and Jonathan Berant. 2021. Did Aristotle Use a Laptop? A Question Answering Benchmark with Implicit Reasoning Strategies. Transactions of the Association for Computational Linguistics 9 (2021), 87–100. doi:10.1162/tacl_a_00370 [Link](https://doi.org/10.1162/tacl_a_00370)',
   'Ste22a': 'Ivan Stelmakh, Yi Luan, Bhuwan Dhingra, and Ming-Wei Chang. 2022. ASQA: Factoid Questions Meet Long-Form Answers. In Proceedings of the 2022 Conference on Empirical Methods in Natural Language Processing. 8273–8288.',
   'Wu24b': 'Jian Wu, Linyi Yang, Zhen Wang, Manabu Okumura, and Yue Zhang. 2024. Cofca: A Step-Wise Counterfactual Multi-hop QA benchmark. arXiv preprint arXiv:2402.11924 (2024).',
+  'Pan25b': 'J. Pan, X. Wang, G. Neubig, N. Jaitly, H. Ji, A. Suhr, and Y. Zhang. 2025. Training Software Engineering Agents and Verifiers with SWE-Gym. In Proceedings of the 42nd International Conference on Machine Learning (ICML 2025). [Link](https://arxiv.org/abs/2412.21139)',
+  'Cho25d': 'F. Chollet, M. Knoop, G. Kamradt, and B. Landers. 2025. ARC Prize 2024: Technical Report. arXiv preprint arXiv:2412.04604. [Link](https://arxiv.org/abs/2412.04604)',
+  'Ahm24': 'A. Ahmadian, C. Cremer, M. Gallé, M. Fadaee, J. Kreutzer, O. Pietquin, A. Üstün, and S. Hooker. 2024. Back to Basics: Revisiting REINFORCE Style Optimization for Learning from Human Feedback in LLMs. arXiv preprint arXiv:2402.14740. [Link](https://arxiv.org/abs/2402.14740)',
+  'Don25g': 'G. Dong, H. Mao, K. Ma, L. Bao, Y. Chen, Z. Wang, Z. Chen, J. Du, H. Wang, F. Zhang, G. Zhou, Y. Zhu, J. Wen, and Z. Dou. 2025. Agentic Reinforced Policy Optimization. arXiv preprint arXiv:2507.19849. [Link](https://arxiv.org/abs/2507.19849)',
+  'Oer25': 'O. Oertell, W. Zhan, G. Swamy, Z. S. Wu, K. Brantley, J. Lee, and W. Sun. 2025. Heuristics Considered Harmful: RL With Random Rewards Should Not Make LLMs Reason. [Link](https://fuchsia-arch-d8e.notion.site/Heuristics-Considered-Harmful-RL-With-Random-Rewards-Should-Not-Make-LLMs-Reason-21ba29497c4180ca86ffce303f01923d)',
+  'Ma25e': 'Z. Ma, X. Zhang, J. Zhang, J. Yu, S. Luo, and J. Tang. 2025. Dynamic Scaling of Unit Tests for Code Reward Modeling. arXiv preprint arXiv:2501.01054. [Link](https://arxiv.org/abs/2501.01054)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -3377,7 +3383,7 @@ export default defineUserConfig({
               {
                 text: '强化学习',
                 collapsed: true,
-                items: ['agentic-reinforcement-learning', 'rl-based-agentic-search'],
+                items: ['agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分布式训练',
@@ -3499,7 +3505,7 @@ export default defineUserConfig({
               {
                 text: 'RL',
                 collapsed: true,
-                items: ['agentic-reinforcement-learning', 'rl-based-agentic-search'],
+                items: ['agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: 'Distributed Training',
@@ -3731,7 +3737,7 @@ export default defineUserConfig({
               {
                 text: '強化学習',
                 collapsed: true,
-                items: ['agentic-reinforcement-learning', 'rl-based-agentic-search'],
+                items: ['agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分散学習',

@@ -281,6 +281,10 @@ pre * {
 }
 
 @media (max-width: 719px) {
+  .paper-reading .annotations-popover {
+    max-width: min(calc(100vw - 48px), 360px);
+  }
+
   .vp-doc img.paper-table-narrow,
   .vp-doc img.paper-table-compact {
     width: 100%;
