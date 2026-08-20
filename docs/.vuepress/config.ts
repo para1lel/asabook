@@ -4,6 +4,23 @@ import { plumeTheme } from 'vuepress-theme-plume'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Bau11': 'Michael Bauer, Henry Cook, and Brucek Khailany. "CudaDMA: Optimizing GPU Memory Bandwidth via Warp Specialization." SC 2011. [Link](https://doi.org/10.1145/2063384.2063400)',
+  'Che10': 'Sylvain Chevillard, Mioara Joldes, and Christoph Lauter. "Sollya: An Environment for the Development of Numerical Codes." Mathematical Software - ICMS 2010, pp. 28-31. 2010. [Link](https://doi.org/10.1007/978-3-642-15582-6_5)',
+  'Che22a': 'Richard J. Chen, Chengkuan Chen, Yicong Li, Tiffany Y. Chen, Andrew D. Trister, Rahul G. Krishnan, and Faisal Mahmood. "Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning." CVPR 2022, pp. 16144-16155. [Link](https://doi.org/10.1109/CVPR52688.2022.01570)',
+  'Gra69': 'R. L. Graham. "Bounds on Multiprocessing Timing Anomalies." SIAM Journal on Applied Mathematics, 17(2):416-429. 1969. [Link](https://doi.org/10.1137/0117039)',
+  'Guo21a': 'Mandy Guo, Joshua Ainslie, David Uthus, Santiago Ontanon, Jianmo Ni, Yun-Hsuan Sung, and Yinfei Yang. "LongT5: Efficient Text-to-Text Transformer for Long Sequences." arXiv:2112.07916. 2021. [Link](https://arxiv.org/abs/2112.07916)',
+  'Ho22': 'Jonathan Ho, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad Norouzi, and David J. Fleet. "Video Diffusion Models." NeurIPS 2022, pp. 8633-8646. [Link](https://proceedings.neurips.cc/paper_files/paper/2022/hash/39235c56aef13fb05a6adc95eb9d8d66-Abstract-Conference.html)',
+  'Lin24d': 'Jintao Lin, Jia Zhang, Haofeng Zheng, Jingwen Zeng, Jianfei Zhai, and Jun Hu. "SageAttention: Accurate 8-Bit Attention for Plug-and-play Inference Acceleration." arXiv:2410.02367. 2024. [Link](https://arxiv.org/abs/2410.02367)',
+  'Lin24e': 'Jintao Lin, Mingye Luo, Jingwen Zeng, Jianfei Zhai, and Jun Hu. "SageAttention2: Efficient Attention with Thorough Outlier Smoothing and Per-thread INT4 Quantization." arXiv:2411.10958. 2024. [Link](https://arxiv.org/abs/2411.10958)',
+  'Lin25e': 'Jintao Lin, Mingye Luo, Jia Zhang, Zheng Xu, Haofeng Zheng, Jingwen Zeng, Jianfei Zhai, and Jun Hu. "SageAttention3: Fast Attention on Blackwell GPUs via FP4 Quantization." arXiv:2505.11594. 2025. [Link](https://arxiv.org/abs/2505.11594)',
+  'Luo25h': 'Weile Luo, Ruibo Fan, Zeyu Li, Dayou Du, Hongyuan Liu, Qiang Wang, and Xiaowen Chu. "Dissecting the NVIDIA Hopper Architecture through Microbenchmarking and Multiple Level Analysis." arXiv:2501.12084. 2025. [Link](https://arxiv.org/abs/2501.12084)',
+  'Mul18': 'Jean-Michel Muller, Nicolas Brunie, Florent de Dinechin, Claude-Pierre Jeannerod, Mioara Joldes, Vincent Lefevre, Guillaume Melquiond, Nathalie Revol, and Serge Torres. Handbook of Floating-Point Arithmetic, 2nd edition. Birkhauser, 2018. [Link](https://doi.org/10.1007/978-3-319-76526-6)',
+  'Nvi24c': 'NVIDIA. CUDA Programming Guide Version 12.4. 2024. [Link](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html)',
+  'Nvi24d': 'NVIDIA. "NVIDIA Blackwell Architecture Technical Brief." 2024. [Link](https://resources.nvidia.com/en-us-blackwell-architecture)',
+  'Nvi25c': 'NVIDIA. "cuDNN Release Notes." 2025. [Link](https://docs.nvidia.com/deeplearning/cudnn/backend/latest/release-notes.html)',
+  'Nvi25d': 'NVIDIA. "NVIDIA CUTLASS Documentation: CuTe DSL." 2025. [Link](https://docs.nvidia.com/cutlass/media/docs/pythonDSL/cute_dsl_general/dsl_introduction.html)',
+  'Sha22a': 'Uri Shaham, Elad Segal, Maor Ivgi, Avia Efrat, Ori Yoran, Adi Haviv, Ankit Gupta, Wenhan Xiong, Mor Geva, Jonathan Berant, et al. "SCROLLS: Standardized Comparison over Long Language Sequences." arXiv:2201.03533. 2022. [Link](https://arxiv.org/abs/2201.03533)',
+  'Tri24b': 'Triton Team. "Gluon: A Lower-Level GPU Programming Language." 2024. [Link](https://github.com/triton-lang/triton/blob/main/python/tutorials/gluon/01-intro.py)',
   'Abd25': 'M. Abdulhai, I. White, C. V. Snell, C. Sun, J. Hong, Y. Zhai, K. Xu, and S. Levine LMRL gym: benchmarks for multi-turn reinforcement learning with language models. In Forty-second International Conference on Machine Learning, [Link](https://openreview.net/forum?id=hmGhP5DO2W)',
   'Agg25': 'S. S. Srivastava and V. Aggarwal A technical survey of reinforcement learning techniques for large language models. [Link](https://arxiv.org/abs/2507.04136)',
   'Ai25': 'E. AI,:, D. J. Shah, P. Rushton, S. Singla, M. Parmar, K. Smith, Y. Vanjani, A. Vaswani, A. Chaluvaraju, A. Hojel, A. Ma, A. Thomas, A. Polloreno, A. Tanwer, B. D. Sibai, D. S. Mansingka, D. Shivaprasad, I. Shah, K. Stratos, K. Nguyen, M. Callahan, M. Pust, M. Iyer, P. Monk, P. Mazarakis, R. Kapila, S. Srivastava, and T. Romanski Rethinking reflection in pre-training. [Link](https://arxiv.org/abs/2504.04022)',
@@ -3147,7 +3164,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'tilesight'],
+                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -3269,7 +3286,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'tilesight'],
+                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -3501,7 +3518,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'tilesight'],
+                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
