@@ -4,6 +4,30 @@ import { plumeTheme } from 'vuepress-theme-plume'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Age25': 'AgentOps. "AgentOps." 2025. [Link](https://www.agentops.ai/)',
+  'Aho07': 'V. Aho Alfred, S. Lam Monica, and D. Ullman Jeffrey. "Compilers: Principles, Techniques & Tools." Pearson Education. 2007.',
+  'Ant25e': 'Anthropic. "How We Built Our Multi-Agent Research System." 2025. [Link](https://www.anthropic.com/engineering/built-multi-agent-research-system)',
+  'Aut25a': 'AutoGen. "AutoGen." 2025. [Link](https://github.com/microsoft/autogen)',
+  'Baa23': 'BAAI. "BGE-large-en-v1.5." 2023. [Link](https://huggingface.co/BAAI/bge-large-en-v1.5)',
+  'Jia24e': 'Huiqiang Jiang et al. "MInference 1.0: Accelerating Pre-filling for Long-Context LLMs via Dynamic Sparse Attention." NeurIPS 2024. [Link](https://arxiv.org/abs/2407.02490)',
+  'Kad23': 'Marek Kadlcik, Michal Stefanik, Ondrej Sotolar, and Vlastimil Martinek. "Calc-X and Calcformers: Empowering Arithmetical Chain-of-Thought through Interaction with Symbolic Systems." EMNLP 2023. [Link](https://arxiv.org/abs/2305.15017)',
+  'Lan25c': 'LangChain. "LangChain." 2025. [Link](https://www.langchain.com/)',
+  'Liu24v': 'Junwei Liu, Kaixin Wang, Yixuan Chen, Xin Peng, Zhenpeng Chen, Lingming Zhang, and Yiling Lou. "Large Language Model-Based Agents for Software Engineering: A Survey." arXiv:2409.02977. 2024. [Link](https://arxiv.org/abs/2409.02977)',
+  'Low17': 'Ryan Lowe, Yi I Wu, Aviv Tamar, Jean Harb, Pieter Abbeel, and Igor Mordatch. "Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments." NeurIPS 2017. [Link](https://arxiv.org/abs/1706.02275)',
+  'Mal25b': 'Ankit Maloo. "The Bitter Lesson: Rethinking How We Build AI Systems." 2025. [Link](https://ankitmaloo.com/bitter-lesson/)',
+  'Met24a': 'Meta AI. "Llama 3.2: Revolutionizing Edge AI and Vision with Open, Customizable Models." 2024. [Link](https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/)',
+  'Mod25': 'Model Context Protocol. "Model Context Protocol (MCP)." 2025. [Link](https://modelcontextprotocol.io/introduction)',
+  'Ope25i': 'OpenAI. "OpenAI Agents SDK." 2025. [Link](https://openai.github.io/openai-agents-python/)',
+  'Ope25j': 'OpenTelemetry. "OpenTelemetry." 2025. [Link](https://opentelemetry.io/)',
+  'Sil25': 'David Silver and Richard S. Sutton. "Welcome to the Era of Experience." 2025. [Link](https://storage.googleapis.com/deepmind-media/Era-of-Experience/The%20Era%20of%20Experience%20Paper.pdf)',
+  'Tan25e': 'Sijun Tan et al. "rLLM: A Framework for Post-Training Language Agents." 2025. [Link](https://pretty-radio-b75.notion.site/rLLM-A-Framework-for-Post-Training-Language-Agents-21b81902c146819db63cd98a54ba5f31)',
+  'Ver25': 'verl. "verl Agent Loop." 2025. [Link](https://verl.readthedocs.io/en/latest/advance/agent_loop.html)',
+  'Xu25i': 'Renjun Xu and Jingwen Peng. "A Comprehensive Survey of Deep Research: Systems, Methodologies, and Applications." arXiv:2506.12594. 2025. [Link](https://arxiv.org/abs/2506.12594)',
+  'Xue25a': 'Zhenghai Xue, Longtao Zheng, Qian Liu, Yingru Li, Zejun Ma, and Bo An. "SimpleTIR: End-to-End Reinforcement Learning for Multi-Turn Tool-Integrated Reasoning." 2025. [Link](https://simpletir.notion.site/report)',
+  'Yao25b': 'Shunyu Yao. "The Second Half." 2025. [Link](https://ysymyth.github.io/The-Second-Half/)',
+  'Yu18b': 'Tao Yu et al. "Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task." EMNLP 2018. [Link](https://aclanthology.org/D18-1425/)',
+  'Zha21f': 'Kaiqing Zhang, Zhuoran Yang, and Tamer Basar. "Multi-Agent Reinforcement Learning: A Selective Overview of Theories and Algorithms." Handbook of Reinforcement Learning and Control. 2021. [Link](https://arxiv.org/abs/1911.10635)',
+  'Zha23k': 'Peitian Zhang, Shitao Xiao, Zheng Liu, Zhicheng Dou, and Jian-Yun Nie. "Retrieve Anything to Augment Large Language Models." arXiv:2310.07554. 2023. [Link](https://arxiv.org/abs/2310.07554)',
   'Che25y': 'Zhipeng Chen, Yingqian Min, Beichen Zhang, Jie Chen, Jinhao Jiang, Daixuan Cheng, Wayne Xin Zhao, Zheng Liu, Xu Miao, Yang Lu, Lei Fang, Zhongyuan Wang, and Ji-Rong Wen. "An Empirical Study on Eliciting and Improving R1-like Reasoning Models." arXiv:2503.04548. 2025. [Link](https://arxiv.org/abs/2503.04548)',
   'Luo24a': 'Trung Quoc Luong, Xinbo Zhang, Zhanming Jie, Peng Sun, Xiaoran Jin, and Hang Li. "ReFT: Reasoning with Reinforced Fine-Tuning." arXiv:2401.08967. 2024. [Link](https://arxiv.org/abs/2401.08967)',
   'Qwe25': 'Qwen Team, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Yang, Jiaxi Yang, Jingren Zhou, Junyang Lin, Kai Dang, Keming Lu, Keqin Bao, Kexin Yang, Le Yu, Mei Li, Mingfeng Xue, Pei Zhang, Qin Zhu, Rui Men, Runji Lin, Tianhao Li, Tianyi Tang, Tingyu Xia, Xingzhang Ren, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yu Wan, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, and Zihan Qiu. "Qwen2.5 Technical Report." arXiv:2412.15115. 2025. [Link](https://arxiv.org/abs/2412.15115)',
@@ -3509,7 +3533,7 @@ export default defineUserConfig({
               {
                 text: '强化学习',
                 collapsed: true,
-                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'webagent-r1', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'webagent-r1', 'agent-lightning', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分布式训练',
@@ -3631,7 +3655,7 @@ export default defineUserConfig({
               {
                 text: 'RL',
                 collapsed: true,
-                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'webagent-r1', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'webagent-r1', 'agent-lightning', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: 'Distributed Training',
@@ -3863,7 +3887,7 @@ export default defineUserConfig({
               {
                 text: '強化学習',
                 collapsed: true,
-                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'webagent-r1', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'webagent-r1', 'agent-lightning', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分散学習',
