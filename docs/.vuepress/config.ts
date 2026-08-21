@@ -4,6 +4,15 @@ import { plumeTheme } from 'vuepress-theme-plume'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Che25y': 'Zhipeng Chen, Yingqian Min, Beichen Zhang, Jie Chen, Jinhao Jiang, Daixuan Cheng, Wayne Xin Zhao, Zheng Liu, Xu Miao, Yang Lu, Lei Fang, Zhongyuan Wang, and Ji-Rong Wen. "An Empirical Study on Eliciting and Improving R1-like Reasoning Models." arXiv:2503.04548. 2025. [Link](https://arxiv.org/abs/2503.04548)',
+  'Luo24a': 'Trung Quoc Luong, Xinbo Zhang, Zhanming Jie, Peng Sun, Xiaoran Jin, and Hang Li. "ReFT: Reasoning with Reinforced Fine-Tuning." arXiv:2401.08967. 2024. [Link](https://arxiv.org/abs/2401.08967)',
+  'Qwe25': 'Qwen Team, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Yang, Jiaxi Yang, Jingren Zhou, Junyang Lin, Kai Dang, Keming Lu, Keqin Bao, Kexin Yang, Le Yu, Mei Li, Mingfeng Xue, Pei Zhang, Qin Zhu, Rui Men, Runji Lin, Tianhao Li, Tianyi Tang, Tingyu Xia, Xingzhang Ren, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yu Wan, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, and Zihan Qiu. "Qwen2.5 Technical Report." arXiv:2412.15115. 2025. [Link](https://arxiv.org/abs/2412.15115)',
+  'Sky25': 'NovaSky Team. "Sky-T1: Train Your Own O1 Preview Model within $450." 2025. [Link](https://novasky-ai.github.io/posts/sky-t1)',
+  'Sne24': 'Charlie Snell, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. "Scaling LLM Test-Time Compute Optimally Can Be More Effective than Scaling Model Parameters." arXiv:2408.03314. 2024. [Link](https://arxiv.org/abs/2408.03314)',
+  'Wan23i': 'Ke Wang, Houxing Ren, Aojun Zhou, Zimu Lu, Sichun Luo, Weikang Shi, Renrui Zhang, Linqi Song, Mingjie Zhan, and Hongsheng Li. "MathCoder: Seamless Code Integration in LLMs for Enhanced Mathematical Reasoning." arXiv:2310.03731. 2023. [Link](https://arxiv.org/abs/2310.03731)',
+  'Wan24aa': 'Hongru Wang, Yujia Qin, Yankai Lin, Jeff Z. Pan, and Kam-Fai Wong. "Empowering Large Language Models: Tool Learning for Real-World Interaction." SIGIR 2024, pp. 2983-2986. [Link](https://doi.org/10.1145/3626772.3661381)',
+  'Xai23': 'xAI. "Grok." Large language model. 2023. [Link](https://x.ai/)',
+  'Zha24v': 'Ge Zhang, Scott Qu, Jiaheng Liu, Chenchen Zhang, Chenghua Lin, Chou Leuang Yu, Danny Pan, Esther Cheng, Jie Liu, Qunshu Lin, Raven Yuan, Tuney Zheng, Wei Pang, Xinrun Du, Yiming Liang, Yinghao Ma, Yizhi Li, Ziyang Ma, Bill Lin, Emmanouil Benetos, Huan Yang, Junting Zhou, Kaijing Ma, Minghao Liu, Morry Niu, Noah Wang, Quehry Que, Ruibo Liu, Sine Liu, Shawn Guo, Soren Gao, Wangchunshu Zhou, Xinyue Zhang, Yizhi Zhou, Yubo Wang, Yuelin Bai, Yuhan Zhang, Yuxiang Zhang, Zenith Wang, Zhenzhu Yang, Zijian Zhao, Jiajun Zhang, Wanli Ouyang, Wenhao Huang, and Wenhu Chen. "Map-Neo: Highly Capable and Transparent Bilingual Large Language Model Series." arXiv:2405.19327. 2024. [Link](https://arxiv.org/abs/2405.19327)',
   'Ahn24': 'Janice Ahn, Rishu Verma, Renze Lou, Di Liu, Rui Zhang, and Wenpeng Yin. "Large Language Models for Mathematical Reasoning: Progresses and Challenges." arXiv:2402.00157. 2024. [Link](https://arxiv.org/abs/2402.00157)',
   'Gla22': 'Michael Glass, Gaetano Rossiello, Md Faisal Mahbub Chowdhury, Ankita Rajaram Naik, Pengshan Cai, and Alfio Gliozzo. "Re2G: Retrieve, Rerank, Generate." arXiv:2207.06300. 2022. [Link](https://arxiv.org/abs/2207.06300)',
   'Guo24c': 'Daya Guo et al. "DeepSeek-Coder: When the Large Language Model Meets Programming - The Rise of Code Intelligence." arXiv:2401.14196. 2024. [Link](https://arxiv.org/abs/2401.14196)',
@@ -3453,7 +3462,7 @@ export default defineUserConfig({
               {
                 text: '强化学习',
                 collapsed: true,
-                items: ['search-r1', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分布式训练',
@@ -3575,7 +3584,7 @@ export default defineUserConfig({
               {
                 text: 'RL',
                 collapsed: true,
-                items: ['search-r1', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: 'Distributed Training',
@@ -3807,7 +3816,7 @@ export default defineUserConfig({
               {
                 text: '強化学習',
                 collapsed: true,
-                items: ['search-r1', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'retool', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分散学習',
