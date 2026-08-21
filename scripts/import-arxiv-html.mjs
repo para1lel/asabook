@@ -136,27 +136,56 @@ for (const id of citedIds) {
 }
 
 const targets = new Map()
-function sectionNumber(heading) {
-  return heading.match(/^((?:\d+|[IVXLCDM]+)(?:[-.][A-Z0-9]+)*)\.?\s+/)?.[1]
-}
-
 function sectionAnchor(number) {
-  return `section-${number.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+  return `section-${number.replaceAll('.', '-')}`
 }
 
+function normalizeSectionReferenceLabel(label, target) {
+  const number = target.slice('section-'.length).replaceAll('-', '.')
+  if (/^Appendix\s+[A-Z]\b/i.test(label)) return `Section ${number}`
+  const normalized = label.replace(
+    /\b(Sec\.|Sections?)\s+(?:\d+(?:\.\d+)*|[IVXLCDM]+(?:[-.][A-Z]\d*)?)/i,
+    (_, prefix) => `${/^Sections$/i.test(prefix) ? 'Sections' : 'Section'} ${number}`,
+  )
+  return normalized === label ? `Section ${number}` : normalized
+}
+
+function sectionTitles(section) {
+  const heading = section.children('h1,h2,h3,h4,h5,h6').first()
+  const sourceTitle = normalizeSpace(heading.text())
+  const headingContent = heading.clone()
+  headingContent.find('.ltx_tag').remove()
+  return {
+    heading,
+    sourceTitle,
+    semanticTitle: normalizeSpace(headingContent.text()),
+  }
+}
+
+function isDocumentApparatus(title) {
+  return /^(?:Abstract|Acknowledg(?:e)?ments?)$/i.test(title)
+}
+
+const sectionNumbers = new Map()
+const sectionCounters = []
 article.find('section[id]').each((_, element) => {
   const section = $(element)
   const id = section.attr('id')
-  const heading = normalizeSpace(section.children('h1,h2,h3,h4,h5,h6').first().text())
-  const number = sectionNumber(heading)
-  if (number) targets.set(id, sectionAnchor(number))
-})
-article.find('section.ltx_appendix[id]').each((_, element) => {
-  const section = $(element)
-  const id = section.attr('id')
-  const heading = normalizeSpace(section.children('h1,h2,h3,h4,h5,h6').first().text())
-  const letter = heading.match(/^Appendix\s+([A-Z])\b/)?.[1]
-  if (letter) targets.set(id, `appendix-${letter.toLowerCase()}`)
+  const classes = (section.attr('class') ?? '').split(/\s+/)
+  const substantive = classes.some((name) => /^(?:ltx_(?:sub)*section|ltx_appendix)$/.test(name))
+  if (!id || !substantive || id === 'bib') return
+  const { semanticTitle, sourceTitle } = sectionTitles(section)
+  if (isDocumentApparatus(semanticTitle || sourceTitle) || /^Appendix$/i.test(sourceTitle)) return
+
+  const parentNumber = section.parents('section[id]').toArray()
+    .map((parent) => sectionNumbers.get($(parent).attr('id')))
+    .find(Boolean)
+  const depth = parentNumber ? parentNumber.split('.').length + 1 : 1
+  sectionCounters.length = depth
+  sectionCounters[depth - 1] = (sectionCounters[depth - 1] ?? 0) + 1
+  const number = sectionCounters.join('.')
+  sectionNumbers.set(id, number)
+  targets.set(id, sectionAnchor(number))
 })
 article.find('figure[id]').each((_, element) => {
   const id = $(element).attr('id')
@@ -231,7 +260,8 @@ function renderInlineNode(node) {
     if (href.startsWith('#bib.')) return citationKeys.get(href.slice(1)) ?? label
     if (href.startsWith('#')) {
       const target = targets.get(href.slice(1))
-      return target ? `[${label}](#${target})` : label
+      const linkedLabel = target?.startsWith('section-') ? normalizeSectionReferenceLabel(label, target) : label
+      return target ? `[${linkedLabel}](#${target})` : linkedLabel
     }
     return href ? `[${label}](${href})` : label
   }
@@ -318,17 +348,18 @@ function renderParagraphContainer(element) {
 function renderSection(element) {
   const section = $(element)
   if (section.attr('id') === 'bib') return ''
-  const heading = section.children('h1,h2,h3,h4,h5,h6').first()
-  const title = normalizeSpace(heading.text()).replace(/^(\d+(?:\.\d+)*)\.\s+/, '$1 ')
+  const { heading, semanticTitle, sourceTitle } = sectionTitles(section)
+  const number = sectionNumbers.get(section.attr('id'))
+  const titleText = semanticTitle && semanticTitle !== sourceTitle
+    ? semanticTitle
+    : sourceTitle
+      .replace(/^Appendix\s+[A-Z](?:[.:]\s*|\s+)/i, '')
+      .replace(/^(?:\d+|[IVXLCDM]+|[A-Z])(?:[-.][A-Z0-9]+)*[.:]?\s+/i, '')
+  const title = number ? `${number} ${titleText}` : sourceTitle
   const level = Math.min(6, Number(heading.prop('tagName')?.slice(1) ?? 2))
-  const number = sectionNumber(title)
-  const appendix = title.match(/^Appendix\s+([A-Z])\b/)?.[1]
-  const anchor = number
-    ? `<span id="${sectionAnchor(number)}"></span>\n\n`
-    : appendix
-      ? `<span id="appendix-${appendix.toLowerCase()}"></span>\n\n`
-      : ''
+  const anchor = number ? `<span id="${sectionAnchor(number)}"></span>\n\n` : ''
   const body = section.children().toArray().filter((child) => child !== heading[0]).map(renderBlock).filter(Boolean).join('\n\n')
+  if (/^Appendix$/i.test(sourceTitle)) return body.trim()
   return `${anchor}${'#'.repeat(level)} ${title}\n\n${body}`.trim()
 }
 

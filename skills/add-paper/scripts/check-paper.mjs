@@ -101,8 +101,132 @@ function extractImageBasenames(markdown, pagePath, label) {
   return names
 }
 
-function numberedHeadings(markdown) {
-  return [...markdown.matchAll(/^#{2,6}\s+(\d+(?:\.\d+)*)\b/gm)].map((match) => match[1])
+function validateSectionHeadings(markdown, locale, label) {
+  const apparatus = {
+    en: /^(?:Abstract|Acknowledgements?|Acknowledgments?)$/i,
+    zh: /^(?:摘要|致谢)$/u,
+    ja: /^(?:概要|要旨|謝辞)$/u,
+  }[locale]
+  const headings = []
+  const counters = []
+  const lines = markdown.split(/\r?\n/)
+  let fenceMarker = null
+
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null) continue
+
+    const heading = line.match(/^(#{2,6})\s+(.+)$/)
+    if (!heading) continue
+    const depth = heading[1].length - 1
+    const title = heading[2].trim()
+    const titleWithoutNumber = title.replace(/^\d+(?:\.\d+)*\s+/, '')
+    if (apparatus.test(titleWithoutNumber)) {
+      if (titleWithoutNumber !== title) {
+        fail(`${label}: document-apparatus heading at line ${index + 1} must remain unnumbered`)
+      }
+      continue
+    }
+
+    const numbered = title.match(/^(\d+(?:\.\d+)*)\s+\S/)
+    if (!numbered) {
+      fail(`${label}: substantive heading at line ${index + 1} must start with an Arabic decimal number`)
+      continue
+    }
+
+    const parts = numbered[1].split('.').map(Number)
+    if (parts.length !== depth) {
+      fail(`${label}: heading ${numbered[1]} at line ${index + 1} has ${parts.length} number level(s), expected ${depth}`)
+      continue
+    }
+
+    counters.length = depth
+    const expected = (counters[depth - 1] ?? 0) + 1
+    if (parts[depth - 1] !== expected) {
+      fail(`${label}: heading ${numbered[1]} at line ${index + 1} is out of sequence; expected ${[...parts.slice(0, -1), expected].join('.')}`)
+    }
+    for (let level = 0; level < depth - 1; level += 1) {
+      if (parts[level] !== counters[level]) {
+        fail(`${label}: heading ${numbered[1]} at line ${index + 1} does not match its parent section`)
+        break
+      }
+    }
+    counters[depth - 1] = parts[depth - 1]
+    headings.push(numbered[1])
+
+    const expectedAnchor = `section-${numbered[1].replaceAll('.', '-')}`
+    let previous = index - 1
+    while (previous >= 0 && lines[previous].trim() === '') previous -= 1
+    if (lines[previous]?.trim() !== `<span id="${expectedAnchor}"></span>`) {
+      fail(`${label}: heading ${numbered[1]} at line ${index + 1} must be preceded by anchor ${expectedAnchor}`)
+    }
+  }
+
+  return headings
+}
+
+function validateSectionReferences(markdown, locale, label) {
+  const anchors = new Set()
+  for (const match of markdown.matchAll(/<span\s+id="(section-[^"]+)"><\/span>/g)) {
+    if (!/^section-\d+(?:-\d+)*$/.test(match[1])) {
+      fail(`${label}: non-decimal section anchor ${match[1]}`)
+    }
+    if (anchors.has(match[1])) fail(`${label}: duplicate section anchor ${match[1]}`)
+    anchors.add(match[1])
+  }
+
+  const referencePattern = {
+    en: /\bSections?\s+(\d+(?:\.\d+)*)/gu,
+    zh: /第\s*(\d+(?:\.\d+)*)\s*节/gu,
+    ja: /第\s*(\d+(?:\.\d+)*)\s*節/gu,
+  }[locale]
+  const stalePattern = locale === 'en'
+    ? /\bSections?\s+[IVXLCDM]+(?:[-.][A-Z]\d*)?\b/gu
+    : /第\s*[IVXLCDM]+(?:[-.][A-Z]\d*)?\s*[节節]/gu
+
+  for (const [index, line] of markdown.split(/\r?\n/).entries()) {
+    if (/^#{1,6}\s/.test(line)) continue
+    if (stalePattern.test(line)) {
+      fail(`${label}: non-decimal section reference at line ${index + 1}`)
+    }
+    stalePattern.lastIndex = 0
+
+    const links = [...line.matchAll(/\[([^\]\n]+)\]\(#(section-[^)\s]+)\)/g)].map((match) => ({
+      start: match.index,
+      end: match.index + match[0].length,
+      text: match[1],
+      target: match[2],
+    }))
+    for (const link of links) {
+      const number = [...link.text.matchAll(referencePattern)][0]?.[1]
+      referencePattern.lastIndex = 0
+      if (!number) {
+        fail(`${label}: section link '${link.text}' at line ${index + 1} must use a localized decimal reference label`)
+        continue
+      }
+      const expectedTarget = `section-${number.replaceAll('.', '-')}`
+      if (link.target !== expectedTarget) {
+        fail(`${label}: section reference '${link.text}' at line ${index + 1} targets #${link.target}, expected #${expectedTarget}`)
+      }
+      if (!anchors.has(link.target)) {
+        fail(`${label}: section reference '${link.text}' at line ${index + 1} targets missing anchor #${link.target}`)
+      }
+    }
+
+    for (const match of line.matchAll(referencePattern)) {
+      const insideLink = links.some((link) => match.index >= link.start && match.index < link.end)
+      if (!insideLink) {
+        fail(`${label}: unlinked section reference '${match[0]}' at line ${index + 1}`)
+      }
+    }
+    referencePattern.lastIndex = 0
+  }
 }
 
 function equationAnchors(markdown) {
@@ -557,11 +681,13 @@ for (const page of pages) {
   const formalContent = validateFormalStatementsAndProofs(markdown, page.locale, label)
   validateNoTypesetTables(markdown, label)
   validateFormulaReferenceTargets(markdown, label)
+  validateSectionReferences(markdown, page.locale, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {
     fail(`${label}: consecutive ASCII hyphens in rendered article content at line(s) ${badHyphenLines.join(', ')}`)
   }
   const figureTableCaptions = validateFigureTableLinks(markdown, page.locale, label)
+  const headings = validateSectionHeadings(markdown, page.locale, label)
 
   pageData.push({
     ...page,
@@ -570,7 +696,7 @@ for (const page of pages) {
     frontmatter,
     citations: extractCitations(markdown),
     images: extractImageBasenames(markdown, page.path, label),
-    headings: numberedHeadings(markdown),
+    headings,
     equationAnchors: equationAnchors(markdown),
     figureTableCaptions,
     formalStatements: formalContent.statements,

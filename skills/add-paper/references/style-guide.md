@@ -20,7 +20,9 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 ## Page Structure
 
 - Use the same concise English title in all languages and keep it at 50 characters or fewer. Preserve the full source title in the provenance link when shortening it.
-- Preserve numbered section and subsection structure unless a heading exists only for print layout rather than content. Remove an empty generic `Appendix`, `附录`, or `付録` heading when the next heading is the actual Appendix A section.
+- Preserve the source section and subsection hierarchy, but normalize every substantive heading to Arabic decimal numbering in all three languages: `## 1 ...`, `### 2.1 ...`, `#### 3.1.1 ...`. Convert Roman, alphabetic, and mixed source labels such as `II-A` and `III-A1` to `2.1` and `3.1.1`; never render those source numbering styles in a heading.
+- Keep the abstract and acknowledgements unnumbered because they are document apparatus. Treat appendices as substantive sections, continue the top-level decimal sequence after the main body, and remove any empty generic `Appendix`, `附录`, or `付録` heading that only introduces the first real appendix section.
+- Use decimal section anchors that mirror the normalized hierarchy, such as `section-2-1`, and update every localized section-reference label and target to match. Keep the heading-number and section-anchor sequences identical across all three languages.
 - Preserve citations and figure, table, and algorithm numbering. Preserve source equation numbers in stable anchors and linked reference labels, but do not display number tags beside formulas.
 - Reproduce the complete substantive paper in source order. Do not abridge, summarize, expand, or omit body material, but omit the standalone reference list.
 - Render a source run-in paragraph heading such as `\paragraph{Heading.}` at the start of the same Markdown paragraph: `**Heading.** Paragraph text...`. Keep exactly one space after the closing bold marker; never separate the heading from its paragraph with a blank line or line break.
@@ -184,7 +186,7 @@ Example:
 
 ## Final Consistency Pass
 
-- Compare the three heading-number sequences.
+- Compare the three Arabic decimal heading-number sequences, and confirm every substantive heading is numbered while only the abstract and acknowledgements remain unnumbered.
 - Compare the English page against the TeX source and PDF sentence by sentence for exact wording and complete coverage.
 - Compare each Chinese and Japanese sentence against the same source for additions, omissions, and semantic drift.
 - Confirm every run-in paragraph heading remains bold at the start of its paragraph and that no blank line splits it from the following prose.

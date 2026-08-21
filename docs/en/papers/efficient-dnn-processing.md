@@ -14,9 +14,9 @@ This article aims to provide a comprehensive tutorial and survey about the recen
 
 The reader will take away the following concepts from this article: understand the key design considerations for DNNs; be able to evaluate different DNN hardware implementations with benchmarks and comparison metrics; understand the trade-offs between various hardware architectures and platforms; be able to evaluate the utility of various DNN design techniques for efficient processing; and understand recent implementation trends and opportunities.
 
-<span id="section-i"></span>
+<span id="section-1"></span>
 
-## I Introduction
+## 1 Introduction
 
 Deep neural networks (DNNs) are currently the foundation for many modern artificial intelligence (AI) applications [Lec15]. Since the breakthrough application of DNNs to speech recognition [Den13] and image recognition [Kri12], the number of applications that use DNNs has exploded. These DNNs are employed in a myriad of applications from self-driving cars [Che15c], to detecting cancer [Est17] to playing complex games [Sil16]. In many of these domains, DNNs are now able to exceed human accuracy. The superior performance of DNNs comes from its ability to extract high-level features from raw sensory data after using statistical learning over a large amount of data to obtain an effective representation of an input space. This is different from earlier approaches that use hand-crafted features or rules designed by experts.
 
@@ -24,23 +24,23 @@ The superior accuracy of DNNs, however, comes at the cost of high computational 
 
 This paper is organized as follows:
 
-- [Section II](#section-ii) provides background on the context of why DNNs are important, their history and applications.
-- [Section III](#section-iii) gives an overview of the basic components of DNNs and popular DNN models currently in use.
-- [Section IV](#section-iv) describes the various resources used for DNN research and development.
-- [Section V](#section-v) describes the various hardware platforms used to process DNNs and the various optimizations used to improve throughput and energy efficiency without impacting application accuracy (i.e., produce bit-wise identical results).
-- [Section VI](#section-vi) discusses how mixed-signal circuits and new memory technologies can be used for near-data processing to address the expensive data movement that dominates throughput and energy consumption of DNNs.
-- [Section VII](#section-vii) describes various joint algorithm and hardware optimizations that can be performed on DNNs to improve both throughput and energy efficiency while trying to minimize impact on accuracy.
-- [Section VIII](#section-viii) describes the key metrics that should be considered when comparing various DNN designs.
+- [Section 2](#section-2) provides background on the context of why DNNs are important, their history and applications.
+- [Section 3](#section-3) gives an overview of the basic components of DNNs and popular DNN models currently in use.
+- [Section 4](#section-4) describes the various resources used for DNN research and development.
+- [Section 5](#section-5) describes the various hardware platforms used to process DNNs and the various optimizations used to improve throughput and energy efficiency without impacting application accuracy (i.e., produce bit-wise identical results).
+- [Section 6](#section-6) discusses how mixed-signal circuits and new memory technologies can be used for near-data processing to address the expensive data movement that dominates throughput and energy consumption of DNNs.
+- [Section 7](#section-7) describes various joint algorithm and hardware optimizations that can be performed on DNNs to improve both throughput and energy efficiency while trying to minimize impact on accuracy.
+- [Section 8](#section-8) describes the key metrics that should be considered when comparing various DNN designs.
 
-<span id="section-ii"></span>
+<span id="section-2"></span>
 
-## II Background on Deep Neural Networks (DNN)
+## 2 Background on Deep Neural Networks (DNN)
 
 In this section, we describe the position of DNNs in the context of AI in general and some of the concepts that motivated its development. We will also present a brief chronology of the major steps in its history, and some current domains to which it is being applied.
 
-<span id="section-ii-a"></span>
+<span id="section-2-1"></span>
 
-### II-A Artificial Intelligence and DNNs
+### 2.1 Artificial Intelligence and DNNs
 
 DNNs, also referred to as deep learning, are a part of the broad field of AI, which is the science and engineering of creating intelligent machines that have the ability to achieve goals like humans do, according to John McCarthy, the computer scientist who coined the term in the 1950s. The relationship of deep learning to the whole of artificial intelligence is illustrated in [Figure 1](#figure-01).
 
@@ -68,15 +68,15 @@ A key characteristic of the synapse is that it can scale the signal ($x_{i}$) cr
 
 Within the brain-inspired computing paradigm there is a subarea called spiking computing. In this subarea, inspiration is taken from the fact that the communication on the dendrites and axons are spike-like pulses and that the information being conveyed is not just based on a spike’s amplitude. Instead, it also depends on the time the pulse arrives and that the computation that happens in the neuron is a function of not just a single value but the width of pulse and the timing relationship between different pulses. An example of a project that was inspired by the spiking of the brain is the IBM TrueNorth [Mer14]. In contrast to spiking computing, another subarea of brain-inspired computing is called neural networks, which is the focus of this article. [+1]
 
-<span id="section-ii-b"></span>
+<span id="section-2-2"></span>
 
-### II-B Neural Networks and Deep Neural Networks (DNNs)
+### 2.2 Neural Networks and Deep Neural Networks (DNNs)
 
-Neural networks take their inspiration from the notion that a neuron’s computation involves a weighted sum of the input values. These weighted sums correspond to the value scaling performed by the synapses and the combining of those values in the neuron. Furthermore, the neuron doesn’t just output that weighted sum, since the computation associated with a cascade of neurons would then be a simple linear algebra operation. Instead there is a functional operation within the neuron that is performed on the combined inputs. This operation appears to be a non-linear function that causes a neuron to generate an output only if the inputs cross some threshold. Thus by analogy, neural networks apply a non-linear function to the weighted sum of the input values. We look at what some of those non-linear functions are in [Section III-A1](#section-iii-a1).
+Neural networks take their inspiration from the notion that a neuron’s computation involves a weighted sum of the input values. These weighted sums correspond to the value scaling performed by the synapses and the combining of those values in the neuron. Furthermore, the neuron doesn’t just output that weighted sum, since the computation associated with a cascade of neurons would then be a simple linear algebra operation. Instead there is a functional operation within the neuron that is performed on the combined inputs. This operation appears to be a non-linear function that causes a neuron to generate an output only if the inputs cross some threshold. Thus by analogy, neural networks apply a non-linear function to the weighted sum of the input values. We look at what some of those non-linear functions are in [Section 3.1.1](#section-3-1-1).
 
 [Figure 3(a)](#figure-03) shows a diagrammatic picture of a computational neural network. The neurons in the input layer receive some values and propagate them to the neurons in the middle layer of the network, which is also frequently called a ‘hidden layer’. The weighted sums from one or more hidden layers are ultimately propagated to the output layer, which presents the final outputs of the network to the user. To align brain-inspired terminology with neural networks, the outputs of the neurons are often referred to as *activations*, and the synapses are often referred to as *weights* as shown in [Figure 3(a)](#figure-03). We will use the activation/weight nomenclature in this article.
 
-[Figure 3(b)](#figure-03) shows an example of the computation at each layer: $y_{j}=f(\sum\limits_{i=1}^{3}W_{ij}\times x_{i}+b)$, where $W_{ij}$, $x_{i}$ and $y_{j}$ are the weights, input activations and output activations, respectively, and *$f(\cdot)$* is a non-linear function described in [Section III-A1](#section-iii-a1). The bias term $b$ is omitted from [Figure 3(b)](#figure-03) for simplicity.
+[Figure 3(b)](#figure-03) shows an example of the computation at each layer: $y_{j}=f(\sum\limits_{i=1}^{3}W_{ij}\times x_{i}+b)$, where $W_{ij}$, $x_{i}$ and $y_{j}$ are the weights, input activations and output activations, respectively, and *$f(\cdot)$* is a non-linear function described in [Section 3.1.1](#section-3-1-1). The bias term $b$ is omitted from [Figure 3(b)](#figure-03) for simplicity.
 
 <span id="figure-03"></span>
 
@@ -88,9 +88,9 @@ Within the domain of neural networks, there is an area called *deep learning*, i
 
 DNNs are capable of learning high-level features with more complexity and abstraction than shallower neural networks. An example that demonstrates this point is using DNNs to process visual data. In these applications, pixels of an image are fed into the first layer of a DNN, and the outputs of that layer can be interpreted as representing the presence of different low-level features in the image, such as lines and edges. At subsequent layers, these features are then combined into a measure of the likely presence of higher level features, e.g., lines are combined into shapes, which are further combined into sets of shapes. And finally, given all this information, the network provides a probability that these high-level features comprise a particular object or scene. This deep feature hierarchy enables DNNs to achieve superior performance in many tasks.
 
-<span id="section-ii-c"></span>
+<span id="section-2-3"></span>
 
-### II-C Inference versus Training
+### 2.3 Inference versus Training
 
 Since DNNs are an instance of a machine learning algorithm, the basic program does not change as it learns to perform its given tasks. In the specific case of DNNs, this learning involves determining the value of the weights (and bias) in the network, and is referred to as *training* the network. Once trained, the program can perform its task by computing the output of the network using the weights determined during the training process. Running the program with these weights is referred to as *inference*.
 
@@ -106,7 +106,7 @@ An efficient way to compute the partial derivatives of the gradient is through a
 
 **Figure 4.** An example of backpropagation through a neural network.
 
-This backpropagation computation is, in fact, very similar in form to the computation used for inference as shown in [Figure 4](#figure-04) [Mat14]. [+2] Thus, techniques for efficiently performing inference can sometimes be useful for performing training. It is, however, important to note a couple of points. First, backpropagation requires intermediate outputs of the network to be preserved for the backwards computation, thus training has increased storage requirements. Second, due to the gradients use for hill-climbing, the precision requirement for training is generally higher than inference. Thus many of the reduced precision techniques discussed in [Section VII](#section-vii) are limited to inference only.
+This backpropagation computation is, in fact, very similar in form to the computation used for inference as shown in [Figure 4](#figure-04) [Mat14]. [+2] Thus, techniques for efficiently performing inference can sometimes be useful for performing training. It is, however, important to note a couple of points. First, backpropagation requires intermediate outputs of the network to be preserved for the backwards computation, thus training has increased storage requirements. Second, due to the gradients use for hill-climbing, the precision requirement for training is generally higher than inference. Thus many of the reduced precision techniques discussed in [Section 7](#section-7) are limited to inference only.
 
 A variety of techniques are used to improve the efficiency and robustness of training. For example, often the loss from multiple sets of input data, i.e., a *batch*, are collected before a single pass of weight update is performed; this helps to speed up and stabilize the training process.
 
@@ -116,9 +116,9 @@ Another commonly used approach to determine weights is *fine-tuning*, where prev
 
 This article will focus on the efficient processing of DNN inference rather than training, since DNN inference is often performed on embedded devices (rather than the cloud) where resources are limited as discussed in more details later.
 
-<span id="section-ii-d"></span>
+<span id="section-2-4"></span>
 
-### II-D Development History
+### 2.4 Development History
 
 Although neural nets were proposed in the 1940s, the first practical application employing multiple digital neurons didn’t appear until the late 1980s with the LeNet network for hand-written digit recognition [Lec89a] [+3]. Such systems are widely used by ATMs for digit recognition on checks. However, the early 2010s have seen a blossoming of DNN-based applications with highlights such as Microsoft’s speech recognition system in 2011 [Den13] and the AlexNet system for image recognition in 2012 [Kri12]. A brief chronology of deep learning is shown in [Figure 5](#figure-05).
 
@@ -154,9 +154,9 @@ In 2015, the ImageNet winning entry, ResNet [He16c], exceeded human-level accura
 
 **Figure 7.** Results from the ImageNet Challenge [Rus15].
 
-<span id="section-ii-e"></span>
+<span id="section-2-5"></span>
 
-### II-E Applications of DNN
+### 2.5 Applications of DNN
 
 Many applications can benefit from DNNs ranging from multimedia to medical space. In this section, we will provide examples of areas where DNNs are currently making an impact and highlight emerging areas where DNNs hope to make an impact in the future.
 
@@ -168,9 +168,9 @@ Many applications can benefit from DNNs ranging from multimedia to medical space
 
 DNNs are already widely used in multimedia applications today (e.g., computer vision, speech recognition). Looking forward, we expect that DNNs will likely play an increasingly important role in the medical and robotics fields, as discussed above, as well as finance (e.g., for trading, energy forecasting, and risk assessment), infrastructure (e.g., structural safety, and traffic control), weather forecasting and event detection [Hem16]. The myriad application domains pose new challenges to the efficient processing of DNNs; the solutions then have to be adaptive and scalable in order to handle the new and varied forms of DNNs that these applications may employ.
 
-<span id="section-ii-f"></span>
+<span id="section-2-6"></span>
 
-### II-F Embedded versus Cloud
+### 2.6 Embedded versus Cloud
 
 The various applications and aspects of DNN processing (i.e., training versus inference) have different computational needs. Specifically, training often requires a large dataset [+5] and significant computational resources for multiple weight-update iterations. In many cases, training a DNN model still takes several hours to multiple days and thus is typically performed in the cloud. Inference, on the other hand, can happen either in the cloud or at the edge (e.g., IoT or mobile).
 
@@ -178,9 +178,9 @@ In many applications, it is desirable to have the DNN inference processing near 
 
 Many of the embedded platforms that perform DNN inference have stringent energy consumption, compute and memory cost limitations; efficient processing of DNNs have thus become of prime importance under these constraints. Therefore, in this article, we will focus on the compute requirements for inference rather than training.
 
-<span id="section-iii"></span>
+<span id="section-3"></span>
 
-## III Overview of DNNs
+## 3 Overview of DNNs
 
 DNNs come in a wide variety of shapes and sizes depending on the application. The popular shapes and sizes are also evolving rapidly to improve accuracy and efficiency. In all cases, the input to a DNN is a set of values representing the information to be analyzed by the network. For instance, these values can be pixels of an image, sampled amplitudes of an audio wave or the numerical representation of the state of some system or game.
 
@@ -206,9 +206,9 @@ An extremely popular windowed and weight-shared DNN layer arises by structuring 
 
 **Figure 9.** Dimensionality of convolutions.
 
-<span id="section-iii-a"></span>
+<span id="section-3-1"></span>
 
-### III-A Convolutional Neural Networks (CNNs)
+### 3.1 Convolutional Neural Networks (CNNs)
 
 A common form of DNNs is *Convolutional Neural Nets* (CNNs), which are composed of multiple CONV layers as shown in [Figure 10](#figure-10). In such networks, each layer generates a successively higher-level abstraction of the input data, called a *feature map* (fmap), which preserves essential yet unique information. Modern CNNs are able to achieve superior performance by employing a very deep hierarchy of layers. CNN are widely used in a variety of applications including image understanding [Kri12], speech recognition [Sai13a], game play [Sil16], robotics [Lev16], etc. This paper will focus on its use in image processing, specifically for the task of image classification [Kri12].
 
@@ -247,9 +247,9 @@ From five [Kri12] to more than a thousand [He16c] CONV layers are commonly used 
 
 In addition to CONV and FC layers, various optional layers can be found in a DNN such as the non-linearity, pooling, and normalization. The function and computations for each of these layers are discussed next.
 
-<span id="section-iii-a1"></span>
+<span id="section-3-1-1"></span>
 
-#### III-A1 Non-Linearity
+#### 3.1.1 Non-Linearity
 
 A non-linear activation function is typically applied after each CONV or FC layer. Various non-linear functions are used to introduce non-linearity into the DNN as shown in [Figure 11](#figure-11). These include historically conventional non-linear functions such as sigmoid or hyperbolic tangent as well as rectified linear unit (ReLU) [Nai10], which has become popular in recent years due to its simplicity and its ability to enable fast training. Variations of ReLU, such as leaky ReLU [Maa13], parametric ReLU [He15], and exponential LU [Cle16] have also been explored for improved accuracy. Finally, a non-linearity called maxout, which takes the max value of two intersecting linear functions, has shown to be effective in speech recognition tasks [Zha14, Zha16a].
 
@@ -259,9 +259,9 @@ A non-linear activation function is typically applied after each CONV or FC laye
 
 **Figure 11.** Various forms of non-linear activation functions (Figure adopted from Caffe Tutorial [Jia14]).
 
-<span id="section-iii-a2"></span>
+<span id="section-3-1-2"></span>
 
-#### III-A2 Pooling
+#### 3.1.2 Pooling
 
 A variety of computations that reduce the dimensionality of a feature map are referred to as *pooling*. Pooling, which is applied to each channel separately, enables the network to be robust and invariant to small shifts and distortions. Pooling combines, or *pools*, a set of values in its *receptive field* into a smaller number of values. It can be configured based on the size of its receptive field (e.g., $2 \times 2$) and pooling operation (e.g., max or average), as shown in [Figure 12](#figure-12). Typically pooling occurs on non-overlapping blocks (i.e., the stride is equal to the size of the pooling). Usually a stride of greater than one is used such that there is a reduction in the dimension of the representation (i.e., feature map).
 
@@ -271,9 +271,9 @@ A variety of computations that reduce the dimensionality of a feature map are re
 
 **Figure 12.** Various forms of pooling (Figure adopted from Caffe Tutorial [Jia14]).
 
-<span id="section-iii-a3"></span>
+<span id="section-3-1-3"></span>
 
-#### III-A3 Normalization
+#### 3.1.3 Normalization
 
 Controlling the input distribution across layers can help to significantly speed up training and improve accuracy. Accordingly, the distribution of the layer input activations ($\sigma$, $\mu$) are normalized such that it has a zero mean and a unit standard deviation. In batch normalization (BN), the normalized value is further scaled and shifted, as shown in [Equation 2](#equation-02), where the parameters ($\gamma$, $\beta$) are learned from training [Iof15]. $\epsilon$ is a small constant to avoid numerical problems. Prior to this, local response normalization (LRN) [Kri12] was used, which was inspired by lateral inhibition in neurobiology where excited neurons (i.e., high value activations) should subdue its neighbors (i.e., cause low value activations); however, BN is now considered standard practice in the design of CNNs while LRN is mostly deprecated. Note that while LRN usually is performed after the non-linear function, BN is mostly performed between the CONV or FC layer and the non-linear function.
 
@@ -283,9 +283,9 @@ $$
 \begin{split}y=\frac{x-\mu}{\sqrt{\sigma^{2}+\epsilon}}\gamma+\beta\end{split}
 $$
 
-<span id="section-iii-b"></span>
+<span id="section-3-2"></span>
 
-### III-B Popular DNN Models
+### 3.2 Popular DNN Models
 
 Many DNN models have been developed over the past two decades. Each of these models has a different ‘network architecture’ in terms of number of layers, layer types, layer shapes (i.e., filter size, number of channels and filters), and connections between layers. Understanding these variations and trends is important for incorporating the right flexibility in any efficient DNN engine.
 
@@ -329,15 +329,15 @@ Several trends can be observed in the popular DNNs shown in [Table II](#table-02
 
 **Table 2.** Summary of popular DNNs [Lec98, Kri12, Sim15, Sze14, He16c]. <sup>*†*</sup>Accuracy is measured based on Top-5 error on ImageNet [Rus15]. <sup>*‡*</sup>This version of LeNet-5 has 431k weights for the filters and requires 2.3M MACs per image, and uses ReLU rather than sigmoid.
 
-<span id="section-iv"></span>
+<span id="section-4"></span>
 
-## IV DNN development resources
+## 4 DNN development resources
 
 One of the key factors that has enabled the rapid development of DNNs is the set of development resources that have been made available by the research community and industry. These resources are also key to the development of DNN accelerators by providing characterizations of the workloads and facilitating the exploration of trade-offs in model complexity and accuracy. This section will describe these resources such that those who are interested in this field can quickly get started.
 
-<span id="section-iv-a"></span>
+<span id="section-4-1"></span>
 
-### IV-A Frameworks
+### 4.1 Frameworks
 
 For ease of DNN development and to enable sharing of trained networks, several deep learning frameworks have been developed from various sources. These open source libraries contain software libraries for DNNs. Caffe was made available in 2014 from UC Berkeley [Jia14]. It supports C, C++, Python and MATLAB. Tensorflow was released by Google in 2015, and supports C++ and python; it also supports multiple CPUs and GPUs and has more flexibility than Caffe, with the computation expressed as dataflow graphs to manage the “tensors” (multidimensional arrays). Another popular framework is Torch, which was developed by Facebook and NYU and supports C, C++ and Lua. There are several other frameworks such as Theano, MXNet, CNTK, which are described in [Nvi00]. There are also higher-level libraries that can run on top of the aforementioned frameworks to provide a more universal experience and faster development. One example of such libraries is Keras, which is written in Python and supports Tensorflow, CNTK and Theano.
 
@@ -345,15 +345,15 @@ The existence of such frameworks are not only a convenient aid for DNN researche
 
 Finally, these frameworks are a valuable source of workloads for hardware researchers. They can be used to drive experimental designs for different workloads, for profiling different workloads and for exploring hardware-software trade-offs.
 
-<span id="section-iv-b"></span>
+<span id="section-4-2"></span>
 
-### IV-B Models
+### 4.2 Models
 
 Pretrained DNN models can be downloaded from various websites [Caf00, Caf00a, Mat00, Ten00] for the various different frameworks. It should be noted that even for the same DNN (e.g., AlexNet) the accuracy of these models can vary by around 1% to 2% depending on how the model was trained, and thus the results do not always exactly match the original publication.
 
-<span id="section-iv-c"></span>
+<span id="section-4-3"></span>
 
-### IV-C Popular Datasets for Classification
+### 4.3 Popular Datasets for Classification
 
 It is important to factor in the difficulty of the task when comparing different DNN models. For instance, the task of classifying handwritten digits from the MNIST dataset [Lec00] is much simpler than classifying an object into one of 1000 classes as is required for the ImageNet dataset [Rus15]([Figure 16](#figure-16)). It is expected that the size of the DNNs (i.e., number of weights) and the number of MACs will be larger for the more difficult task than the simpler task and thus require more energy and have lower throughput. For instance, LeNet-5[Lec98] is designed for digit classification, while AlexNet[Kri12], VGG-16[Sim15], GoogLeNet[Sze14], and ResNet[He16c] are designed for the 1000-class image classification.
 
@@ -375,9 +375,9 @@ In summary of the various image classification datasets, it is clear that MNIST 
 
 **Figure 16.** MNIST (10 classes, 60k training, 10k testing) [Lec00] vs. ImageNet (1000 classes, 1.3M training, 100k testing)[Rus15] dataset.
 
-<span id="section-iv-d"></span>
+<span id="section-4-4"></span>
 
-### IV-D Datasets for Other Tasks
+### 4.4 Datasets for Other Tasks
 
 Since the accuracy of the state-of-the-art DNNs are performing better than human-level accuracy on image classification tasks, the ImageNet Challenge has started to focus on more difficult tasks such as single-object localization and object detection. For single-object localization, the target object must be localized and classified (out of 1000 classes). The DNN outputs the top five categories and top five bounding box locations. There is no penalty for identifying an object that is in the image but not included in the ground truth. For object detection, all objects in the image must be localized and classified (out of 200 classes). The bounding box for all objects in these categories must be labeled. Objects that are not labeled are penalized as are duplicated detections.
 
@@ -387,9 +387,9 @@ Most recently even larger scale datasets have been made available. For instance,
 
 Undoubtedly, both larger datasets and datasets for new domains will serve as important resources for profiling and exploring the efficiency of future DNN engines.
 
-<span id="section-v"></span>
+<span id="section-5"></span>
 
-## V Hardware for DNN Processing
+## 5 Hardware for DNN Processing
 
 Due to the popularity of DNNs, many recent hardware platforms have special features that target DNN processing. For instance, the Intel Knights Landing CPU features special vector instructions for deep learning; the Nvidia PASCAL GP100 GPU features 16-bit floating point (FP16) arithmetic support to perform two FP16 operations on a single precision core for faster deep learning computation. Systems have also been built specifically for DNN processing such as Nvidia DGX-1 and Facebook’s Big Basin custom DNN server [Con17]. DNN inference has also been demonstrated on various embedded System-on-Chips (SoC) such as Nvidia Tegra and Samsung Exynos as well as FPGAs. Accordingly, it’s important to have a good understanding of how the processing is being performed on these platforms, and how application-specific accelerators can be designed for DNNs for further improvement in throughput and energy efficiency.
 
@@ -404,9 +404,9 @@ The fundamental component of both the CONV and FC layers are the multiply-and-ac
 
 **Figure 17.** Highly-parallel compute paradigms.
 
-<span id="section-v-a"></span>
+<span id="section-5-1"></span>
 
-### V-A Accelerate Kernel Computation on CPU and GPU Platforms
+### 5.1 Accelerate Kernel Computation on CPU and GPU Platforms
 
 CPUs and GPUs use parallelizaton techniques such as SIMD or SIMT to perform the MACs in parallel. All the ALUs share the same control and memory (register file). On these platforms, both the FC and CONV layers are often mapped to a matrix multiplication (i.e., the kernel computation). [Figure 18](#figure-18) shows how a matrix multiplication is used for the FC layer. The height of the filter matrix is the number of filters and the width is the number of weights per filter (input channels ($C$) $\times$ width ($W$) $\times$ height ($H$), since $R=W$ and $S=H$ in the FC layer); the height of the input feature maps matrix is the number of activations per input feature map ($C$ $\times$ $W$ $\times$ $H$), and the width is the number of input feature maps (one in [Figure 18(a)](#figure-18) and $N$ in [Figure 18(b)](#figure-18)); finally, the height of the output feature map matrix is the number of channels in the output feature maps ($M$), and the width is the number of output feature maps ($N$), where each output feature map of the FC layer has the dimension of $1 \times 1 \times{}$ number of output channels ($M$).
 
@@ -428,7 +428,7 @@ There are software libraries designed for CPUs (e.g., OpenBLAS, Intel MKL, etc.)
 
 The matrix multiplications on these platforms can be further sped up by applying computational transforms to the data to reduce the number of multiplications, while still giving the same bit-wise result. Often this can come at a cost of increased number of additions and a more irregular data access pattern.
 
-Fast Fourier Transform (FFT) [Mat14, Dub12] is a well known approach, shown in [Figure 20](#figure-20) that reduces the number of multiplications from O($N_{o}^{2}N_{f}^{2}$) to O($N_{o}^{2}\log_{2}N_{o})$, where the output size is $N_{o}\times N_{o}$ and the filter size is $N_{f}\times N_{f}$. To perform the convolution, we take the FFT of the filter and input feature map, and then perform the multiplication in the frequency domain; we then apply an inverse FFT to the resulting product to recover the output feature map in the spatial domain. However, there are several drawbacks to using FFT: (1) the benefits of FFTs decrease with filter size; (2) the size of the FFT is dictated by the output feature map size which is often much larger than the filter; (3) the coefficients in the frequency domain are complex. As a result, while FFT reduces computation, it requires larger storage capacity and bandwidth. Finally, a popular approach for reducing complexity is to make the weights sparse, which will be discussed in [Section VII-B2](#section-vii-b2); using FFTs makes it difficult for this sparsity to be exploited.
+Fast Fourier Transform (FFT) [Mat14, Dub12] is a well known approach, shown in [Figure 20](#figure-20) that reduces the number of multiplications from O($N_{o}^{2}N_{f}^{2}$) to O($N_{o}^{2}\log_{2}N_{o})$, where the output size is $N_{o}\times N_{o}$ and the filter size is $N_{f}\times N_{f}$. To perform the convolution, we take the FFT of the filter and input feature map, and then perform the multiplication in the frequency domain; we then apply an inverse FFT to the resulting product to recover the output feature map in the spatial domain. However, there are several drawbacks to using FFT: (1) the benefits of FFTs decrease with filter size; (2) the size of the FFT is dictated by the output feature map size which is often much larger than the filter; (3) the coefficients in the frequency domain are complex. As a result, while FFT reduces computation, it requires larger storage capacity and bandwidth. Finally, a popular approach for reducing complexity is to make the weights sparse, which will be discussed in [Section 7.2.2](#section-7-2-2); using FFTs makes it difficult for this sparsity to be exploited.
 
 Several optimizations can be performed on FFT to make it more effective for DNNs. To reduce the number of operations, the FFT of the filter can be precomputed and stored. In addition, the FFT of the input feature map can be computed once and used to generate multiple channels in the output feature map. Finally, since an image contains only real values, its Fourier Transform is symmetric and this can be exploited to reduce storage and computation cost.
 
@@ -442,9 +442,9 @@ Other approaches include Strassen [Con14] and Winograd [Lav16], which rearrange 
 
 In practice, different algorithms might be used for different layer shapes and sizes (e.g., FFT for filters greater than $5 \times 5$, and Winograd for filters $3 \times 3$ and below). Existing platform libraries, such as MKL and cuDNN, dynamically chose the appropriate algorithm for a given shape and size [Mkl16, Che14].
 
-<span id="section-v-b"></span>
+<span id="section-5-2"></span>
 
-### V-B Energy-Efficient Dataflow for Accelerators
+### 5.2 Energy-Efficient Dataflow for Accelerators
 
 For DNNs, the bottleneck for processing is in the memory access. Each MAC requires three memory reads (for filter weight, fmap activation, and partial sum) and one memory write (for the updated partial sum) as shown in [Figure 21](#figure-21). In the worst case, all of the memory accesses have to go through the off-chip DRAM, which will severely impact both throughput and energy efficiency. For example, in AlexNet, to support its 724M MACs, nearly 3000M DRAM accesses will be required. Furthermore, DRAM accesses require up to several orders of magnitude higher energy than computation [Hor14].
 
@@ -490,17 +490,17 @@ The following taxonomy ([Figure 25](#figure-25)) can be used to classify the DNN
 
 **Figure 25.** Dataflows for DNNs [Che16c].
 
-<span id="section-v-b1"></span>
+<span id="section-5-2-1"></span>
 
-#### V-B1 Weight stationary (WS)
+#### 5.2.1 Weight stationary (WS)
 
 The weight stationary dataflow is designed to minimize the energy consumption of reading weights by maximizing the accesses of weights from the register file (RF) at the PE ([Figure 25(a)](#figure-25)). Each weight is read from DRAM into the RF of each PE and stays stationary for further accesses. The processing runs as many MACs that use the same weight as possible while the weight is present in the RF; it maximizes convolutional and filter reuse of weights. The inputs and partial sums must move through the spatial array and global buffer. The input fmap activations are broadcast to all PEs and then the partial sums are spatially accumulated across the PE array.
 
 One example of previous work that implement weight stationary dataflow is nn-X, or neuFlow [Gok14], which uses eight 2-D convolution engines for processing a $10 \times 10$ filter. There are total 100 MAC units, i.e. PEs, per engine with each PE having a weight that stays stationary for processing. The input fmap activations are broadcast to all MAC units and the partial sums are accumulated across the MAC units. In order to accumulate the partial sums correctly, additional delay storage elements are required, which are counted into the required size of local storage. Other weight stationary examples are found in [San09, Sri10, Cha10, Par15, Cav15].
 
-<span id="section-v-b2"></span>
+<span id="section-5-2-2"></span>
 
-#### V-B2 Output stationary (OS)
+#### 5.2.2 Output stationary (OS)
 
 The output stationary dataflow is designed to minimize the energy consumption of reading and writing the partial sums ([Figure 25(b)](#figure-25)). It keeps the accumulation of partial sums for the same output activation value local in the RF. In order to keep the accumulation of partial sums stationary in the RF, one common implementation is to stream the input activations across the PE array and broadcast the weight to all PEs in the array.
 
@@ -514,17 +514,17 @@ There are multiple possible variants of output stationary as shown in [Figure 26
 
 **Figure 26.** Variations of output stationary [Che16c].
 
-<span id="section-v-b3"></span>
+<span id="section-5-2-3"></span>
 
-#### V-B3 No local reuse (NLR)
+#### 5.2.3 No local reuse (NLR)
 
 While small register files are efficient in terms of energy (pJ/bit), they are inefficient in terms of area ($\mu m^{2}$/bit). In order to maximize the storage capacity, and minimize the off-chip memory bandwidth, no local storage is allocated to the PE and instead all that area is allocated to the global buffer to increase its capacity ([Figure 25(c)](#figure-25)). The no local reuse dataflow differs from the previous dataflows in that nothing stays stationary inside the PE array. As a result, there will be increased traffic on the spatial array and to the global buffer for all data types. Specifically, it has to multicast the activations, single-cast the filter weights, and then spatially accumulate the partial sums across the PE array.
 
 In an example of the no local reuse dataflow from UCLA [Zha15], the filter weights and input activations are read from the global buffer, processed by the MAC units with custom adder trees that can complete the accumulation in a single cycle, and the resulting partial sums or output activations are then put back to the global buffer. Another example is DianNao [Che14b], which also reads input activations and filter weights from the buffer, and processes them through the MAC units with custom adder trees. However, DianNao implements specialized registers to keep the partial sums in the PE array, which helps to further reduce the energy consumption of accessing partial sums. Another example of no local reuse dataflow is found in [Che14a].
 
-<span id="section-v-b4"></span>
+<span id="section-5-2-4"></span>
 
-#### V-B4 Row stationary (RS)
+#### 5.2.4 Row stationary (RS)
 
 A row stationary dataflow is proposed in [Che16c], which aims to maximize the reuse and accumulation at the RF level for *all* types of data (weights, pixels, partial sums) for the overall energy efficiency. This differs from WS or OS dataflows, which optimize for only weights and partial sums, respectively.
 
@@ -582,9 +582,9 @@ Two mapping strategies can be used to solve the first problem as shown in [Figur
 
 A custom multicast network is used to solve the second problem about flexible data delivery. The simplest way to pass data to multiple destinations is to broadcast the data to all PEs and let each PE decide if it has to process the data or not. However, it is not very energy efficient especially when the size of PE array is large. Instead, a multicast network is used to send data to only the places where it is needed.
 
-<span id="section-v-b5"></span>
+<span id="section-5-2-5"></span>
 
-#### V-B5 Energy comparison of different dataflows
+#### 5.2.5 Energy comparison of different dataflows
 
 To evaluate and compare different dataflows, the same total hardware area and number of PEs (256) are used in the simulation of a spatial architecture for all dataflows. The local memory (register file) at each processing element (PE) is on the order of 0.5 – 1.0kB and a shared memory (global buffer) is on the order of 100 – 500kB. The sizes of these memories are selected to be comparable to a typical accelerator for multimedia processing, such as video coding [Sze14a]. The memory sizes are further adjusted for the needs of each dataflow under the same area constraint. For example, since the no local reuse dataflow does not require any RF in PE, it is allocated with a much larger global buffer. The simulation uses the layer configurations from AlexNet with a batch size of 16. The simulation also takes into account the fact that accessing different levels of the memory hierarchy requires different energy cost.
 
@@ -616,25 +616,25 @@ To evaluate and compare different dataflows, the same total hardware area and nu
 
 Finally, up until now, we have been looking at architectures with relatively limited storage on the order of a few hundred kilobytes. With much larger storage on the order of a few megabytes, additional dataflows can be considered. For example, Fused-Layer looks at dataflow optimizations across layers [Alw16].
 
-<span id="section-vi"></span>
+<span id="section-6"></span>
 
-## VI Near-Data Processing
+## 6 Near-Data Processing
 
 The previous section highlighted that data movement dominates energy consumption. While spatial architectures distribute the on-chip memory such that it is closer to the computation (e.g., into the PE), there have also been efforts to bring the off-chip high density memory closer to the computation or to integrate the computation into the memory itself; the latter is often referred to as *processing-in-memory* or *logic-in-memory*. In embedded systems, there have also been efforts to bring the computation into the sensor where the data is first collected. In this section, we will discuss how moving compute and data closer to reduce data movement (i.e., near-data processing) can be achieved using mixed-signal circuit design and advanced memory technologies.
 
-Many of these works use analog processing which has the drawback of increased sensitivity to circuit and device non-idealities. Consequentially, the computation is often performed at reduced precision, which can be accounted for during the training of the DNNs using the techniques discussed in [Section VII](#section-vii). Another factor to take into consideration is that DNNs are often trained in the digital domain; thus for analog processing, there is an additional overhead cost for analog-to-digital conversion (ADC) and digital-to-analog conversion (DAC).
+Many of these works use analog processing which has the drawback of increased sensitivity to circuit and device non-idealities. Consequentially, the computation is often performed at reduced precision, which can be accounted for during the training of the DNNs using the techniques discussed in [Section 7](#section-7). Another factor to take into consideration is that DNNs are often trained in the digital domain; thus for analog processing, there is an additional overhead cost for analog-to-digital conversion (ADC) and digital-to-analog conversion (DAC).
 
-<span id="section-vi-a"></span>
+<span id="section-6-1"></span>
 
-### VI-A DRAM
+### 6.1 DRAM
 
 Advanced memory technology can reduce the access energy for high density memories such as DRAMs. For instance, *embedded DRAM (eDRAM)* brings high density memory on-chip to avoid the high energy cost of switching off-chip capacitance [Kei01]; eDRAM is $2.85\times$ higher density than SRAM and $321\times$ more energy efficient than DRAM (DDR3) [Che14a]. eDRAM also offers higher bandwidth and lower latency compared to DRAM. In DNN processing, eDRAM can be used to store tens of megabytes of weights and activations on-chip to avoid off-chip access, as demonstrated in DaDianNao [Che14a]. The downside of eDRAM is that it has lower density than off-chip DRAM and can increase the cost of the chip.
 
 Rather than integrating DRAM into the chip itself, the DRAM can also be stacked on top of the chip using through silicon vias (TSV). This technology is often referred to as *3-D memory*, and has been commercialized in the form of Hybrid Memory Cube (HMC) [Jed12] and High Bandwidth Memory (HBM) [Hbm13]. 3-D memory delivers an order of magnitude higher bandwidth and reduces access energy by up to $5\times$ relative to existing 2-D DRAMs, as TSV have lower capacitance than typical off-chip interconnects. Recent works have explored the use of HMC for efficient DNN processing in a variety of ways. For instance, Neurocube [Kim16a] integrates SIMD processors into the logic die of the HMC to bring the memory and computation closer together. Tetris [Gao17] explores the use of HMC with the Eyeriss spatial architecture and row stationary dataflow. It proposes allocating more area to computation than on-chip memory (i.e., larger PE array and smaller global buffer) in order to exploit the low energy and high throughput properties of the HMC. It also adapts the dataflow to account for the HMC memory and smaller on-chip memory. Tetris achieves a $1.5\times$ reduction in energy consumption and $4.1\times$ increase in throughput over a baseline system with conventional 2-D DRAM.
 
-<span id="section-vi-b"></span>
+<span id="section-6-2"></span>
 
-### VI-B SRAM
+### 6.2 SRAM
 
 Rather than bringing the memory near the compute, recent work has also investigated bringing the compute into the memory. For instance, the multiply and accumulate operation can be directly integrated into the bit-cells of an SRAM array [Zha16b], as shown in [Figure 36(a)](#figure-36). In this work, a 5-bit DAC is used to drive the word line (WL) to an analog voltage that represents the feature vector, while the bit-cells store the binary weights $\pm 1$. The bit-cell current ($I_{\mathrm{BC}}$) is effectively a product of the value of the feature vector and the value of the weight stored in the bit-cell; the currents from the bit-cells within a column add together to discharge the bitline ($V_{\mathrm{BL}}$). This approach gives $12\times$ energy savings compared to reading the 1-bit weights from the SRAM and performing the computation separately. To counter circuit non-idealities, the DAC accounts for the non-linear bit-line discharge with respect to the WL voltage, and boosting is used to combine the weak classifiers that are susceptible to device variations to form a strong classifier [Wan14].
 
@@ -644,9 +644,9 @@ Rather than bringing the memory near the compute, recent work has also investiga
 
 **Figure 36.** Analog computation by (a) SRAM bit-cell and (b) non-volatile resistive memory.
 
-<span id="section-vi-c"></span>
+<span id="section-6-3"></span>
 
-### VI-C Non-volatile Resistive Memories
+### 6.3 Non-volatile Resistive Memories
 
 The multiply and accumulate operation can also be directly integrated into advanced *non-volatile* high density memories by using them as programmable resistive elements, commonly referred to as *memristors* [Chu71]. Specifically, a multiplication is performed with the resistor’s conductance as the weight, the voltage as the input, and the current as the output as shown in [Figure 36(b)](#figure-36). The addition is done by summing the currents of different memristors with Kirchhoff’s current law. This is the ultimate form of a weight stationary dataflow, as the weights are always held in place. The advantages of this approach include reduced energy consumption since the computation is embedded within memory which reduces data movement, and increased density since memory and computation can be densely packed with a similar density to DRAM [Wil13]. [+8]
 
@@ -656,9 +656,9 @@ Processing with non-volatile resistive memories has several drawbacks as describ
 
 There have been several recent works that explore the use of memristors for DNNs. ISAAC [Sha16b] replaces the eDRAM in DaDianNao with memristors. To address the limited precision support, ISAAC computes a 16-bit dot product operation with 8 memristors each storing 2-bits; a 1-bit $\times$ 2-bit multiplication is performed at each memristor, where a 16-bit input requires 16 cycles to complete. In other words, the ISAAC architecture trades off area and time for increased precision. Finally, ISAAC arranges its 25.1M memristors in a hierarchical structure to avoid issues with large arrays. PRIME [Chi16] also replaces the DRAM main memory with memristors; specifically, it uses $256 \times 256$ memristor arrays that can be configured for 4-bit multi-level cell computation or 1-bit single level cell storage. It should be noted that results from ISAAC and PRIME are obtained from simulations. The task of actually fabricating large memristors arrays is still very much a research challenge; for instance, [Pre15] uses a fabricated $12 \times 12$ memristor array to demonstrate a linear classifier.
 
-<span id="section-vi-d"></span>
+<span id="section-6-4"></span>
 
-### VI-D Sensors
+### 6.4 Sensors
 
 In certain applications, such as image processing, the data movement from the sensor itself can account for a significant portion of the system energy consumption. Thus there has also been research on performing the computation as close as possible to the sensor. In particular, much of the work focuses on moving the computation into the analog domain to avoid using the ADC within the sensor, which accounts for a significant portion of the sensor power. However, as mentioned earlier, lower precision is required for analog computation due to circuit non-idealities.
 
@@ -666,20 +666,20 @@ In [Zha15a], the matrix multiplication is integrated into the ADC, where the mos
 
 It is also feasible to embed the computation not just before the ADC, but into the sensor itself. For instance, in [Wan12] an Angle Sensitive Pixels sensor is used to compute the gradient of the input, which along with compression, reduces the data movement from the sensor by $10\times$. In addition, since the first layer of the DNN often outputs a gradient-like feature map, it maybe possible to skip the computations in the first layer, which further reduces energy consumption as discussed in [Che16g, Sul14].
 
-<span id="section-vii"></span>
+<span id="section-7"></span>
 
-## VII Co-design of DNN models and Hardware
+## 7 Co-design of DNN models and Hardware
 
-In earlier work, the DNN models were designed to maximize accuracy without much consideration of the implementation complexity. However, this can lead to designs that are challenging to implement and deploy. To address this, recent work has shown that DNN models and hardware can be co-designed to jointly maximize accuracy and throughput, while minimizing energy and cost, which increases the likelihood of adoption. In this section, we will highlight various efforts that have been made towards the co-design of DNN models and hardware. Note that unlike [Section V](#section-v), the techniques discussed in this section can affect the accuracy; thus, the goal is to not only substantially reduce energy consumption and increase throughput, but also to minimize any degradation in accuracy.
+In earlier work, the DNN models were designed to maximize accuracy without much consideration of the implementation complexity. However, this can lead to designs that are challenging to implement and deploy. To address this, recent work has shown that DNN models and hardware can be co-designed to jointly maximize accuracy and throughput, while minimizing energy and cost, which increases the likelihood of adoption. In this section, we will highlight various efforts that have been made towards the co-design of DNN models and hardware. Note that unlike [Section 5](#section-5), the techniques discussed in this section can affect the accuracy; thus, the goal is to not only substantially reduce energy consumption and increase throughput, but also to minimize any degradation in accuracy.
 
 The co-design approaches can be loosely grouped into the following categories:
 
 - *Reduce precision of operations and operands.* This includes going from floating point to fixed point, reducing the bitwidth, non-linear quantization and weight sharing.
 - *Reduce number of operations and model size.* This includes techniques such as compression, pruning and compact network architectures.
 
-<span id="section-vii-a"></span>
+<span id="section-7-1"></span>
 
-### VII-A Reduce Precision
+### 7.1 Reduce Precision
 
 Quantization involves mapping data to a smaller set of quantization levels. The ultimate goal is to minimize the error between the reconstructed data from the quantization levels and the original data. The number of quantization levels reflects the *precision* and ultimately the number of bits required to represent the data (usually $\log_{2}$ of the number of levels); thus, *reduced precision* refers to reducing the number of levels, and thus the number of bits. The benefits of reduced precision include reduced storage cost and/or reduced computation requirements.
 
@@ -697,9 +697,9 @@ Reduced precision research initially focused on reducing the precision of the we
 
 The key techniques used in recent work to reduce precision are summarized in [Table III](#table-03); both linear and non-linear quantization applied to weights and activations are explored. The impact on accuracy is reported relative to a baseline precision of 32-bit floating point, which is the default precision used on platforms such as GPUs and CPUs.
 
-<span id="section-vii-a1"></span>
+<span id="section-7-1-1"></span>
 
-#### VII-A1 Linear quantization
+#### 7.1.1 Linear quantization
 
 The first step of reducing precision is usually to convert values and operations from floating point to fixed point. A 32-bit floating point number, as shown in [Figure 38(a)](#figure-38), is represented by $(-1)^{s}\times m\times 2^{(e-127)}$, where $s$ is the sign bit, $e$ is the 8-bit exponent, and $m$ is the 23-bit mantissa, and covers the range of $10^{-38}$ to $10^{38}$.
 
@@ -718,7 +718,7 @@ Using 8-bit fixed point has the following impact on energy and area [Hor14]:
 
 Reducing the precision also reduces the energy and area cost for storage, which is important since memory access and data movement dominate energy consumption as described earlier. The energy and area of the memory scale approximately linearly with number of bits. It should be noted, however, that changing from floating point to fixed point, without reducing bit-width, does not reduce the energy or area cost of the memory.
 
-For completeness, it should be noted that the precision of the internal values of a fixed-point multiply and accumulate (MAC) operation are typically higher than the weights and activations. To guarantee no precision loss, weights and input activations with N-bit fixed-point precision would require an N-bit $\times$ N-bit multiplication which generates a 2N-bit output product; that output would need to be accumulated with 2N+M-bit precision, where M is determined based on the largest filter size $\log_{2}$($C\times R\times S$ from [Figure 9(b)](#figure-09)), which is in the range of 10 to 16 bits for the popular DNNs described in [Section III-B](#section-iii-b). After accumulation, the precision of the final output activation is typically reduced to N-bits [Gup15, Ma16], as shown in [Figure 39](#figure-39). The reduced output precision does not have a significant impact on accuracy if the distribution of the weights and activations are centered near zero such that the accumulation would not move only in one direction; this is particularly true when batch normalization is used.
+For completeness, it should be noted that the precision of the internal values of a fixed-point multiply and accumulate (MAC) operation are typically higher than the weights and activations. To guarantee no precision loss, weights and input activations with N-bit fixed-point precision would require an N-bit $\times$ N-bit multiplication which generates a 2N-bit output product; that output would need to be accumulated with 2N+M-bit precision, where M is determined based on the largest filter size $\log_{2}$($C\times R\times S$ from [Figure 9(b)](#figure-09)), which is in the range of 10 to 16 bits for the popular DNNs described in [Section 3.2](#section-3-2). After accumulation, the precision of the final output activation is typically reduced to N-bits [Gup15, Ma16], as shown in [Figure 39](#figure-39). The reduced output precision does not have a significant impact on accuracy if the distribution of the weights and activations are centered near zero such that the accumulation would not move only in one direction; this is particularly true when batch normalization is used.
 
 <span id="figure-39"></span>
 
@@ -736,7 +736,7 @@ In order to reduce this accuracy loss, Binary Weight Nets (BWN) and XNOR-Nets in
 
 All the previously described binary nets limit the weights to two values (-$w$ and $w$); however, there may be benefits for allowing weights to be zero (i.e., -$w$, 0, $w$). Although this requires an additional bit per weight compared to binary weights, the sparsity of the weights can be exploited to reduce computation and storage cost, which can potentially cancel out the cost of the additional bit. This is explored in Ternary Weight Nets (TWN) [Li16b] and then extended in Trained Ternary Quantization (TTQ) where a different scale is trained for each weight (i.e., -$w_{1}$, 0, $w_{2}$) for an accuracy loss of 0.6% [Zhu17], assuming 32-bit floating point for the activations.
 
-Hardware implementations for binary/ternary nets have been explored in recent publications. YodaNN [And16] uses binary weights, while BRein [And17] uses binary weights and activations. Binary weights are also used in the compute in SRAM work [Zha16b] described in [Section VI](#section-vi). Finally, the nominally spike-inspired TrueNorth chip can implement a reduced precision neural network with binary activations and ternary weights using TrueNorth’s quantized weight table [Ess16]. These works tend not to support state-of-the-art DNN models (with the exception of YodaNN).
+Hardware implementations for binary/ternary nets have been explored in recent publications. YodaNN [And16] uses binary weights, while BRein [And17] uses binary weights and activations. Binary weights are also used in the compute in SRAM work [Zha16b] described in [Section 6](#section-6). Finally, the nominally spike-inspired TrueNorth chip can implement a reduced precision neural network with binary activations and ternary weights using TrueNorth’s quantized weight table [Ess16]. These works tend not to support state-of-the-art DNN models (with the exception of YodaNN).
 
 <span id="table-03"></span>
 
@@ -744,9 +744,9 @@ Hardware implementations for binary/ternary nets have been explored in recent pu
 
 **Table 3.** Methods to reduce numerical precision for AlexNet. Accuracy measured for Top-5 error on ImageNet. *Not applied to first and/or last layers
 
-<span id="section-vii-a2"></span>
+<span id="section-7-1-2"></span>
 
-#### VII-A2 Non-linear quantization
+#### 7.1.2 Non-linear quantization
 
 The previous works described involve linear quantization where the levels are uniformly spaced out. It has been shown that the distributions of the weights and activations are not uniform [Han15, Miy16], and thus a non-linear quantization can potentially improve accuracy. Specifically, there have been two popular approaches taken in recent works: (1) log domain quantization; (2) learned quantization or weight sharing.
 
@@ -762,17 +762,17 @@ For instance, in Deep Compression [Han15], the number of unique weights per laye
 
 **Figure 40.** Weight sharing hardware.
 
-<span id="section-vii-b"></span>
+<span id="section-7-2"></span>
 
-### VII-B Reduce Number of Operations and Model Size
+### 7.2 Reduce Number of Operations and Model Size
 
 In addition to reducing the size of each operation or operand (weight/activation), there is also a significant amount of research on methods to reduce the number of operations and model size. These techniques can be loosely classified as exploiting activation statistics, network pruning, network architecture design and knowledge distillation.
 
-<span id="section-vii-b1"></span>
+<span id="section-7-2-1"></span>
 
-#### VII-B1 Exploiting Activation Statistics
+#### 7.2.1 Exploiting Activation Statistics
 
-As discussed in [Section III-A1](#section-iii-a1), ReLU is a popular form of non-linearity used in DNNs that sets all negative values to zero as shown in [Figure 41(a)](#figure-41). As a result, the output activations of the feature maps after the ReLU are sparse; for instance, the feature maps in AlexNet have sparsity between 19% to 63% as shown in [Figure 41(b)](#figure-41). This sparsity gives ReLU an implementation advantage over other non-linearities such as sigmoid, etc.
+As discussed in [Section 3.1.1](#section-3-1-1), ReLU is a popular form of non-linearity used in DNNs that sets all negative values to zero as shown in [Figure 41(a)](#figure-41). As a result, the output activations of the feature maps after the ReLU are sparse; for instance, the feature maps in AlexNet have sparsity between 19% to 63% as shown in [Figure 41(b)](#figure-41). This sparsity gives ReLU an implementation advantage over other non-linearities such as sigmoid, etc.
 
 <span id="figure-41"></span>
 
@@ -784,11 +784,11 @@ The sparsity can be exploited for energy and area savings using compression, par
 
 The activations can be made to be even more sparse by pruning the low-valued activations. For instance, if all activations with small values are pruned, this can be translated into an additional 11% speed up [Alb16] or $2\times$ power reduction [Rea16] with little impact on accuracy. Aggressively pruning more activations can provide additional throughput improvement at a cost of reduced accuracy.
 
-<span id="section-vii-b2"></span>
+<span id="section-7-2-2"></span>
 
-#### VII-B2 Network Pruning
+#### 7.2.2 Network Pruning
 
-To make network training easier, the networks are usually over-parameterized. Therefore, a large amount of the weights in a network are redundant and can be removed (i.e., set to zero). This process is called network pruning. Aggressive network pruning often requires some fine-tuning of the weights to maintain the original accuracy. This was first proposed in 1989 through a technique called Optimal Brain Damage [Lec89]. The idea was to compute the impact of each weight on the training loss (discussed in [Section II-C](#section-ii-c)), referred to as the weight saliency. The low-saliency weights were removed and the remaining weights were fine-tuned; this process was repeated until the desired weight reduction and accuracy were reached.
+To make network training easier, the networks are usually over-parameterized. Therefore, a large amount of the weights in a network are redundant and can be removed (i.e., set to zero). This process is called network pruning. Aggressive network pruning often requires some fine-tuning of the weights to maintain the original accuracy. This was first proposed in 1989 through a technique called Optimal Brain Damage [Lec89]. The idea was to compute the impact of each weight on the training loss (discussed in [Section 2.3](#section-2-3)), referred to as the weight saliency. The low-saliency weights were removed and the remaining weights were fine-tuned; this process was repeated until the desired weight reduction and accuracy were reached.
 
 In 2015, a similar idea was applied to modern DNNs in [Han15c]. Rather than using the saliency as a metric, which is too difficult to compute for the large-scaled DNNs, the pruning was simply based on the magnitude of the weights. Small weights were pruned and the model was fine-tuned to restore the accuracy. Without fine-tuning the weights, about 50% of the weights could be pruned. With fine-tuning, over 80% of the weights were pruned. Overall this approach can reduce the number of weights in AlexNet by $9\times$ and the number of MACs by $3\times$. Most of the weight reduction comes from the fully-connected layers ($9.9\times$ for fully-connected layers versus $2.7\times$ for convolutional layers).
 
@@ -806,7 +806,7 @@ However, the number of weights alone is not a good metric for energy. For instan
 
 **Figure 43.** Energy values estimated with methodology in [Yan17a].
 
-Recent works have examine how to efficiently support processing of sparse weights in hardware. One area of interest is how to best store the sparse weights after pruning. Similar to compressing the sparse activations discussed in [Section VII-B1](#section-vii-b1), the sparse weights can be compressed to reduce memory access bandwidth by 20 to 30% [Han15].
+Recent works have examine how to efficiently support processing of sparse weights in hardware. One area of interest is how to best store the sparse weights after pruning. Similar to compressing the sparse activations discussed in [Section 7.2.1](#section-7-2-1), the sparse weights can be compressed to reduce memory access bandwidth by 20 to 30% [Han15].
 
 When DNN processing is performed as a matrix-vector multiplication, as shown in [Figure 18(a)](#figure-18), one challenge is to determine how to store the sparse weight matrix in a compressed format. The compression can be applied either in row or column order. A compressed sparse row (CSR) format, as shown in [Figure 44(a)](#figure-44), is often used to perform Sparse Matrix-Vector multiplication. However, the input vector needs to be read in multiple times even though only a subset of it is used since each row of the matrix is sparse. Alternatively, a compressed sparse column (CSC) format, as shown in [Figure 44(b)](#figure-44), can be used, where the output is updated several times, and only one element of the input vector is read at a time [Dor14]. The CSC format will provide an overall lower memory bandwidth than CSR if the output is smaller than the input, or in the case of DNN, if the number of filters is *not* significantly larger than the number of weights in the filter ($C\times R\times S$ from [Figure 9(b)](#figure-09)). Since this is often true, CSC can be an effective format for sparse DNN processing.
 
@@ -820,23 +820,23 @@ Custom hardware has been explored to efficiently support pruned DNN models. Many
 
 Recent works have also explored the use of structured pruning to avoid the need for custom hardware [Wen16, Anw17]. Rather than pruning individual weights (also referred to as fine-grained pruning), structured pruning involves pruning groups of weights (also referred to as coarse-grained pruning). The benefits of structured pruning are (1) the resulting weights can better align with the data-parallel architecture (e.g., SIMD) found in existing general purpose hardware, which results in more efficient processing [Yu17]; (2) it amortizes the overhead cost required to signal the location of the non-zero weights across a group of weights, which improves compression and thus reduces storage cost. These groups of weights can include a pair of neighboring weights, an entire row or column of a filter, an entire channel of a filter or the entire filter itself; using larger groups tends to result in higher loss in accuracy [Mao17].
 
-<span id="section-vii-b3"></span>
+<span id="section-7-2-3"></span>
 
-#### VII-B3 Compact Network Architectures
+#### 7.2.3 Compact Network Architectures
 
 The number of weights and operations can also be reduced by improving the network architecture itself. The trend is to replace a large filter with a series of smaller filters, which have fewer weights in total; when the filters are applied sequentially, they achieve the same overall effective receptive field (i.e., the region the filter uses from input image to compute an output). This approach can be applied during the network architecture design (before training) or by decomposing the filters of a trained network (after training). The latter one avoids the hassle of training networks from scratch. However, it is less flexible than the former one. For example, existing methods can only decompose a filter in a trained network into a series of filters without non-linearity between them.
 
 **Before Training.** In recent DNN models, filters with a smaller width and height are used more frequently because concatenating several of them can emulate a larger filter as shown in [Figure 13](#figure-13). For example, one $5 \times 5$ convolution can be replaced with two $3 \times 3$ convolutions. Alternatively, one $N \times N$ convolution can be decomposed into two 1-D convolutions, one $1 \times N$ and one $N \times 1$ convolution [Sze16]; this basically imposes a restriction that the 2-D filter must be separable, which is a common constraint in image processing [Lim90]. Similarly, a 3-D convolution can be replaced by a set of 2-D convolutions (i.e., applied only on one of the input channels) followed by $1 \times 1$ 3-D convolutions as demonstrated in Xception [Cho16a] and MobileNets [How17]. The order of the 2-D convolutions and $1 \times 1$ 3-D convolutions can be switched.
 
-$1 \times 1$ convolutional layers can also be used to reduce the number of channels in the output feature map for a given layer, which reduces the number of filter channels and thus computation cost for the filters in the next layer as demonstrated in [Lin14, Sze14, He16c]; this is often referred to as a ‘bottleneck’ as discussed in [Section III-B](#section-iii-b). For this purpose, the number of $1 \times 1$ filters has to be less than the number of channels in the $1 \times 1$ filter. For example, 32 filters of $1 \times 1 \times 64$ can transform an input with 64 channels to an output of 32 channels and reduce the number of filter channels in the next layer to 32. SqueezeNet uses many $1 \times 1$ filters to aggressively reduce the number of weights [Ian17]. It proposes a *fire* module that first ‘squeezes’ the network with $1 \times 1$ convolution filters and then expands it with multiple $1 \times 1$ and $3 \times 3$ convolution filters. It achieves an overall $50\times$ reduction in number of weights compared to AlexNet, while maintaining the same accuracy. It should be noted, however, that reducing the number of weights does not necessarily reduce energy; for instance, SqueezeNet consumes more energy than AlexNet, as shown in [Figure 43(a)](#figure-43).
+$1 \times 1$ convolutional layers can also be used to reduce the number of channels in the output feature map for a given layer, which reduces the number of filter channels and thus computation cost for the filters in the next layer as demonstrated in [Lin14, Sze14, He16c]; this is often referred to as a ‘bottleneck’ as discussed in [Section 3.2](#section-3-2). For this purpose, the number of $1 \times 1$ filters has to be less than the number of channels in the $1 \times 1$ filter. For example, 32 filters of $1 \times 1 \times 64$ can transform an input with 64 channels to an output of 32 channels and reduce the number of filter channels in the next layer to 32. SqueezeNet uses many $1 \times 1$ filters to aggressively reduce the number of weights [Ian17]. It proposes a *fire* module that first ‘squeezes’ the network with $1 \times 1$ convolution filters and then expands it with multiple $1 \times 1$ and $3 \times 3$ convolution filters. It achieves an overall $50\times$ reduction in number of weights compared to AlexNet, while maintaining the same accuracy. It should be noted, however, that reducing the number of weights does not necessarily reduce energy; for instance, SqueezeNet consumes more energy than AlexNet, as shown in [Figure 43(a)](#figure-43).
 
 **After Training.** Tensor decomposition can be used to decompose filters in a trained network without impacting the accuracy. It treats weights in a layer as a 4-D tensor and breaks it into a combination of smaller tensors (i.e., several layers). Low-rank approximation can then be applied to further increase the compression rate at the cost of accuracy degradation, which can be restored by fine-tuning the weights.
 
 This approach is demonstrated using Canonical Polyadic (CP) decomposition, a high-order extension of singular value decomposition that can be solved by various methods, such as a greedy algorithm [Den14a] or a non-linear least-square method [Leb15]. Combining CP-decomposition with low-rank approximation achieves a $4.5\times$ speed-up on CPUs [Leb15]. However, CP-decomposition cannot be computed in a numerically stable way when the dimension of the tensor, which represents the weights, is larger than two [Leb15]. To alleviate this problem, Tucker decomposition is adopted instead in [Kim16b].
 
-<span id="section-vii-b4"></span>
+<span id="section-7-2-4"></span>
 
-#### VII-B4 Knowledge Distillation
+#### 7.2.4 Knowledge Distillation
 
 Using a deep network or averaging the predictions of different models (i.e., ensemble) gives a better accuracy than using a single shallower network. However, the computational complexity is also higher. To get the best of both worlds, knowledge distillation transfers the knowledge learned by the complex model (teacher) to the simpler model (student). The student network can therefore achieve an accuracy that would be unachievable if it was directly trained with the same dataset [He18a, Ba14]. For example, [Hin15] shows how using knowledge distillation can improve the speech recognition accuracy of a student net by 2%, which is similar to the accuracy of a teacher net that is composed of an ensemble of 10 networks.
 
@@ -848,13 +848,13 @@ Using a deep network or averaging the predictions of different models (i.e., ens
 
 **Figure 45.** Knowledge distillation matches the class scores of a small DNN to an ensemble of large DNNs.
 
-<span id="section-viii"></span>
+<span id="section-8"></span>
 
-## VIII Benchmarking Metrics for DNN Evaluation and Comparison
+## 8 Benchmarking Metrics for DNN Evaluation and Comparison
 
 As we have seen in this article, there has been a significant amount of research on efficient processing of DNNs. We should consider several key metrics to compare the various strengths and weaknesses of different designs and proposed techniques. These metrics should cover important attributes such as accuracy/robustness, power/energy consumption, throughput/latency and cost. Reporting all these metrics is important in order to provide a complete picture of the trade-offs made by a proposed design or technique. We have prepared a website to collect these metrics from various publications [Ben00a].
 
-In terms of *accuracy* and *robustness*, it is important that the accuracy be reported on widely-accepted datasets as discussed in [Section IV](#section-iv). The difficulty of the dataset and/or task should be considered when measuring the accuracy. For instance, the MNIST dataset for digit recognition is significantly easier than the ImageNet dataset. As a result, a DNN that performs well on MNIST may not necessarily perform well on ImageNet. Thus it is important that the same dataset and task is used when comparing the accuracy of different DNN models; currently ImageNet is preferred since it presents a challenge for DNNs, as opposed to MNIST, which can also be addressed with simple non-DNN techniques. To demonstrate primarily hardware innovations, it would be desirable to report results for widely-used DNN models (e.g., AlexNet, GoogLeNet) whose accuracy and robustness have been well studied and tested.
+In terms of *accuracy* and *robustness*, it is important that the accuracy be reported on widely-accepted datasets as discussed in [Section 4](#section-4). The difficulty of the dataset and/or task should be considered when measuring the accuracy. For instance, the MNIST dataset for digit recognition is significantly easier than the ImageNet dataset. As a result, a DNN that performs well on MNIST may not necessarily perform well on ImageNet. Thus it is important that the same dataset and task is used when comparing the accuracy of different DNN models; currently ImageNet is preferred since it presents a challenge for DNNs, as opposed to MNIST, which can also be addressed with simple non-DNN techniques. To demonstrate primarily hardware innovations, it would be desirable to report results for widely-used DNN models (e.g., AlexNet, GoogLeNet) whose accuracy and robustness have been well studied and tested.
 
 *Energy* and *power* are important when processing DNNs at the edge in embedded devices with limited battery capacity (e.g., smart phones, smart sensors, UAVs, and wearables), or in the cloud in data centers with stringent power ceilings due to cooling costs, respectively. Edge processing is preferred over the cloud for certain applications due to latency, privacy or communication bandwidth limitations. When evaluating the power and energy consumption, it is important to account for all aspects of the system including the chip and external memory accesses.
 
@@ -864,9 +864,9 @@ In terms of *accuracy* and *robustness*, it is important that the accuracy be re
 
 *Hardware cost* is in large part dictated by the amount of on-chip storage and the number of cores. Typical embedded processors have limited on-chip storage on the order of a few hundred kilobytes. Since there is a trade-off between the amount of on-chip memory and the external memory bandwidth, both metrics should be reported. Similarly, there is a correlation between the number of cores and the throughput. In addition, while many cores can be built on a chip, the number of cores that can actually be used at a given time should be reported. It is often unrealistic to assume peak utilization and performance due to limitations of mapping and memory bandwidth. Accordingly, the power and throughput should be reported for running actual DNNs as opposed to only reporting theoretical limits.
 
-<span id="section-viii-a"></span>
+<span id="section-8-1"></span>
 
-### VIII-A Metrics for DNN Models
+### 8.1 Metrics for DNN Models
 
 To evaluate the properties of a given DNN model, we should consider the following metrics:
 
@@ -875,7 +875,7 @@ To evaluate the properties of a given DNN model, we should consider the followin
 - The *number of weights* impact the storage requirement of the model and should be reported. If possible, the number of non-zero weights should be reported since this reflects the theoretical minimum storage requirements.
 - The *number of MACs* that needs to be performed should be reported as it is somewhat indicative of the number of operations and potential throughput of the given DNN. If possible, the number of non-zero MACs should also be reported since this reflects the theoretical minimum compute requirements.
 
-[Table IV](#table-04) shows how these metrics are reported for various well known DNNs. The accuracy is reported for the case where only a single crop for a single model is used for classification, such that the number of weights and MACs in the table are consistent. [+13] Note that accounting for the number of non-zero (NZ) operations significantly reduces the number of MACs and weights. Since the number of NZ MACs depends on the input data, we propose using the publicly available 50,000 validation images from ImageNet for the computation. Finally, there are various methods to reduce the weights in a DNN (e.g., network pruning in [Section VII-B2](#section-vii-b2)). [Table IV](#table-04) shows another example of these DNN model metrics, by comparing sparse DNNs pruned using [Yan17a] to dense DNNs.
+[Table IV](#table-04) shows how these metrics are reported for various well known DNNs. The accuracy is reported for the case where only a single crop for a single model is used for classification, such that the number of weights and MACs in the table are consistent. [+13] Note that accounting for the number of non-zero (NZ) operations significantly reduces the number of MACs and weights. Since the number of NZ MACs depends on the input data, we propose using the publicly available 50,000 validation images from ImageNet for the computation. Finally, there are various methods to reduce the weights in a DNN (e.g., network pruning in [Section 7.2.2](#section-7-2-2)). [Table IV](#table-04) shows another example of these DNN model metrics, by comparing sparse DNNs pruned using [Yan17a] to dense DNNs.
 
 <span id="table-04"></span>
 
@@ -883,9 +883,9 @@ To evaluate the properties of a given DNN model, we should consider the followin
 
 **Table 4.** Metrics for Popular DNN Models. Sparsity is account for by reporting non-zero (NZ) weights and MACs.
 
-<span id="section-viii-b"></span>
+<span id="section-8-2"></span>
 
-### VIII-B Metrics for DNN Hardware
+### 8.2 Metrics for DNN Hardware
 
 To measure the efficiency of the DNN hardware, we should consider the following additional metrics:
 
@@ -905,9 +905,9 @@ Each processor should report various specifications for each metric as shown in 
 
 In summary, the evaluation process for whether a DNN system is a viable solution for a given application might go as follows: (1) the accuracy determines if it can perform the given task; (2) the latency and throughput determine if it can run fast enough and in real-time; (3) the energy and power consumption will primarily dictate the form factor of the device where the processing can operate; (4) the cost, which is primarily dictated by the chip area, determines how much one would pay for this solution.
 
-<span id="section-ix"></span>
+<span id="section-9"></span>
 
-## IX Summary
+## 9 Summary
 
 The use of deep neural networks (DNNs) has seen explosive growth in the past few years. They are currently widely used for many artificial intelligence (AI) applications including computer vision, speech recognition and robotics and are often delivering better than human accuracy. However, while DNNs can deliver this outstanding accuracy, it comes at the cost of high computational complexity. Consequently, techniques that enable efficient processing of deep neural network to improve *energy-efficiency* and *throughput* without sacrificing *accuracy* with cost-effective hardware are critical to expanding the deployment of DNNs in both existing and new domains.
 
@@ -927,7 +927,7 @@ In conclusion, although much work has been done, deep neural networks remain an 
 
 Funding provided by DARPA YFA, MIT CICS, and gifts from Nvidia and Intel. The authors thank the anonymous reviewers as well as James Noraky, Mehul Tikekar and Zhengdong Zhang for providing valuable feedback on this paper.
 
-[+1]: Note: Recent work using TrueNorth in a stylized fashion allows it to be used to compute reduced precision neural networks [Ess16]. These types of neural networks are discussed in [Section VII-A](#section-vii-a).
+[+1]: Note: Recent work using TrueNorth in a stylized fashion allows it to be used to compute reduced precision neural networks [Ess16]. These types of neural networks are discussed in [Section 7.1](#section-7-1).
 
 [+2]: To backpropagate through each filter: (1) compute the gradient of the loss relative to the weights from the filter inputs (i.e., the forward activations) and the gradients of the loss relative to the filter outputs; (2) compute the gradient of the loss relative to the filter inputs from the filter weights and the gradients of the loss relative to the filter outputs.
 
@@ -937,7 +937,7 @@ Funding provided by DARPA YFA, MIT CICS, and gifts from Nvidia and Intel. The au
 
 [+5]: One of the major drawbacks of DNNs is their need for large datasets to prevent over-fitting during training.
 
-[+6]: Note: the structured sparsity in CONV layers is orthogonal to the sparsity that occurs from network pruning as described in [Section VII-B2](#section-vii-b2).
+[+6]: Note: the structured sparsity in CONV layers is orthogonal to the sparsity that occurs from network pruning as described in [Section 7.2.2](#section-7-2-2).
 
 [+7]: v2 is very similar to v3.
 
