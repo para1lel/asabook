@@ -137,6 +137,13 @@ article.find('section[id]').each((_, element) => {
   const number = heading.match(/^(\d+(?:\.\d+)*)\./)?.[1]
   if (number) targets.set(id, `section-${number.replaceAll('.', '-')}`)
 })
+article.find('section.ltx_appendix[id]').each((_, element) => {
+  const section = $(element)
+  const id = section.attr('id')
+  const heading = normalizeSpace(section.children('h1,h2,h3,h4,h5,h6').first().text())
+  const letter = heading.match(/^Appendix\s+([A-Z])\b/)?.[1]
+  if (letter) targets.set(id, `appendix-${letter.toLowerCase()}`)
+})
 article.find('figure[id]').each((_, element) => {
   const id = $(element).attr('id')
   const figure = id.match(/\.F(\d+)$/)?.[1]
@@ -230,12 +237,15 @@ function renderEquation(element) {
 function renderFigure(element) {
   const figure = $(element)
   const id = figure.attr('id')
+  const match = id?.match(/\.(F|T)(\d+)$/)
+  if (!match) return ''
   const isTable = /\.T\d+$/.test(id) || figure.hasClass('ltx_table')
-  const number = Number(id.match(/\.(?:F|T)(\d+)$/)?.[1])
+  const number = Number(match[2])
   const kind = isTable ? 'table' : 'figure'
   const label = isTable ? 'Table' : 'Figure'
   const anchor = `${kind}-${String(number).padStart(2, '0')}`
   const caption = figure.find('figcaption').first().clone()
+  if (!caption.length) return ''
   caption.find('.ltx_tag').first().remove()
   const captionText = renderInline(caption[0])
   return `<span id="${anchor}"></span>\n\n![${label} ${number}. ${normalizeSpace(captionText)}](../../papers/${slug}/${anchor}.png)\n\n**${label} ${number}.** ${captionText}`
@@ -268,7 +278,12 @@ function renderSection(element) {
   const title = normalizeSpace(heading.text()).replace(/^(\d+(?:\.\d+)*)\.\s+/, '$1 ')
   const level = Math.min(6, Number(heading.prop('tagName')?.slice(1) ?? 2))
   const number = title.match(/^(\d+(?:\.\d+)*)\s/)?.[1]
-  const anchor = number ? `<span id="section-${number.replaceAll('.', '-')}"></span>\n\n` : ''
+  const appendix = title.match(/^Appendix\s+([A-Z])\b/)?.[1]
+  const anchor = number
+    ? `<span id="section-${number.replaceAll('.', '-')}"></span>\n\n`
+    : appendix
+      ? `<span id="appendix-${appendix.toLowerCase()}"></span>\n\n`
+      : ''
   const body = section.children().toArray().filter((child) => child !== heading[0]).map(renderBlock).filter(Boolean).join('\n\n')
   return `${anchor}${'#'.repeat(level)} ${title}\n\n${body}`.trim()
 }
@@ -292,8 +307,11 @@ function renderBlock(node) {
 
 const abstract = article.find('.ltx_abstract').first()
 const abstractText = abstract.find('p.ltx_p').toArray().map((paragraph) => renderInline(paragraph)).filter(Boolean).join('\n\n')
-const sections = article.children('section.ltx_section').toArray().map(renderSection).filter(Boolean)
-const body = [`## Abstract\n\n${abstractText}`, ...sections].join('\n\n')
+const content = article.children('figure.ltx_figure, section.ltx_section, section.ltx_appendix')
+  .toArray()
+  .map(renderBlock)
+  .filter(Boolean)
+const body = [`## Abstract\n\n${abstractText}`, ...content].join('\n\n')
   .replace(/\n{3,}/g, '\n\n')
   .replace(/\b(Figure|Table|Section|Sections) \[(\d+(?:\.\d+)*)\]\(#((?:figure|table|section)-[^)]+)\)/g, '[$1 $2](#$3)')
   .replace(/\b(?:Eq\.|Equation)\.?(?: \()?\[(\d+)\]\(#(equation-[^)]+)\)\)?/g, '[Equation $1](#$2)')
@@ -312,4 +330,4 @@ if (updateConfig && additions.length > 0) {
   }).join('\n')
   writeFileSync(configPath, config.replace(marker, `\n${entries}${marker}`))
 }
-console.log(`Wrote ${output}: ${sections.length} sections, ${citedIds.size} references, ${additions.length} new abbreviations`)
+console.log(`Wrote ${output}: ${content.length} top-level objects, ${citedIds.size} references, ${additions.length} new abbreviations`)
