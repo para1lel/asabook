@@ -1,0 +1,138 @@
+[
+  {
+    "name": "figure-01",
+    "page": 2,
+    "x": 307,
+    "y": 69,
+    "width": 220,
+    "height": 161
+  },
+  {
+    "name": "figure-02",
+    "page": 3,
+    "x": 68,
+    "y": 70,
+    "width": 460,
+    "height": 379
+  },
+  {
+    "name": "table-01",
+    "page": 4,
+    "x": 112,
+    "y": 158,
+    "width": 370,
+    "height": 82
+  },
+  {
+    "name": "table-02",
+    "page": 5,
+    "x": 112,
+    "y": 133,
+    "width": 370,
+    "height": 239
+  },
+  {
+    "name": "figure-03",
+    "page": 6,
+    "x": 68,
+    "y": 72,
+    "width": 460,
+    "height": 119
+  },
+  {
+    "name": "figure-04",
+    "page": 7,
+    "x": 68,
+    "y": 70,
+    "width": 460,
+    "height": 128
+  },
+  {
+    "name": "table-03",
+    "page": 7,
+    "x": 306,
+    "y": 310,
+    "width": 222,
+    "height": 104
+  },
+  {
+    "name": "figure-05",
+    "page": 8,
+    "x": 68,
+    "y": 68,
+    "width": 214,
+    "height": 138
+  },
+  {
+    "name": "table-04",
+    "page": 8,
+    "x": 306,
+    "y": 112,
+    "width": 222,
+    "height": 88
+  },
+  {
+    "name": "table-05",
+    "page": 15,
+    "x": 68,
+    "y": 118,
+    "width": 460,
+    "height": 438
+  },
+  {
+    "name": "table-06",
+    "page": 16,
+    "x": 68,
+    "y": 238,
+    "width": 460,
+    "height": 404
+  },
+  {
+    "name": "table-07",
+    "page": 17,
+    "x": 68,
+    "y": 100,
+    "width": 460,
+    "height": 675
+  },
+  {
+    "name": "figure-06",
+    "page": 18,
+    "x": 68,
+    "y": 66,
+    "width": 460,
+    "height": 381
+  },
+  {
+    "name": "figure-07",
+    "page": 18,
+    "x": 68,
+    "y": 483,
+    "width": 460,
+    "height": 246
+  },
+  {
+    "name": "figure-08",
+    "page": 19,
+    "x": 68,
+    "y": 107,
+    "width": 460,
+    "height": 240
+  },
+  {
+    "name": "figure-09",
+    "page": 19,
+    "x": 68,
+    "y": 431,
+    "width": 460,
+    "height": 273
+  },
+  {
+    "name": "figure-10",
+    "page": 20,
+    "x": 68,
+    "y": 269,
+    "width": 460,
+    "height": 268
+  }
+]
