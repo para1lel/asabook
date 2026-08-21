@@ -4,6 +4,29 @@ import { plumeTheme } from 'vuepress-theme-plume'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Ahn24': 'Janice Ahn, Rishu Verma, Renze Lou, Di Liu, Rui Zhang, and Wenpeng Yin. "Large Language Models for Mathematical Reasoning: Progresses and Challenges." arXiv:2402.00157. 2024. [Link](https://arxiv.org/abs/2402.00157)',
+  'Gla22': 'Michael Glass, Gaetano Rossiello, Md Faisal Mahbub Chowdhury, Ankita Rajaram Naik, Pengshan Cai, and Alfio Gliozzo. "Re2G: Retrieve, Rerank, Generate." arXiv:2207.06300. 2022. [Link](https://arxiv.org/abs/2207.06300)',
+  'Guo24c': 'Daya Guo et al. "DeepSeek-Coder: When the Large Language Model Meets Programming - The Rise of Code Intelligence." arXiv:2401.14196. 2024. [Link](https://arxiv.org/abs/2401.14196)',
+  'Hou25a': 'Zhenyu Hou, Xin Lv, Rui Lu, Jiajie Zhang, Yujiang Li, Zijun Yao, Juanzi Li, Jie Tang, and Yuxiao Dong. "Advancing Language Model Reasoning through Reinforcement Learning and Inference Scaling." arXiv:2501.11651. 2025. [Link](https://arxiv.org/abs/2501.11651)',
+  'Hsu24': 'Sheryl Hsu, Omar Khattab, Chelsea Finn, and Archit Sharma. "Grounding by Trying: LLMs with Reinforcement Learning-Enhanced Retrieval." arXiv:2410.23214. 2024. [Link](https://arxiv.org/abs/2410.23214)',
+  'Hua22b': 'Jie Huang and Kevin Chen-Chuan Chang. "Towards Reasoning in Large Language Models: A Survey." arXiv:2212.10403. 2022. [Link](https://arxiv.org/abs/2212.10403)',
+  'Kae96': 'Leslie Pack Kaelbling, Michael L. Littman, and Andrew W. Moore. "Reinforcement Learning: A Survey." Journal of Artificial Intelligence Research, 4:237-285. 1996. [Link](https://doi.org/10.1613/jair.301)',
+  'Kar20': 'Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick S. H. Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and Wen-tau Yih. "Dense Passage Retrieval for Open-Domain Question Answering." EMNLP 2020, pp. 6769-6781. [Link](https://aclanthology.org/2020.emnlp-main.550/)',
+  'Lam24a': 'Nathan Lambert et al. "RewardBench: Evaluating Reward Models for Language Modeling." arXiv:2403.13787. 2024. [Link](https://arxiv.org/abs/2403.13787)',
+  'Li23v': 'Yinheng Li, Shaofei Wang, Han Ding, and Hang Chen. "Large Language Models in Finance: A Survey." ICAIF 2023, pp. 374-382. [Link](https://doi.org/10.1145/3604237.3626869)',
+  'Li24r': 'Xiaoxi Li, Jiajie Jin, Yujia Zhou, Yongkang Wu, Zhonghua Li, Qi Ye, and Zhicheng Dou. "RetroLLM: Empowering Large Language Models to Retrieve Fine-Grained Evidence within Generation." arXiv:2412.11919. 2024. [Link](https://arxiv.org/abs/2412.11919)',
+  'Lin23c': 'Xi Victoria Lin et al. "RA-DIT: Retrieval-Augmented Dual Instruction Tuning." ICLR 2024. 2023. [Link](https://arxiv.org/abs/2310.01352)',
+  'Pen23d': 'Cheng Peng et al. "A Study of Generative Large Language Model for Medical Research and Healthcare." NPJ Digital Medicine, 6:210. 2023. [Link](https://doi.org/10.1038/s41746-023-00958-w)',
+  'Qu25': 'Changle Qu, Sunhao Dai, Xiaochi Wei, Hengyi Cai, Shuaiqiang Wang, Dawei Yin, Jun Xu, and Ji-Rong Wen. "Tool Learning with Large Language Models: A Survey." Frontiers of Computer Science, 19(8):198343. 2025.',
+  'Sut99': 'Richard S. Sutton, Andrew G. Barto, et al. "Reinforcement Learning." Journal of Cognitive Neuroscience, 11(1):126-134. 1999.',
+  'Tea24a': 'Gemini Team. "Gemini 1.5: Unlocking Multimodal Understanding across Millions of Tokens of Context." arXiv:2403.05530. 2024. [Link](https://arxiv.org/abs/2403.05530)',
+  'Wan22i': 'Liang Wang, Nan Yang, Xiaolong Huang, Binxing Jiao, Linjun Yang, Daxin Jiang, Rangan Majumder, and Furu Wei. "Text Embeddings by Weakly-Supervised Contrastive Pre-Training." arXiv:2212.03533. 2022. [Link](https://arxiv.org/abs/2212.03533)',
+  'Wen22a': 'Yixuan Weng, Minjun Zhu, Fei Xia, Bin Li, Shizhu He, Shengping Liu, Bin Sun, Kang Liu, and Jun Zhao. "Large Language Models Are Better Reasoners with Self-Verification." arXiv:2212.09561. 2022. [Link](https://arxiv.org/abs/2212.09561)',
+  'Xie25c': 'Tian Xie, Zitian Gao, Qingnan Ren, Haoming Luo, Yuqian Hong, Bryan Dai, Joey Zhou, Kai Qiu, Zhirong Wu, and Chong Luo. "Logic-RL: Unleashing LLM Reasoning with Rule-Based Reinforcement Learning." arXiv:2502.14768. 2025. [Link](https://arxiv.org/abs/2502.14768)',
+  'Yu24a': 'Yue Yu, Wei Ping, Zihan Liu, Boxin Wang, Jiaxuan You, Chao Zhang, Mohammad Shoeybi, and Bryan Catanzaro. "RankRAG: Unifying Context Ranking with Retrieval-Augmented Generation in LLMs." NeurIPS 2024. [Link](https://arxiv.org/abs/2407.02485)',
+  'Yue24d': 'Zhenrui Yue, Honglei Zhuang, Aijun Bai, Kai Hui, Rolf Jagerman, Hansi Zeng, Zhen Qin, Dong Wang, Xuanhui Wang, and Michael Bendersky. "Inference Scaling for Long-Context Retrieval Augmented Generation." arXiv:2410.04343. 2024. [Link](https://arxiv.org/abs/2410.04343)',
+  'Zha23j': 'Yue Zhang et al. "Siren\'s Song in the AI Ocean: A Survey on Hallucination in Large Language Models." arXiv:2309.01219. 2023. [Link](https://arxiv.org/abs/2309.01219)',
+  'Zha24u': 'Wayne Xin Zhao, Jing Liu, Ruiyang Ren, and Ji-Rong Wen. "Dense Text Retrieval Based on Pretrained Language Models: A Survey." ACM Transactions on Information Systems, 42(4):1-60. 2024.',
   'Bau11': 'Michael Bauer, Henry Cook, and Brucek Khailany. "CudaDMA: Optimizing GPU Memory Bandwidth via Warp Specialization." SC 2011. [Link](https://doi.org/10.1145/2063384.2063400)',
   'Che10': 'Sylvain Chevillard, Mioara Joldes, and Christoph Lauter. "Sollya: An Environment for the Development of Numerical Codes." Mathematical Software - ICMS 2010, pp. 28-31. 2010. [Link](https://doi.org/10.1007/978-3-642-15582-6_5)',
   'Che22a': 'Richard J. Chen, Chengkuan Chen, Yicong Li, Tiffany Y. Chen, Andrew D. Trister, Rahul G. Krishnan, and Faisal Mahmood. "Scaling Vision Transformers to Gigapixel Images via Hierarchical Self-Supervised Learning." CVPR 2022, pp. 16144-16155. [Link](https://doi.org/10.1109/CVPR52688.2022.01570)',
@@ -3430,7 +3453,7 @@ export default defineUserConfig({
               {
                 text: '强化学习',
                 collapsed: true,
-                items: ['ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分布式训练',
@@ -3552,7 +3575,7 @@ export default defineUserConfig({
               {
                 text: 'RL',
                 collapsed: true,
-                items: ['ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: 'Distributed Training',
@@ -3784,7 +3807,7 @@ export default defineUserConfig({
               {
                 text: '強化学習',
                 collapsed: true,
-                items: ['ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
+                items: ['search-r1', 'ragen-multi-turn-agent-rl', 'agentic-reinforcement-learning', 'multi-turn-agentic-rl', 'rl-based-agentic-search'],
               },
               {
                 text: '分散学習',
