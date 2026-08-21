@@ -191,7 +191,7 @@ pre * {
   min-width: 2rem;
 }
 
-.tilesight-paper .katex-display .katex-mathml {
+.collection-doc-papers .katex-display .katex-mathml {
   contain: strict;
 }
 

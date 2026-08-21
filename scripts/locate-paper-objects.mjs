@@ -24,7 +24,7 @@ for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
   const page = await pdf.getPage(pageNumber)
   const viewport = page.getViewport({ scale: 1 })
   const content = await page.getTextContent()
-  const matches = content.items.filter((item) => /^(?:Figure|Table)\s+[1-7]\b/.test(item.str.trim()))
+  const matches = content.items.filter((item) => /^(?:Fig\.|Figure|Table)\s+(?:\d+|[IVXLCDM]+)\b/i.test(item.str.trim()))
   for (const item of matches) {
     console.log(JSON.stringify({
       height: viewport.height,

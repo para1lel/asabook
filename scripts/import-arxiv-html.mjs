@@ -51,8 +51,8 @@ $('#bib li.ltx_bibitem').each((_, element) => {
   const id = item.attr('id')
   const tag = normalizeSpace(item.children('.ltx_tag').first().text())
   const blocks = item.children('.ltx_bibblock').map((__, block) => normalizeSpace($(block).text())).get().filter(Boolean)
-  const title = blocks[1] ?? blocks[0] ?? ''
   const text = normalizeSpace(blocks.join(' '))
+  const title = text.match(/[“"]([^”"]+)[”"]/)?.[1] ?? blocks[1] ?? blocks[0] ?? ''
   const urls = item.find('a[href]').map((__, link) => $(link).attr('href')).get().filter((url) => /^https?:/.test(url))
   if (id && text) bib.set(id, { blocks, id, tag, text, title, urls })
 })
@@ -61,9 +61,9 @@ function findExisting(reference) {
   const urls = reference.urls.map(normalizeUrl)
   const arxivIds = urls.map((url) => url.match(/arxiv\.org\/(?:abs|pdf)\/([^/?#]+)/)?.[1]).filter(Boolean)
   const title = normalizeIdentity(reference.title)
-  const firstAuthor = normalizeIdentity(
-    reference.tag.replace(/\bet\s+al\.?/i, '').replace(/\s*\(\d{4}[a-z]?\).*$/, '').split(/\s+and\s+/i)[0],
-  )
+  const firstAuthor = normalizeIdentity(reference.text.split(',')[0].split(/\s+and\s+/i)[0])
+  const exactText = existing.find((entry) => entry.normalized === normalizeIdentity(reference.text))
+  if (exactText) return exactText
   const exactUrl = existing.find((entry) => urls.some((url) => entry.urls.includes(url)))
   if (exactUrl) return exactUrl
 
@@ -74,15 +74,21 @@ function findExisting(reference) {
 
   if (title.length < 16) return undefined
   return existing
-    .filter((entry) => entry.normalized.includes(title) && entry.normalized.includes(firstAuthor))
+    .filter((entry) => entry.normalized.includes(title))
+    .sort((left, right) => (
+      Number(right.normalized.includes(firstAuthor)) - Number(left.normalized.includes(firstAuthor))
+    ))
     .sort((left, right) => right.urls.length - left.urls.length)[0]
 }
 
 function allocateKey(reference) {
-  const tag = reference.tag.replace(/\bet\s+al\.?/i, '').replace(/\s*\(\d{4}[a-z]?\).*$/, '').trim()
-  const surname = tag.split(/\s+and\s+/i)[0].replace(/[^A-Za-z]/g, '') || 'Ref'
+  const authorField = reference.text.split(',')[0].split(/\s+and\s+/i)[0].trim()
+  const authorMatch = authorField.match(/^(?:[A-Z]\.(?:-[A-Z]\.)?\s+)+([A-Za-z][A-Za-z'-]*)$/)
+  const projectMatch = reference.title.match(/[A-Za-z][A-Za-z0-9'-]*/)
+  const surname = (authorMatch?.[1] ?? projectMatch?.[0] ?? 'Ref').replace(/[^A-Za-z]/g, '')
   const prefix = surname.slice(0, 3)
-  const year = (reference.tag.match(/\b(\d{4})[a-z]?\b/) ?? reference.text.match(/\b(\d{4})\b/))?.[1] ?? '00'
+  const years = [...reference.text.matchAll(/\b((?:19|20)\d{2})\b/g)]
+  const year = reference.tag.match(/\b((?:19|20)\d{2})[a-z]?\b/)?.[1] ?? years.at(-1)?.[1] ?? '00'
   const base = prefix[0].toUpperCase() + prefix.slice(1).toLowerCase() + year.slice(-2)
   if (!occupiedKeys.has(base)) {
     occupiedKeys.add(base)
@@ -130,12 +136,20 @@ for (const id of citedIds) {
 }
 
 const targets = new Map()
+function sectionNumber(heading) {
+  return heading.match(/^((?:\d+|[IVXLCDM]+)(?:[-.][A-Z0-9]+)*)\.?\s+/)?.[1]
+}
+
+function sectionAnchor(number) {
+  return `section-${number.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+}
+
 article.find('section[id]').each((_, element) => {
   const section = $(element)
   const id = section.attr('id')
   const heading = normalizeSpace(section.children('h1,h2,h3,h4,h5,h6').first().text())
-  const number = heading.match(/^(\d+(?:\.\d+)*)\./)?.[1]
-  if (number) targets.set(id, `section-${number.replaceAll('.', '-')}`)
+  const number = sectionNumber(heading)
+  if (number) targets.set(id, sectionAnchor(number))
 })
 article.find('section.ltx_appendix[id]').each((_, element) => {
   const section = $(element)
@@ -146,8 +160,8 @@ article.find('section.ltx_appendix[id]').each((_, element) => {
 })
 article.find('figure[id]').each((_, element) => {
   const id = $(element).attr('id')
-  const figure = id.match(/\.F(\d+)$/)?.[1]
-  const table = id.match(/\.T(\d+)$/)?.[1]
+  const figure = id.match(/\.F(\d+)(?:\.|$)/)?.[1]
+  const table = id.match(/\.T(\d+)(?:\.|$)/)?.[1]
   if (figure) targets.set(id, `figure-${figure.padStart(2, '0')}`)
   if (table) targets.set(id, `table-${table.padStart(2, '0')}`)
 })
@@ -164,7 +178,27 @@ function cleanMath(value) {
     .replace(/\{clip\}/g, '\\mathrm{clip}')
     .replace(/\|\|/g, '\\mid\\mid')
     .replace(/\^\{T\}/g, '^\\top')
+    .replace(/(?<!\\)log_/g, '\\log_')
+    .replace(/(?<![A-Za-z])OS_/g, '\\mathrm{OS}_')
+    .replace(/_\{(BC|BL)\}/g, '_{\\mathrm{$1}}')
+    .replace(/(?<![A-Za-z])CRSM(?![A-Za-z])/g, 'C R S M')
 }
+
+function normalizeInlineMathBoundaries(value) {
+  return value
+    .replace(/(\d+)\$\\times\$(\d+)\$\\times\$(?=[\p{L}])/gu, (_, first, second) => (
+      `$${first} \\times ${second} \\times{}$ `
+    ))
+    .replace(/(?<![A-Za-z0-9-])(?:[A-Za-z]|\d+(?:\.\d+)?)(?:\$\\times\$(?:[A-Za-z]|\d+(?:\.\d+)?))+/g, (match) => (
+      `$${match.split('$\\times$').join(' \\times ')}$`
+    ))
+    .replace(/(?<![A-Za-z0-9.])(\d+(?:\.\d+)?)\$\\times\$/g, (_, factor) => `$${factor}\\times$`)
+    .replace(/([A-Za-z0-9]+(?:-[A-Za-z]+|\s+[\p{L}]+))\$\\times\$(?=[A-Za-z0-9])/gu, '$1 $\\times$ ')
+    .replace(/\b1k\$\\times\$1k\b/g, '1k $\\times$ 1k')
+    .replace(/\$([A-Za-z](?:\s+[A-Za-z])*)\\times\$(\d+)-bit/g, '$$$1\\times$2$-bit')
+}
+
+const annotations = new Map()
 
 function renderCitation(node) {
   const keys = $(node).find('a[href^="#bib."]').map((_, link) => citationKeys.get($(link).attr('href').slice(1))).get()
@@ -178,6 +212,13 @@ function renderInlineNode(node) {
   const name = node.name
   if (name === 'cite') return renderCitation(node)
   if (name === 'math') return `$${cleanMath(element.attr('alttext') ?? element.text())}$`
+  if (element.hasClass('ltx_note')) {
+    const label = normalizeSpace(element.children('.ltx_note_mark').first().text())
+    const content = element.find('.ltx_note_content').first().clone()
+    content.find('.ltx_note_mark,.ltx_tag_note').remove()
+    annotations.set(label, renderInline(content[0]))
+    return ` [+${label}]`
+  }
   if (name === 'br') return '<br>'
   if (name === 'em' || element.hasClass('ltx_font_italic')) return `*${renderInlineChildren(node)}*`
   if (name === 'strong' || element.hasClass('ltx_font_bold')) return `**${renderInlineChildren(node)}**`
@@ -244,16 +285,19 @@ function renderFigure(element) {
   const kind = isTable ? 'table' : 'figure'
   const label = isTable ? 'Table' : 'Figure'
   const anchor = `${kind}-${String(number).padStart(2, '0')}`
-  const caption = figure.find('figcaption').first().clone()
+  const caption = figure.children('figcaption').last().clone()
   if (!caption.length) return ''
   caption.find('.ltx_tag').first().remove()
   const captionText = renderInline(caption[0])
-  return `<span id="${anchor}"></span>\n\n![${label} ${number}. ${normalizeSpace(captionText)}](../../papers/${slug}/${anchor}.png)\n\n**${label} ${number}.** ${captionText}`
+  const altText = normalizeSpace(captionText).replace(/[\[\]]/g, '')
+  return `<span id="${anchor}"></span>\n\n![${label} ${number}. ${altText}](../../papers/${slug}/${anchor}.png)\n\n**${label} ${number}.** ${captionText}`
 }
 
 function renderParagraphContainer(element) {
   const container = $(element)
   const heading = container.children('h5,h6').first()
+  const headingText = normalizeSpace(heading.text())
+  const headingLabel = /[.!?:;]$/.test(headingText) ? headingText : `${headingText}.`
   const blocks = []
   let headingUsed = false
   for (const child of container.children().toArray()) {
@@ -261,13 +305,13 @@ function renderParagraphContainer(element) {
     const rendered = renderBlock(child)
     if (!rendered) continue
     if (!headingUsed && heading.length && /^\S/.test(rendered) && !/^(?:[-#<]|\$\$|:::)/.test(rendered)) {
-      blocks.push(`**${normalizeSpace(heading.text())}** ${rendered}`)
+      blocks.push(`**${headingLabel}** ${rendered}`)
       headingUsed = true
     } else {
       blocks.push(rendered)
     }
   }
-  if (heading.length && !headingUsed) blocks.unshift(`**${normalizeSpace(heading.text())}**`)
+  if (heading.length && !headingUsed) blocks.unshift(`**${headingLabel}**`)
   return blocks.join('\n\n')
 }
 
@@ -277,10 +321,10 @@ function renderSection(element) {
   const heading = section.children('h1,h2,h3,h4,h5,h6').first()
   const title = normalizeSpace(heading.text()).replace(/^(\d+(?:\.\d+)*)\.\s+/, '$1 ')
   const level = Math.min(6, Number(heading.prop('tagName')?.slice(1) ?? 2))
-  const number = title.match(/^(\d+(?:\.\d+)*)\s/)?.[1]
+  const number = sectionNumber(title)
   const appendix = title.match(/^Appendix\s+([A-Z])\b/)?.[1]
   const anchor = number
-    ? `<span id="section-${number.replaceAll('.', '-')}"></span>\n\n`
+    ? `<span id="${sectionAnchor(number)}"></span>\n\n`
     : appendix
       ? `<span id="appendix-${appendix.toLowerCase()}"></span>\n\n`
       : ''
@@ -293,6 +337,7 @@ function renderBlock(node) {
   if (node.type !== 'tag') return ''
   const element = $(node)
   const name = node.name
+  if (name === 'section' && element.hasClass('ltx_paragraph')) return renderParagraphContainer(node)
   if (name === 'section') return renderSection(node)
   if (name === 'figure') return renderFigure(node)
   if (name === 'p') return renderInline(node)
@@ -311,13 +356,16 @@ const content = article.children('figure.ltx_figure, section.ltx_section, sectio
   .toArray()
   .map(renderBlock)
   .filter(Boolean)
-const body = [`## Abstract\n\n${abstractText}`, ...content].join('\n\n')
+const annotationDefinitions = [...annotations].map(([label, value]) => `[+${label}]: ${value}`)
+const body = normalizeInlineMathBoundaries([`## Abstract\n\n${abstractText}`, ...content, ...annotationDefinitions].join('\n\n')
   .replace(/\n{3,}/g, '\n\n')
-  .replace(/\b(Figure|Table|Section|Sections) \[(\d+(?:\.\d+)*)\]\(#((?:figure|table|section)-[^)]+)\)/g, '[$1 $2](#$3)')
+  .replace(/\b(?:Fig\.|Figure) \[([^\]]+)\]\(#(figure-[^)]+)\)/g, '[Figure $1](#$2)')
+  .replace(/\bTable \[([^\]]+)\]\(#(table-[^)]+)\)/g, '[Table $1](#$2)')
+  .replace(/\b(Sections?) \[([^\]]+)\]\(#(section-[^)]+)\)/g, '[$1 $2](#$3)')
   .replace(/\b(?:Eq\.|Equation)\.?(?: \()?\[(\d+)\]\(#(equation-[^)]+)\)\)?/g, '[Equation $1](#$2)')
   .replace(/\bSec\. \[(\d+(?:\.\d+)*)\]\(#(section-[^)]+)\)/g, '[Section $1](#$2)')
   .replace(/[ \t]+$/gm, '')
-  .trim()
+  .trim())
 
 writeFileSync(output, `${body}\n`)
 writeFileSync(`${output}.citations.json`, `${JSON.stringify({ additions, citationKeys: Object.fromEntries(citationKeys), references }, null, 2)}\n`)
