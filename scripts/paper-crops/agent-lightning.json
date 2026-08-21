@@ -1,5 +1,5 @@
 [
-  { "name": "figure-01", "page": 2, "x": 108, "y": 66, "width": 420, "height": 144, "preserveSource": false },
+  { "name": "figure-01", "page": 2, "x": 108, "y": 66, "width": 380, "height": 144, "preserveSource": false },
   { "name": "figure-02", "page": 6, "x": 68, "y": 69, "width": 464, "height": 143, "preserveSource": false },
   { "name": "figure-03", "page": 8, "x": 68, "y": 68, "width": 460, "height": 151, "preserveSource": false },
   { "name": "figure-04", "page": 9, "x": 166, "y": 67, "width": 268, "height": 150, "preserveSource": false },
