@@ -182,7 +182,7 @@ Although their relative efficiency depends on the ratio $k/n$, we design an adap
 
 When the top-$k$ value exceeds $n$, we replace traditional all-to-all communication with all-gather and reduce-scatter. First, an all-gather operation collects tokens from all workers. Then, a local scatter operation discards unneeded tokens, retaining only those required by the experts on the current worker. After expert computation, the tokens are assembled into a complete tensor. This approach enables a gather operation before communication, followed by a reduce-scatter to produce the final result, ensuring that EP’s communication overhead remains equal to or lower than TP’s.
 
-In practical training, all-to-all communication is less efficient than all-gather and reduce-scatter, as it requires each worker to communicate with all others, whereas all-gather and reduce-scatter follow a ring-based communication pattern with only neighboring workers. As shown in [Figure 7](#figure-07), the communication time for these three operations in Mixtral-$8\times 7$B reveals that when top-$k$ > 6, the all-gather-based EP implementation is more efficient.
+In practical training, all-to-all communication is less efficient than all-gather and reduce-scatter, as it requires each worker to communicate with all others, whereas all-gather and reduce-scatter follow a ring-based communication pattern with only neighboring workers. As shown in [Figure 7](#figure-07), the communication time for these three operations in Mixtral 8x7B reveals that when top-$k$ > 6, the all-gather-based EP implementation is more efficient.
 
 **Efficient operators.** Instead of using `torch.scatter_add` and `torch.gather` for tensor scattering and gathering like Megatron-LM, we develop efficient scatter and gather operators directly using CUDA. Based on the token routing results, we pre-calculate the mapping from each row of the input tensor (representing a token) to the corresponding row in the output tensor. The scatter and gather operators then perform data transfers efficiently according to this mapping.
 
@@ -314,9 +314,9 @@ MegaScale-MoE is built on top of Megatron-LM [Sho19], a state-of-the-art open-so
 
 <span id="figure-13"></span>
 
-![Figure 13. Performance breakdown of training Mixtral-$8\times 7$B on different GPUs.](../../papers/megascale-moe/figure-13.png)
+![Figure 13. Performance breakdown of training Mixtral 8x7B on different GPUs.](../../papers/megascale-moe/figure-13.png)
 
-**Figure 13.** Performance breakdown of training Mixtral-$8\times 7$B on different GPUs.
+**Figure 13.** Performance breakdown of training Mixtral 8x7B on different GPUs.
 
 <span id="table-04"></span>
 
@@ -324,7 +324,7 @@ MegaScale-MoE is built on top of Megatron-LM [Sho19], a state-of-the-art open-so
 
 **Table 4.** Specifications of different NVIDIA GPUs.
 
-**Performance breakdown on different GPUs.** We conduct a deep dive into MegaScale-MoE to further understand the performance of training a MoE model in production environments. We train Mixtral-$8\times 7$B on 32 NVIDIA H800, H20, and A100 GPUs, respectively. The specifications of GPUs we used are listed in [Table 4](#table-04). We set the DP size as four, the TP size as eight for Megatron-LM, and the SP and EP size as eight for MegaScale-MoE. As shown in [Figure 13b](#figure-13), across the four kinds of GPUs, MegaScale-MoE consistently outperforms Megatron-LM by up to $1.58\times$ in MFU. [Figure 13a](#figure-13) demonstrates the iteration time breakdown of Megatron-LM and MegaScale-MoE. Exposed communication time represents the communication time that is not overlapped with computation operations. FlashAttention and GEMMs are the operations we count when calculating MFU. The performance gain primarily results from MegaScale-MoE’s communication-efficient parallelism strategies and fine-grained overlapped communication.
+**Performance breakdown on different GPUs.** We conduct a deep dive into MegaScale-MoE to further understand the performance of training a MoE model in production environments. We train Mixtral 8x7B on 32 NVIDIA H800, H20, and A100 GPUs, respectively. The specifications of GPUs we used are listed in [Table 4](#table-04). We set the DP size as four, the TP size as eight for Megatron-LM, and the SP and EP size as eight for MegaScale-MoE. As shown in [Figure 13b](#figure-13), across the four kinds of GPUs, MegaScale-MoE consistently outperforms Megatron-LM by up to $1.58\times$ in MFU. [Figure 13a](#figure-13) demonstrates the iteration time breakdown of Megatron-LM and MegaScale-MoE. Exposed communication time represents the communication time that is not overlapped with computation operations. FlashAttention and GEMMs are the operations we count when calculating MFU. The performance gain primarily results from MegaScale-MoE’s communication-efficient parallelism strategies and fine-grained overlapped communication.
 
 Note that the MFU value decreases as GPU compute capability increases. This is because, unlike dense models, MoE models involve many memory-intensive operations like routing, local scatter, and gather, which remain time-consuming since memory bandwidth does not scale as quickly as compute capabilities. Additionally, GEMM efficiency declines with increasing compute capability, as it also relies on memory loading, constrained by memory bandwidth.
 
@@ -382,7 +382,7 @@ For the parameter synchronization time, we follow large-scale training setups an
 
 **Figure 18.** The training loss curve of MegaScale-MoE with DP communication compression.
 
-**Selective activation rematerailization.** We compare MegaScale-MoE to a baseline that disables selective activation rematerialization (No SAR), which stores all activations in GPU memory during training. We evaluate both methods by training Mixtral-$8\times 7$B and Mixtral-$8\times 22$B on 128 NVIDIA H800 GPUs. [Figure 17](#figure-17) shows the memory usage breakdown and the training MFU. Compared to No SAR, MegaScale-MoE reduces activation memory consumption by 45.5% and 57.2% for the two models, respectively, resulting in overall memory reductions of 21.3% and 35%, while maintaining the training performance difference within 0.5%.
+**Selective activation rematerailization.** We compare MegaScale-MoE to a baseline that disables selective activation rematerialization (No SAR), which stores all activations in GPU memory during training. We evaluate both methods by training Mixtral 8x7B and Mixtral 8x22B on 128 NVIDIA H800 GPUs. [Figure 17](#figure-17) shows the memory usage breakdown and the training MFU. Compared to No SAR, MegaScale-MoE reduces activation memory consumption by 45.5% and 57.2% for the two models, respectively, resulting in overall memory reductions of 21.3% and 35%, while maintaining the training performance difference within 0.5%.
 
 **Data parallelism communication compression.** We validate the effectiveness of our communication compression technique by training a 7B MoE model using BF16 all-to-all DP communication and FP32 reduce-scatter communication, as described in [Section 5](#section-5). [Figure 18](#figure-18) illustrates the training loss curves, which are nearly identical. This optimization compresses only the accumulated gradients of the batch and performs conversions between BF16 and FP32 exclusively during communication, introducing minimal risk.
 

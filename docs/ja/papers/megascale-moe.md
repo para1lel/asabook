@@ -182,7 +182,7 @@ $$
 
 top-$k$ の値が $n$ を超える場合、従来の all-to-all 通信を all-gather と reduce-scatter に置き換える。まず all-gather 操作で、すべての worker からトークンを収集する。次に、ローカル scatter 操作で不要なトークンを破棄し、現在の worker 上の expert が必要とするトークンだけを残す。expert の計算後、トークンを完全な tensor へ組み立てる。この手法では、通信前に gather 操作を実行し、その後 reduce-scatter で最終結果を生成できるため、EP の通信オーバーヘッドが TP 以下に保たれる。
 
-実際の学習では、all-to-all は各 worker がほかのすべての worker と通信する必要があるのに対し、all-gather と reduce-scatter は隣接 worker のみと通信する ring-based 通信パターンに従うため、all-to-all 通信は all-gather や reduce-scatter より効率が悪い。[図 7](#figure-07) に示す Mixtral-$8\times 7$B での 3 操作の通信時間から、top-$k$ > 6 の場合は all-gather ベースの EP 実装のほうが効率的であることがわかる。
+実際の学習では、all-to-all は各 worker がほかのすべての worker と通信する必要があるのに対し、all-gather と reduce-scatter は隣接 worker のみと通信する ring-based 通信パターンに従うため、all-to-all 通信は all-gather や reduce-scatter より効率が悪い。[図 7](#figure-07) に示す Mixtral 8x7B での 3 操作の通信時間から、top-$k$ > 6 の場合は all-gather ベースの EP 実装のほうが効率的であることがわかる。
 
 **効率的なオペレータ。** Megatron-LM のように tensor の scatter と gather に `torch.scatter_add` と `torch.gather` を用いる代わりに、CUDA で効率的な scatter operator と gather operator を直接開発した。token routing の結果に基づき、入力 tensor の各 row（1 つのトークンを表す）から、出力 tensor 内の対応する row への mapping を事前計算する。scatter operator と gather operator は、この mapping に従ってデータ転送を効率よく実行する。
 
@@ -314,9 +314,9 @@ MegaScale-MoE は、3D parallelism 戦略をサポートし、コミュニティ
 
 <span id="figure-13"></span>
 
-![図 13。異なる GPU で Mixtral-$8\times 7$B を学習した場合の性能内訳。](../../papers/megascale-moe/figure-13.png)
+![図 13。異なる GPU で Mixtral 8x7B を学習した場合の性能内訳。](../../papers/megascale-moe/figure-13.png)
 
-**図 13。** 異なる GPU で Mixtral-$8\times 7$B を学習した場合の性能内訳。
+**図 13。** 異なる GPU で Mixtral 8x7B を学習した場合の性能内訳。
 
 <span id="table-04"></span>
 
@@ -324,7 +324,7 @@ MegaScale-MoE は、3D parallelism 戦略をサポートし、コミュニティ
 
 **表 4。** 各 NVIDIA GPU の仕様。
 
-**異なる GPU における性能内訳。** 本番環境で MoE モデルを学習する際の性能をさらに把握するため、MegaScale-MoE を詳しく分析する。32 基の NVIDIA H800、H20、A100 GPU 上で、それぞれ Mixtral-$8\times 7$B を学習する。使用した GPU の仕様を [表 4](#table-04) に示す。DP size を 4、Megatron-LM の TP size を 8、MegaScale-MoE の SP size と EP size を 8 に設定する。[図 13b](#figure-13) に示すように、4 種類の GPU すべてで MegaScale-MoE は一貫して Megatron-LM を上回り、MFU は最大 $1.58\times$ 高い。[図 13a](#figure-13) は Megatron-LM と MegaScale-MoE の iteration time の内訳を示す。exposed communication time は、計算操作とオーバーラップしていない通信時間を表す。MFU の計算時には FlashAttention と GEMM を演算として数える。この性能向上は主に、MegaScale-MoE の通信効率のよい並列化戦略と、細粒度にオーバーラップした通信によるものである。
+**異なる GPU における性能内訳。** 本番環境で MoE モデルを学習する際の性能をさらに把握するため、MegaScale-MoE を詳しく分析する。32 基の NVIDIA H800、H20、A100 GPU 上で、それぞれ Mixtral 8x7B を学習する。使用した GPU の仕様を [表 4](#table-04) に示す。DP size を 4、Megatron-LM の TP size を 8、MegaScale-MoE の SP size と EP size を 8 に設定する。[図 13b](#figure-13) に示すように、4 種類の GPU すべてで MegaScale-MoE は一貫して Megatron-LM を上回り、MFU は最大 $1.58\times$ 高い。[図 13a](#figure-13) は Megatron-LM と MegaScale-MoE の iteration time の内訳を示す。exposed communication time は、計算操作とオーバーラップしていない通信時間を表す。MFU の計算時には FlashAttention と GEMM を演算として数える。この性能向上は主に、MegaScale-MoE の通信効率のよい並列化戦略と、細粒度にオーバーラップした通信によるものである。
 
 GPU の計算能力が高くなるほど MFU の値が低下することに注意されたい。dense モデルと異なり、MoE モデルには routing、ローカル scatter、gather などメモリ負荷の高い操作が多く含まれ、メモリ帯域幅は計算能力ほど速く向上しないため、これらの操作には依然として時間がかかるからである。さらに、GEMM もメモリ帯域幅に制約されるメモリロードへ依存するため、計算能力が高くなるほど GEMM 効率は低下する。
 
@@ -382,7 +382,7 @@ MegaScale-MoE の最適化技術の有効性を評価する。まず、各技術
 
 **図 18。** DP 通信圧縮を用いた MegaScale-MoE の学習 loss curve。
 
-**Selective activation rematerialization。** MegaScale-MoE を、学習中にすべての activation を GPU メモリへ保存する、selective activation rematerialization を無効にした baseline（No SAR）と比較する。128 基の NVIDIA H800 GPU 上で Mixtral-$8\times 7$B と Mixtral-$8\times 22$B を学習し、両手法を評価する。[図 17](#figure-17) にメモリ使用量の内訳と学習 MFU を示す。No SAR と比べて、MegaScale-MoE は 2 モデルの activation memory 消費量をそれぞれ 45.5% と 57.2% 削減し、総メモリ使用量を 21.3% と 35% 削減する一方、学習性能の差を 0.5% 以内に保つ。
+**Selective activation rematerialization。** MegaScale-MoE を、学習中にすべての activation を GPU メモリへ保存する、selective activation rematerialization を無効にした baseline（No SAR）と比較する。128 基の NVIDIA H800 GPU 上で Mixtral 8x7B と Mixtral 8x22B を学習し、両手法を評価する。[図 17](#figure-17) にメモリ使用量の内訳と学習 MFU を示す。No SAR と比べて、MegaScale-MoE は 2 モデルの activation memory 消費量をそれぞれ 45.5% と 57.2% 削減し、総メモリ使用量を 21.3% と 35% 削減する一方、学習性能の差を 0.5% 以内に保つ。
 
 **Data parallelism の通信圧縮。** [第 5 節](#section-5) で説明した BF16 all-to-all DP 通信と FP32 reduce-scatter 通信を用いて 7B MoE モデルを学習し、通信圧縮技術の有効性を検証する。[図 18](#figure-18) に示す学習 loss curve は、ほぼ同一である。この最適化は batch の accumulation 済み gradient だけを圧縮し、通信時に限って BF16 と FP32 の間で変換するため、リスクは最小限である。
 
