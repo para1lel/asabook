@@ -3347,6 +3347,27 @@ const paperAbbreviations = {
   'Kim16b': 'Y.-D. Kim, E. Park, S. Yoo, T. Choi, L. Yang, and D. Shin, “Compression of Deep Convolutional Neural Networks for Fast and Low Power Mobile Applications,” in ICLR, 2016.',
   'Ba14': 'L. Ba and R. Caurana, “Do Deep Nets Really Need to be Deep?” NIPS, 2014.',
   'Ben00a': '“Benchmarking DNN Processors,” http://eyeriss.mit.edu/benchmarking.html. [Link](http://eyeriss.mit.edu/benchmarking.html)',
+  'Jia24f': 'Ziheng Jiang, Haibin Lin, Yinmin Zhong, Qi Huang, Yangrui Chen, Zhi Zhang, Yanghua Peng, Xiang Li, Cong Xie, Shibiao Nong, Yulu Jia, Sun He, Hongmin Chen, Zhihao Bai, Qi Hou, Shipeng Yan, Ding Zhou, Yiyao Sheng, Zhuo Jiang, Haohan Xu, Haoran Wei, Zhang Zhang, Pengfei Nie, Leqi Zou, Sida Zhao, Liang Xiang, Zherui Liu, Zhe Li, Xiaoying Jia, Jianxi Ye, Xin Jin, and Xin Liu. 2024a. MegaScale: Scaling Large Language Model Training to More Than 10,000 GPUs. In USENIX NSDI. [Link](https://www.usenix.org/conference/nsdi24/presentation/jiang-ziheng)',
+  'Dbr25': '2025. Introducing DBRX: A New State-of-the-Art Open LLM. (2025). https://www.databricks.com/blog/introducing-dbrx-new-state-art-open-llm [Link](https://www.databricks.com/blog/introducing-dbrx-new-state-art-open-llm)',
+  'Pen23e': 'Houwen Peng, Kan Wu, Yixuan Wei, Guoshuai Zhao, Yuxiang Yang, Ze Liu, Yifan Xiong, Ziyue Yang, Bolin Ni, Jingcheng Hu, et al. 2023. Fp8-lm: Training fp8 large language models. arXiv preprint arXiv:2310.18313 (2023). [Link](https://arxiv.org/abs/2310.18313)',
+  'Hwa23': 'Changho Hwang, Wei Cui, Yifan Xiong, Ziyue Yang, Ze Liu, Han Hu, Zilong Wang, Rafael Salas, Jithin Jose, Prabhat Ram, et al. 2023. Tutel: Adaptive mixture-of-experts at scale. Proceedings of Machine Learning and Systems (2023). [Link](https://arxiv.org/abs/2206.03382)',
+  'Con25a': '2025. Context parallelism in Megatron-LM. (2025). https://docs.nvidia.com/megatron-core/developer-guide/latest/api-guide/context_parallel.html. [Link](https://docs.nvidia.com/megatron-core/developer-guide/latest/api-guide/context_parallel.html)',
+  'Tra25': 'TransformerEngine 2025. A library for accelerating Transformer models on NVIDIA GPUs, including using 8-bit floating point (FP8) precision on Hopper and Ada GPUs, to provide better performance with lower memory utilization in both training and inference. (2025). https://github.com/NVIDIA/TransformerEngine. [Link](https://github.com/NVIDIA/TransformerEngine)',
+  'Jan22': 'Abhinav Jangda, Jun Huang, Guodong Liu, Amir Hossein Nodehi Sabet, Saeed Maleki, Youshan Miao, Madanlal Musuvathi, Todd Mytkowicz, and Olli Saarikivi. 2022. Breaking the computation and communication abstraction barrier in distributed machine learning workloads. In ACM ASPLOS.',
+  'Cha24c': 'Li-Wen Chang, Wenlei Bao, Qi Hou, Chengquan Jiang, Ningxin Zheng, Yinmin Zhong, Xuanrun Zhang, Zuquan Song, Chengji Yao, Ziheng Jiang, et al. 2024. FLUX: fast software-based communication overlap on gpus through kernel fusion. arXiv preprint arXiv:2406.06858 (2024). [Link](https://arxiv.org/abs/2406.06858)',
+  'Meg25': 'Megatron-LM 2025. GPU optimized techniques for training transformer models at-scale. (2025). https://github.com/NVIDIA/Megatron-LM. [Link](https://github.com/NVIDIA/Megatron-LM)',
+  'Lia24b': 'Wanchao Liang, Tianyu Liu, Less Wright, Will Constable, Andrew Gu, Chien-Chin Huang, Iris Zhang, Wei Feng, Howard Huang, Junjie Wang, et al. 2024. TorchTitan: One-stop PyTorch native solution for production ready LLM pre-training. arXiv preprint arXiv:2410.06511 (2024). [Link](https://arxiv.org/abs/2410.06511)',
+  'Zha25ax': 'Zili Zhang, Yinmin Zhong, Yimin Jiang, Hanpeng Hu, Jianjian Sun, Zheng Ge, Yibo Zhu, Daxin Jiang, and Xin Jin. 2025b. Disttrain: Addressing model and data heterogeneity with disaggregated training for multimodal large language models. In ACM SIGCOMM. [Link](https://doi.org/10.1145/3718958.3750472)',
+  'Nie22': 'Xiaonan Nie, Pinxue Zhao, Xupeng Miao, Tong Zhao, and Bin Cui. 2022. HetuMoE: An efficient trillion-scale mixture-of-expert distributed training system. arXiv preprint arXiv:2203.14685 (2022). [Link](https://arxiv.org/abs/2203.14685)',
+  'She22': 'Liang Shen, Zhihua Wu, WeiBao Gong, Hongxiang Hao, Yangfan Bai, HuaChao Wu, Xinxuan Wu, Jiang Bian, Haoyi Xiong, Dianhai Yu, et al. 2022. Se-moe: A scalable and efficient mixture-of-experts distributed training and inference system. arXiv preprint arXiv:2205.10034 (2022). [Link](https://arxiv.org/abs/2205.10034)',
+  'He22': 'Jiaao He, Jidong Zhai, Tiago Antunes, Haojie Wang, Fuwen Luo, Shangfeng Shi, and Qin Li. 2022. Fastermoe: modeling and optimizing training of large-scale dynamic pre-trained models. In ACM PPoPP.',
+  'Liu23r': 'Juncai Liu, Jessie Hui Wang, and Yimin Jiang. 2023a. Janus: A unified distributed training framework for sparse mixture-of-experts models. In ACM SIGCOMM.',
+  'Li24s': 'Dacheng Li, Rulin Shao, Anze Xie, Eric P. Xing, Xuezhe Ma, Ion Stoica, Joseph E. Gonzalez, and Hao Zhang. 2024. DISTFLASHATTN: Distributed Memory-efficient Attention for Long-context LLMs Training. arxiv preprint arXiv:2310.03294 (2024). [Link](https://arxiv.org/abs/2310.03294)',
+  'Gu24a': 'Diandian Gu, Peng Sun, Qinghao Hu, Ting Huang, Xun Chen, Yingtong Xiong, Guoteng Wang, Qiaoling Chen, Shangchun Zhao, Jiarui Fang, et al. 2024. Loongtrain: Efficient training of long-sequence llms with head-context parallelism. arXiv preprint arXiv:2406.18485 (2024). [Link](https://arxiv.org/abs/2406.18485)',
+  'Liu24w': 'Hao Liu and Pieter Abbeel. 2024. Blockwise Parallel Transformers for Large Context Models. Neural Information Processing Systems (2024).',
+  'Has19': 'Sayed Hadi Hashemi, Sangeetha Abdu Jyothi, and Roy Campbell. 2019. Tictac: Accelerating distributed deep learning with communication scheduling. Proceedings of Machine Learning and Systems (2019).',
+  'Mah23': 'Kshiteej Mahajan, Ching-Hsiang Chu, Srinivas Sridharan, and Aditya Akella. 2023. Better Together: Jointly Optimizing ML Collective Scheduling and Execution Planning using {\\{SYNDICATE}\\}. In USENIX NSDI. [Link](https://www.usenix.org/conference/nsdi23/presentation/mahajan)',
+  'Pat24b': 'Suchita Pati, Shaizeen Aga, Mahzabeen Islam, Nuwan Jayasena, and Matthew D. Sinclair. 2024. T3: Transparent Tracking & Triggering for Fine-grained Overlap of Compute & Collectives. In ACM ASPLOS.',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -3667,7 +3688,7 @@ export default defineUserConfig({
               {
                 text: '分布式训练',
                 collapsed: true,
-                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention'],
+                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
@@ -3794,7 +3815,7 @@ export default defineUserConfig({
               {
                 text: 'Distributed Training',
                 collapsed: true,
-                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention'],
+                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
@@ -4031,7 +4052,7 @@ export default defineUserConfig({
               {
                 text: '分散学習',
                 collapsed: true,
-                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention'],
+                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
