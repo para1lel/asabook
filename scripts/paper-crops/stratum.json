@@ -1,9 +1,11 @@
 [
   {
     "name": "figure-01",
-    "preserveSource": true,
-    "sourceHeight": 3720,
-    "sourceWidth": 5546
+    "page": 2,
+    "x": 53,
+    "y": 82,
+    "width": 245,
+    "height": 165
   },
   {
     "name": "figure-02",
@@ -12,14 +14,15 @@
     "y": 81,
     "width": 245,
     "height": 172,
-    "matchScore": 0.87,
-    "preserveSource": false
+    "matchScore": 0.87
   },
   {
     "name": "figure-03",
-    "preserveSource": true,
-    "sourceHeight": 3354,
-    "sourceWidth": 6244
+    "page": 4,
+    "x": 53,
+    "y": 83,
+    "width": 245,
+    "height": 132
   },
   {
     "name": "figure-04",
@@ -27,20 +30,23 @@
     "x": 318,
     "y": 83.5,
     "width": 240,
-    "height": 99,
-    "preserveSource": true
+    "height": 99
   },
   {
     "name": "figure-05",
-    "preserveSource": true,
-    "sourceHeight": 2146,
-    "sourceWidth": 3676
+    "page": 4,
+    "x": 318,
+    "y": 218,
+    "width": 241,
+    "height": 116
   },
   {
     "name": "figure-06",
-    "preserveSource": true,
-    "sourceHeight": 2534,
-    "sourceWidth": 5106
+    "page": 5,
+    "x": 53,
+    "y": 83,
+    "width": 245,
+    "height": 122
   },
   {
     "name": "figure-07",
@@ -48,14 +54,15 @@
     "x": 83.5,
     "y": 83.5,
     "width": 445,
-    "height": 143.5,
-    "preserveSource": true
+    "height": 143.5
   },
   {
     "name": "figure-08",
-    "preserveSource": true,
-    "sourceHeight": 1579,
-    "sourceWidth": 2374
+    "page": 6,
+    "x": 318,
+    "y": 248,
+    "width": 241,
+    "height": 190
   },
   {
     "name": "figure-09",
@@ -64,8 +71,7 @@
     "y": 82,
     "width": 242,
     "height": 110,
-    "matchScore": 0.815,
-    "preserveSource": false
+    "matchScore": 0.815
   },
   {
     "name": "figure-10",
@@ -73,8 +79,7 @@
     "x": 317.5,
     "y": 83.5,
     "width": 241,
-    "height": 255.5,
-    "preserveSource": false
+    "height": 255.5
   },
   {
     "name": "figure-11",
@@ -82,27 +87,24 @@
     "x": 51,
     "y": 81,
     "width": 246,
-    "height": 157,
-    "matchScore": 0.857,
-    "preserveSource": false
+    "height": 136,
+    "matchScore": 0.857
   },
   {
     "name": "figure-12",
     "page": 9,
-    "x": 66.5,
-    "y": 106,
-    "width": 83.5,
-    "height": 56,
-    "preserveSource": true
+    "x": 318,
+    "y": 82,
+    "width": 241,
+    "height": 136
   },
   {
     "name": "figure-13",
     "page": 10,
-    "x": 253,
-    "y": 109.5,
-    "width": 75.5,
-    "height": 42,
-    "preserveSource": true
+    "x": 53,
+    "y": 82,
+    "width": 245,
+    "height": 130
   },
   {
     "name": "table-01",
@@ -110,8 +112,7 @@
     "x": 54,
     "y": 264,
     "width": 234,
-    "height": 157,
-    "preserveSource": false
+    "height": 157
   },
   {
     "name": "table-02",
@@ -119,8 +120,7 @@
     "x": 321,
     "y": 104,
     "width": 228,
-    "height": 58,
-    "preserveSource": false
+    "height": 58
   },
   {
     "name": "figure-14",
@@ -128,8 +128,7 @@
     "x": 53.5,
     "y": 83.5,
     "width": 241,
-    "height": 127,
-    "preserveSource": true
+    "height": 127
   },
   {
     "name": "table-03",
@@ -137,8 +136,7 @@
     "x": 322,
     "y": 104,
     "width": 229,
-    "height": 120,
-    "preserveSource": false
+    "height": 120
   },
   {
     "name": "figure-15",
@@ -147,8 +145,7 @@
     "y": 223,
     "width": 220,
     "height": 132,
-    "matchScore": 0.981,
-    "preserveSource": true
+    "matchScore": 0.981
   },
   {
     "name": "figure-16",
@@ -156,14 +153,15 @@
     "x": 53.5,
     "y": 83.5,
     "width": 505,
-    "height": 74,
-    "preserveSource": true
+    "height": 74
   },
   {
     "name": "figure-17",
-    "preserveSource": true,
-    "sourceHeight": 1152,
-    "sourceWidth": 2880
+    "page": 12,
+    "x": 318,
+    "y": 194,
+    "width": 241,
+    "height": 90
   },
   {
     "name": "table-04",
@@ -171,8 +169,7 @@
     "x": 324,
     "y": 360,
     "width": 228,
-    "height": 66,
-    "preserveSource": false
+    "height": 66
   },
   {
     "name": "figure-18",
@@ -180,7 +177,6 @@
     "x": 53.5,
     "y": 83.5,
     "width": 241,
-    "height": 89.5,
-    "preserveSource": true
+    "height": 89.5
   }
 ]

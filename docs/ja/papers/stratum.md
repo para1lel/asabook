@@ -21,9 +21,9 @@ Transformer ベースの大規模言語モデル (LLM) は幅広いアプリケ�
 
 <span id="figure-01"></span>
 
-![図 1. Architectures of dense transformer-based LLM (left) and Mixture of Experts (MoE) LLM (right).](../../papers/stratum/figure-01.png)
+![図 1. 密な Transformer LLM (左) と Mixture of Experts (MoE) LLM (右) のアーキテクチャ。](../../papers/stratum/figure-01.png)
 
-**図 1.** Architectures of dense transformer-based LLM (left) and Mixture of Experts (MoE) LLM (right).
+**図 1.** 密な Transformer LLM (左) と Mixture of Experts (MoE) LLM (右) のアーキテクチャ。
 
 MoE モデルは実際のメモリアクセスと計算量を削減するが、モデル全体のサイズは解決しない。モデルサイズの急速な増大には、高帯域かつ高密度なメモリ技術が必要となる。その流れで、ダイ積層 High Bandwidth Memory (HBM) は NVIDIA A100 や H100 などの高性能 GPU で主流の解決策となった [Nvi21, Nvi23b]。6 枚の DRAM ダイを積層し、1024-bit I/O インターフェースを備え、シリコンインターポーザを介して GPU 計算ダイへ 1 スタックあたり最大 800 GB/s の帯域を供給する。HBM は従来の 2D DRAM より高帯域だが、インターポーザを通る帯域はなお不足している。この制約により、特に LLM デコードのようなメモリ律速の処理で GPU 計算資源が十分に利用されない [Att24]。HBM と GPU の間のメモリウォールを緩和するため、近年の手法は LLM 推論に near-memory processing (NMP) を導入している [New20, Tra22, Har21, Att24, Dup24, Neu24a, Hig21]。先行研究 [Neu24a, Att24, Tra22, Dup24] は HBM のベースダイに計算ロジックを配置し、デコード段階の注意機構を NMP ユニットで計算した。しかし、ベースダイの NMP も、限られた TSV I/O 接続をデータが垂直に通過するため帯域が制限される。この制約を緩和するため、メモリダイに計算ユニットを直接統合して大きな内部帯域を利用する研究が行われており [Har21, Tra22, Dri17, Att24, Hig21, Pri24]、一般に processing in memory (PIM) と呼ばれる。一方、DRAM ダイに埋め込んだ計算ロジックは、メモリ内データ転送のコストと、計算よりも記憶に最適化された DRAM 技術でロジックを実装することによる大きな性能・面積・電力 (PPA) オーバーヘッドを伴う [Dri17]。さらに、同一ダイ上でロジックとメモリを統合すると、熱と製造に関する追加の懸念が生じる。
 
@@ -33,13 +33,10 @@ Mono3D DRAM には多くの利点があるが、その優位性を十分に引�
 
 大規模 MoE モデルのサービス課題に対処するため、Mono3D DRAM、NMP、GPU を統合した Stratum システムを提案する。本研究の主な貢献は次のとおりである。
 
-$\bullet$ For the first time, we propose a system-hardware co-design solution Stratum for MoE serving that leverages Monolithic 3D-Stackable DRAM. Our approach heterogeneously integrates high-density Mono3D DRAM dies with high-performance logic dies via 3D hybrid bonding, and further integrates this Mono3D DRAM stack with GPUs using a 2.5D silicon interposer. This architecture serves as a high-throughput and cost-effective alternative to conventional GPU-HBM-based MoE serving systems.
-
-$\bullet$ At the hardware level, we introduce an in-memory tiering mechanism that exploits the inherent access latency variations across Mono3D DRAM layers resulting from vertical scaling. Additionally, we propose an NMP processor tailored for hybrid-bonding-based Mono3D DRAM, incorporating optimized data mapping and communication strategies for both expert and attention execution.
-
-$\bullet$ At the system level, we observe the nonuniform activation frequency of experts depending on user request topics. Based on this, we classify experts into hot and cold categories and assign them to fast and slow tiers of Mono3D DRAM, respectively. The proposed topic-aware serving system queues and dispatches requests according to their topics, predicted by our and lightweight topic classifier, while adhering to defined service-level objectives (SLOs).
-
-$\bullet$ Cross-layer evaluations (device, circuit, algorithm, and system) demonstrate that Stratum achieves up to $8.29\times$ better decoding throughput and $7.66\times$ better energy efficiency in practical MoE serving scenarios, compared to state-of-the-art GPU-baselines.
+- 初めて、モノリシック 3D スタッカブル DRAM を利用する MoE サービス向けシステム・ハードウェア協調設計 Stratum を提案する。本方式では、3D ハイブリッドボンディングで高密度 Mono3D DRAM ダイと高性能ロジックダイを異種統合し、さらに 2.5D シリコンインターポーザで Mono3D DRAM スタックを GPU に接続する。この構成は、従来の GPU-HBM ベース MoE サービスシステムに対する高スループットかつ低コストの代替となる。
+- ハードウェアレベルでは、垂直スケーリングで生じる Mono3D DRAM 層間のアクセス遅延差を利用するメモリ内階層化機構を導入する。さらに、ハイブリッドボンディング型 Mono3D DRAM に適した NMP プロセッサを提案し、エキスパート計算と注意計算の双方にデータマッピングと通信の最適化を組み込む。
+- システムレベルでは、エキスパートの活性化頻度がユーザー要求のトピックに依存し、一様でないことを観測する。そこでエキスパートをホットとコールドに分類し、それぞれ Mono3D DRAM の高速層と低速層へ割り当てる。提案するトピック対応サービスシステムは、軽量なトピック分類器で予測したトピックに従って要求をキューイング・ディスパッチし、定義したサービスレベル目標 (SLO) を守る。
+- デバイス、回路、アルゴリズム、システムにまたがる評価により、実際の MoE サービスで Stratum は最先端 GPU ベースラインと比べ、デコードスループットを最大 $8.29\times$、エネルギー効率を $7.66\times$ 改善する。
 
 <span id="section-2"></span>
 
@@ -61,15 +58,15 @@ Mono3D DRAM は非常に大きなメモリ容量を期待できる一方、層�
 
 <span id="figure-02"></span>
 
-![図 2. Monolithic 3D-Stackable DRAM with vertically stacked horizontal 1T1C DRAM cells. Bitlines are vertically routed to avoid sense margin variations, and wordlines are routed through staircases. The activation latency varies by layers due to wordline staircases.](../../papers/stratum/figure-02.png)
+![図 2. 水平 1T1C DRAM セルを垂直に積層したモノリシック 3D スタッカブル DRAM。ビット線はセンスマージンのばらつきを避けるため垂直配線し、ワード線は階段構造で配線する。ワード線の階段構造により活性化遅延は層ごとに異なる。](../../papers/stratum/figure-02.png)
 
-**図 2.** Monolithic 3D-Stackable DRAM with vertically stacked horizontal 1T1C DRAM cells. Bitlines are vertically routed to avoid sense margin variations, and wordlines are routed through staircases. The activation latency varies by layers due to wordline staircases.
+**図 2.** 水平 1T1C DRAM セルを垂直に積層したモノリシック 3D スタッカブル DRAM。ビット線はセンスマージンのばらつきを避けるため垂直配線し、ワード線は階段構造で配線する。ワード線の階段構造により活性化遅延は層ごとに異なる。
 
 <span id="figure-03"></span>
 
-![図 3. HBM versus Mono3D DRAM on 2.5D integration platform with a xPU die. The HBM and Mono3D DRAM are attached to the logic base die through TSVs and Cu-Cu hybrid bonding, respectively.](../../papers/stratum/figure-03.png)
+![図 3. xPU ダイを備えた 2.5D 統合プラットフォーム上の HBM と Mono3D DRAM の比較。HBM と Mono3D DRAM はそれぞれ TSV と Cu-Cu ハイブリッドボンディングでロジックベースダイに接続する。](../../papers/stratum/figure-03.png)
 
-**図 3.** HBM versus Mono3D DRAM on 2.5D integration platform with a xPU die. The HBM and Mono3D DRAM are attached to the logic base die through TSVs and Cu-Cu hybrid bonding, respectively.
+**図 3.** xPU ダイを備えた 2.5D 統合プラットフォーム上の HBM と Mono3D DRAM の比較。HBM と Mono3D DRAM はそれぞれ TSV と Cu-Cu ハイブリッドボンディングでロジックベースダイに接続する。
 
 <span id="section-2-2"></span>
 
@@ -83,9 +80,9 @@ MoE の MLP モジュールが切り替わる性質は、ハードウェア展�
 
 <span id="figure-04"></span>
 
-![図 4. Expert hit profiling from LLaMA-4 Scout (16 Experts).](../../papers/stratum/figure-04.png)
+![図 4. LLaMA-4 Scout (16 エキスパート) のエキスパート命中プロファイリング。](../../papers/stratum/figure-04.png)
 
-**図 4.** Expert hit profiling from LLaMA-4 Scout (16 Experts).
+**図 4.** LLaMA-4 Scout (16 エキスパート) のエキスパート命中プロファイリング。
 
 プロファイリングの結果、エキスパートの使用状況はクエリのトピックと明確に関係し、特定のトピックでは特定のエキスパートが大幅に高頻度で活性化することを観測した。[図 4](#figure-04) の例では、LLaMA-4 Scout が MMLU サブセットの数学・論理トピックで 90% を超えるドメイン固有のエキスパート親和性を示す。サービス時には、まずオフラインプロファイリングで各トピックのエキスパート命中率 (使用確率) を収集し、オンラインではスケジューラ内の軽量トピック分類器が batch の全クエリにトピックラベルを付与する。この分類に基づき、システムは頻繁に使われるエキスパートを高速な Mono3D DRAM 層へ配置してアクセス遅延を最適化する ([第 5 節](#section-5))。
 
@@ -99,27 +96,27 @@ MoE の MLP モジュールが切り替わる性質は、ハードウェア展�
 
 <span id="figure-05"></span>
 
-![図 5. Example Stratum configurations.](../../papers/stratum/figure-05.png)
+![図 5. Stratum 構成例。](../../papers/stratum/figure-05.png)
 
-**図 5.** Example Stratum configurations.
+**図 5.** Stratum 構成例。
 
 <span id="figure-06"></span>
 
-![図 6. Serving system based on Stratum.](../../papers/stratum/figure-06.png)
+![図 6. Stratum に基づくサービスシステム。](../../papers/stratum/figure-06.png)
 
-**図 6.** Serving system based on Stratum.
+**図 6.** Stratum に基づくサービスシステム。
 
 <span id="figure-07"></span>
 
-![図 7. Stratum NMP architecture. (a) Overview of the processor at the chip level. Microarchitectures of (b) the processing unit (PU) at the channel level, and (c) the processing element (PE) at the bank level.](../../papers/stratum/figure-07.png)
+![図 7. Stratum NMP アーキテクチャ。(a) チップレベルのプロセッサ概要。(b) channel レベルの処理ユニット (PU) と (c) bank レベルの処理要素 (PE) のマイクロアーキテクチャ。](../../papers/stratum/figure-07.png)
 
-**図 7.** Stratum NMP architecture. (a) Overview of the processor at the chip level. Microarchitectures of (b) the processing unit (PU) at the channel level, and (c) the processing element (PE) at the bank level.
+**図 7.** Stratum NMP アーキテクチャ。(a) チップレベルのプロセッサ概要。(b) channel レベルの処理ユニット (PU) と (c) bank レベルの処理要素 (PE) のマイクロアーキテクチャ。
 
 Stratum の処理システムは、シリコンインターポーザで接続された xPU ダイと、数を構成可能な Monolithic 3D-Stackable DRAM チップからなり、近メモリ計算能力を備える。異なる数の Mono3D DRAM チップを使い、モデルサイズに応じた 3 種類の構成例を示す ([図 5](#figure-05))。*Stratum-L* は NVIDIA H100 計算ダイを xPU とし、6 個の Mono3D DRAM チップをインターポーザで接続する。*Stratum-S* は NVIDIA RTX A6000 ダイと 32 GB の単一 Mono3D DRAM チップを使う。*Stratum-XL* は *Stratum-L* モジュール 2 個で構成され、より大きなモデルのサービス向けに合計 384 GB のメモリを提供する。これらの構成は多様な計算・メモリ要件に対応し、NVLink などのチップ間インターコネクトで拡張できる [The22]。
 
 各 Mono3D DRAM チップは上部のメモリダイと下部のロジックダイからなり、Cu-Cu ハイブリッドボンディングで接続して高い内部帯域を実現する。さらに、Mono3D DRAM の垂直層間にあるアクセス遅延差を利用するため、メモリダイ内に内部メモリ階層化を導入する。下部ロジックダイには強力な近メモリプロセッサ (NMP) を実装し、常にホストプロセッサへデータを取り出すことなく LLM 推論を支える ([第 3.2 節](#section-3-2))。
 
-[図 6](#figure-06) describes the flow of a serving system based on Stratum. In a realistic serving scenario, queries submitted by users are of varying topics. When users send inference requests, the host processor uses a lightweight topic classifier to determine the topic of the query. These requests are then enqueued in the serving queue with a topic tag. Periodically, the scheduler groups inference requests from the serving queue and later dispatches them to the Stratum processing system. To enhance user experience, a key Service-Level Objective (SLO) is Time to First Token (TTFT), which ensures that a request does not wait too long before processing begins. When SLO permits, the scheduler prioritizes batching requests of the same topic to maximize the benefits of expert placements. The memory mapper constructs the aggregated expert hit prediction for the batch by consulting the pre-profiled expert usage table and produces a target placement as a mapping between experts to Mono3D DRAM layers. Expert swaps are executed before every new batch with different topic tags to meet the target layout. Considering the arithmetic intensity of each stage, the Computation Mapper assigns the prefill phase to xPU and the decode phase to the Stratum NMP, following a similar strategy as in [Att24]. Additionally, the lightweight topic classification is executed by the host processor.
+[図 6](#figure-06) は Stratum に基づくサービスシステムの流れを示す。実際のサービスでは、ユーザーが送るクエリのトピックはさまざまである。推論要求を受けると、ホストプロセッサが軽量トピック分類器でクエリのトピックを判定する。要求はトピックタグ付きでサービスキューに入る。スケジューラは定期的にキューから推論要求をまとめ、Stratum 処理システムへディスパッチする。ユーザー体験のための重要なサービスレベル目標 (SLO) は Time to First Token (TTFT) であり、処理開始まで要求を長く待たせないことを意味する。SLO が許す場合、スケジューラは同じトピックの要求を優先して batch 化し、エキスパート配置の効果を高める。メモリマッパーはプロファイリング済みエキスパート使用表を参照して batch のエキスパート命中予測を集計し、エキスパートから Mono3D DRAM 層への目標配置を生成する。目標レイアウトに合わせ、トピックタグが異なる新しい batch の前にエキスパートを交換する。各段階の算術強度を考慮し、Computation Mapper は [Att24] と同様の方針で prefill 段階を xPU、decode 段階を Stratum NMP に割り当てる。軽量なトピック分類もホストプロセッサで実行する。
 
 <span id="section-3-2"></span>
 
@@ -147,9 +144,9 @@ MoE 層の実行は、token ルーティング、エキスパート計算、結�
 
 <span id="figure-08"></span>
 
-![図 8. (a) Example of MoE’s token-to-expert mapping. (b) The computation stages of an expert with $M$ routed tokens and matrix partition, assuming four PUs for simplicity. (c) The step-by-step execution of the MoE layer in Stratum.](../../papers/stratum/figure-08.png)
+![図 8. (a) MoE の token からエキスパートへのマッピング例。(b) 簡単のため 4 PU を仮定した、$M$ 個のルーティング token を持つエキスパートの計算段階と行列分割。(c) Stratum における MoE 層の段階的な実行。](../../papers/stratum/figure-08.png)
 
-**図 8.** (a) Example of MoE’s token-to-expert mapping. (b) The computation stages of an expert with $M$ routed tokens and matrix partition, assuming four PUs for simplicity. (c) The step-by-step execution of the MoE layer in Stratum.
+**図 8.** (a) MoE の token からエキスパートへのマッピング例。(b) 簡単のため 4 PU を仮定した、$M$ 個のルーティング token を持つエキスパートの計算段階と行列分割。(c) Stratum における MoE 層の段階的な実行。
 
 MoE モデルの 1 エキスパートの計算は通常、[図 8](#figure-08)(b) に示すように 3 つの GeMM を連鎖させる [Jia24a, Lla25]。現在の batch で 1 エキスパートへルーティングされた token 数を $M$、隠れ次元を $K$、中間次元を $N$ とする。まず、サイズ $M\times K$ の入力隠れ行列 $\mathbf{X_{1}}$ に、サイズ $K\times N$ の 2 つの重み行列を乗じ、サイズ $M\times N$ の中間行列 $\mathbf{Z_{1}}$ と $\mathbf{Z_{2}}$ を得る。$\mathbf{Z_{1}}$ に非線形な要素単位活性化を適用し、その結果と $\mathbf{Z_{2}}$ のアダマール積から $\mathbf{X_{2}}$ を作る。最後に、$\mathbf{X_{2}}$ にサイズ $N\times K$ の射影ダウン重み行列を乗じ、サイズ $M\times K$ の出力 $\mathbf{Z_{3}}$ を得る。
 
@@ -159,9 +156,9 @@ MoE モデルの 1 エキスパートの計算は通常、[図 8](#figure-08)(b)
 
 <span id="figure-09"></span>
 
-![図 9. Optimized timing diagram of the expert processing.](../../papers/stratum/figure-09.png)
+![図 9. エキスパート処理の最適化タイミング図。](../../papers/stratum/figure-09.png)
 
-**図 9.** Optimized timing diagram of the expert processing.
+**図 9.** エキスパート処理の最適化タイミング図。
 
 **実行最適化。** [図 9](#figure-09) は計算資源と通信資源の利用率を最大化する最適化パイプラインを示す。まず xPU から Mono3D DRAM への転送準備遅延を減らすため、入力 token 行列を複数 slice に分割し、各 slice を異なる Mono3D DRAM channel へ送る。これで入力準備のオーバーヘッドを減らし、高速なロジックダイリングネットワークによる後続の all-gather で全 PU 用の完全な入力行列を再構成する。次に GeMM2 と活性化関数評価にはデータ依存がないため重ねて実行し、パイプライン利用率を高める。第三に、GeMM3 の reduce-scatter 通信を次のエキスパートの GeMM1 と並列化し、通信遅延を計算に隠す。最後に、エキスパート出力が利用可能になると直ちに特殊関数エンジンが重み付き和を実行し、アイドルサイクルを減らして全体のスループットを高める。
 
@@ -175,9 +172,9 @@ MoE モデルの 1 エキスパートの計算は通常、[図 8](#figure-08)(b)
 
 <span id="figure-10"></span>
 
-![図 10. Execution of attention layer. (a) Heads (e.g., eight) assignment across PU groups (e.g., four). Intra-PU group: (b) Attention operator mapping. (c) Concurrent processing of multiple heads (e.g., two).](../../papers/stratum/figure-10.png)
+![図 10. 注意層の実行。(a) PU グループ (例: 4) への head (例: 8) の割り当て。PU グループ内: (b) 注意演算子のマッピング。(c) 複数 head (例: 2) の同時処理。](../../papers/stratum/figure-10.png)
 
-**図 10.** Execution of attention layer. (a) Heads (e.g., eight) assignment across PU groups (e.g., four). Intra-PU group: (b) Attention operator mapping. (c) Concurrent processing of multiple heads (e.g., two).
+**図 10.** 注意層の実行。(a) PU グループ (例: 4) への head (例: 8) の割り当て。PU グループ内: (b) 注意演算子のマッピング。(c) 複数 head (例: 2) の同時処理。
 
 注意 head 間にデータ依存がないため、Stratum は head レベル並列性を利用して注意計算を効率よく実行する。[図 10](#figure-10)(a) はロジックダイ上の注意 head タスク割当を示す。1 グループのリクエストに含まれる複数の head を Mono3D DRAM デバイスへ割り当てられる。割当 head 数はネットワークモデルによって変わり、MoE モデルで一般的な grouped query attention [Lla25, Jia24a] や、サービス遅延要件下のリクエスト並列度に依存する。多様な head 並列性に対応するため、ロジックダイの PU を異なるサイズの複数 PU グループへ柔軟に分割する。ただし各グループ内の PU は、[図 10](#figure-10)(a) のようにチップ内リングトポロジで隣接接続されていなければならない。矢印でつながれた PU がリング上の PU を表す。この構成は高速な双方向リンクによる効率的なグループ内通信も可能にする。スループットとハードウェア利用率を高めるため、各グループには少なくとも 2 head を割り当て、異なる計算段階をインターリーブする。例えば、一方の head が線形演算を行う間に、もう一方が `Softmax` を実行できる。
 
@@ -196,8 +193,11 @@ MoE モデルの 1 エキスパートの計算は通常、[図 8](#figure-08)(b)
 <span id="equation-01"></span>
 
 $$
-\begin{array}[]{l}{P_{\mathrm{dram}}}+{P_{\mathrm{compute}}}+{P_{\mathrm{misc}}}\leq{P_{\mathrm{peak}}},\\
-{P_{\mathrm{dram}}}=\mathrm{BW}_{\mathrm{fast\_tier}}\cdot{E_{b}},\;\;\,{P_{\mathrm{compute}}}={N_{mac}}\cdot{f_{\mathrm{logic}}}\cdot{E_{\mathrm{mac}}}.\end{array}
+\begin{aligned}
+P_{\mathrm{dram}} + P_{\mathrm{compute}} + P_{\mathrm{misc}} &\leq P_{\mathrm{peak}},\\
+P_{\mathrm{dram}} &= \mathrm{BW}_{\mathrm{fast\_tier}} \cdot E_b,\\
+P_{\mathrm{compute}} &= N_{mac} \cdot f_{\mathrm{logic}} \cdot E_{\mathrm{mac}}.
+\end{aligned}
 $$
 
 ここで $\mathrm{BW}_{\mathrm{fast\_tier}}$ は Mono3D DRAM の最速層のピーク帯域、$E_{b}$ はハイブリッドボンディングを介して DRAM 層からロジックダイへデータを転送する 1 bit あたりのエネルギー、$N_{mac}$ はテンソルコアの積和 (MAC) ユニット総数、$f_{\mathrm{logic}}$ はロジックダイの動作周波数、$E_{\mathrm{mac}}$ は 1 MAC 操作あたりのエネルギーである。雑多電力 $P_{\mathrm{misc}}$ には、ロジックダイ SRAM、レジスタファイル、ルータ、特殊関数エンジン、PU 内リデューサ、ローカルメモリコントローラが含まれ、演算子の種類とデータフローに応じて変化する。
@@ -215,8 +215,10 @@ $A_{\mathrm{PD}}$ は電力供給用 TSV の総面積、$A_{\mathrm{mac}}$ は $
 <span id="equation-03"></span>
 
 $$
-\begin{array}[]{l}{A_{\mathrm{PD}}}=(\frac{{{P_{\mathrm{dram\_c}}}}}{{{V_{\mathrm{dram\_c}}}}}+\frac{{{P_{\mathrm{dram\_p}}}}}{{{V_{\mathrm{dram\_p}}}}}+\frac{{{P_{\mathrm{compute}}}+{P_{\mathrm{misc}}}}}{{{V_{\mathrm{logic}}}}})\frac{{{A_{\mathrm{TSV}}}}}{{{I_{\mathrm{TSV}}}}},\\
-{P_{\mathrm{dram\_c}}}+{P_{\mathrm{dram\_p}}}={P_{\mathrm{dram}}}\end{array}
+\begin{aligned}
+A_{\mathrm{PD}} &= \left(\frac{P_{\mathrm{dram\_c}}}{V_{\mathrm{dram\_c}}} + \frac{P_{\mathrm{dram\_p}}}{V_{\mathrm{dram\_p}}} + \frac{P_{\mathrm{compute}} + P_{\mathrm{misc}}}{V_{\mathrm{logic}}}\right) \frac{A_{\mathrm{TSV}}}{I_{\mathrm{TSV}}},\\
+P_{\mathrm{dram\_c}} + P_{\mathrm{dram\_p}} &= P_{\mathrm{dram}}.
+\end{aligned}
 $$
 
 $V_{\mathrm{dram\_c}}$、$V_{\mathrm{dram\_p}}$、$V_{\mathrm{logic}}$ はそれぞれ Mono3D DRAM コア、高電圧周辺回路、低電圧ロジックダイの電源電圧を表す。式 ([1](#equation-01))、([2](#equation-02))、([3](#equation-03)) をロジックダイプロセッサの構成設計の指針として用いる ([第 6.2.3 節](#section-6-2-3))。
@@ -239,38 +241,30 @@ MoE エキスパートのマッピングを可能にする Stratum の重要な�
 
 <span id="figure-11"></span>
 
-![図 11. Example expert placement optimization for Mono3D DRAM-NMP system with tiered memory.](../../papers/stratum/figure-11.png)
+![図 11. 階層メモリを備えた Mono3D DRAM-NMP システムにおけるエキスパート配置最適化の例。](../../papers/stratum/figure-11.png)
 
-**図 11.** Example expert placement optimization for Mono3D DRAM-NMP system with tiered memory.
+**図 11.** 階層メモリを備えた Mono3D DRAM-NMP システムにおけるエキスパート配置最適化の例。
 
 <span id="algorithm-01"></span>
 
-**Algorithm 1. Expert Weight Placement.**
+**アルゴリズム 1. エキスパート重みの配置。**
 
-```text
-Require: number of layers L; experts per layer K; active experts k;
-        usage frequencies F = {f_p^l}; expert size S_E (bytes);
-        DRAM banks N_bank; row-buffer size S_rb (bytes);
-        rows reserved for NMP data Phi.
-Ensure: DRAM row-address intervals [a_p^l, b_p^l] for every expert.
-
-Delta <- ceil(S_E / (N_bank * S_rb))       // rows occupied by one expert
-tau <- kL                                      // threshold of fast experts
-Sort F in descending order as <f_(p_1)^(l_1), ..., f_(p_KL)^(l_KL)>
-for i <- 1 to KL do
-  if i <= tau then
-    a_(p_i)^(l_i) <- (i - 1) * Delta
-  else
-    a_(p_i)^(l_i) <- Phi - (KL - i + 1) * Delta
-  end if
-  b_(p_i)^(l_i) <- a_(p_i)^(l_i) + Delta - 1
-end for
-return {[a_p^l, b_p^l] | p in [1, K], l in [1, L]}
-```
+- **入力:** 層数 $L$、各層のエキスパート数 $K$、活性化エキスパート数 $k$、使用頻度 $F = \{f_p^l\}$、エキスパートサイズ $S_E$ (bytes)、DRAM bank 数 $N_{\mathrm{bank}}$、行バッファサイズ $S_{\mathrm{rb}}$ (bytes)、NMP データ用に予約する行 $\Phi$。
+- **出力:** 各エキスパートの DRAM 行アドレス区間 $[a_p^l, b_p^l]$。
+- $\Delta \leftarrow \lceil S_E / (N_{\mathrm{bank}} S_{\mathrm{rb}}) \rceil$ (1 エキスパートが占有する行数)。
+- $\tau \leftarrow kL$ (高速エキスパートの閾値)。
+- **降順にソート** $F$ し、$\langle f_{p_1}^{l_1}, \ldots, f_{p_{KL}}^{l_{KL}} \rangle$ とする。
+- **$i \leftarrow 1$ から $KL$ まで繰り返す:**
+  - **$i \leq \tau$ の場合:**
+    - $a_{p_i}^{l_i} \leftarrow (i - 1)\Delta$。
+  - **それ以外の場合:**
+    - $a_{p_i}^{l_i} \leftarrow \Phi - (KL - i + 1)\Delta$。
+  - $b_{p_i}^{l_i} \leftarrow a_{p_i}^{l_i} + \Delta - 1$。
+- **返す:** $\{[a_p^l, b_p^l] \mid p \in [1,K], l \in [1,L]\}$。
 
 Stratum は MoE モデル内のデータを、ホットエキスパート重み、コールドエキスパート重み、KV キャッシュ、非 NMP データの 4 種類に分類する。ホットエキスパートには共有エキスパートと、特定トピックでルーティング命中確率が高いその他のエキスパートが含まれる。非 NMP データは位置埋め込み、レイヤーノルムのシフト・スケールなどの雑多なパラメータで、通常は NMP ではなく外部プロセッサが計算に使う。メモリ層ごとの異なるアクセス遅延を利用することで、サービス性能を高めるデータ配置を最適化できる。
 
- [図 11](#figure-11) に示すように、Stratum は xPU が処理する非 NMP データを最も遅いメモリ層に置く。アクセス時にインターポーザのボトルネックを通る必要があり、最遅層の内部 DRAM 帯域より 1 桁遅いためである。これにより高速な層を NMP ワークロード専用に保てる。Stratum はトピック固有リクエストのオフラインプロファイリングに基づいてエキスパートをホットとコールドに分類し、ホットを高速層、コールドを低速層に割り当てる。この配置でホットエキスパートは高速 Mono3D DRAM 層の低遅延アクセスを受けられる。エキスパート重みの配置は Algorithm 1 に詳述する。各重みを shard に分割し、テンソル並列戦略に従って Mono3D DRAM bank に分散する ([第 4.1 節](#section-4-1))。Algorithm 1 で得た物理行アドレスから論理メモリ層へのマッピングは量子化に相当し、階層化テーブルで設定する ([第 3.2 節](#section-3-2))。評価では各層に同数の行を割り当てる均一マッピングを採用した ([第 6.2.1 節](#section-6-2-1))。リクエスト生成に伴い容量が動的に変わる KV キャッシュは中速メモリに置く。あるトピック (例 A) の処理が終わると、Stratum スケジューラは新しいトピック (例 B) へ移り、新トピックのエキスパート活性頻度に基づいて交換を開始する。高コストなホストプロセッサ転送を避けるため、交換は [第 3.2 節](#section-3-2) の近メモリ操作で実行する。具体的にはローカルメモリコントローラが 2 本の DRAM 行を専用行交換バッファへ一時保存し ([図 7](#figure-07)(c))、新しい行アドレスへ書き戻す。
+ [図 11](#figure-11) に示すように、Stratum は xPU が処理する非 NMP データを最も遅いメモリ層に置く。アクセス時にインターポーザのボトルネックを通る必要があり、最遅層の内部 DRAM 帯域より 1 桁遅いためである。これにより高速な層を NMP ワークロード専用に保てる。Stratum はトピック固有リクエストのオフラインプロファイリングに基づいてエキスパートをホットとコールドに分類し、ホットを高速層、コールドを低速層に割り当てる。この配置でホットエキスパートは高速 Mono3D DRAM 層の低遅延アクセスを受けられる。エキスパート重みの配置は アルゴリズム 1 に詳述する。各重みを shard に分割し、テンソル並列戦略に従って Mono3D DRAM bank に分散する ([第 4.1 節](#section-4-1))。アルゴリズム 1 で得た物理行アドレスから論理メモリ層へのマッピングは量子化に相当し、階層化テーブルで設定する ([第 3.2 節](#section-3-2))。評価では各層に同数の行を割り当てる均一マッピングを採用した ([第 6.2.1 節](#section-6-2-1))。リクエスト生成に伴い容量が動的に変わる KV キャッシュは中速メモリに置く。あるトピック (例 A) の処理が終わると、Stratum スケジューラは新しいトピック (例 B) へ移り、新トピックのエキスパート活性頻度に基づいて交換を開始する。高コストなホストプロセッサ転送を避けるため、交換は [第 3.2 節](#section-3-2) の近メモリ操作で実行する。具体的にはローカルメモリコントローラが 2 本の DRAM 行を専用行交換バッファへ一時保存し ([図 7](#figure-07)(c))、新しい行アドレスへ書き戻す。
 
 <span id="section-6"></span>
 
@@ -286,23 +280,23 @@ Stratum は MoE モデル内のデータを、ホットエキスパート重み�
 
 <span id="figure-12"></span>
 
-![図 12. Mono3D DRAM bank configuration. The performance is simulated from NeuroSim Neu24b and Coventor process simulator Cov24.](../../papers/stratum/figure-12.png)
+![図 12. Mono3D DRAM bank 構成。性能は NeuroSim と Coventor プロセスシミュレータでシミュレーションした。](../../papers/stratum/figure-12.png)
 
-**図 12.** Mono3D DRAM bank configuration. The performance is simulated from NeuroSim [Neu24b] and Coventor process simulator [Cov24].
+**図 12.** Mono3D DRAM bank 構成。性能は NeuroSim [Neu24b] と Coventor プロセスシミュレータ [Cov24] でシミュレーションした。
 
-For Mono3D DRAM technology, we adopt the vertical bitline connections for 3D stackable horizontal 1T1C. We design the Mono3D DRAM scaled to 1024 layers and define the bank structure as in [図 12](#figure-12), where 1024 BLs $\times$ 1024 WLs form a MAT and 1024 MATs form a bank. To illustrate the impact of heterogeneous integration, [図 13](#figure-13) presents a 3D view of the proposed Mono3D DRAM bank. The high-voltage circuits are implemented beneath the memory array using a mature CMOS-under-array process, while the low-voltage circuits are fabricated on an advanced CMOS die and later hybrid-bonded to the memory tiers through Cu–Cu bonding pads. In this work, we leverage the 32 nm technology node for the CUA process and the 7 nm technology node for the bonded CMOS tier. To obtain the bank-level results, we utilize the Coventor process model [Cov24] for RC parameter extraction of the 3D DRAM array, and combine it with the peripheral circuit results extracted from NeuroSim [Neu24b] merging with the timing of DDR5 Standards [Ddr20], as shown in [図 12](#figure-12). The 1T1C model of Mono3D DRAM is built by the Coventor SEMulator3D process simulator [Cov24] based on a 3D DRAM structure specification in [Ong23]. The detailed parameters are listed in [Table 1](#table-01). The overall Mono3D DRAM achieves a memory density of 2.156 Gb/mm<sup>2</sup>, which is $5.2\times$ higher than that of the latest 32Gb DDR5 die (0.417 Gb/mm<sup>2</sup>[A24a]). It provides an internal bandwidth ranging from 19.01 TB/s to 30.34 TB/s, depending on the memory tier.
+Mono3D DRAM では、3D スタッカブル水平 1T1C の垂直ビット線接続を採用する。Mono3D DRAM を 1024 層までスケールし、[図 12](#figure-12) のように bank 構成を定義する。1024 本の BL と 1024 本の WL で MAT を構成し、1024 個の MAT で bank を構成する。異種統合の影響を示すため、[図 13](#figure-13) に提案する Mono3D DRAM bank の 3D ビューを示す。高電圧回路は成熟した CMOS-under-array プロセスでメモリアレイの下に実装し、低電圧回路は先端 CMOS ダイで製造した後、Cu–Cu ボンディングパッドを介してメモリ層へハイブリッドボンディングする。本研究では CUA プロセスに 32 nm 技術ノード、ボンディング CMOS 層に 7 nm 技術ノードを用いる。bank レベルの結果を得るため、Coventor プロセスモデル [Cov24] で 3D DRAM アレイの RC パラメータを抽出し、NeuroSim [Neu24b] から得た周辺回路の結果と DDR5 規格のタイミング [Ddr20] を組み合わせる ([図 12](#figure-12))。Mono3D DRAM の 1T1C モデルは、[Ong23] の 3D DRAM 構造仕様に基づき Coventor SEMulator3D プロセスシミュレータ [Cov24] で構築する。詳細なパラメータを [表 1](#table-01) に示す。Mono3D DRAM 全体のメモリ密度は 2.156 Gb/mm<sup>2</sup> で、最新の 32Gb DDR5 ダイ (0.417 Gb/mm<sup>2</sup> [A24a]) の $5.2\times$ である。メモリ層に応じて 19.01 TB/s から 30.34 TB/s の内部帯域を提供する。
 
 <span id="figure-13"></span>
 
-![図 13. Mono3D DRAM array with heterogeneous integration, hybrid-bonding and CMOS-under-array (CUA).](../../papers/stratum/figure-13.png)
+![図 13. 異種統合、ハイブリッドボンディング、CMOS-under-array (CUA) を用いた Mono3D DRAM アレイ。](../../papers/stratum/figure-13.png)
 
-**図 13.** Mono3D DRAM array with heterogeneous integration, hybrid-bonding and CMOS-under-array (CUA).
+**図 13.** 異種統合、ハイブリッドボンディング、CMOS-under-array (CUA) を用いた Mono3D DRAM アレイ。
 
 <span id="table-01"></span>
 
-![Table 1. Monolithic 3D-Stackable DRAM Parameters](../../papers/stratum/table-01.png)
+![表 1. モノリシック 3D スタッカブル DRAM のパラメータ](../../papers/stratum/table-01.png)
 
-**表 1.** Monolithic 3D-Stackable DRAM Parameters
+**表 1.** モノリシック 3D スタッカブル DRAM のパラメータ
 
 <span id="section-6-1-2"></span>
 
@@ -316,13 +310,13 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 <span id="table-02"></span>
 
-![Table 2. Evaluation Workload Setup](../../papers/stratum/table-02.png)
+![表 2. 評価ワークロードの設定](../../papers/stratum/table-02.png)
 
-**表 2.** Evaluation Workload Setup
+**表 2.** 評価ワークロードの設定
 
 [表 2](#table-02) に示すモデル (MoE と通常の LLM) とシステム構成で評価する。各 GPU ベースラインと Stratum 構成は、性能を低下させず最大評価コンテキスト長を扱えるよう選んだ。GPU ベースラインは vLLM 0.8.1 [Kwo23a] のベンチマークスループットモードで評価し、Stratum の構成に応じて NVIDIA RTX A6000 または H100 SXM5 HBM3 GPU を用いる。GPU のエネルギーは NVIDIA-SMI ツールから得た。
 
-システムレベルシミュレータは、[図 6](#figure-06) に従い、リクエスト生成器、SLO 対応スケジューラ、メモリ・計算マッパーを含み、Stratum NMP シミュレータと接続する。リクエスト生成器は、特定トピックの入力クエリが定めたレートで到着するポアソン過程をモデル化する。サービス SLO を考慮し、スケジューラは入力クエリを動的に batch 化して Stratum プロセッサへ送り、ホットエキスパート命中を最大化するため同一トピックのクエリを優先する。エキスパート使用表の事前知識を使い、メモリマッパーは batch のトピックを集約し、Algorithm 1 のようにホット命中を最大化する Mono3D DRAM 配置を計算する。ディスパッチ間でメモリを再構成してエキスパートを移動する。シミュレーション中は xPU と NMP のエネルギー・遅延を累積する。
+システムレベルシミュレータは、[図 6](#figure-06) に従い、リクエスト生成器、SLO 対応スケジューラ、メモリ・計算マッパーを含み、Stratum NMP シミュレータと接続する。リクエスト生成器は、特定トピックの入力クエリが定めたレートで到着するポアソン過程をモデル化する。サービス SLO を考慮し、スケジューラは入力クエリを動的に batch 化して Stratum プロセッサへ送り、ホットエキスパート命中を最大化するため同一トピックのクエリを優先する。エキスパート使用表の事前知識を使い、メモリマッパーは batch のトピックを集約し、アルゴリズム 1 のようにホット命中を最大化する Mono3D DRAM 配置を計算する。ディスパッチ間でメモリを再構成してエキスパートを移動する。シミュレーション中は xPU と NMP のエネルギー・遅延を累積する。
 
 <span id="section-6-2"></span>
 
@@ -334,9 +328,9 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 <span id="figure-14"></span>
 
-![図 14. Mono3D DRAM latency across WL layers. The inset illustrates various access latencies according to the increasing WL RC delay when scaling the staircase for increasing WL layers.](../../papers/stratum/figure-14.png)
+![図 14. WL 層ごとの Mono3D DRAM 遅延。挿入図は、WL 層を増やすため階段構造をスケールしたとき、WL の RC 遅延の増加に伴って変化するアクセス遅延を示す。](../../papers/stratum/figure-14.png)
 
-**図 14.** Mono3D DRAM latency across WL layers. The inset illustrates various access latencies according to the increasing WL RC delay when scaling the staircase for increasing WL layers.
+**図 14.** WL 層ごとの Mono3D DRAM 遅延。挿入図は、WL 層を増やすため階段構造をスケールしたとき、WL の RC 遅延の増加に伴って変化するアクセス遅延を示す。
 
 [図 14](#figure-14) に示すように、Mono3D DRAM は異なる WL 層へアクセスする際、延長された WL 階段構造に対応してアクセス遅延がほぼ線形に増加する。WL 層を増やして垂直スケーリングすると、階段領域に対応する WL 寄生成分も増え、RC 遅延が長くなる。最下部 WL のクリティカルパスは長い遅延を受けるが、最上部 WL は短いアクセス遅延を持ち、システムレベルの最適化に利用できる。本研究では Mono3D DRAM にメモリ階層化を導入し、[図 14](#figure-14) のように層に対応する 8 つのタイミング層を定義する。高速層は最遅層より $1.6\times$ 高速にアクセスできる。
 
@@ -344,9 +338,9 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 #### 6.2.2 電力と面積の予算
 
-**Power.** The vertically integrated memory and logic dies require precise thermal modeling to determine the logic die’s power budget. We performed thermal simulations using the HotSpot [Tem03, Hot03] simulator for 3D IC. We consider high-end liquid cooling solutions with vapor chamber heat sinks. The heat sink is characterized by the following parameters: a convection capacitance of 75 J/K, a convection resistance of 0.01 W/K, and a thickness of 1 mm. The material properties include a thermal conductivity of 5000 J/(m$\cdot$K) and a specific heat capacity of $10^{6}$ J/(m${}^{3}\cdot$K). The thermal conductivity values are adopted from previous studies on vapor chamber thermal modeling [Per22a, Hea25a]. Additionally, advanced cooling fluids, such as phase change materials, achieve significantly reduced convection resistance of approximately $\mathrm{0.01\,W/K}$ [A22, Liq24]. Furthermore, we derived convection capacitance, heat sink thickness, and vapor specific heat parameters, explicitly considering the differences between conventional and vapor chamber heat sinks. Prior research demonstrates that state-of-the-art cooling methods for 3D ICs effectively manage power densities ranging up to $\mathrm{200\,W/cm^{2}}$ [The10]. Assuming full utilization of Mono3D DRAM internal bandwidth at 30.34 TB/s, each Mono3D DRAM die consumes approximately 104 W. Given the safe temperature for memory and data [Pow21], we conclude the logic die power caps at around 45W per chip.
+**電力。** 垂直統合されたメモリダイとロジックダイには、ロジックダイの電力予算を決めるための正確な熱モデルが必要である。3D IC 用の HotSpot シミュレータ [Tem03, Hot03] で熱シミュレーションを行った。蒸気チャンバー型ヒートシンクを用いる高性能液冷を想定する。ヒートシンクのパラメータは、対流容量 75 J/K、対流抵抗 0.01 W/K、厚さ 1 mm である。材料特性として、熱伝導率 5000 J/(m$\cdot$K)、比熱容量 $10^{6}$ J/(m${}^{3}\cdot$K) を用いる。熱伝導率は蒸気チャンバーの熱モデルに関する先行研究 [Per22a, Hea25a] から採用した。相変化材料などの先進冷却液は、対流抵抗を約 $\mathrm{0.01\,W/K}$ まで下げられる [A22, Liq24]。さらに、従来型ヒートシンクと蒸気チャンバー型ヒートシンクの差を考慮して、対流容量、ヒートシンク厚さ、蒸気の比熱パラメータを導出した。先行研究は、3D IC の先端冷却法で最大 $\mathrm{200\,W/cm^{2}}$ の電力密度を管理できることを示している [The10]。Mono3D DRAM の内部帯域 30.34 TB/s を最大限利用すると、各 Mono3D DRAM ダイの消費電力は約 104 W になる。メモリとデータの安全温度 [Pow21] を考慮し、ロジックダイの電力上限を 1 チップあたり約 45 W とした。
 
-**Area.** The Mono3D DRAM maintains compatibility with the xPU-DRAM interposer interface utilized by HBM3 [A22a], thereby requiring an HBM3 PHY module. The PHY module’s area overhead, computed for 16 physical channels each supporting 64-bit data I/O at 6.4 Gbps, totals 23.94 mm<sup>2</sup> [A24b, Sca17]. The logic die also has low-voltage Mono3D DRAM peripherals such as DQ buffer, level shifter, and address decoder, occupying 14.80 mm<sup>2</sup>. Power delivery to both Mono3D DRAM and the logic dies involves TSVs extending through the logic die from the interposer. Each TSV with an area of 25 $\mu$m<sup>2</sup> can deliver up to 36 mA [Exp24]. To accommodate peak power of 104 W for the Mono3D DRAM and 45W for the logic processor, the TSVs introduce an area overhead of 0.21 mm<sup>2</sup> when considering a 2:1 redundancy scheme. The logic die matches the Mono3D DRAM die area of 121 mm<sup>2</sup> (i.e., the base die dimensions of HBM3 [A22a]). Thus, the available area budget for the logic die processor is 82 mm<sup>2</sup>.
+**面積。** Mono3D DRAM は HBM3 で使われる xPU-DRAM インターポーザインターフェース [A22a] と互換であるため、HBM3 PHY モジュールが必要になる。PHY モジュールの面積オーバーヘッドは、64-bit データ I/O を 6.4 Gbps で支える 16 物理 channel を想定すると 23.94 mm<sup>2</sup> である [A24b, Sca17]。ロジックダイには DQ バッファ、レベルシフタ、アドレスデコーダなどの低電圧 Mono3D DRAM 周辺回路もあり、14.80 mm<sup>2</sup> を占める。Mono3D DRAM とロジックダイの電力供給には、インターポーザからロジックダイを貫通する TSV を用いる。面積 25 $\mu$m<sup>2</sup> の TSV 1 本は最大 36 mA を供給できる [Exp24]。Mono3D DRAM の 104 W とロジックプロセッサの 45 W のピーク電力に対応するため、2:1 の冗長化を考慮した TSV の面積オーバーヘッドは 0.21 mm<sup>2</sup> になる。ロジックダイの面積は Mono3D DRAM ダイと同じ 121 mm<sup>2</sup> (HBM3 のベースダイ寸法 [A22a]) とする。したがってロジックダイプロセッサに使える面積予算は 82 mm<sup>2</sup> である。
 
 <span id="section-6-2-3"></span>
 
@@ -354,17 +348,17 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 <span id="table-03"></span>
 
-![Table 3. Stratum Logic Die Processor Specification](../../papers/stratum/table-03.png)
+![表 3. Stratum ロジックダイプロセッサの仕様](../../papers/stratum/table-03.png)
 
-**表 3.** Stratum Logic Die Processor Specification
+**表 3.** Stratum ロジックダイプロセッサの仕様
 
 <span id="figure-15"></span>
 
-![図 15. (a) Area breakdown of logic die processor; (b) Power breakdown of Mono3D DRAM-Logic Die at peak performance.](../../papers/stratum/figure-15.png)
+![図 15. (a) ロジックダイプロセッサの面積内訳。(b) ピーク性能時の Mono3D DRAM-ロジックダイの電力内訳。](../../papers/stratum/figure-15.png)
 
-**図 15.** (a) Area breakdown of logic die processor; (b) Power breakdown of Mono3D DRAM-Logic Die at peak performance.
+**図 15.** (a) ロジックダイプロセッサの面積内訳。(b) ピーク性能時の Mono3D DRAM-ロジックダイの電力内訳。
 
-[Table 3](#table-03) summarizes the specifications of the Stratum logic die processor at the PE, PU, and chip hierarchy levels. We calculated the maximum number of MAC units using [Equation 1](#equation-01), employing a simulated per-MAC-operation energy of $E_{\mathrm{mac}}=0.604$ pJ. The processor achieves a peak performance of 128 TFLOPS with 64k MAC units operating at 1 GHz. The PE tensor core is arranged into a $16 \times 16$ array, providing a balanced matrix tile size to optimize utilization across diverse GeMM sizes. Additionally, a programmable tiering table stores row addresses of the last Mono3D DRAM layer and the tRCD for each tier. The incoming row addresses are compared with eight stored addresses to expedite tRCD lookup. The communication-computation optimizations adopted enable the on-chip ring to require only 128 GB/s bandwidth per link without performance degradation based on the system-level simulation. [図 15](#figure-15) presents the area and power breakdown of the Stratum NMP stack. The total area occupied by the active logic is 76.63 mm<sup>2</sup>, which falls within the 121 mm<sup>2</sup> area budget, yielding a utilization of 63%. The area is predominantly consumed by the PEs, which dominate the PU-level area. The tiering table introduces only a minimal overhead of 0.1% of the PE area within each PE. The Stratum NMP stack reaches a peak power of 144.53 W when the fastest Mono3D DRAM tier is accessed concurrently with full tensor core utilization. The total power of the logic die is 42.67 W, including compute, on-chip communication, and logic-die memory access, under the 45W power budget.
+[表 3](#table-03) は、PE、PU、チップの階層ごとに Stratum ロジックダイプロセッサの仕様をまとめたものである。[式 1](#equation-01) とシミュレーションで得た MAC 操作あたりのエネルギー $E_{\mathrm{mac}}=0.604$ pJ を使い、MAC ユニットの最大数を計算した。プロセッサは 1 GHz で動作する 64k 個の MAC ユニットにより、ピーク性能 128 TFLOPS を達成する。PE のテンソルコアは $16 \times 16$ アレイに配置し、多様な GeMM サイズでの利用率を高めるバランスのよい行列タイルサイズを提供する。プログラム可能な階層化テーブルには、最後の Mono3D DRAM 層の行アドレスと各層の tRCD を格納する。入力行アドレスを 8 個の格納アドレスと比較して tRCD の検索を高速化する。通信と計算の最適化により、システムレベルシミュレーションで性能を低下させず、チップ内リングはリンクあたり 128 GB/s の帯域だけを必要とする。[図 15](#figure-15) に Stratum NMP スタックの面積と電力の内訳を示す。アクティブロジックの総面積は 76.63 mm<sup>2</sup> で、121 mm<sup>2</sup> の予算内に収まり、利用率は 63% である。面積の大部分は PE が占め、PU レベルの面積も PE が支配する。階層化テーブルのオーバーヘッドは小さく、各 PE 内で PE 面積の 0.1% にすぎない。最速の Mono3D DRAM 層へアクセスしながらテンソルコアを完全利用すると、Stratum NMP スタックのピーク電力は 144.53 W になる。ロジックダイの総電力は、計算、チップ内通信、ロジックダイのメモリアクセスを含めて 42.67 W であり、45 W の電力予算を下回る。
 
 <span id="section-6-3"></span>
 
@@ -376,41 +370,41 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 <span id="figure-16"></span>
 
-![図 16. Evaluation and comparison of system decoding throughput and energy efficiency.](../../papers/stratum/figure-16.png)
+![図 16. システムのデコードスループットとエネルギー効率の評価と比較。](../../papers/stratum/figure-16.png)
 
-**図 16.** Evaluation and comparison of system decoding throughput and energy efficiency.
+**図 16.** システムのデコードスループットとエネルギー効率の評価と比較。
 
-**Model.** Our model is based on DistilBERT [San19] with 67M parameters and designed for multi-topic text classification, supporting sequences of up to 1024 tokens. It features a compact architecture with 6 transformer layers and 12 attention heads, with a hidden dimension of 3072.
+**モデル。** モデルは 67M パラメータの DistilBERT [San19] を基にし、最大 1024 token の系列を扱う多トピックテキスト分類用に設計した。6 個の Transformer 層、12 個の注意ヘッド、隠れ次元 3072 の小型構成である。
 
-**Data.** Our model training involves a customized data mix across 6 topics. The datasets include a 2% split of Pile of Law for legal topic [Pil22], 1 out of 3 splits from atlas converse and INCLUDE for humanity topic [Atl23, Rom24], 5% split of Programming books for CS topic [Pro25], SciQ and ARC-easy for science topic [Cro17, Cla18], GSM8K and MATH for math topic [Cob21, Hen21], Atlas reasoning for logic topic [Atl25]. For the above-mentioned 6-topic configuration, the data encompasses approximately 70 million tokens.
+**データ。** 学習には 6 トピックからなるカスタムデータ混合を使う。法律トピックには Pile of Law の 2% 分割 [Pil22]、人文トピックには atlas converse と INCLUDE の 3 分割の 1 つ [Atl23, Rom24]、CS トピックには Programming books の 5% 分割 [Pro25]、科学トピックには SciQ と ARC-easy [Cro17, Cla18]、数学トピックには GSM8K と MATH [Cob21, Hen21]、論理トピックには Atlas reasoning [Atl25] を用いる。この 6 トピック構成のデータは約 7000 万 token である。
 
-**Training and Evaluation.** To address distribution shifts from standard NLP datasets to diverse real-world prompts, we use a GPT-4o-based data synthesis pipeline. We sample 500 prompts from the Chatbot Arena dataset [Chi24] to reflect natural user styles, then use GPT-4o with a fixed system prompt to rewrite 50% of our training data into a QA format. We use a mix of rewritten and original data to train our topic classifier on a single A100 GPU for 3 epochs of 3 hours each. For evaluation, we use the MMLU test sets [Li23e] and hand-curated 180-example subsets of Chatbot arena conversations dataset [Chi24] with the 6 topics. Our trained classifier achieves 94.5% and 85.0% accuracy on MMLU and Chatbot arena test sets, close to the performance of OpenAI O3-mini-high (96.2%, 91.1%). The inference overhead of the model is less than 10ms with ONNX runtime on a regular laptop CPU. We use OpenAI-O3 LLM-as-a-judge to classify 33,000 real-world queries from LMArena [Chi24], which shows that our six coarse-grained topics cover 93% of queries, confirming the robustness and generality of TopicBERT’s taxonomy.
+**学習と評価。** 標準 NLP データセットから多様な実世界プロンプトへの分布シフトに対応するため、GPT-4o ベースのデータ合成パイプラインを使う。Chatbot Arena データセット [Chi24] から自然なユーザースタイルを反映する 500 個のプロンプトをサンプリングし、固定システムプロンプトを与えた GPT-4o で学習データの 50% を QA 形式へ書き換える。書き換えデータと元データを混ぜ、単一の A100 GPU で 3 epoch (各 3 時間) 学習する。評価には MMLU テストセット [Li23e] と、6 トピックを含む Chatbot Arena 会話データセット [Chi24] から人手で選んだ 180 例のサブセットを使う。学習済み分類器の精度は MMLU で 94.5%、Chatbot Arena テストセットで 85.0% であり、OpenAI O3-mini-high (96.2%、91.1%) に近い。通常のノート PC の CPU で ONNX Runtime を使う推論オーバーヘッドは 10 ms 未満である。OpenAI-O3 LLM-as-a-judge で LMArena [Chi24] の実世界クエリ 33,000 件を分類したところ、6 つの粗粒度トピックでクエリの 93% をカバーし、TopicBERT の分類体系の頑健性と一般性が得られた。
 
 <span id="section-6-3-2"></span>
 
 #### 6.3.2 システム性能
 
-[図 16](#figure-16) shows the normalized decoding throughput and energy efficiency when serving requests with equal input and output length. For Mono3D DRAM designs, we evaluate *no-tiering* and *tiering* approaches. In *no-tiering* design of Mono3D DRAM, Mono3D DRAM is treated as a single tier, therefore, the logic die is limited to operating under the worst memory access latency of the memory die. In *tiering*, Mono3D DRAM is divided into 8 tiers with fine-grained memory latency and data mapping optimizations given tiering. Stratum *tiering* consistently outperforms GPU baselines across all cases, averaging $8.29\times$, $5.39\times$, $6.13\times$, $4.48\times$ better decoding throughput for OLMoE, Mixtral, Qwen2.5, and Llama-4, respectively. Specifically, as decoding length grows, decoding on conventional GPUs with limited memory bandwidth becomes increasingly memory-bound, due to the quadratic complexity of the attention mechanism, explaining the growing gap of Stratum over GPU baselines. Stratum *no-tiering* as well outperforms GPU due to its higher internal bandwidth compared to HBM, even considering the worst-case latency. The internal memory tiering ([第 3.2 節](#section-3-2)) and MoE-specific data mapping optimizations ([第 5.2 節](#section-5-2)) further improve decoding throughput by averages of $1.45\times$, $1.39\times$, $1.32\times$, $1.34\times$ over *no-tiering* for the 4 models, respectively. Energy-wise, Stratum achieves up to $7.66\times$, $2.74\times$, $3.51\times$, $4.87\times$ better energy efficiency for the same decoding tasks across OLMoE, Mixtral, Qwen2.5, and Llama-4, respectively, due to cheaper memory access. We also extracted data from the previous work Duplex [Dup24] and made conservative scaling to compare with Stratum. Stratum achieves up to $2.9\times$, $2.5\times$, $3.0\times$, $2.2\times$ better throughput and $2.7\times$, $1.9\times$, $2.9\times$, $2.1\times$ energy over Duplex [Dup24] for OLMoE, Mixtral, Qwen2.5, and Llama-4.
+[図 16](#figure-16) は、入力と出力の長さが等しい要求を処理したときの正規化デコードスループットとエネルギー効率を示す。Mono3D DRAM では *no-tiering* と *tiering* を評価する。*no-tiering* では Mono3D DRAM を単一層として扱うため、ロジックダイはメモリダイの最悪アクセス遅延で動作する。*tiering* では Mono3D DRAM を 8 層に分け、階層化に基づく細粒度のメモリ遅延とデータマッピング最適化を行う。Stratum *tiering* は全ケースで GPU ベースラインを安定して上回り、OLMoE、Mixtral、Qwen2.5、Llama-4 のデコードスループットを平均でそれぞれ $8.29\times$、$5.39\times$、$6.13\times$、$4.48\times$ にする。デコード長が増えると、メモリ帯域の限られた従来 GPU のデコードは、注意機構の二次計算量により次第にメモリ律速となり、Stratum と GPU ベースラインの差が広がる。最悪遅延を考慮しても、Stratum *no-tiering* は HBM より高い内部帯域により GPU を上回る。内部メモリ階層化 ([第 3.2 節](#section-3-2)) と MoE 向けデータマッピング最適化 ([第 5.2 節](#section-5-2)) により、4 モデルのデコードスループットは *no-tiering* に対して平均でそれぞれ $1.45\times$、$1.39\times$、$1.32\times$、$1.34\times$ 向上する。エネルギー効率では、メモリアクセスが安価なため、同じデコードタスクで Stratum は OLMoE、Mixtral、Qwen2.5、Llama-4 に対してそれぞれ最大 $7.66\times$、$2.74\times$、$3.51\times$、$4.87\times$ を達成する。先行研究 Duplex [Dup24] のデータも抽出し、Stratum との比較のため保守的にスケールした。Stratum は Duplex と比べ、4 モデルでスループットをそれぞれ最大 $2.9\times$、$2.5\times$、$3.0\times$、$2.2\times$、エネルギーを $2.7\times$、$1.9\times$、$2.9\times$、$2.1\times$ 改善する。
 
 <span id="section-6-3-3"></span>
 
 #### 6.3.3 エキスパート配置の最適化
 
-**Effectiveness.** To study the effectiveness of expert placement in the tiered Mono3D DRAM, we scan the hot expert hit rate for Mixtral $8 \times 7$B on Stratum-L as shown in [図 17](#figure-17). The hot expert hit rate is defined as the ratio of aggregated hot expert to total expert accesses at the token level. Across decoding lengths, accurate hot expert usage prediction brings $1.32\times$ to $1.51\times$ better throughput over a uniformly distributed expert usage, or equivalently a naively managed tiered memory. The benefit is more noticeable on smaller decoding lengths, as the MLP dominates the decoding latency more. Using our topic prediction model, we achieve 31.6%, 48.5%, and 68.9% aggregated hot expert hit rates when serving Mixtral, OLMoE, and Llama-4.
+**有効性。** 階層化 Mono3D DRAM でのエキスパート配置の有効性を調べるため、[図 17](#figure-17) に示すように Stratum-L 上で Mixtral $8 \times 7$B のホットエキスパート命中率を走査する。ホットエキスパート命中率は、token レベルで集計したホットエキスパートアクセス数と全エキスパートアクセス数の比率である。デコード長全体で、ホットエキスパート使用を正確に予測すると、一様なエキスパート使用、つまり単純に管理した階層メモリに対してスループットが $1.32\times$ から $1.51\times$ 向上する。MLP がデコード遅延をより支配するため、デコード長が短いほど効果が大きい。トピック予測モデルを使うと、Mixtral、OLMoE、Llama-4 のサービスで集計ホットエキスパート命中率は 31.6%、48.5%、68.9% になる。
 
 <span id="figure-17"></span>
 
-![図 17. Impact of hot expert hit rates on (a) MLP (MoE layer) latency and (b) overall system throughput for Stratum-L.](../../papers/stratum/figure-17.png)
+![図 17. Stratum-L におけるホットエキスパート命中率が (a) MLP (MoE 層) 遅延と (b) システム全体のスループットに与える影響。](../../papers/stratum/figure-17.png)
 
-**図 17.** Impact of hot expert hit rates on (a) MLP (MoE layer) latency and (b) overall system throughput for Stratum-L.
+**図 17.** Stratum-L におけるホットエキスパート命中率が (a) MLP (MoE 層) 遅延と (b) システム全体のスループットに与える影響。
 
 <span id="table-04"></span>
 
-![Table 4. Overhead of Expert Swap across Mono3D DRAM Tiers](../../papers/stratum/table-04.png)
+![表 4. Mono3D DRAM 層間のエキスパート交換オーバーヘッド](../../papers/stratum/table-04.png)
 
-**表 4.** Overhead of Expert Swap across Mono3D DRAM Tiers
+**表 4.** Mono3D DRAM 層間のエキスパート交換オーバーヘッド
 
-**Costs.** The scheduler ([第 3.1 節](#section-3-1)) may trigger expert swaps *between batches*. To evaluate the worst-case scenario, we consider 1) short sequences, ${L_{\mathrm{in}}}={L_{\mathrm{out}}}=256$ with batch size one, and 2) consecutive batches assigned to different topics. [Table 4](#table-04) reports the time and energy overheads of expert swaps, which remain well below 1% across all benchmarks. This negligible cost stems from two factors: expert swaps occur within the same bank, avoiding cross-bank movement, and NMP logic includes dedicated row-swap buffers that enables swapping at the high internal Mono3D DRAM tier bandwidth without traversing the DRAM–xPU interface.
+**コスト。** スケジューラは ([第 3.1 節](#section-3-1))、*batch 間* でエキスパート交換を起こす可能性がある。最悪ケースとして、1) ${L_{\mathrm{in}}}={L_{\mathrm{out}}}=256$ の短い系列で batch size 1、2) 異なるトピックに割り当てられた連続 batch を考える。[表 4](#table-04) に示すエキスパート交換の時間・エネルギーオーバーヘッドは、すべてのベンチマークで 1% を大きく下回る。このコストが小さいのは、交換が同じ bank 内で行われ bank 間移動を避けられること、NMP ロジックに専用の行交換バッファがあり DRAM–xPU インターフェースを通らず Mono3D DRAM の高い内部帯域で交換できることによる。
 
 <span id="section-6-3-4"></span>
 
@@ -418,17 +412,17 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 <span id="figure-18"></span>
 
-![図 18. Impacts of (a) batch size and (b) Mono3D DRAM layers on system-level metrics, evaluated with Llama-4-Scout on Stratum-XL](../../papers/stratum/figure-18.png)
+![図 18. Stratum-XL 上の Llama-4-Scout で評価した (a) batch size と (b) Mono3D DRAM 層数のシステム指標への影響。](../../papers/stratum/figure-18.png)
 
-**図 18.** Impacts of (a) batch size and (b) Mono3D DRAM layers on system-level metrics, evaluated with Llama-4-Scout on Stratum-XL
+**図 18.** Stratum-XL 上の Llama-4-Scout で評価した (a) batch size と (b) Mono3D DRAM 層数のシステム指標への影響。
 
-[図 18](#figure-18)(a) evaluates Stratum’s performance scaling across different query batch sizes using the large-scale Llama-4-Scout [Lla25] benchmark. Batch sizes are chosen to ensure the full model fits within the Mono3D DRAM of Stratum or the HBM of the GPU baseline. Stratum consistently outperforms the GPU baseline across all settings by 4.7–$9.8\times$. However, the relative performance advantage reduces with larger batches, particularly at shorter sequence lengths (e.g., 1024 tokens), due to the GPU die’s higher compute-to-bandwidth ratio and the increased dominance of MoE layers in the overall runtime.
+[図 18](#figure-18)(a) は、大規模 Llama-4-Scout [Lla25] ベンチマークを使い、異なるクエリ batch size に対する Stratum の性能スケーリングを評価する。batch size は、完全なモデルが Stratum の Mono3D DRAM または GPU ベースラインの HBM に収まるよう選ぶ。すべての設定で Stratum は GPU ベースラインを 4.7–$9.8\times$ 上回る。ただし GPU ダイの高い計算・帯域比と、全体の実行時間における MoE 層の比重増加により、特に系列長が短い場合 (例: 1024 token) は batch が大きいほど相対的な優位性が小さくなる。
 
 <span id="section-6-3-5"></span>
 
 #### 6.3.5 Mono3D DRAM 層数による性能スケーリング
 
-[図 18](#figure-18)(b) reports Stratum’s performance scaling across different Mono3D DRAM layer configurations. All variants have the same DRAM capacity and use the same NMP logic die processor, and throughput is normalized to the die area of each Mono3D DRAM to ensure a fair, cost-aware comparison. On average, the 1024-layer design achieves $1.21\times$ and $2.96\times$ higher throughput per area than the 256-layer and 64-layer Mono3D DRAM, respectively, demonstrating the cost-efficiency benefits of adopting >1k-layer Mono3D DRAM.
+[図 18](#figure-18)(b) は、異なる Mono3D DRAM 層構成に対する Stratum の性能スケーリングを示す。すべての構成は同じ DRAM 容量と同じ NMP ロジックダイプロセッサを使い、公平でコストを考慮した比較のため、スループットを各 Mono3D DRAM のダイ面積で正規化する。平均すると、1024 層設計の面積あたりスループットは 256 層と 64 層の Mono3D DRAM よりそれぞれ $1.21\times$ と $2.96\times$ 高く、1k 層を超える Mono3D DRAM のコスト効率を示す。
 
 <span id="section-6-3-6"></span>
 
@@ -440,9 +434,9 @@ Stratum ロジックダイプロセッサの各コンポーネントは SystemVe
 
 ## 7 関連研究
 
-**3D Stackable DRAM.** Monolithic 3D-Stackable DRAM has emerged as a promising alternative to HBM by sequentially fabricating multiple DRAM layers on the same wafer. Unlike HBM, which depends on TSVs and costly die-stacking, Mono3D DRAM employs fine-pitch hybrid bonding for higher internal bandwidth and integration density [Ong23, A23, A22b, A23a, Sig25, Mon25]. Leading Mono3D DRAM technologies include Horizontal 1T1C [Ong23, A23], which reorients and stacks 1T1C DRAM cells, and Gate-Control Thyristors [A22b, A23a], which leverage avalanche mechanisms. Recent work further shows that Mono3D DRAM ’s $\sim$1$\mu$m bonding pitch [Che20a] enables up to $5\times$ denser vertical interconnects than HBM [Exp24].
+**3D スタッカブル DRAM。** モノリシック 3D スタッカブル DRAM は、同じウェハ上に複数の DRAM 層を順に製造することで、HBM の有力な代替として登場した。TSV と高コストのダイ積層に依存する HBM と異なり、Mono3D DRAM は微細ピッチのハイブリッドボンディングを用い、高い内部帯域と統合密度を実現する [Ong23, A23, A22b, A23a, Sig25, Mon25]。主な Mono3D DRAM 技術には、1T1C DRAM セルの向きを変えて積層する水平 1T1C [Ong23, A23] と、アバランシェ機構を利用するゲート制御サイリスタ [A22b, A23a] がある。最近の研究は、Mono3D DRAM の約 1$\mu$m のボンディングピッチ [Che20a] により、HBM より最大 $5\times$ 高密度な垂直接続を実現できることも示している [Exp24]。
 
-**Processing In/Near Memory Acceleration for Transformers.** While Processing In/Near Memory (PIM/PNM) has been a long-standing concept, MAT [Mat21a] first applied PIM to Transformer models, targeting a single encoder block with a memory-efficient pipelined sub-sequence flow. TransPIM [Tra22] extends this with a hybrid PIM-PNM architecture for full-model execution. Neupims [Neu24a] and AttAcc [Att24] focus on Decoder-only Transformer models, offloading attention layers in the decoding stage to the PNM on a xPU-PNM hybrid-processing system. Duplex [Dup24] further expanded support to MoE, GQA, and continuous batching with dynamic compute partitioning. However, all these designs rely on 2D DRAM or die-stacked HBM, limiting their effectiveness when applied to Mono3D DRAM-based systems.
+**Transformer のイン・ニアメモリ処理アクセラレーション。** インメモリ処理と近メモリ処理 (PIM/PNM) は長く研究されてきた概念である。MAT [Mat21a] は Transformer モデルに初めて PIM を適用し、単一エンコーダブロックを対象にメモリ効率のよいパイプライン型サブシーケンス処理を行った。TransPIM [Tra22] はこれを拡張し、完全なモデルを実行するハイブリッド PIM-PNM アーキテクチャを採用した。Neupims [Neu24a] と AttAcc [Att24] はデコーダ専用 Transformer モデルに焦点を当て、xPU-PNM ハイブリッド処理システムでデコード段階の注意層を PNM にオフロードする。Duplex [Dup24] はさらに MoE、GQA、連続 batch に対応し、計算を動的に分割した。しかし、これらの設計はすべて 2D DRAM またはダイ積層 HBM に依存しており、Mono3D DRAM ベースのシステムに適用すると効果が制限される。
 
 <span id="section-8"></span>
 
@@ -452,4 +446,4 @@ Stratum は効率的な MoE サービスのための新しいシステム・ハ�
 
 謝辞。本研究の一部は、DARPA が支援する SRC プログラム JUMP 2.0 のセンターである PRISM と CoCoSys の支援を受けた。また、米国国立科学財団 (NSF) の助成金 2112665、2112167、2003279、2120019、2211386 の支援を受けた。
 
-[+equal contribution]: Yue Pan and Zihan Xia contributed equally.
+[+equal contribution]: Yue Pan と Zihan Xia は同等に貢献した。

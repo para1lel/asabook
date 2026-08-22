@@ -105,6 +105,7 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 11. Add a stable two-digit HTML anchor immediately before every numbered figure or table object, such as `<span id="figure-08"></span>` or `<span id="table-03"></span>`.
 12. Link every figure and table reference in prose, captions, algorithms, and appendices to its local anchor. Use localized labels, for example `[Figure 8](#figure-08)`, `[图 8](#figure-08)`, and `[図 8](#figure-08)`.
 13. Link every number in a compound reference separately. Point subfigure references such as `Figure 16a` to the base figure anchor `#figure-16`. In Chinese, keep one space between `图` or `表` and its number, and one space between the linked reference and following Han text.
+14. When revising an existing paper, crop every figure and table from the published PDF itself. Do not substitute the original source image when the request requires PDF-faithful presentation; keep the crop metadata reproducible and use the same PDF crop in all languages.
 
 ## Register Citations and Navigation
 
@@ -127,6 +128,10 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 5. Prefer established local technical-document wording over literal calques. Rephrase within a sentence when needed for clarity and natural Chinese or Japanese, while preserving its content, logical relationships, and claim strength.
 6. Preserve official names for models, methods, APIs, datasets, and code identifiers instead of translating them mechanically. Resolve ambiguity from the TeX source and PDF; never guess by introducing a new interpretation.
 7. Follow every language rule in [references/style-guide.md](references/style-guide.md), especially Chinese half-width punctuation and spacing, faithful Japanese technical prose, and the shared concise title.
+8. Apply the `humanizer-zh` guidance when editing Simplified Chinese prose: remove formulaic AI phrasing, vague attribution, promotional wording, excessive connective phrases, repeated synonym substitutions, and unnecessary rhetorical padding while preserving the source meaning and sentence order.
+9. In the Chinese page, use ASCII half-width punctuation throughout visible prose, captions, headings, metadata text, and list items. Keep Markdown links, code, identifiers, and mathematical delimiters intact.
+10. Render all source lists as standard Markdown lists. Keep list items contiguous with no blank line between adjacent items; use nested indentation for hierarchy rather than manual bullets or paragraph-separated pseudo-lists.
+11. Match the published PDF's visual structure when revising layout: preserve figure/table placement order, captions, equation grouping, paragraph boundaries, and list grouping. Do not rewrite a PDF list as prose or a prose paragraph as a list unless the source does so.
 
 ## Validate the Result
 

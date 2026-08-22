@@ -33,13 +33,10 @@ Despite the numerous potential benefits offered by Mono3D DRAM, fully leveraging
 
 To address the challenges in serving large MoE models, we propose the Stratum system that integrates Mono3D DRAM, NMP, and GPU. This work makes the following key contributions:
 
-$\bullet$ For the first time, we propose a system-hardware co-design solution Stratum for MoE serving that leverages Monolithic 3D-Stackable DRAM. Our approach heterogeneously integrates high-density Mono3D DRAM dies with high-performance logic dies via 3D hybrid bonding, and further integrates this Mono3D DRAM stack with GPUs using a 2.5D silicon interposer. This architecture serves as a high-throughput and cost-effective alternative to conventional GPU-HBM-based MoE serving systems.
-
-$\bullet$ At the hardware level, we introduce an in-memory tiering mechanism that exploits the inherent access latency variations across Mono3D DRAM layers resulting from vertical scaling. Additionally, we propose an NMP processor tailored for hybrid-bonding-based Mono3D DRAM, incorporating optimized data mapping and communication strategies for both expert and attention execution.
-
-$\bullet$ At the system level, we observe the nonuniform activation frequency of experts depending on user request topics. Based on this, we classify experts into hot and cold categories and assign them to fast and slow tiers of Mono3D DRAM, respectively. The proposed topic-aware serving system queues and dispatches requests according to their topics, predicted by our and lightweight topic classifier, while adhering to defined service-level objectives (SLOs).
-
-$\bullet$ Cross-layer evaluations (device, circuit, algorithm, and system) demonstrate that Stratum achieves up to $8.29\times$ better decoding throughput and $7.66\times$ better energy efficiency in practical MoE serving scenarios, compared to state-of-the-art GPU-baselines.
+- For the first time, we propose a system-hardware co-design solution Stratum for MoE serving that leverages Monolithic 3D-Stackable DRAM. Our approach heterogeneously integrates high-density Mono3D DRAM dies with high-performance logic dies via 3D hybrid bonding, and further integrates this Mono3D DRAM stack with GPUs using a 2.5D silicon interposer. This architecture serves as a high-throughput and cost-effective alternative to conventional GPU-HBM-based MoE serving systems.
+- At the hardware level, we introduce an in-memory tiering mechanism that exploits the inherent access latency variations across Mono3D DRAM layers resulting from vertical scaling. Additionally, we propose an NMP processor tailored for hybrid-bonding-based Mono3D DRAM, incorporating optimized data mapping and communication strategies for both expert and attention execution.
+- At the system level, we observe the nonuniform activation frequency of experts depending on user request topics. Based on this, we classify experts into hot and cold categories and assign them to fast and slow tiers of Mono3D DRAM, respectively. The proposed topic-aware serving system queues and dispatches requests according to their topics, predicted by our lightweight topic classifier, while adhering to defined service-level objectives (SLOs).
+- Cross-layer evaluations (device, circuit, algorithm, and system) demonstrate that Stratum achieves up to $8.29\times$ better decoding throughput and $7.66\times$ better energy efficiency in practical MoE serving scenarios, compared to state-of-the-art GPU-baselines.
 
 <span id="section-2"></span>
 
@@ -196,8 +193,11 @@ The integration of Mono3D DRAM and the logic die processor via hybrid bonding mu
 <span id="equation-01"></span>
 
 $$
-\begin{array}[]{l}{P_{\mathrm{dram}}}+{P_{\mathrm{compute}}}+{P_{\mathrm{misc}}}\leq{P_{\mathrm{peak}}},\\
-{P_{\mathrm{dram}}}=\mathrm{BW}_{\mathrm{fast\_tier}}\cdot{E_{b}},\;\;\,{P_{\mathrm{compute}}}={N_{mac}}\cdot{f_{\mathrm{logic}}}\cdot{E_{\mathrm{mac}}}.\end{array}
+\begin{aligned}
+P_{\mathrm{dram}} + P_{\mathrm{compute}} + P_{\mathrm{misc}} &\leq P_{\mathrm{peak}},\\
+P_{\mathrm{dram}} &= \mathrm{BW}_{\mathrm{fast\_tier}} \cdot E_b,\\
+P_{\mathrm{compute}} &= N_{mac} \cdot f_{\mathrm{logic}} \cdot E_{\mathrm{mac}}.
+\end{aligned}
 $$
 
 Here, $\mathrm{BW}_{\mathrm{fast\_tier}}$ is the peak bandwidth of the fastest tier in Mono3D DRAM tier, $E_{b}$ represents the energy per bit for the data transfer from the DRAM layer to the logic die via hybrid bonding, $N_{mac}$ is the total number of multiply-accumulate (MAC) units in tensor cores, $f_{\mathrm{logic}}$ is the logic die operating frequency, and $E_{\mathrm{mac}}$ is the energy per MAC operation. The miscellaneous power, $P_{\mathrm{misc}}$, includes logic die SRAMs, register files, routers, special function engines, intra-PU reducers, and local memory controllers, varying according to the operator type and dataflow.
@@ -215,8 +215,10 @@ where $A_{\mathrm{PD}}$ is the total TSV for power delivery, $A_{\mathrm{mac}}$ 
 <span id="equation-03"></span>
 
 $$
-\begin{array}[]{l}{A_{\mathrm{PD}}}=(\frac{{{P_{\mathrm{dram\_c}}}}}{{{V_{\mathrm{dram\_c}}}}}+\frac{{{P_{\mathrm{dram\_p}}}}}{{{V_{\mathrm{dram\_p}}}}}+\frac{{{P_{\mathrm{compute}}}+{P_{\mathrm{misc}}}}}{{{V_{\mathrm{logic}}}}})\frac{{{A_{\mathrm{TSV}}}}}{{{I_{\mathrm{TSV}}}}},\\
-{P_{\mathrm{dram\_c}}}+{P_{\mathrm{dram\_p}}}={P_{\mathrm{dram}}}\end{array}
+\begin{aligned}
+A_{\mathrm{PD}} &= \left(\frac{P_{\mathrm{dram\_c}}}{V_{\mathrm{dram\_c}}} + \frac{P_{\mathrm{dram\_p}}}{V_{\mathrm{dram\_p}}} + \frac{P_{\mathrm{compute}} + P_{\mathrm{misc}}}{V_{\mathrm{logic}}}\right) \frac{A_{\mathrm{TSV}}}{I_{\mathrm{TSV}}},\\
+P_{\mathrm{dram\_c}} + P_{\mathrm{dram\_p}} &= P_{\mathrm{dram}}.
+\end{aligned}
 $$
 
 where $V_{\mathrm{dram\_c}}$, $V_{\mathrm{dram\_p}}$, and $V_{\mathrm{logic}}$ denotes the supply voltage of Mono3D DRAM core, high-voltage peripherals, and low-voltage logic die. Equations ([1](#equation-01)), ([2](#equation-02)), and ([3](#equation-03)) will be used to guide the design configuration of the logic die processor (see [Section 6.2.3](#section-6-2-3)).
@@ -247,26 +249,18 @@ To enable MoE expert mapping, a key component of Stratum is a topic classifier t
 
 **Algorithm 1. Expert Weight Placement.**
 
-```text
-Require: number of layers L; experts per layer K; active experts k;
-        usage frequencies F = {f_p^l}; expert size S_E (bytes);
-        DRAM banks N_bank; row-buffer size S_rb (bytes);
-        rows reserved for NMP data Phi.
-Ensure: DRAM row-address intervals [a_p^l, b_p^l] for every expert.
-
-Delta <- ceil(S_E / (N_bank * S_rb))       // rows occupied by one expert
-tau <- kL                                      // threshold of fast experts
-Sort F in descending order as <f_(p_1)^(l_1), ..., f_(p_KL)^(l_KL)>
-for i <- 1 to KL do
-  if i <= tau then
-    a_(p_i)^(l_i) <- (i - 1) * Delta
-  else
-    a_(p_i)^(l_i) <- Phi - (KL - i + 1) * Delta
-  end if
-  b_(p_i)^(l_i) <- a_(p_i)^(l_i) + Delta - 1
-end for
-return {[a_p^l, b_p^l] | p in [1, K], l in [1, L]}
-```
+- **Require:** number of layers $L$; experts per layer $K$; active experts $k$; usage frequencies $F = \{f_p^l\}$; expert size $S_E$ (bytes); DRAM banks $N_{\mathrm{bank}}$; row-buffer size $S_{\mathrm{rb}}$ (bytes); rows reserved for NMP data $\Phi$.
+- **Ensure:** DRAM row-address intervals $[a_p^l, b_p^l]$ for every expert.
+- $\Delta \leftarrow \lceil S_E / (N_{\mathrm{bank}} S_{\mathrm{rb}}) \rceil$ (rows occupied by one expert).
+- $\tau \leftarrow kL$ (threshold of fast experts).
+- **Sort** $F$ in descending order as $\langle f_{p_1}^{l_1}, \ldots, f_{p_{KL}}^{l_{KL}} \rangle$.
+- **For** $i \leftarrow 1$ to $KL$:
+  - **If** $i \leq \tau$:
+    - $a_{p_i}^{l_i} \leftarrow (i - 1)\Delta$.
+  - **Else:**
+    - $a_{p_i}^{l_i} \leftarrow \Phi - (KL - i + 1)\Delta$.
+  - $b_{p_i}^{l_i} \leftarrow a_{p_i}^{l_i} + \Delta - 1$.
+- **Return:** $\{[a_p^l, b_p^l] \mid p \in [1,K], l \in [1,L]\}$.
 
 Stratum categorizes the data within the MoE model into four types: hot expert weights, cold expert weights, KV cache, and non-NMP data. Hot experts include shared experts and other experts exhibiting high routing-hit probabilities for a given topic. Non-NMP data primarily consists of miscellaneous parameters such as positional embedding parameters, layer norm shift and scale parameters, and others. These are generally used for computation in the external processor rather than the NMP. By leveraging heterogeneous access latencies across different memory tiers, a data placement strategy can be optimized to enhance the serving performance.
 

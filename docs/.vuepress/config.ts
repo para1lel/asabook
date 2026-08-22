@@ -4241,7 +4241,6 @@ export default defineUserConfig({
     contributors: false,
     llmstxt: true,
     plugins: {
-      git: true,
       seo: {},
     },
     codeHighlighter: {
