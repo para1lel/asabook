@@ -182,7 +182,7 @@ $$
 
 当 top-$k$ 值超过 $n$ 时, 我们用 all-gather 和 reduce-scatter 取代传统的 all-to-all 通信. 首先, all-gather 操作从所有 worker 收集 token. 随后, 本地 scatter 操作丢弃不需要的 token, 只保留当前 worker 上的专家所需的 token. 专家完成计算后, token 被组装为完整张量. 这种方法可以在通信前执行 gather 操作, 然后用 reduce-scatter 生成最终结果, 从而确保 EP 的通信开销不高于 TP.
 
-在实际训练中, all-to-all 通信的效率低于 all-gather 和 reduce-scatter, 因为它要求每个 worker 与所有其他 worker 通信, 而 all-gather 和 reduce-scatter 遵循基于环的通信模式, 只在相邻 worker 之间通信. 如[图 7](#figure-07) 所示, 对 Mixtral-$8\times$7B 中这三种操作的通信时间进行比较后可以看出, 当 top-$k$ > 6 时, 基于 all-gather 的 EP 实现效率更高.
+在实际训练中, all-to-all 通信的效率低于 all-gather 和 reduce-scatter, 因为它要求每个 worker 与所有其他 worker 通信, 而 all-gather 和 reduce-scatter 遵循基于环的通信模式, 只在相邻 worker 之间通信. 如[图 7](#figure-07) 所示, 对 Mixtral-$8\times 7$B 中这三种操作的通信时间进行比较后可以看出, 当 top-$k$ > 6 时, 基于 all-gather 的 EP 实现效率更高.
 
 **高效算子.** 我们没有像 Megatron-LM 那样使用 `torch.scatter_add` 和 `torch.gather` 来 scatter 和 gather 张量, 而是直接使用 CUDA 开发高效的 scatter 和 gather 算子. 根据 token 路由结果, 我们预先计算输入张量中每一行 (代表一个 token) 到输出张量对应行的映射. 随后, scatter 和 gather 算子按照这一映射高效传输数据.
 
@@ -314,9 +314,9 @@ MegaScale-MoE 构建于 Megatron-LM [Sho19] 之上. Megatron-LM 是一个先进�
 
 <span id="figure-13"></span>
 
-![图 13. 在不同 GPU 上训练 Mixtral-$8\times$7B 的性能分解.](./megascale-moe/figure-13.png)
+![图 13. 在不同 GPU 上训练 Mixtral-$8\times 7$B 的性能分解.](./megascale-moe/figure-13.png)
 
-**图 13.** 在不同 GPU 上训练 Mixtral-$8\times$7B 的性能分解.
+**图 13.** 在不同 GPU 上训练 Mixtral-$8\times 7$B 的性能分解.
 
 <span id="table-04"></span>
 
@@ -324,7 +324,7 @@ MegaScale-MoE 构建于 Megatron-LM [Sho19] 之上. Megatron-LM 是一个先进�
 
 **表 4.** 不同 NVIDIA GPU 的规格.
 
-**不同 GPU 上的性能分解.** 我们深入分析 MegaScale-MoE, 以进一步了解生产环境中训练 MoE 模型的性能. 我们分别在 32 块 NVIDIA H800, H20 和 A100 GPU 上训练 Mixtral-$8\times$7B. 所用 GPU 的规格见[表 4](#table-04). 我们将 DP size 设为 4, Megatron-LM 的 TP size 设为 8, MegaScale-MoE 的 SP 和 EP size 设为 8. 如[图 13b](#figure-13) 所示, 在四种 GPU 上, MegaScale-MoE 的 MFU 始终高于 Megatron-LM, 最高达到后者的 $1.58\times$. [图 13a](#figure-13) 展示了 Megatron-LM 与 MegaScale-MoE 的迭代时间分解. 暴露的通信时间是未与计算操作重叠的通信时间. 我们计算 MFU 时计入 FlashAttention 和 GEMM 操作. 性能提升主要来自 MegaScale-MoE 通信高效的并行策略和细粒度重叠通信.
+**不同 GPU 上的性能分解.** 我们深入分析 MegaScale-MoE, 以进一步了解生产环境中训练 MoE 模型的性能. 我们分别在 32 块 NVIDIA H800, H20 和 A100 GPU 上训练 Mixtral-$8\times 7$B. 所用 GPU 的规格见[表 4](#table-04). 我们将 DP size 设为 4, Megatron-LM 的 TP size 设为 8, MegaScale-MoE 的 SP 和 EP size 设为 8. 如[图 13b](#figure-13) 所示, 在四种 GPU 上, MegaScale-MoE 的 MFU 始终高于 Megatron-LM, 最高达到后者的 $1.58\times$. [图 13a](#figure-13) 展示了 Megatron-LM 与 MegaScale-MoE 的迭代时间分解. 暴露的通信时间是未与计算操作重叠的通信时间. 我们计算 MFU 时计入 FlashAttention 和 GEMM 操作. 性能提升主要来自 MegaScale-MoE 通信高效的并行策略和细粒度重叠通信.
 
 需要注意的是, GPU 计算能力越高, MFU 值反而越低. 这是因为 MoE 模型不同于稠密模型, 它包含路由, 本地 scatter 和 gather 等许多内存密集型操作; 内存带宽的增长没有计算能力快, 因而这些操作依然耗时. 此外, 计算能力提升时 GEMM 效率也会下降, 因为它同样依赖内存加载, 受到内存带宽限制.
 
@@ -382,7 +382,7 @@ MegaScale-MoE 构建于 Megatron-LM [Sho19] 之上. Megatron-LM 是一个先进�
 
 **图 18.** 采用 DP 通信压缩的 MegaScale-MoE 训练损失曲线.
 
-**选择性激活重物化.** 我们将 MegaScale-MoE 与禁用选择性激活重物化的基线 (No SAR) 进行比较, 后者在训练期间将所有激活存入 GPU 内存. 我们在 128 块 NVIDIA H800 GPU 上训练 Mixtral-$8\times$7B 和 Mixtral-$8\times$22B, 以评估这两种方法. [图 17](#figure-17) 展示了内存使用分解和训练 MFU. 与 No SAR 相比, MegaScale-MoE 在两个模型上分别将激活内存消耗降低 45.5% 和 57.2%, 使总内存分别减少 21.3% 和 35%, 同时将训练性能差异保持在 0.5% 以内.
+**选择性激活重物化.** 我们将 MegaScale-MoE 与禁用选择性激活重物化的基线 (No SAR) 进行比较, 后者在训练期间将所有激活存入 GPU 内存. 我们在 128 块 NVIDIA H800 GPU 上训练 Mixtral-$8\times 7$B 和 Mixtral-$8\times 22$B, 以评估这两种方法. [图 17](#figure-17) 展示了内存使用分解和训练 MFU. 与 No SAR 相比, MegaScale-MoE 在两个模型上分别将激活内存消耗降低 45.5% 和 57.2%, 使总内存分别减少 21.3% 和 35%, 同时将训练性能差异保持在 0.5% 以内.
 
 **数据并行通信压缩.** 我们按照[第 5 节](#section-5) 的说明, 使用 BF16 all-to-all DP 通信和 FP32 reduce-scatter 通信训练 7B MoE 模型, 以验证通信压缩技术的有效性. [图 18](#figure-18) 展示了训练损失曲线, 它们几乎完全相同. 该优化只压缩 batch 的累加梯度, 并且只在通信期间执行 BF16 与 FP32 之间的转换, 因而引入的风险很小.
 
