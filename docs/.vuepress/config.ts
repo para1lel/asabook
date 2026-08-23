@@ -3495,6 +3495,17 @@ const paperAbbreviations = {
   'A22b': 'Wei-Chen Chen, Hang-Ting Lue, Meng-Yan Wu, Teng-Hao Yeh, Pei-Ying Du, Tzu-Hsuan Hsu, Chih-Chang Hsieh, Keh-Chung Wang, and Chih-Yuan Lu. 2022. A 3D stackable DRAM: Capacitor-less three-wordline gate-controlled thyristor (GCT) RAM with> 40 μ\\mu a current sensing window,> 10 10 Endurance, and 3-second retention at room temperature. In 2022 International Electron Devices Meeting (IEDM). IEEE, 26–3.',
   'A23a': 'Wei-Chen Chen, Hang-Ting Lue, Ming-Hung Wu, Yu-Tang Lin, Keh-Chung Wang, and Chih-Yuan Lu. 2023. A highly pitch-scalable capacitor-less 3D DRAM using cross-bar selection with gate-controlled thyristor (GCT) featuring high endurance and free read-disturb. In 2023 International Electron Devices Meeting (IEDM). IEEE, 1–4.',
   'Mat21a': 'Minxuan Zhou, Yunhui Guo, Weihong Xu, Bin Li, Kevin W Eliceiri, and Tajana Rosing. 2021. MAT: Processing in-memory acceleration for long-sequence attention. In 2021 58th ACM/IEEE Design Automation Conference (DAC). IEEE, 25–30.',
+  'Cha23c': 'Yapei Chang, Kyle Lo, Tanya Goyal, and Mohit Iyyer. "BooookScore: A Systematic Exploration of Book-Length Summarization in the Era of LLMs." arXiv:2310.00785. 2023. [Link](https://arxiv.org/abs/2310.00785)',
+  'Din24d': 'Yiran Ding, Li Lyna Zhang, Chengruidong Zhang, Yuanyuan Xu, Ning Shang, Jiahang Xu, Fan Yang, and Mao Yang. "LongRoPE: Extending LLM Context Window Beyond 2 Million Tokens." arXiv:2402.13753. 2024. [Link](https://arxiv.org/abs/2402.13753)',
+  'Fan25e': 'Guang Fan, Mingzhe Zhang, Fangyu Zheng, Shengyu Fan, Tian Zhou, Xianglong Deng, Wenxu Tang, Liang Kong, Yixuan Song, and Shoumeng Yan. "WarpDrive: GPU-Based Fully Homomorphic Encryption Acceleration Leveraging Tensor and CUDA Cores." HPCA 2025, pp. 1187-1200.',
+  'Luo24b': 'Weile Luo, Ruibo Fan, Zeyu Li, Dayou Du, Qiang Wang, and Xiaowen Chu. "Benchmarking and Dissecting the NVIDIA Hopper GPU Architecture." arXiv:2402.13499. 2024. [Link](https://arxiv.org/abs/2402.13499)',
+  'Nvi25e': 'NVIDIA and OpenAI. "OpenAI Triton on NVIDIA Blackwell Boosts AI Performance and Programmability." 2025. [Link](https://developer.nvidia.com/blog/openai-triton-on-nvidia-blackwell-boosts-ai-performance-and-programmability/)',
+  'Ope25k': 'OpenAI. "OpenAI o3-mini." 2025. [Link](https://openai.com/index/openai-o3-mini/)',
+  'San15': 'Suhelah Sandokji, Fathy Essa, and Mai Fadel. "A Survey of Techniques for Warp Scheduling in GPUs." ICICIS 2015, pp. 600-606.',
+  'Su25c': 'Zunhai Su, Zhe Chen, Wang Shen, Hanyu Wei, Linge Li, Huangqi Yu, and Kehong Yuan. "RotateKV: Accurate and Robust 2-Bit KV Cache Quantization for LLMs via Outlier-Aware Adaptive Rotations." arXiv:2501.16383. 2025. [Link](https://arxiv.org/abs/2501.16383)',
+  'Sun25e': 'Luoyang Sun, Jiwen Jiang, Cheng Deng, Xinjian Wu, Haifeng Zhang, Lei Chen, Lionel Ni, and Jun Wang. "GTA: Grouped-head latenT Attention." arXiv:2506.17286. 2025. [Link](https://arxiv.org/abs/2506.17286)',
+  'Tao24a': 'Qian Tao, Wenyuan Yu, and Jingren Zhou. "AsymKV: Enabling 1-bit Quantization of KV Cache with Layer-wise Asymmetric Quantization Configurations." arXiv:2410.13212. 2024. [Link](https://arxiv.org/abs/2410.13212)',
+  'Yan23d': 'Xiaocui Yang, Wenfang Wu, Shi Feng, Ming Wang, Daling Wang, Yang Li, Qi Sun, Yifei Zhang, Xiaoming Fu, and Soujanya Poria. "MM-BigBench: Evaluating Multimodal Models on Multimodal Content Comprehension Tasks." arXiv:2310.09036. 2023. [Link](https://arxiv.org/abs/2310.09036)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -3795,7 +3806,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'smoothquant', 'awq', 'low-bit-llms'],
+                items: ['quantization-methods-survey', 'llm-int8', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推理框架',
@@ -3922,7 +3933,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'smoothquant', 'awq', 'low-bit-llms'],
+                items: ['quantization-methods-survey', 'llm-int8', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: 'Inference Frameworks',
@@ -4159,7 +4170,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'smoothquant', 'awq', 'low-bit-llms'],
+                items: ['quantization-methods-survey', 'llm-int8', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推論フレームワーク',
