@@ -130,7 +130,7 @@ Turn one arXiv identifier into a source-faithful three-language ASa Book reading
 7. Follow every language rule in [references/style-guide.md](references/style-guide.md), especially Chinese half-width punctuation and spacing, faithful Japanese technical prose, and the shared concise title.
 8. Apply the `humanizer-zh` guidance when editing Simplified Chinese prose: remove formulaic AI phrasing, vague attribution, promotional wording, excessive connective phrases, repeated synonym substitutions, and unnecessary rhetorical padding while preserving the source meaning and sentence order.
 9. In the Chinese page, use ASCII half-width punctuation throughout visible prose, captions, headings, metadata text, and list items. Keep Markdown links, code, identifiers, and mathematical delimiters intact.
-10. Render all source lists as standard Markdown lists. Keep list items contiguous with no blank line between adjacent items; use nested indentation for hierarchy rather than manual bullets or paragraph-separated pseudo-lists.
+10. Render every source list as a standard Markdown unordered or ordered list, using `-` (or `*`) and `1.` markers. This applies to all list-like content, not only algorithms: never emulate a list with bold paragraphs, manual numeric prefixes, or paragraph-separated pseudo-items. Keep adjacent list items contiguous and use nested indentation for hierarchy.
 11. Match the published PDF's visual structure when revising layout: preserve figure/table placement order, captions, equation grouping, paragraph boundaries, and list grouping. Do not rewrite a PDF list as prose or a prose paragraph as a list unless the source does so.
 
 ## Validate the Result

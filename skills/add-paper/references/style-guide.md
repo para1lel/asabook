@@ -109,6 +109,7 @@ Localized summaries use the same body structure:
 
 ## Algorithms
 
+- Render every list in a paper page as a standard Markdown unordered or ordered list with `-` (or `*`) or `1.` markers. Do not emulate lists with bold paragraphs, manual numeric prefixes, or blank-line-separated pseudo-items.
 - Render math-heavy algorithms as unordered Markdown lists, not `pseudocode` fences.
 - Put the algorithm title in bold above the list.
 - Use nested list indentation to express branches, loops, and substeps.
