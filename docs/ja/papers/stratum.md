@@ -5,7 +5,7 @@ permalink: /ja/papers/stratum/
 pageClass: paper-reading
 ---
 
-> [Yue Pan](https://dblp.org/pid/385/3702)、[Zihan Xia](https://dblp.org/pid/244/0846) [+equal contribution]、[Po-Kai Hsu](https://shimeng.ece.gatech.edu/people/)、[Lanxiang Hu](https://snyhlx.github.io/)、[Hyungyo Kim](https://cubic.engineering.columbia.edu/directory/hyungyo-kim)、[Janak Sharda](https://grad.gatech.edu/events/phd-dissertation-defense-janak-sharda)、[Minxuan Zhou](https://zhouminxuan.github.io/)、[Nam Sung Kim](https://ece.illinois.edu/about/directory/faculty/nskim)、[Shimeng Yu](https://ece.gatech.edu/directory/shimeng-yu)、[Tajana Rosing](https://cseweb.ucsd.edu/~trosing/)、[Mingu Kang](https://jacobsschool.ucsd.edu/node/3664)。2025 年 10 月 6 日に arXiv へ初版を投稿し、現在の版は v1。[Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving](https://arxiv.org/abs/2510.05245)。[原論文 PDF](/paper/stratum.pdf)。[DOI](https://doi.org/10.48550/arXiv.2510.05245)。[MICRO '25 DOI](https://doi.org/10.1145/3725843.3756043)。[TeX ソース](https://export.arxiv.org/e-print/2510.05245v1)。正確な印刷レイアウトと参考文献は原論文 PDF に従う。
+> [Yue Pan](https://dblp.org/pid/385/3702)、[Zihan Xia](https://dblp.org/pid/244/0846) [+equal-contribution]、[Po-Kai Hsu](https://shimeng.ece.gatech.edu/people/)、[Lanxiang Hu](https://snyhlx.github.io/)、[Hyungyo Kim](https://cubic.engineering.columbia.edu/directory/hyungyo-kim)、[Janak Sharda](https://grad.gatech.edu/events/phd-dissertation-defense-janak-sharda)、[Minxuan Zhou](https://zhouminxuan.github.io/)、[Nam Sung Kim](https://ece.illinois.edu/about/directory/faculty/nskim)、[Shimeng Yu](https://ece.gatech.edu/directory/shimeng-yu)、[Tajana Rosing](https://cseweb.ucsd.edu/~trosing/)、[Mingu Kang](https://jacobsschool.ucsd.edu/node/3664)。2025 年 10 月 6 日に arXiv へ初版を投稿し、現在の版は v1。[Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving](https://arxiv.org/abs/2510.05245)。[原論文 PDF](/paper/stratum.pdf)。[DOI](https://doi.org/10.48550/arXiv.2510.05245)。[MICRO '25 DOI](https://doi.org/10.1145/3725843.3756043)。[TeX ソース](https://export.arxiv.org/e-print/2510.05245v1)。正確な印刷レイアウトと参考文献は原論文 PDF に従う。
 
 ## 概要
 
@@ -446,4 +446,4 @@ Stratum は効率的な MoE サービスのための新しいシステム・ハ�
 
 謝辞。本研究の一部は、DARPA が支援する SRC プログラム JUMP 2.0 のセンターである PRISM と CoCoSys の支援を受けた。また、米国国立科学財団 (NSF) の助成金 2112665、2112167、2003279、2120019、2211386 の支援を受けた。
 
-[+equal contribution]: Yue Pan と Zihan Xia は同等に貢献した。
+[+equal-contribution]: Yue Pan と Zihan Xia は同等に貢献した。

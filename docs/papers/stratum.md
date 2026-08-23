@@ -5,7 +5,7 @@ permalink: /papers/stratum/
 pageClass: paper-reading
 ---
 
-> [Yue Pan](https://dblp.org/pid/385/3702), [Zihan Xia](https://dblp.org/pid/244/0846) [+equal contribution], [Po-Kai Hsu](https://shimeng.ece.gatech.edu/people/), [Lanxiang Hu](https://snyhlx.github.io/), [Hyungyo Kim](https://cubic.engineering.columbia.edu/directory/hyungyo-kim), [Janak Sharda](https://grad.gatech.edu/events/phd-dissertation-defense-janak-sharda), [Minxuan Zhou](https://zhouminxuan.github.io/), [Nam Sung Kim](https://ece.illinois.edu/about/directory/faculty/nskim), [Shimeng Yu](https://ece.gatech.edu/directory/shimeng-yu), [Tajana Rosing](https://cseweb.ucsd.edu/~trosing/) 和 [Mingu Kang](https://jacobsschool.ucsd.edu/node/3664). 论文于 2025 年 10 月 6 日首次提交至 arXiv, 当前版本为 v1. [Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving](https://arxiv.org/abs/2510.05245). [原始论文 PDF](/paper/stratum.pdf). [DOI](https://doi.org/10.48550/arXiv.2510.05245). [MICRO '25 DOI](https://doi.org/10.1145/3725843.3756043). [TeX 源文件](https://export.arxiv.org/e-print/2510.05245v1). 精确的印刷版式和参考文献以原始 PDF 为准.
+> [Yue Pan](https://dblp.org/pid/385/3702), [Zihan Xia](https://dblp.org/pid/244/0846) [+equal-contribution], [Po-Kai Hsu](https://shimeng.ece.gatech.edu/people/), [Lanxiang Hu](https://snyhlx.github.io/), [Hyungyo Kim](https://cubic.engineering.columbia.edu/directory/hyungyo-kim), [Janak Sharda](https://grad.gatech.edu/events/phd-dissertation-defense-janak-sharda), [Minxuan Zhou](https://zhouminxuan.github.io/), [Nam Sung Kim](https://ece.illinois.edu/about/directory/faculty/nskim), [Shimeng Yu](https://ece.gatech.edu/directory/shimeng-yu), [Tajana Rosing](https://cseweb.ucsd.edu/~trosing/) 和 [Mingu Kang](https://jacobsschool.ucsd.edu/node/3664). 论文于 2025 年 10 月 6 日首次提交至 arXiv, 当前版本为 v1. [Stratum: System-Hardware Co-Design with Tiered Monolithic 3D-Stackable DRAM for Efficient MoE Serving](https://arxiv.org/abs/2510.05245). [原始论文 PDF](/paper/stratum.pdf). [DOI](https://doi.org/10.48550/arXiv.2510.05245). [MICRO '25 DOI](https://doi.org/10.1145/3725843.3756043). [TeX 源文件](https://export.arxiv.org/e-print/2510.05245v1). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 
@@ -446,4 +446,4 @@ Stratum 逻辑裸片处理器的组件使用 SystemVerilog 实现, 并使用 Cad
 
 致谢. 本文部分工作得到 PRISM 和 CoCoSys 的支持; 二者是 JUMP 2.0 中心, 由 DARPA 资助的 SRC 项目. 本文还得到美国国家科学基金会 (NSF) 资助, 项目编号为 2112665, 2112167, 2003279, 2120019 和 2211386.
 
-[+equal contribution]: Yue Pan 和 Zihan Xia 贡献相同.
+[+equal-contribution]: Yue Pan 和 Zihan Xia 贡献相同.
