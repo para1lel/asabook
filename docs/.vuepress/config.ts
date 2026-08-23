@@ -3895,7 +3895,7 @@ export default defineUserConfig({
               {
                 text: '处理器架构',
                 collapsed: true,
-                items: ['efficient-dnn-processing', 'llmcompass', 'neupims', 'stratum', 'kelle'],
+                items: ['efficient-dnn-processing', 'llmcompass', 'neupims', 'stratum', 'kelle', 'deca'],
               },
             ],
           },
@@ -4022,7 +4022,7 @@ export default defineUserConfig({
               {
                 text: 'Processor Architecture',
                 collapsed: true,
-                items: ['efficient-dnn-processing', 'llmcompass', 'neupims', 'stratum', 'kelle'],
+                items: ['efficient-dnn-processing', 'llmcompass', 'neupims', 'stratum', 'kelle', 'deca'],
               },
             ],
           },
@@ -4259,7 +4259,7 @@ export default defineUserConfig({
               {
                 text: 'プロセッサアーキテクチャ',
                 collapsed: true,
-                items: ['efficient-dnn-processing', 'llmcompass', 'neupims', 'stratum', 'kelle'],
+                items: ['efficient-dnn-processing', 'llmcompass', 'neupims', 'stratum', 'kelle', 'deca'],
               },
             ],
           },
