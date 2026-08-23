@@ -36,6 +36,8 @@ No formatter or linter is configured; follow the surrounding style and avoid unr
 
 There is no automated test framework or coverage requirement. The required check is a successful production build. For navigation or styling changes, also inspect both `/vndb/` and `/csdiy/` in the development server at desktop and mobile widths.
 
+For browser-based visual checks, use the connected Chrome browser when it is available. A failed generic or default browser lookup does not prove that Chrome is unavailable; when Chrome is requested, select the Chrome connection explicitly and verify it before reporting a limitation. Start the local development server on an explicit loopback port, inspect every affected route at desktop and mobile viewport sizes, confirm images are loaded and do not introduce horizontal overflow, then reset temporary viewport overrides and close test tabs.
+
 After testing, stop any local development or preview servers started for the task. Do not leave test servers running when handing off the completed work.
 
 ## Add Paper Skill
