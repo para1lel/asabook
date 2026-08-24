@@ -1,4 +1,12 @@
 @font-face {
+  font-family: "Lucida Handwriting";
+  src: url("../assets/fonts/LHANDW.TTF") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: "FiraCode Nerd Font";
   src: url("../assets/fonts/fira-code-nerd-font/FiraCodeNerdFont-Regular.ttf") format("truetype");
   font-weight: 400;
@@ -17,7 +25,7 @@
 :root,
 :root:where(:lang(zh)),
 :root:where(:lang(zh-CN)) {
-  --vp-font-family-base: "LXGW WenKai", sans-serif;
+  --vp-font-family-base: "FiraCode Nerd Font", "FiraCode Nerd Font Mono", "LXGW WenKai", sans-serif;
   --vp-font-family-mono: "FiraCode Nerd Font Mono", "FiraCode Nerd Font", "LXGW WenKai", monospace;
 }
 
@@ -31,7 +39,7 @@ button,
 input,
 textarea,
 select {
-  font-family: "LXGW WenKai", sans-serif !important;
+  font-family: "Lucida Handwriting", "LXGW WenKai", sans-serif !important;
 }
 
 code,

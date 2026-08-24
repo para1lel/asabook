@@ -369,9 +369,15 @@ context switch は命令の間でのみ起こる。したがって新しいプ�
 
 **表 2.** DECA と他のコア内/近コアアクセラレータの比較。
 
-tile あたりの vOp 数は $\#\mathrm{vOps}=512/W$ である。各 tile は 512 要素を持ち, 1 vOp で W 要素を生成するためである。tile あたりの bubble 数を $\#\mathrm{bbl}=\#\mathrm{vOps}\cdot\mathit{bpv}$ と表す。$\mathit{bpv}$ は vOp あたりの bubble 数である。bubble は Dequantization stage の資源不足だけで生じるため, 1 サイクルに逆量子化できる最大要素数を $L_q$ とする。8 ビット量子化では $L_q=L$, 7 ビットでは $2*L$, 6 ビット以下では $4*L$ である。疎性がなければ $\mathit{bpv}=\lceil W/L_q\rceil-1$。疎性がある場合, bubble 数は圧縮 tile の非ゼロ数に依存するため決定的でない。密度 $d$ の行列で非ゼロが一様に分布すると仮定すると, 連続する W 個の行列要素に含まれる非ゼロ数はパラメータ W, d の二項分布になる。bubble の期待数は次で計算する: $$\begin{aligned}
+tile あたりの vOp 数は $\#\mathrm{vOps}=512/W$ である。各 tile は 512 要素を持ち, 1 vOp で W 要素を生成するためである。tile あたりの bubble 数を $\#\mathrm{bbl}=\#\mathrm{vOps}\cdot\mathit{bpv}$ と表す。$\mathit{bpv}$ は vOp あたりの bubble 数である。bubble は Dequantization stage の資源不足だけで生じるため, 1 サイクルに逆量子化できる最大要素数を $L_q$ とする。8 ビット量子化では $L_q=L$, 7 ビットでは $2*L$, 6 ビット以下では $4*L$ である。疎性がなければ $\mathit{bpv}=\lceil W/L_q\rceil-1$。疎性がある場合, bubble 数は圧縮 tile の非ゼロ数に依存するため決定的でない。密度 $d$ の行列で非ゼロが一様に分布すると仮定すると, 連続する W 個の行列要素に含まれる非ゼロ数はパラメータ W, d の二項分布になる。bubble の期待数は次で計算する:
+
+$$
+\begin{aligned}
 \mathit{bpv} &=  \sum\nolimits_{k=0}^{\frac{W}{L_q}-1} k \cdot [F((k+1)L_q; W, d) - F(kL_q; W, d)]
-\end{aligned}$$ ここで $F(i;W,d)$ は二項累積分布関数である。最後に $\mathrm{AI}_{\mathrm{XV}}=1/[\#\mathrm{vOps}\cdot(1+\mathit{bpv})]$ となる。
+\end{aligned}
+$$
+
+ここで $F(i;W,d)$ は二項累積分布関数である。最後に $\mathrm{AI}_{\mathrm{XV}}=1/[\#\mathrm{vOps}\cdot(1+\mathit{bpv})]$ となる。
 
 これで Roof-Surface モデルによる解析的な Design Space Exploration (DSE) に必要なものがそろう。例えば異なる ($W$, $L$) の BORD を描き, 最小の DECA ハードウェアコストで全 kernel を VEC-bound 領域から出せる組を選べる ([第 9.2 節](#section-9-2))。
 

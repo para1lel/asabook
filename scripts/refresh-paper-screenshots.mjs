@@ -21,7 +21,18 @@ const papersDir = join(root, 'docs/papers')
 const publicPaperDir = join(root, 'docs/.vuepress/public/paper')
 const cropsDir = join(root, 'scripts/paper-crops')
 const locateScale = 2
+const standardFontDataUrl = `${pathToFileURL(join(root, 'node_modules/pdfjs-dist/standard_fonts')).href}/`
 const pdfWasmUrl = `${pathToFileURL(join(root, 'node_modules/pdfjs-dist/wasm')).href}/`
+class LocalStandardFontDataFactory {
+  constructor({ baseUrl }) {
+    this.baseUrl = baseUrl
+  }
+
+  async fetch({ filename }) {
+    const filePath = join(root, 'node_modules/pdfjs-dist/standard_fonts', filename)
+    return new Uint8Array(readFileSync(filePath))
+  }
+}
 class LocalWasmFactory {
   constructor({ baseUrl }) {
     this.baseUrl = baseUrl
@@ -577,7 +588,9 @@ for (const slug of paperSlugs(options.slugs)) {
     : []
   const loadingTask = getDocument({
     data: new Uint8Array(readFileSync(files.pdfPath)),
-    useSystemFonts: true,
+    standardFontDataUrl,
+    StandardFontDataFactory: LocalStandardFontDataFactory,
+    useSystemFonts: false,
     wasmUrl: pdfWasmUrl,
     WasmFactory: LocalWasmFactory,
   })

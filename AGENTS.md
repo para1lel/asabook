@@ -32,6 +32,8 @@ Write content primarily in Chinese, with short Markdown sections, descriptive he
 
 No formatter or linter is configured; follow the surrounding style and avoid unrelated reformatting.
 
+Do not change the site's body font or global prose font unless the user explicitly requests a body-font change. Requests concerning screenshot text, figure text, code fonts, or isolated rendering issues do not authorize changing the global body font.
+
 ## Testing Guidelines
 
 There is no automated test framework or coverage requirement. The required check is a successful production build. For navigation or styling changes, also inspect both `/vndb/` and `/csdiy/` in the development server at desktop and mobile widths.

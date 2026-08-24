@@ -61,7 +61,17 @@ const options = parseArgs(process.argv.slice(2))
 const input = resolve(options.input)
 const outputDir = resolve(options.outputDir)
 const inputName = basename(input, extname(input))
+const standardFontDataUrl = `${pathToFileURL(resolve(import.meta.dirname, '../node_modules/pdfjs-dist/standard_fonts')).href}/`
 const wasmUrl = `${pathToFileURL(resolve(import.meta.dirname, '../node_modules/pdfjs-dist/wasm')).href}/`
+class LocalStandardFontDataFactory {
+  constructor({ baseUrl }) {
+    this.baseUrl = baseUrl
+  }
+
+  async fetch({ filename }) {
+    return new Uint8Array(readFileSync(resolve(import.meta.dirname, '../node_modules/pdfjs-dist/standard_fonts', filename)))
+  }
+}
 class LocalWasmFactory {
   constructor({ baseUrl }) {
     this.baseUrl = baseUrl
@@ -73,7 +83,9 @@ class LocalWasmFactory {
 }
 const loadingTask = getDocument({
   data: new Uint8Array(readFileSync(input)),
-  useSystemFonts: true,
+  standardFontDataUrl,
+  StandardFontDataFactory: LocalStandardFontDataFactory,
+  useSystemFonts: false,
   wasmUrl,
   WasmFactory: LocalWasmFactory,
 })

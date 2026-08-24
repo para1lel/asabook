@@ -369,9 +369,15 @@ TEPL 指令的参数包括一个存有 tile 元数据的源寄存器和一个目
 
 **表 2.** DECA 与其他核内/近核加速器的比较.
 
-每个 tile 的 vOp 数量为 $\#\mathrm{vOps}=512/W$, 因为每个 tile 有 512 个元素, 一次 vOp 产生 W 个元素. 我们将每个 tile 的气泡数量表示为 $\#\mathrm{bbl}=\#\mathrm{vOps}\cdot\mathit{bpv}$, 其中 $\mathit{bpv}$ 是每个 vOp 的气泡数量. 由于气泡只能由反量化阶段资源不足产生, 我们用 $L_q$ 表示每周期最多可反量化的元素数. 对于 8 比特量化方案, $L_q=L$; 对于 7 比特, $L_q=2*L$; 对于 6 比特及以下, $L_q=4*L$. 没有稀疏时, $\mathit{bpv}=\lceil W/L_q\rceil-1$. 有稀疏时, 气泡生成不是确定的, 因为它取决于压缩 tile 中非零值的数量. 对于密度为 $d$ 的矩阵, 假设非零值均匀分布, 则连续 W 个矩阵元素中的非零值数量服从参数为 W 和 d 的二项分布. 气泡数量的期望值为: $$\begin{aligned}
+每个 tile 的 vOp 数量为 $\#\mathrm{vOps}=512/W$, 因为每个 tile 有 512 个元素, 一次 vOp 产生 W 个元素. 我们将每个 tile 的气泡数量表示为 $\#\mathrm{bbl}=\#\mathrm{vOps}\cdot\mathit{bpv}$, 其中 $\mathit{bpv}$ 是每个 vOp 的气泡数量. 由于气泡只能由反量化阶段资源不足产生, 我们用 $L_q$ 表示每周期最多可反量化的元素数. 对于 8 比特量化方案, $L_q=L$; 对于 7 比特, $L_q=2*L$; 对于 6 比特及以下, $L_q=4*L$. 没有稀疏时, $\mathit{bpv}=\lceil W/L_q\rceil-1$. 有稀疏时, 气泡生成不是确定的, 因为它取决于压缩 tile 中非零值的数量. 对于密度为 $d$ 的矩阵, 假设非零值均匀分布, 则连续 W 个矩阵元素中的非零值数量服从参数为 W 和 d 的二项分布. 气泡数量的期望值为:
+
+$$
+\begin{aligned}
 \mathit{bpv} &=  \sum\nolimits_{k=0}^{\frac{W}{L_q}-1} k \cdot [F((k+1)L_q; W, d) - F(kL_q; W, d)]
-\end{aligned}$$ 其中 $F(i;W,d)$ 是二项分布的累积分布函数. 最后, $\mathrm{AI}_{\mathrm{XV}}$ 为 $1/[\#\mathrm{vOps}\cdot(1+\mathit{bpv})]$.
+\end{aligned}
+$$
+
+其中 $F(i;W,d)$ 是二项分布的累积分布函数. 最后, $\mathrm{AI}_{\mathrm{XV}}$ 为 $1/[\#\mathrm{vOps}\cdot(1+\mathit{bpv})]$.
 
 现在已经具备使用 Roof-Surface 模型进行分析设计空间探索 (DSE) 所需的一切. 例如, 可以绘制不同 ($W$, $L$) 对应的 BORD, 选择以最低 DECA 硬件成本将所有 kernel 推出 VEC-bound 区域的参数对 (见 [第 9.2 节](#section-9-2)).
 

@@ -369,9 +369,15 @@ Consider Equation [2](#equation-02). We should express how the parameters in the
 
 **Table 2.** Comparison of DECA with other in/near-core accelerators.
 
-The number of vOps per tile is $\#\mathrm{vOps}=512/W$, since each tile has 512 elements and we produce $W$ with a single vOp. We express the number of bubbles per tile as $\#\mathrm{bbl}=\#\mathrm{vOps}\cdot\mathit{bpv}$, where $\mathit{bpv}$ is the number of bubbles per vOp. Since bubbles can only be generated due to insufficient resources in the Dequantization stage, we use $L_q$ to denote the maximum number of elements that can be dequantized in a cycle. $L_q$ is equal to $L$ for 8-bit quantization schemes, $2*L$ for 7-bit, and $4*L$ for 6-bit and below. Without sparsity, $\mathit{bpv}=\lceil W/L_q\rceil-1$. With sparsity, the bubble generation is not deterministic, as it depends on the number of nonzeros in a compressed tile. For a matrix of density $d$, if we assume that nonzeros are uniformly distributed, then the number of nonzeros in $W$ consecutive matrix elements is a binomial distribution with parameters $W$, $d$. We compute the expected number of bubbles as: $$\begin{aligned}
+The number of vOps per tile is $\#\mathrm{vOps}=512/W$, since each tile has 512 elements and we produce $W$ with a single vOp. We express the number of bubbles per tile as $\#\mathrm{bbl}=\#\mathrm{vOps}\cdot\mathit{bpv}$, where $\mathit{bpv}$ is the number of bubbles per vOp. Since bubbles can only be generated due to insufficient resources in the Dequantization stage, we use $L_q$ to denote the maximum number of elements that can be dequantized in a cycle. $L_q$ is equal to $L$ for 8-bit quantization schemes, $2*L$ for 7-bit, and $4*L$ for 6-bit and below. Without sparsity, $\mathit{bpv}=\lceil W/L_q\rceil-1$. With sparsity, the bubble generation is not deterministic, as it depends on the number of nonzeros in a compressed tile. For a matrix of density $d$, if we assume that nonzeros are uniformly distributed, then the number of nonzeros in $W$ consecutive matrix elements is a binomial distribution with parameters $W$, $d$. We compute the expected number of bubbles as:
+
+$$
+\begin{aligned}
 \mathit{bpv} &=  \sum\nolimits_{k=0}^{\frac{W}{L_q}-1} k \cdot [F((k+1)L_q; W, d) - F(kL_q; W, d)]
-\end{aligned}$$ where $F(i;W,d)$ is the binomial cumulative distribution function. Finally, the $\mathrm{AI}_{\mathrm{XV}}$ is given by $1/[\#\mathrm{vOps}\cdot(1+\mathit{bpv})]$.
+\end{aligned}
+$$
+
+where $F(i;W,d)$ is the binomial cumulative distribution function. Finally, the $\mathrm{AI}_{\mathrm{XV}}$ is given by $1/[\#\mathrm{vOps}\cdot(1+\mathit{bpv})]$.
 
 Now we have all we need to perform an analytical Design Space Exploration (DSE) using the Roof-Surface model. For example, we can plot the BORDs of different ($W$, $L$) pairs and pick the one that pushes all kernels out of the VEC-bound area at the minimum DECA hardware cost (see [Section 9.2](#section-9-2)).
 
