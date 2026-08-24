@@ -1,6 +1,7 @@
 import { viteBundler, type ViteBundlerOptions } from '@vuepress/bundler-vite'
 import { defineUserConfig } from 'vuepress'
 import { plumeTheme } from 'vuepress-theme-plume'
+import { lowMemoryBuildPlugin } from './low-memory-build.js'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
@@ -3857,6 +3858,18 @@ export default defineUserConfig({
   theme: plumeTheme({
     hostname: 'https://www.asabook.cc',
     docsRepo: 'https://github.com/para1lel/asabook',
+    search: {
+      provider: 'local',
+      miniSearch: {
+        options: {
+          extractField(document, fieldName) {
+            if (fieldName === 'id') return document.id
+            if (fieldName === 'title' && !String(document.id).includes('#')) return document.title
+            return ''
+          },
+        },
+      },
+    },
     comment: {
       provider: 'Giscus',
       comment: true,
@@ -4387,7 +4400,11 @@ export default defineUserConfig({
 
   bundler: viteBundler({
     viteOptions: {
+      plugins: [lowMemoryBuildPlugin()],
       build: {
+        cssMinify: false,
+        minify: false,
+        reportCompressedSize: false,
         rolldownOptions: {
           checks: {
             pluginTimings: false,
