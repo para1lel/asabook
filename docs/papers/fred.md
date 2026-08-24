@@ -9,13 +9,13 @@ pageClass: paper-reading
 
 ## 摘要
 
-晶圆级系统将高端加速器芯粒与高速晶圆级互连紧密集成, 从而提供低延迟和高带宽连接. 这使它适合用于深度神经网络 (DNN) 训练. 但是, 现有的晶圆上网络拓扑 (例如 2D Mesh) 缺少有效支持不同并行策略所需的灵活性. 本文提出 Fred, 一种针对 DNN 训练通信需求设计的晶圆级互连结构. Fred 使用微型交换机在晶圆上构建分布式拓扑, 为任意加速器组之间的集合通信提供无阻塞连接, 并支持交换机内集合通信. 在示例并行策略上, 与基线晶圆级 Mesh 相比, Fred 将 ResNet-152, Transformer-17B, GPT-3 和 Transformer-1T 的端到端训练时间平均分别缩短至 $1.76\times$, $1.87\times$, $1.34\times$ 和 $1.4\times$.
+晶圆级系统将高端加速器芯粒与高速晶圆级互连紧密集成, 可提供低延迟, 高带宽的连接. 这类系统很适合用于深度神经网络 (DNN) 训练. 但现有的晶圆上网络拓扑 (如 2D Mesh) 不够灵活, 难以有效支持不同的并行策略. 本文提出 Fred, 一种针对 DNN 训练通信需求设计的晶圆级互连结构. Fred 通过微型交换机在晶圆上构建分布式拓扑, 为任意加速器组之间的集合通信提供无阻塞连接, 并支持交换机内集合通信. 在示例并行策略下, 与基线晶圆级 Mesh 相比, Fred 可将 ResNet-152, Transformer-17B, GPT-3 和 Transformer-1T 的端到端训练分别加速 $1.76\times$, $1.87\times$, $1.34\times$ 和 $1.4\times$.
 
 <span id="section-1"></span>
 
 ## 1 引言
 
- DNN 模型的规模正呈指数增长. 一项近期研究表明, 不到两年时间里, DNN 训练所需的计算量和内存分别增加了 1,$800\times$ 和 1,$500\times$ [Thi21]. 目前常见的做法是将训练任务分布到多个加速器或神经处理单元 (NPU) 上, 以缩短训练时间. 但分布式训练有一个关键副作用: 根据并行策略的不同, NPU 之间需要通信以同步模型梯度和/或激活值. 随着 NPU 数量增加, 通信开销也会增加, 直到成为分布式训练延迟的主要因素 [Ast20, Sca20b, Jia19a, An20].
+DNN 模型的规模正呈指数增长. 一项近期研究表明, 不到两年时间里, DNN 训练所需的计算量和内存分别增加了 1,800$\times$ 和 1,500$\times$ [Thi21]. 如今常用的做法是把训练分布到多个加速器或神经处理单元 (NPU) 上, 以缩短训练时间. 但分布式训练会带来通信开销: 根据并行策略的不同, NPU 之间需要同步模型梯度和/或激活值. 随着 NPU 数量增加, 通信开销也会上升, 最终成为分布式训练延迟的主要来源 [Ast20, Sca20b, Jia19a, An20].
 
  即使是高速机架级互连 (如 NVLink [Eva19]), 可提供的带宽也存在根本上限, 因此人们越来越关注在同一封装中集成多个 NPU 的平台. Cerebras [Cer21] 以单片晶圆的形式展示了这一思路的极端实现, 晶圆上的 NPU 彼此互连. 更具成本和良率优势的方案包括基于硅/有机中介层的方法 [Sim19, Cen20], 或采用 Silicon Interconnect Fabric (Si-IF), 将芯粒直接键合到整厚度硅 *晶圆* 上而无需封装 [Arc19, Des21, Waf24]. *本文假设使用一种仅包含互连的无源晶圆级基底, 芯粒以类似 Si-IF 或 TSMC-SoW [Tsm24] 的细间距键合在其上. 与 Cerebras 的单片方案不同, 这种方式可以异构集成来自不同工艺的计算, 内存和网络芯粒.*
 
@@ -52,7 +52,7 @@ pageClass: paper-reading
 - 我们展示了 Fred 的晶圆级互连实现方式 ([第 6 节](#section-6)).
 - 我们针对部分示例工作负载和并行策略, 将 Fred 与基线互连进行比较 ([第 8 节](#section-8)).
 
-结果表明, 与基线 2D Mesh 相比, Fred 可使 ResNet-152, Transformer-17B, GPT-3 和 Transformer-1T 的端到端训练时间平均分别提升 $1.76\times$, $1.87\times$, $1.34\times$ 和 $1.4\times$.
+结果表明, 与基线 2D Mesh 相比, Fred 可将 ResNet-152, Transformer-17B, GPT-3 和 Transformer-1T 的端到端训练分别加速 $1.76\times$, $1.87\times$, $1.34\times$ 和 $1.4\times$.
 
 <span id="section-2"></span>
 
@@ -78,7 +78,7 @@ pageClass: paper-reading
 
 **1) 基于端点.** NPU 之间以点对点的分布式方式通信, 通过显式 send/recv 消息完成, 不需要中央协调. 在这种情况下, 最优算法通常取决于物理网络拓扑和集合通信规模. 例如, 当物理拓扑是环时, 基于环的 All-Reduce 最优; 对于树形拓扑或较小消息, 基于树的 All-Reduce 更优 [Tha05].
 
-基于 NPU 到 NPU 的方法的一个缺点是会产生大量流量. 例如, 带宽最优的 NPU 到 NPU 算法在 N 个 NPU 之间执行大小为 $D$ 字节的 All-Reduce 时, 要求每个 NPU 发送/接收近似 $\frac{2(N-1)}{N}D$ 字节数据 [An20], 几乎是 All-Reduce 大小 ($D$ 字节) 的 $2$ 倍 [Tha05, Col06, Col07]. 这是因为所有基于端点的算法都必须分别执行归约和收集阶段, 每个阶段都需要每个 NPU 发送/接收 $\frac{(N-1)}{N}D$ 字节 [Tha05, Col06, Col07].
+基于 NPU 到 NPU 的方法的一个缺点是会产生大量流量. 例如, 带宽最优的 NPU 到 NPU 算法在 N 个 NPU 之间执行大小为 $D$ 字节的 All-Reduce 时, 要求每个 NPU 发送/接收近似 $\frac{2(N-1)}{N}D$ 字节数据 [An20], 几乎是 All-Reduce 大小 ($D$ 字节) 的 $2\times$ [Tha05, Col06, Col07]. 这是因为所有基于端点的算法都必须分别执行归约和收集阶段, 每个阶段都需要每个 NPU 发送/接收 $\frac{(N-1)}{N}D$ 字节 [Tha05, Col06, Col07].
 
 **2) 网络内集合通信执行.** 为减少基于端点方法产生的额外流量, 近期方案通过向交换机加入计算能力, 引入了网络内集合通信算法 [Sca21, An20, Acc19], 使归约和收集可以同时完成. 例如, 对大小为 $D$ 字节的 All-Reduce, 每个 NPU 只需向交换机或交换机层级发送/接收 $D$ 字节. 交换机或交换机层级从每个 NPU 接收 $D$ 字节, 对来自全部 $N$ 个 NPU 的数据执行归约, 再将 $D$ 字节广播回所有 NPU. 因此, 与基于端点的方法相比, 每个 NPU 发送/接收的流量几乎减半 ($D$ 字节, 而不是 $\frac{2(N-1)}{N}D$ 字节) [Acc19]. 此外, 网络内集合通信执行可以将端点资源用于训练计算任务, 由网络交换机高效处理集合通信.
 
@@ -126,7 +126,7 @@ pageClass: paper-reading
 
 #### 3.1.2 权重流式传输
 
-当片上内存不足以容纳模型时, 执行模式会转为 *权重流式传输* [Cer21, Thi21]. 在这种情况下, 任意时刻只有部分 DNN 层被加载到封装中. 处理完这些层后, 片上存储空间会被回收, 用于加载下一组层. 因此, 在模型训练期间必须多次将完整模型加载到芯片上 (至少在前向传播和反向传播期间各加载一次). 此外, NPU 计算出模型梯度后, 会将数据写入片外存储, 再由存储侧的轻量计算核心更新模型, 供下一次迭代使用 [+2] [Cer21]. 这种方式使性能受 I/O 限制, 即训练性能上限按 $\propto\frac{\mathrm{model}\_\mathrm{size}}{I/O\_\mathrm{BW}}$ 缩放. 因此, *除了计算效率和 NPU 到 NPU 的通信性能外, 保持最大 I/O 带宽也至关重要*. 在向 I/O 通道分发/收集模型或梯度时, 刚性的拓扑可能形成热点, *限制 I/O 数据速率* ([第 3.2 节](#section-3-2)), 直接影响训练性能.
+当片上内存不足以容纳模型时, 执行模式会转为 *权重流式传输* [Cer21, Thi21]. 在这种情况下, 任意时刻只有部分 DNN 层被加载到封装中. 处理完这些层后, 片上存储空间会被回收, 用于加载下一组层. 因此, 在模型训练期间必须多次将完整模型加载到芯片上 (至少在前向传播和反向传播期间各加载一次). 此外, NPU 计算出模型梯度后, 会将数据写入片外存储, 再由存储侧的轻量计算核心更新模型, 供下一次迭代使用 [+2] [Cer21]. 这种方式使性能受 I/O 限制, 即训练性能上限按 $\propto \frac{\mathit{model\_size}}{\mathit{I/O\_BW}}$ 缩放. 因此, *除了计算效率和 NPU 到 NPU 的通信性能外, 保持最大 I/O 带宽也至关重要*. 在向 I/O 通道分发/收集模型或梯度时, 刚性的拓扑可能形成热点, *限制 I/O 数据速率* ([第 3.2 节](#section-3-2)), 直接影响训练性能.
 
 <span id="section-3-2"></span>
 
@@ -148,9 +148,9 @@ pageClass: paper-reading
 
 **图 4.** (A) 从两个不同 I/O 通道读取数据时的广播通信模式 (红色和蓝色箭头). 每个箭头旁的数字表示一个数据包穿过该链路的时间戳. 实际上, 每条路径上会以流水线方式传输多个数据包. 在该示例中, 并行策略为 MP(1)-DP(16)-PP(1), 模型权重在权重流式传输执行模式下广播给所有 NPU. 注意, 反向传播和将最终结果写回远程存储时, 使用相反的顺序对权重梯度求和. (B) 对应[图 4](#figure-04)(A)的最大通道负载分析, 此时所有 I/O 通道同时工作.
 
-In general, for an $N\times N$ mesh and $4\times N$ external I/O channels, the wafer-scale fabric links should have a bandwidth of $\mathbf{(2N-1)P}$ bytes/s to fully utilize the I/O bandwidth in all parallelization strategies, assuming each I/O channel has a bandwidth of $P$ bytes/s. As the formula indicates, the required link bandwidth grows $O(N)$ with the mesh width. For larger packages, the technology might not support such high-bandwidth requirements on the package. In such cases, the I/O channel rate must be scaled down proportionally to accommodate the maximum link bandwidth, i.e., $P=\frac{\mathrm{\mathrm{link}}\_\mathrm{\mathrm{BW}}}{(2N-1)}$.
+一般而言, 对于一个 $N\times N$ Mesh 和 $4\times N$ 个外部 I/O 通道, 如果每个 I/O 通道的带宽为 $P$ 字节/秒, 那么要在所有并行策略下充分利用 I/O 带宽, 晶圆级互连链路的带宽应达到 $\mathbf{(2N-1)P}$ 字节/秒. 由该式可见, 所需链路带宽会随 Mesh 宽度按 $O(N)$ 增长. 对于更大的封装, 现有技术可能无法在封装内提供如此高的带宽. 此时必须按比例降低 I/O 通道速率, 使其适配最大链路带宽, 即 $P=\frac{\mathit{link\_BW}}{2N-1}$.
 
-**Fred 的方案.** Fred prevents network hotspots by adaptively routing the traffic through all of its links equally, enabling further scalability of the wafer-scale systems.
+**Fred 的方案.** Fred 通过自适应路由让流量均匀经过所有链路, 避免网络热点, 使晶圆级系统可以继续扩展.
 
 <span id="section-3-2-2"></span>
 
@@ -162,11 +162,11 @@ In general, for an $N\times N$ mesh and $4\times N$ external I/O channels, the w
 
 **图 5.** MP(2)-DP(4)-PP(2) 策略下的两种设备放置映射. (A) 偏向 MP 和 DP 通信但使 PP 通信拥塞的放置. (B) 偏向 DP 和 PP 通信但使 MP 通信拥塞的放置.
 
-Device placement involves assigning each logical training worker to a physical NPU. With $N$ NPUs, there are $N!$ possible device placement mappings. This becomes critical in 3D parallelism, as each training worker may have different communication volumes and patterns with other workers across distinct parallelization groups (refer to [图 1](#figure-01)). Therefore, finding a device placement that minimizes network contention is essential.
+设备放置是把每个逻辑训练工作器映射到物理 NPU 的过程. 对于 $N$ 个 NPU, 共有 $N!$ 种放置映射. 这个问题在 3D 并行中尤为重要, 因为每个训练工作器与不同并行组内其他工作器之间的通信量和通信模式可能不同 (见[图 1](#figure-01)). 因此, 需要找到一种尽量降低网络竞争的设备放置方案.
 
-However, this is challenging with rigid topologies, especially 2D Mesh, where certain communication patterns are inherently prioritized over others. [图 5](#figure-05) illustrates two different mappings for a given MP(2)-DP(4)-PP(2) strategy. In [图 5](#figure-05)(A), the MP and DP communications are free of congestion, but PP communications cause congestion between different PP groups. Conversely, in [图 5](#figure-05)(B), DP and PP communications are optimized, but MP communications face congestion between MP groups. Ultimately, as 2D mesh offers two logically disjoint dimensions ($x$ and $y$), *it is mathematically impossible for all 3D parallelism dimensions to be optimally mapped onto a 2D Mesh*. This is trivial by observing the four corner NPUs, where each NPU offers two outgoing links. Consequently, due to the limited path diversity, one out of the three parallelization groups must experience network congestion and reduced communication performance. Determining which communication patterns to prioritize, unavoidable on 2D Mesh, requires a thorough analysis of the end-to-end workload and understanding the impact of different communication operations.
+但在刚性拓扑上, 尤其是 2D Mesh 上, 这种放置很难做好, 因为拓扑本身会偏向某些通信模式. [图 5](#figure-05) 给出了 MP(2)-DP(4)-PP(2) 策略的两种映射. 在[图 5(A)](#figure-05) 中, MP 和 DP 通信没有拥塞, 但不同 PP 组之间会发生拥塞. [图 5(B)](#figure-05) 则优化了 DP 和 PP 通信, 代价是 MP 组之间出现拥塞. 归根结底, 2D Mesh 只有 $x$ 和 $y$ 两个逻辑上分离的维度, 因而 *不可能把 3D 并行的三个维度都最优地映射到 2D Mesh 上*. 观察四个角上的 NPU 即可看出这一点: 每个 NPU 只有两条出链路. 路径多样性有限, 三种并行组中必有一种会遭遇网络拥塞, 通信性能也会下降. 在 2D Mesh 上无法避开这种取舍, 要决定优先保障哪种通信模式, 必须分析端到端工作负载及各种通信操作的影响.
 
-**Fred 的方案.** Fred supports congestion-free routing for all communication patterns simultaneously.
+**Fred 的方案.** Fred 可以同时为所有通信模式提供无拥塞路由.
 
 <span id="section-3-2-3"></span>
 
@@ -178,33 +178,33 @@ However, this is challenging with rigid topologies, especially 2D Mesh, where ce
 
 **图 6.** 非对齐 MP(5)-DP(3)-PP(1) 并行策略在 $4\times 4$ Mesh 拓扑上的网络通信. (A) 同一 MP 组内 NPU 执行通信模式 (如 All-Reduce) 时的非优化情况. (B) 假设采用 X-Y 路由时两个 DP 组之间的流量拥塞, 以红色和蓝色表示.
 
-When searching for the best parallelization strategy itself, there are many possible configurations where the size of MP/DP/PP is not aligned with the physical topology dimensions. Such configurations create extra challenges on a 2D Mesh, due to the limited path diversity with distinct NPU-to-NPU distances.
+搜索最佳并行策略时, 经常会遇到 MP/DP/PP 规模与物理拓扑维度不对齐的配置. 2D Mesh 的路径选择有限, NPU 之间的距离又各不相同, 因而这类配置会带来额外困难.
 
-[图 6](#figure-06)illustrates the communication issues within a $4\times 4$ 2D-mesh topology for an MP(5)-DP(3)-PP(1) strategy. [图 6](#figure-06)(A) demonstrates how NPUs in the same MP group need to communicate. Collective communications are often optimized for well-structured topologies (e.g., rings, trees, switches). However, as shown in [图 6](#figure-06)(A), the MP groups form non-standard shapes, making it challenging to identify the most optimized collective algorithm for each shape. For example, the distance between NPU 420 and 020 is two hops, due to the rigid shape of 2D Mesh, *making it impossible to construct a well-constructed ring*, even without considering network congestion. [图 6](#figure-06)(B) depicts the extra traffic congestion between two different DP groups, marked in red and blue, caused by non-aligned dimensions.
+[图 6](#figure-06) 展示了 MP(5)-DP(3)-PP(1) 策略在 $4\times 4$ 2D Mesh 拓扑上的通信问题. [图 6(A)](#figure-06) 标出了同一 MP 组内 NPU 的通信关系. 集合通信通常会针对环, 树或交换网络等规则拓扑进行优化. 但在[图 6(A)](#figure-06) 中, MP 组呈现不规则形状, 很难为每种形状找到最优的集合通信算法. 例如, 受 2D Mesh 刚性结构限制, NPU 420 与 020 相距两跳, 即便不考虑网络拥塞, 也 *无法构造结构良好的环*. [图 6(B)](#figure-06) 用红色和蓝色标出了维度不对齐造成的两个 DP 组之间的额外流量拥塞.
 
-**Fred 的方案.** Fred provides congestion-free topology and routing mechanisms for any size/placement of MP/DP/PP.
+**Fred 的方案.** 无论 MP/DP/PP 的规模和放置方式如何, Fred 都能提供无拥塞的拓扑和路由机制.
 
 <span id="section-3-2-4"></span>
 
 #### 3.2.4 网络带宽利用率
 
-Maintaining high bandwidth utilization is challenging for a 2D Mesh. For instance, MP communications are required during both forward-pass and back-propagation phases, while DP communications occur only during back-propagation. However, these links cannot be utilized by MP communications due to the limited paths and lack of optimal routing. Consequently, the links used for DP communication during back-propagation remain underutilized during the forward-pass phase, detrimenting full bandwidth utilization for many strategies on a 2D Mesh.
+2D Mesh 很难维持较高的带宽利用率. 例如, 前向传播和反向传播都需要 MP 通信, 而 DP 通信只发生在反向传播阶段. 但由于路径有限且缺少最优路由, MP 通信无法利用这些链路. 结果是, 反向传播期间用于 DP 通信的链路在前向传播阶段处于低利用状态, 许多策略都无法充分利用 2D Mesh 的带宽.
 
-**Fred 的方案.** Fred can utilize the full bandwidth of each NPU for every communication phase.
+**Fred 的方案.** 在每个通信阶段, Fred 都能充分利用各 NPU 的带宽.
 
 <span id="section-3-2-5"></span>
 
 #### 3.2.5 网络内集合通信执行
 
-Supporting in-network collectives can significantly reduce network traffic and improve execution performance as described in [第 2.2 节](#section-2-2). This feature, currently employed in off-chip switches [An20, Mel20], requires centralized or hierarchical switches which can perform the collection, reduction, and broadcast of multiple data. A 2D Mesh with distributed NPUs and without a shared central entity, however, impedes the adaptation of the in-network collective support.
+如[第 2.2 节](#section-2-2)所述, 支持网络内集合通信可以大幅减少网络流量并提高执行性能. 片外交换机已经采用了这一功能 [An20, Mel20], 但它需要集中式或分层交换机来收集, 归约和广播多份数据. 2D Mesh 上的 NPU 分散排列, 又没有共享的中心节点, 因此很难加入网络内集合通信支持.
 
-**Fred 的方案.** Fred employs a switch-based topology that supports in-network collective execution.
+**Fred 的方案.** Fred 采用基于交换机的拓扑, 支持网络内集合通信执行.
 
 <span id="section-3-2-6"></span>
 
 #### 3.2.6 小结
 
-Ideally, a fabric for DNN training should enable each NPU to fully utilize its network bandwidth for any communication phase of 3D-parallel training without congestion and with support for in-network collectives. These requirements cannot be met via a 2D Mesh, due to their natural shape and rigidity. This underscores the need for the adaptation of new topology and routing mechanisms, such as Fred.
+理想的 DNN 训练互连应让每个 NPU 在 3D 并行训练的任意通信阶段都能充分利用网络带宽, 同时避免拥塞并支持网络内集合通信. 2D Mesh 的形状和刚性结构使它无法满足这些要求. 因此需要采用 Fred 这样的新型拓扑和路由机制.
 
 <span id="section-4"></span>
 
@@ -214,17 +214,17 @@ Ideally, a fabric for DNN training should enable each NPU to fully utilize its n
 
 ![图 7. (a) 带有 P 个端口的 Fred 交换机概览. (b) 端口数为偶数 ($2r$) 或奇数 ($2r+1$) 时递归构造的 Fred 互连. (c) Fred<sub>*m*</sub>($2$) 交换机. (d) Fred<sub>*m*</sub>($3$) 交换机. (e) R-$\mu$Switch. (f) D-$\mu$Switch. (g) RD-$\mu$Switch. (h) Fred<sub>*2*</sub>($8$) 互连实现示例及两种已路由的 All-Reduce 通信模式. (i) Fred<sub>2</sub>($8$) 上三条 All-Reduce 通信流的路由算法和冲突图. (j) 路由冲突示例.](./fred/figure-07.png)
 
-**图 7.** (a) An overview of the Fred switch with P ports. (b) Fred interconnect (recursively constructed) when the number of ports is even ($2r$) or odd ($2r+1$). (c) Fred<sub>*m*</sub>($2$) switch. (d) Fred<sub>*m*</sub>($3$) switch. (e) R-$\mu$Switch. (f) D-$\mu$Switch. (g) RD-$\mu$Switch. (h) An example of a Fred<sub>*2*</sub>($8$) interconnect implementation and two routed All-Reduce communication patterns (green and orange). (i) Routing Algorithm for three All-Reduce comm flows on Fred<sub>2</sub>($8$) with conflict graph. (j) Example of Routing conflict.
+**图 7.** (a) 带有 $P$ 个端口的 Fred 交换机概览. (b) 端口数为偶数 ($2r$) 或奇数 ($2r+1$) 时递归构造的 Fred 互连. (c) Fred<sub>*m*</sub>($2$) 交换机. (d) Fred<sub>*m*</sub>($3$) 交换机. (e) R-$\mu$Switch. (f) D-$\mu$Switch. (g) RD-$\mu$Switch. (h) Fred<sub>*2*</sub>($8$) 互连实现示例及两种已路由的 All-Reduce 通信模式 (绿色和橙色). (i) Fred<sub>2</sub>($8$) 上三条 All-Reduce 通信流的路由算法和冲突图. (j) 路由冲突示例.
 
-A Fred switch forms the backbone of the fabric. Hierarchical connections of the Fred switches form the full Fred fabric, which is described in [第 6.1 节](#section-6-1). The key idea behind a Fred switch is simple: **break the switch into the most fundamental components, and add small compute capability to each component.** The fine-grained distribution of compute enables supporting flexible and concurrent in-switch collective execution for 3D parallelism communication patterns. In addition, distributed computation of collectives is more scalable to map over the high-BW wafer-scale links than having centralized compute and memory entities.
+Fred 交换机是整个互连的骨干. 多级 Fred 交换机相连后组成完整的 Fred 互连, 详见[第 6.1 节](#section-6-1). Fred 交换机的核心思路很直接: **把交换机拆成最基本的组件, 并为每个组件加入少量计算能力.** 这种细粒度的分布式计算可为 3D 并行通信模式提供灵活, 并发的交换机内集合通信. 与集中式计算和内存单元相比, 分布式集合通信计算也更容易映射到高带宽晶圆级链路上并继续扩展.
 
-[图 7](#figure-07)(a) shows a Fred switch, which consists of a control unit, input port buffers, and the Fred interconnect. The control unit performs routing between the input ports and the output ports.
+[图 7(a)](#figure-07) 展示了一台 Fred 交换机, 由控制单元, 输入端口缓冲区和 Fred 互连组成. 控制单元负责输入端口与输出端口之间的路由.
 
-The Fred interconnect, shown in [图 7](#figure-07)(b), is inspired by *Clos* networks [A53]. Clos networks are identified through the tuple $(m,n,r)$, where $m\geq 2$ is the number of middle stage switches, $n$ is the number of input/output ports per each input/output micro-switch ($\mu$Switch), and $r$ is the number of input/output $\mu$Switches. Fred’s connectivity is similar to the $(m,n=2,r)$ Clos network, which is denoted as Fred<sub>*m*</sub>($P$). $m$ denotes to the number of middle-stage switches, and $P$ identifies the number of input(output) ports. Fred can be designed for an arbitrary number of ports by building on top of the previous works [Arb97]. $P$ is $\frac{2r}{2r+1}$ when $P$ is an $\frac{\mathrm{\mathrm{even}}}{\text{odd}}$ number. Similar to the Clos network, Fred interconnect is constructed recursively, where the middle stage switches are the $\frac{m\times\text{{\mathrm{\mathrm{Fred}}}${}_{m}$($r$)}}{\text{$m\times${\mathrm{\mathrm{Fred}}}${}_{m}$($r+1$)}}$ switches for the $\frac{\mathrm{\mathrm{even}}}{\text{odd}}$ number of ports, as shown in [图 7](#figure-07)(b). The recursive design of Fred ends when encountering the base Fred<sub>*m*</sub>($2$) or Fred<sub>*m*</sub>($3$) Switches, which are depicted in [图 7](#figure-07)(c) and [图 7](#figure-07)(d), respectively.
+[图 7(b)](#figure-07) 所示 Fred 互连受 *Clos* 网络 [A53] 启发. Clos 网络用三元组 $(m,n,r)$ 表示, 其中 $m\geq 2$ 是中间级交换机数量, $n$ 是每个输入/输出微型交换机 ($\mu$Switch) 的输入/输出端口数, $r$ 是输入/输出 $\mu$Switch 的数量. Fred 的连接方式类似 $(m,n=2,r)$ Clos 网络, 记作 Fred<sub>*m*</sub>($P$). $m$ 表示中间级交换机数量, $P$ 表示输入 (输出) 端口数. 在已有工作 [Arb97] 的基础上, Fred 可以设计成任意端口数. 当 $P$ 为偶数或奇数时, $P$ 分别为 $2r$ 或 $2r+1$. 与 Clos 网络类似, Fred 互连采用递归构造: 如[图 7(b)](#figure-07) 所示, 端口数为偶数或奇数时, 中间级分别由 $m\times \mathrm{Fred}_{m}(r)$ 或 $m\times \mathrm{Fred}_{m}(r+1)$ 个交换机构成. 递归在遇到[图 7(c)](#figure-07) 和[图 7(d)](#figure-07) 所示的基本 Fred<sub>*m*</sub>($2$) 或 Fred<sub>*m*</sub>($3$) 交换机时终止.
 
-*The main difference of Fred, compared to a baseline Clos, is adding the reduction and/or distribution (broadcast) support* to the baseline $\mu$Switches. This creates three types of $\mu$Switches depending on which of these two features is present in the $\mu$Switch. [图 7](#figure-07)(e) shows the *R-$\mu$Switch* structure that has the reduction feature, i.e., reducing data on the two input ports and routing to one of the output ports. [图 7](#figure-07)(f) shows the *D-$\mu$Switch*, which is able to perform distribution by broadcasting one of the input data to both output ports. *RD-$\mu$Switch* is a $2\times 2$ $\mu$Switch and can perform both reduction and distribution, as shown in [图 7](#figure-07)(g). The entire Fred switch is built using these three $\mu$Switch types (plus *Muxes* and *Demuxes* to connect the last port to all intermediate stage switches when $P$ is odd) through the recursive process explained earlier.
+*Fred 与基线 Clos 的主要区别, 是在基线 $\mu$Switch 中加入归约和/或分发 (广播) 支持*. 根据是否具备这两项功能, Fred 使用三种 $\mu$Switch. [图 7(e)](#figure-07) 给出了具有归约功能的 *R-$\mu$Switch*: 它归约两个输入端口的数据, 再把结果路由到一个输出端口. [图 7(f)](#figure-07) 展示 *D-$\mu$Switch*, 它可以把一份输入数据广播到两个输出端口, 完成分发. [图 7(g)](#figure-07) 中的 *RD-$\mu$Switch* 是一个 $2\times 2$ $\mu$Switch, 同时支持归约和分发. 完整的 Fred 交换机通过前述递归过程由这三种 $\mu$Switch 构成; 当 $P$ 为奇数时, 还会加入 *Mux* 和 *Demux*, 将最后一个端口连接到所有中间级交换机.
 
-[图 7](#figure-07)(h) shows the complete structure of a Fred<sub>*2*</sub>($8$) switch with two concurrent All-Reduce operations (green and orange). The highlighted $R/D/\mathrm{\mathrm{RD}}$ means that the reduction/distribution/reduction-distribution features of the corresponding $\mu$Switch are activated. For instance, the input $\mu$Switch connecting the input ports $4,5$ performs the reduction and routes the result to one of its output ports. Other non-highlighted $\mu$Switches operate like Clos $\mu$Switches.
+[图 7(h)](#figure-07) 展示了一台 Fred<sub>*2*</sub>($8$) 交换机的完整结构, 其中并发执行绿色和橙色两项 All-Reduce. 标出的 $\mathrm{R}/\mathrm{D}/\mathrm{RD}$ 表示对应 $\mu$Switch 的归约/分发/归约-分发功能已启用. 例如, 连接输入端口 $4,5$ 的输入 $\mu$Switch 会执行归约, 并把结果路由到一个输出端口. 其余未标出的 $\mu$Switch 与 Clos $\mu$Switch 一样工作.
 
 <span id="section-5"></span>
 
@@ -234,33 +234,33 @@ The Fred interconnect, shown in [图 7](#figure-07)(b), is inspired by *Clos* ne
 
 ### 5.1 Fred 上的通信模式
 
-The fine-grained reduction and broadcast features enable Fred $\mu$Switches to perform all different types of collective communication patterns observed in distributed training. Collective implementation on Fred, however, can be abstracted through the notation of *communication flow* (or *flow* in short).
+细粒度的归约和广播功能使 Fred $\mu$Switch 能够执行分布式训练中的各种集合通信模式. 在 Fred 上, 这些集合通信实现可以统一抽象为 *通信流* (简称 *流*).
 
-A *flow* on Fred<sub>*m*</sub>($P$) includes a set of input ports ($\mathrm{\mathrm{IPs}}$)={ip<sub>1</sub>, ip<sub>2</sub>, …., ip<sub>*i*</sub>} and output ports ($\mathrm{\mathrm{OPs}}$)={op<sub>1</sub>, op<sub>2</sub>, …., op<sub>*j*</sub>}, where $|\mathrm{\mathrm{IPs}}|\leq P$ and $|\mathrm{\mathrm{OPs}}|\leq P$. The *flow* results in reducing the data across the input ports determined in $\mathrm{\mathrm{IPs}}$ and broadcasting the final result to the output ports identified in $\mathrm{\mathrm{OPs}}$. The port numbers and cardinality of $\mathrm{\mathrm{IPs}}$ and $\mathrm{\mathrm{OPs}}$ can be set independently, depending on the communication pattern. Each communication algorithm can be expressed in terms of performing one or more *flows*. For example, the orange All-Reduce pattern in [图 7](#figure-07)(h) is a single *flow* with $\mathrm{\mathrm{IPs}}=\{3,4,5\}$ and $\mathrm{\mathrm{OPs}}=\{3,4,5\}$.
+Fred<sub>*m*</sub>($P$) 上的一条 *流* 包含一组输入端口 $\mathrm{IPs}=\{\mathit{ip}_1,\mathit{ip}_2,\ldots,\mathit{ip}_i\}$ 和一组输出端口 $\mathrm{OPs}=\{\mathit{op}_1,\mathit{op}_2,\ldots,\mathit{op}_j\}$, 其中 $|\mathrm{IPs}|\leq P$, $|\mathrm{OPs}|\leq P$. 这条 *流* 会归约 $\mathrm{IPs}$ 指定的输入端口数据, 并把最终结果广播到 $\mathrm{OPs}$ 指定的输出端口. 输入, 输出端口的编号和数量可以根据通信模式独立设置. 每种通信算法都可以表示为执行一条或多条 *流*. 例如, [图 7(h)](#figure-07) 中橙色的 All-Reduce 模式是一条 *流*, 其中 $\mathrm{IPs}=\{3,4,5\}$, $\mathrm{OPs}=\{3,4,5\}$.
 
-**Simple Communication Algorithms.** Simple communication algorithms refer to communication patterns that can be realized on Fred by performing only one *flow*. [表 2](#table-02) summarizes different simple communication patterns on Fred and the number of involved input/output ports.
+**简单通信算法.** 简单通信算法是只执行一条 *流* 就能在 Fred 上实现的通信模式. [表 2](#table-02) 汇总了 Fred 上的各种简单通信模式及其涉及的输入/输出端口数量.
 
-**Compound Communication Algorithms.** Compound communication algorithms realize the communication patterns through multiple *flows* on Fred. [表 2](#table-02) summarizes different compound communication patterns on Fred. For example, *Reduce-Scatter* among $i$ inputs is broken into $i$ serial steps of the *reduce* *flow*, and during step $1\leq j\leq i$, the *reduce* operation corresponding to the result of the $op_{j}$ is done. The process is similar for other compound communication algorithms.
+**复合通信算法.** 复合通信算法通过 Fred 上的多条 *流* 实现通信模式. [表 2](#table-02) 汇总了各种复合通信模式. 例如, $i$ 个输入之间的 *Reduce-Scatter* 会分解为 $i$ 个串行的 *reduce 流* 步骤; 在第 $j$ 步 ($1\leq j\leq i$), 执行与输出 $\mathit{op}_j$ 对应的 *reduce* 操作. 其他复合通信算法的处理方式类似.
 
 <span id="section-5-2"></span>
 
 ### 5.2 路由协议
 
-Fred considers a *flow* as a unit of routing, and supports concurrent routing of multiple *flows*. Similar to the previous methods [Nov22], Fred routing protocol is also recursive, meaning that first the status of outermost $\mu$Switch levels (i.e., input/output $\mu$Switches) are determined, and then routing is recursively called on the middle stage switches. The difference is, however, supporting reduction/distribution features on the Fred $\mu$switches, and the dependency between the input/output ports of a *flow*, which requires a new routing algorithm to realize these differences. Fred’s routing protocol is built upon the following intuitions:
+Fred 以 *流* 为路由单位, 支持多条 *流* 并发路由. 与已有方法 [Nov22] 类似, Fred 的路由协议也采用递归方式: 先确定最外层 $\mu$Switch (即输入/输出 $\mu$Switch) 的状态, 再对中间级交换机递归执行路由. 不同之处在于, Fred $\mu$Switch 支持归约/分发功能, 而且一条 *流* 的输入端口与输出端口之间存在依赖, 因此需要新的路由算法. Fred 的路由协议基于以下几点:
 
-- If two flows share the same input or output $\mu$Switch, they should be routed through different middle-stage switches (subnetworks).
-- If both input ports of an R-$\mu$Switch or RD-$\mu$Switch belong to the same *flow*, the reduction feature is activated.
-- If both output ports of a D-$\mu$Switch or RD-$\mu$Switch belong to the same *flow*, the distribution (broadcast) feature of the $\mu$Switch is activated.
+- 如果两条流共享同一个输入或输出 $\mu$Switch, 就应把它们路由到不同的中间级交换机 (子网络).
+- 如果 R-$\mu$Switch 或 RD-$\mu$Switch 的两个输入端口属于同一条 *流*, 就启用归约功能.
+- 如果 D-$\mu$Switch 或 RD-$\mu$Switch 的两个输出端口属于同一条 *流*, 就启用 $\mu$Switch 的分发 (广播) 功能.
 
-The latter two points are easy to realize. To satisfy the first point, Fred routing protocol creates a *conflict graph*. [图 7](#figure-07)(i) shows the first step of a routing example for a Fred<sub>2</sub>($8$) interconnect with the associated conflict graph for this step.
+后两点很容易实现. 为满足第一点, Fred 路由协议会构建 *冲突图*. [图 7(i)](#figure-07) 给出了 Fred<sub>2</sub>($8$) 互连上的一个路由示例, 其中包括第一步及其对应的冲突图.
 
-In the conflict graph, each node represents a *flow* and the edges between the nodes represent a conflict (i.e., sharing an input or output $\mu$Switch) between the two nodes (*flows*). Fred routing applies the graph coloring on the conflict graph to find the routing of each *flow*. The number of colors is the number of intermediate stage switches (i.e., $m$). [图 7](#figure-07)(i) also shows the results of the graph coloring. Here, there are only two colors since $m=2$. Two flows are routed to the up subnetwork (blue), and one to the down subnetwork (red). After this step, the routing protocol and the conflict graph generation are recursively called on the middle blue and red Fred<sub>2</sub>($4$) switches. Note that a desired property of DL training is the deterministic and repetitive nature of its communication patterns that can be inferred at compile time. Therefore, the routing algorithm for different comm phases of the training workload can be executed at compile time and then saved at the control unit of the Fred switches and used during the training to minimize the routing overhead.
+冲突图中的每个节点代表一条 *流*, 节点之间的边表示两条 *流* 发生冲突, 即共享一个输入或输出 $\mu$Switch. Fred 对冲突图进行图着色, 由此确定各条 *流* 的路由. 颜色数量等于中间级交换机数量 $m$. [图 7(i)](#figure-07) 也给出了图着色结果. 此处 $m=2$, 因而只有两种颜色. 两条流被路由到上方子网络 (蓝色), 另一条被路由到下方子网络 (红色). 完成这一步后, 路由协议和冲突图生成过程会在中间的蓝色和红色 Fred<sub>2</sub>($4$) 交换机上递归执行. 深度学习训练的通信模式具有确定性和重复性, 可以在编译期推断. 因此, 各通信阶段的路由算法可以在编译期执行, 再把结果保存在 Fred 交换机的控制单元中, 供训练期间使用, 以减少路由开销.
 
 <span id="section-5-3"></span>
 
 ### 5.3 路由冲突及解决方法
 
-There are certain cases where not all *flows* can be routed at the same time, causing *routing conflict*. The routing conflict is identified when the graph coloring fails to color all of the nodes within the conflict graph. [图 7](#figure-07)(j) shows an example of a routing conflict when there are four *flows* to be routed on a Fred<sub>2</sub>($8$) and the resulting conflict graph. The conflict graph cannot be colored using only two colors due to the circular dependencies between *flows: 0, 1, 2*. Note that the routing conflict may happen during any recursive call to the routing algorithm (for routing the subnetworks). If the routing conflict is identified, the entire routing is marked to have a conflict.
+在某些情况下, 并非所有 *流* 都能同时完成路由, 此时会出现 *路由冲突*. 如果图着色无法为冲突图中的所有节点着色, 就说明存在路由冲突. [图 7(j)](#figure-07) 展示了一个例子: Fred<sub>2</sub>($8$) 上需要路由四条 *流*, 图中同时给出了相应的冲突图. 由于 *流 0, 1, 2* 之间存在环形依赖, 冲突图无法只用两种颜色完成着色. 路由冲突可能出现在路由算法的任意一次递归调用中 (即对子网络进行路由时). 一旦发现冲突, 整个路由都会被标记为存在冲突.
 
 <span id="table-02"></span>
 
@@ -268,69 +268,69 @@ There are certain cases where not all *flows* can be routed at the same time, ca
 
 **表 2.** 简单 (阴影部分) 和复合集合通信算法.
 
-We now discuss ways to address such conflicts.
+下面讨论解决这类冲突的方法.
 
-**(1) Blocking the Conflicting *Flows*.** The first trivial way is to block some of the conflicting *flows* and run them after the other *flows* are finished. This translates to removing some of the nodes in the conflict graph. For example, in [图 7](#figure-07)(j), if any of the *flows* $1,2,$ or $3$ is blocked, the routing can proceed to the next step (i.e., subnetworks). This option is, however, costly in terms of performance since it blocks some of the flows.
+**(1) 阻塞发生冲突的 *流*.** 最直接的做法是阻塞其中一些 *流*, 等其他 *流* 完成后再执行. 这相当于从冲突图中删除部分节点. 例如, 在[图 7(j)](#figure-07) 中, 只要阻塞 *流* $1,2,$ 或 $3$ 中的任意一条, 路由就能进入下一步 (即对子网络进行路由). 但这种方法会阻塞一部分流, 性能代价较高.
 
-**(2) Increasing the Number of Middle Stages.** Another method is to design Fred switches with more intermediate stage switches (i.e., increase $m$). This method increases the number of colors for the graph coloring algorithm. Therefore, more conflicting *flows* can be routed simultaneously. [+3] However, this comes at the expense of more HW overhead.
+**(2) 增加中间级交换机数量.** 另一种方法是让 Fred 交换机包含更多中间级交换机, 即增大 $m$. 这样会增加图着色算法可用的颜色数, 从而允许更多互相冲突的 *流* 同时路由. [+3] 代价是更高的硬件开销.
 
-**(3) Decomposing the Communication Algorithms.** For the unicast-only traffic, Fred interconnect is *rearrangeably nonblocking* when $m=2$ and *strict-sense nonblocking* when $m\geq 3$. This fact can be leveraged to decompose some of the communication algorithms into multiple steps and break the dependency among input/output ports in each step (i.e., making them unicast traffic). In the worst case, any collective algorithm can be decomposed into complete unicast traffic. For example, All-Reduce can be handled through a ring-based algorithm at the endpoints (NPUs), rather than in-network execution, which is complete unicast traffic. As a result, *flows* $0,1,$ and $2$ in [图 7](#figure-07)(j) can switch to ring-based All-Reduce at the endpoint, while *flow* $3$ uses an in-network All-Reduce algorithm. This method solves the routing by degrading the communication performance of the conflicting *flows* (but it does not block any *flow*).
+**(3) 分解通信算法.** 对于纯单播流量, 当 $m=2$ 时, Fred 互连是 *可重排无阻塞* 的; 当 $m\geq 3$ 时, 它是 *严格无阻塞* 的. 利用这一性质, 可以把部分通信算法拆成多个步骤, 在每一步中解除输入/输出端口之间的依赖, 也就是把它们转为单播流量. 最坏情况下, 任意集合通信算法都能完全分解为单播流量. 例如, All-Reduce 可以改为在端点 (NPU) 上执行基于环的算法, 而不在网络内执行, 此时流量完全由单播构成. 因而[图 7(j)](#figure-07) 中的 *流* $0,1,2$ 可以切换到端点上的环形 All-Reduce, 而 *流* $3$ 继续采用网络内 All-Reduce. 这种方法不阻塞任何 *流*, 但会降低冲突流的通信性能.
 
-**(4) Intelligent Device Placement.** Another method to prevent conflicts is through intelligent device placement (mapping) of the training workers to the physical NPUs at the start time. For example, if in [图 7](#figure-07)(j) the workers mapped to NPUs of ports $1$ and $4$ swap their locations, the conflict does not happen.
+**(4) 智能设备放置.** 还可以在启动时把训练工作器合理映射到物理 NPU, 以避免冲突. 例如, 如果把[图 7(j)](#figure-07) 中映射到端口 $1$ 和 $4$ 所连接 NPU 的工作器互换位置, 冲突就不会发生.
 
-*In Fred, we prioritize the communication performance and do not use options (1) and (3). We use option (2) to simplify the device placement algorithm by only using Fred<sub>*3*</sub>($P$) switches, ensuring that we have three colors in our routing algorithm protocol. Then, for the device placement algorithm, we map the training workers within the same MP group on consecutive physical NPUs, followed by iterating over workers within PP and DP, respectively. This is sufficient to prevent routing conflicts for 3D-Parallelism communication patterns.*
+*Fred 优先保障通信性能, 因而不采用方案 (1) 和 (3). 我们采用方案 (2), 只使用 Fred<sub>*3*</sub>($P$) 交换机, 保证路由协议有三种颜色可用, 从而简化设备放置算法. 随后, 设备放置算法先把同一 MP 组内的训练工作器映射到连续的物理 NPU, 再依次遍历 PP 和 DP 中的工作器. 这足以避免 3D 并行通信模式中的路由冲突.*
 
 <span id="section-5-4"></span>
 
 ### 5.4 处理重叠通信
 
-In training, the workload at a given time may require multiple communication operations. For example, while handling the DP communication in backpropagation, the workload may initiate the PP communication to exchange the next microbatch between the workers. However, FRED’s circuit switch configuration may handle one communication phase at a given time. Additionally, different NPUs might issue communication at different times, due to variations in the compute latencies. Hence, there should be a mechanism to safely preempt the current executing communication operation and execute the new communication, with minimal effects to the in-flight packets, if the latter has a higher priority.
+训练工作负载在同一时刻可能需要多项通信操作. 例如, 在反向传播中处理 DP 通信时, 工作负载可能同时发起 PP 通信, 让工作器交换下一个 microbatch. 但 FRED 的电路交换配置同一时刻只能处理一个通信阶段. 此外, 计算延迟的差异会使不同 NPU 在不同时间发起通信. 因而需要一种机制: 当新通信的优先级更高时, 能够安全抢占当前通信并执行新通信, 同时尽量不影响正在传输的数据包.
 
-We address this issue by allocating multiple Virtual Circuits (VCs) per port, each dedicated to a specific communication group (e.g., MP), and the FRED’s interconnect to be reconfigured between different overlapping communication operations. While it is possible to frequently reconfigure FRED’s interconnect in short intervals to handle overlapping communication operations concurrently, we choose to reconfigure FRED to execute the highest priority communication operation among the currently pending operations (and preempt the current communication if a new higher priority communication is issued). This decision simplifies the design and minimizes the FRED’s reconfiguration overhead, and is in line with the training workload requirements, since the workload is usually blocking on one communication operation (highest priority) at any given point in time. In our 3D-parallel case, the priority of communication operations in descending order is: MP, PP, and DP. More discussion on FRED’s buffer management and flow control is described in [第 6.2.3 节](#section-6-2-3).
+为此, 我们给每个端口分配多条虚拟信道 (VC), 每条 VC 专用于一个通信组 (如 MP), 并让 FRED 互连在不同的重叠通信操作之间重新配置. FRED 可以在很短的间隔内频繁重配置, 并发处理重叠的通信操作; 但我们的做法是让 FRED 在所有待处理操作中执行优先级最高的一项, 如果出现优先级更高的新通信, 就抢占当前通信. 这样既能简化设计, 又能减少 FRED 的重配置开销, 也符合训练工作负载的特点, 因为工作负载在任意时刻通常只会阻塞在一项通信操作上, 也就是优先级最高的那一项. 在我们的 3D 并行场景中, 通信优先级从高到低依次为 MP, PP, DP. FRED 的缓冲区管理和流量控制详见[第 6.2.3 节](#section-6-2-3).
 
 <span id="section-6"></span>
 
 ## 6 晶圆级架构
 
-We present an instance of a wafer-scale NPU system connected using Fred, for evaluation purposes. We note that alternate configurations are also feasible.
+为便于评估, 我们给出一个采用 Fred 互连的晶圆级 NPU 系统实例. 其他配置同样可行.
 
 <span id="section-6-1"></span>
 
 ### 6.1 Fred 互连结构布局
 
-A Fred switch builds a foundation to connect multiple wafer-scale NPUs. However, for large wafer-scale systems, due to physical limitations such as wiring, area, etc., it is not feasible to connect all of the NPUs through a single Fred switch. Hence, the *Fred fabric* provides a hierarchical design for the scalable connection of large wafer-scale systems. [图 8](#figure-08) shows an example of the Fred fabric that shows a 2-level tree connection of the Fred switches and the NPUs connected to the leaf (*L1*) switches [+4]. In general, tree height and the BW across different levels are determined by the system size and physical constraints (see [第 6.2 节](#section-6-2)).
+Fred 交换机是连接多个晶圆级 NPU 的基础. 但在大型晶圆级系统中, 受布线和面积等物理条件限制, 不可能用一台 Fred 交换机连接所有 NPU. 因此, *Fred 互连* 采用分层设计, 可以扩展到大型晶圆级系统. [图 8](#figure-08) 给出了一个 Fred 互连示例: Fred 交换机组成两级树, NPU 连接到叶级 (*L1*) 交换机 [+4]. 树高和各层之间的带宽通常由系统规模和物理约束决定 (见[第 6.2 节](#section-6-2)).
 
-When there are multiple levels of Fred switches, the communication algorithms might need to cross several switches and hence, need to be optimized accordingly. For example, [图 8](#figure-08)(a) shows the flow path for an All-Reduce between NPUs $1,5,$ and $6$. In this case, the data of NPUs $1\text{ \mathrm{\mathrm{and}} }5$ are reduced on their local L1 switch (to reduce the traffic going to the L2 switch), and the result along with the data of NPU $6$ are reduced on the L2 switch. The final result is sent back to the corresponding L1 switches. The L1 switch attached to NPUs $1\text{ \mathrm{\mathrm{and}} }5$ also multicasts the result to the NPUs.
+当 Fred 交换机有多个层级时, 通信算法可能需要跨越多台交换机, 因而应作相应优化. 例如, [图 8(a)](#figure-08) 给出了 NPU $1,5,6$ 之间执行 All-Reduce 时的流路径. NPU $1$ 和 $5$ 的数据先在本地 L1 交换机上归约, 以减少发往 L2 交换机的流量; 归约结果再与 NPU $6$ 的数据一起在 L2 交换机上归约. 最终结果会送回相应的 L1 交换机. 连接 NPU $1$ 和 $5$ 的 L1 交换机还会把结果组播给这两个 NPU.
 
 <span id="figure-08"></span>
 
 ![图 8. 两级 Fred 拓扑的物理视图和逻辑视图.](./fred/figure-08.png)
 
-**图 8.** Physical and Logical Views of 2-level Fred Topologies.
+**图 8.** 两级 Fred 拓扑的物理视图和逻辑视图.
 
 <span id="section-6-2"></span>
 
 ### 6.2 晶圆级架构配置
 
-We assume a standard 300 $mm$ wafer diameter, similar to the prior works [Arc19, Sca21a], resulting in a 70000 $mm^{2}$ wafer area.
+与已有工作 [Arc19, Sca21a] 一样, 我们假设采用直径为 $300\,\mathrm{mm}$ 的标准晶圆, 晶圆面积为 $70000\,\mathrm{mm}^2$.
 
 <span id="section-6-2-1"></span>
 
 #### 6.2.1 约束
 
-Fundamentally, there are two physical limitations that limit the amount of compute and other resources on the wafer: (i) Thermal constraints, and (ii) Power delivery network [Des21, Arc19, Sca21a]. Thermal constraints limit the amount of power that can be delivered to the wafer, depending on the cooling mechanism. Previous works report the maximum power limit within the $9.6\>\mathrm{\mathrm{KW}}$ [Arc19] to $15\>kW$ [Cer21] range. In this paper, we assume $\boldsymbol{15\>kW}$ power is available for the wafer-scale system. The other limitation is the power delivery network, which might necessitate using big on-wafer *voltage regulator modules (VRMs)*, limiting the available area for NPUs [Arc19]. However, alternative solutions can eliminate the need for on-wafer VRMs by either supplying the voltage from the top of the wafer [Cer21], or delivering the power from the back of the wafer by using the *through-wafer-vias (TWVs)* [Pro19]. In this paper, we assume the **on-wafer VRMs are not used** by using any of the solutions described earlier.
+从根本上说, 晶圆上的计算资源和其他资源受两项物理条件限制: (i) 散热约束; (ii) 供电网络 [Des21, Arc19, Sca21a]. 散热机制决定了晶圆可承受的供电功率. 已有工作报告的功率上限介于 $9.6\,\mathrm{kW}$ [Arc19] 和 $15\,\mathrm{kW}$ [Cer21] 之间. 本文假设晶圆级系统可用功率为 $\boldsymbol{15\,\mathrm{kW}}$. 另一项限制来自供电网络: 它可能要求在晶圆上放置较大的 *稳压模块 (VRM)*, 挤占 NPU 可用面积 [Arc19]. 但也可以从晶圆顶部供电 [Cer21], 或通过 *穿晶圆通孔 (TWV)* 从背面供电 [Pro19], 从而省去晶圆上的 VRM. 本文假设采用上述任一方案, **不在晶圆上使用 VRM**.
 
 <span id="section-6-2-2"></span>
 
 #### 6.2.2 物理系统参数
 
-[表 3](#table-03) shows the other set of physical parameters. We assume that the NPU chiplets are tested before bonding. If Known Good Die testing is difficult, larger chiplets such as NPU Compute may need to be broken into smaller constituents. Recent work [Chi23c] has suggested that these chiplets actually need to be moderately large (40$mm^{2}$-400$mm^{2}$) in size for cost-optimality. For the purposes of our evaluation, we assume an H100 GPU-like NPU compute chiplet, each equipped with five stacks of HBM3 chiplet memories, resulting in combined power consumption of $700\>W$ and an area of $1314\>mm^{2}$ [Nvi23].
+[表 3](#table-03) 列出了其他物理参数. 我们假设 NPU 芯粒会在键合前完成测试. 如果 Known Good Die 测试很困难, NPU Compute 等较大的芯粒可能需要拆成更小的组成部分. 近期工作 [Chi23c] 指出, 要达到最低成本, 这些芯粒实际上应保持适中的面积 ($40\,\mathrm{mm}^2$-$400\,\mathrm{mm}^2$). 本文评估采用类似 H100 GPU 的 NPU 计算芯粒, 每颗配备五堆 HBM3 内存芯粒, 合计功耗为 $700\,\mathrm{W}$, 面积为 $1314\,\mathrm{mm}^2$ [Nvi23].
 
-The NPU compute chiplet perimeter can support up to 12 TBps wafer-scale BW, where $6$ TBps of it is allocated to support the 3 TBs local HBM memory BW ($3$ TBps for read + $3$ TBps for write), and the other $6$ TBps is allocated to support $3$ TBps bi-directional total NPU-to-NPU BW ($3$ TBps for send + $3$ TBps for receive).
+NPU 计算芯粒的周边接口最多可支持 12 TBps 的晶圆级带宽. 其中 6 TBps 用于支持 3 TBps 的本地 HBM 内存带宽 (读取 3 TBps, 写入 3 TBps), 另 6 TBps 用于提供总计 3 TBps 的 NPU 到 NPU 双向带宽 (发送 3 TBps, 接收 3 TBps).
 
-The $15\>\mathrm{\mathrm{KW}}$ power budget limits the total amount of NPUs on the wafer to $15\>\mathrm{\mathrm{KW}}/700\>W\approx 21$, excluding other component power overheads (e.g., I/O controller, wafer-scale wires). This anticipated power density of 22W/cm<sup>2</sup> is well within the projection of cooling capability in heterogeneous integration roadmaps [Iee23]. In this paper, we consider a $20$-NPU wafer-scale system to make room for other component power overheads. Additionally, $18\times$I/O Controllers are used to connect the wafer to the external memory. Hence, the total NPU $+$ I/O Controller area overhead is $26640\>mm^{2}$.
+$15\,\mathrm{kW}$ 的功率预算把晶圆上的 NPU 总数限制在 $15\,\mathrm{kW}/700\,\mathrm{W}\approx 21$, 这里尚未计入 I/O 控制器和晶圆级布线等其他组件的功耗. 预计功率密度为 $22\,\mathrm{W/cm}^2$, 远低于异构集成路线图预测的散热能力 [Iee23]. 为其他组件留出功率空间, 本文采用包含 $20$ 个 NPU 的晶圆级系统. 此外, 系统使用 $18$ 个 I/O 控制器连接晶圆和外部内存. 因此, NPU 与 I/O 控制器的总面积开销为 $26640\,\mathrm{mm}^2$.
 
-Similar to [Arc19], we assume in the baseline, the NPU chips are placed with a 100 $um$ distance from each other. Combined with the I/O controllers, the entire baseline can be fit within a rectangle with the size of 190.8 $mm$ $\times$ 150.4 $mm$ in the center of the wafer, leaving the rest of the wafer area unclaimed.
+与 [Arc19] 一样, 我们假设基线中的 NPU 芯片间距为 $100\,\mathrm{um}$. 加上 I/O 控制器后, 整个基线系统可装入晶圆中心一个 $190.8\,\mathrm{mm}\times 150.4\,\mathrm{mm}$ 的矩形区域, 其余晶圆面积未被占用.
 
 <span id="table-03"></span>
 
@@ -340,31 +340,31 @@ Similar to [Arc19], we assume in the baseline, the NPU chips are placed with a 1
 
 <span id="table-04"></span>
 
-![表 4. [图 8](#figure-08)(b) 所示 Fred 实现的硬件开销.](./fred/table-04.png)
+![表 4. [图 8(b)](#figure-08) 所示 Fred 实现的硬件开销.](./fred/table-04.png)
 
-**表 4.** [图 8](#figure-08)(b) 所示 Fred 实现的硬件开销.
+**表 4.** [图 8(b)](#figure-08) 所示 Fred 实现的硬件开销.
 
 <span id="section-6-2-3"></span>
 
 #### 6.2.3 Fred 拓扑和参数
 
-To motivate Fred, we leverage the fact that the combination of a constrained power budget and high-end NPUs results in utilizing $26640\>mm^{2}$ out of $70000\>mm^{2}$ area, **making room to utilize otherwise unclaimed area for flexible fabrics like Fred**. However, any fabric proposal must have low power consumption since most of the power budget is allocated to the NPUs. **We demonstrate that Fred meets these properties.**
+受功率预算限制, 即便采用高端 NPU, $70000\,\mathrm{mm}^2$ 的晶圆也只会使用其中 $26640\,\mathrm{mm}^2$, **剩余面积可用于 Fred 这类灵活互连**. 但大部分功率预算已经分给 NPU, 所以互连本身的功耗必须很低. **下文将说明 Fred 同时满足这两项要求.**
 
-Our target Fred topology is similar to [图 8](#figure-08)(a), where $20$ NPUs and I/O controllers are connected through a 2-level (almost) fat-tree topology. Similar to the baseline, the BW/NPU is still $3$ TBps, but the bisection BW is increased to $30$ TBps. It is almost fat-tree since the L1-to-L2 BW is the summation of attached NPU BW only (and not NPU $+$ I/O Controller). The reason is that if one participant of any *flow* (e.g., *Reduce*) is an I/O controller, then the entire *flow’s* BW requirement is determined by the I/O controller’s BW (e.g., 128 GBps), which is significantly less than NPU-to-NPU BW. Hence, an almost fat-tree gives the same performance as the full fat-tree.
+目标 Fred 拓扑与[图 8(a)](#figure-08) 类似, 通过一个两级的近似胖树拓扑连接 $20$ 个 NPU 和 I/O 控制器. 与基线一样, 每个 NPU 的带宽仍为 3 TBps, 但二分带宽提高到 30 TBps. 它不是完整胖树, 因为 L1 到 L2 的带宽只等于所连接 NPU 的带宽之和, 不计 I/O 控制器. 原因是, 如果任意 *流* (如 *Reduce*) 的一个参与方是 I/O 控制器, 整条 *流* 的带宽需求就由 I/O 控制器的带宽决定 (如 128 GBps), 远低于 NPU 到 NPU 的带宽. 因而, 近似胖树可以达到与完整胖树相同的性能.
 
-Looking at the BW requirements of Fred L1/L2 switches in [图 8](#figure-08)(a), it is clear that each switch chiplet requires a perimeter, to connect the wafer-scale network wires, that is not feasible to build. Hence, in reality, each of the Fred switches in [图 8](#figure-08)(a) is decomposed into multiple lower-BW Fred chiplets. [图 8](#figure-08)(b) shows a logical view of implementing the (almost) fat-tree based topology of [图 8](#figure-08)(a) using feasible Fred chiplets. As [图 8](#figure-08)(b) shows, each switch of [图 8](#figure-08)(a) is implemented by decomposing it into multiple smaller, but feasible, Fred switches (enclosed in the strip line). For our evaluations, we use Fred<sub>3</sub>($P$) switches.
+从[图 8(a)](#figure-08) 中 Fred L1/L2 交换机的带宽需求可以看出, 每颗交换机芯粒都需要很长的周边来连接晶圆级网络布线, 实际上无法制造. 因此, [图 8(a)](#figure-08) 中的每台 Fred 交换机都要拆成多颗带宽较低的 Fred 芯粒. [图 8(b)](#figure-08) 给出了逻辑实现: 用可制造的 Fred 芯粒构成[图 8(a)](#figure-08) 中的近似胖树拓扑. 如[图 8(b)](#figure-08) 所示, [图 8(a)](#figure-08) 中的每台交换机都被拆成条带线框内的多台小型 Fred 交换机. 评估中使用 Fred<sub>3</sub>($P$) 交换机.
 
-As [图 8](#figure-08)(b) shows, in Fred fabric, L1 switches have hybrid BW downstream links to connect to the NPUs and I/O controllers. This requires Fred L1 switches to use different interface circuitry for NPU vs. I/O controller links, which is accounted for in the overhead numbers in [表 4](#table-04). In general, hybrid on-chip interconnects are widely used in many designs (e.g., to connect on-chip routers vs. memory controllers in multi-core processors) [Pri04].
+如[图 8(b)](#figure-08) 所示, Fred 互连的 L1 交换机使用不同带宽的下行链路连接 NPU 和 I/O 控制器. 因此, Fred L1 交换机需要分别为 NPU 链路和 I/O 控制器链路使用不同的接口电路, [表 4](#table-04) 的开销数据已经计入这部分. 混合片上互连在许多设计中都很常见, 例如多核处理器会用它连接片上路由器和内存控制器 [Pri04].
 
-**Flow Control.** We assume a Virtual Cut-Through flow control with a credit-based backpressure mechanism to guarantee the switch buffer as packets flow through FRED’s fabric. To enable preemptive communication execution, we consider four VCs per port: three data VCs dedicated to MP, DP, and PP packets and one control VC for the ACK/NACK and other control messages. The data/control packet size is 4KB/512B, with each flit size set to be 512B. The packet header size is 6B to allow for large sequence numbers. Each packet header also has the index to the $\mu$Switch configuration bits, stored in the control unit for a specific communication phase [+5]. If all ports receive a packet belonging to a higher priority phase, Fred changes its $\mu$Switch configuration to that phase and starts forwarding the packets from that phase. Additionally, there is a default header index, which refers to a phase where all flows are unicast and Fred falls back to the online routing to determine the $\mu$Switch configs. While not present in our workloads, this mode is useful when dealing with communication patterns such as *alltoallv* where different src/dst pairs have different size flows that are changing dynamically.
+**流量控制.** 我们假设采用虚拟直通流量控制, 并通过基于信用的反压机制保证数据包经过 FRED 互连时有足够的交换机缓冲区. 为支持抢占式通信, 每个端口配置四条 VC: 三条数据 VC 分别用于 MP, DP, PP 数据包, 另一条控制 VC 用于 ACK/NACK 和其他控制消息. 数据包/控制包大小分别为 4KB/512B, 每个 flit 为 512B. 包头大小为 6B, 以容纳较大的序列号. 每个包头还包含一个索引, 指向控制单元中为特定通信阶段保存的 $\mu$Switch 配置位 [+5]. 如果所有端口都收到属于更高优先级阶段的数据包, Fred 就把 $\mu$Switch 切换到该阶段的配置, 并开始转发该阶段的数据包. 此外还有一个默认包头索引, 对应所有流均为单播的阶段; 此时 Fred 会退回在线路由, 动态确定 $\mu$Switch 配置. 我们的工作负载中没有使用这一模式, 但它适合 *alltoallv* 等通信模式, 因为不同源/目的端对之间的流大小会动态变化.
 
-The retransmission protocol is set to be simple Go-Back-N, with an accumulative ack per every 16 data packets to reduce the ack overhead to less than $1\%$ of the network BW. If a switch receives a NACK from an NPU, it forwards it to all input ports participating in that flow, which is then propagated to all NPUs serving as the source of the flow, and retransmission starts from the NACKed packet.
+重传协议采用简单的 Go-Back-N. 每 16 个数据包发送一个累积 ACK, 把 ACK 开销压到网络带宽的 $1\%$ 以下. 如果交换机收到来自 NPU 的 NACK, 就会把它转发到参与该流的所有输入端口, 再逐级传播到作为流源的所有 NPU, 并从被 NACK 的数据包开始重传.
 
-Additionally, each input port has a 24KB buffer per data VC and a 2KB buffer for the control VC. These policies ensure that in the case of communication preemption, there are enough buffers available (i.e., $\mathrm{\mathrm{link}}\_\mathrm{\mathrm{BW}}\times \mathrm{\mathrm{RTT}}=\text{24\mathrm{\mathrm{KB}}}$) for the new communication operation to send at the full link BW.
+此外, 每个输入端口为每条数据 VC 配置 24KB 缓冲区, 为控制 VC 配置 2KB 缓冲区. 这些策略可保证通信被抢占时仍有足够的缓冲区, 即 $\mathit{link\_BW}\times \mathrm{RTT}=24\,\mathrm{KB}$, 让新通信操作以链路全带宽发送.
 
-**HW Overhead.** [表 4](#table-04) shows the overheads of our proposed Fred implementation shown in [图 8](#figure-08). We assume 1.5KB SRAM per FRED switch to store the $\mu$Switch configurations for different communication operations. The numbers are obtained post layout using 15nm NanGate PDK. The total power overhead is $179.35\>W$, which is about $1.2\%$ of the total power budget. The total area overhead is $25195\>mm^{2}$, which can be accommodated by using the unclaimed area available on the wafer. Note that, as discussed in [第 6.2.3 节](#section-6-2-3), the main area overhead of the Fred chiplets is due to I/O for supporting high-BW wafer-scale interconnects, and not because of the switch logic overhead.
+**硬件开销.** [表 4](#table-04) 列出了[图 8](#figure-08) 所示 Fred 实现的开销. 我们假设每台 FRED 交换机配备 1.5KB SRAM, 用于保存不同通信操作的 $\mu$Switch 配置. 数据来自采用 15nm NanGate PDK 的布局后结果. 总功耗开销为 $179.35\,\mathrm{W}$, 约占总功率预算的 $1.2\%$. 总面积开销为 $25195\,\mathrm{mm}^2$, 可以放入晶圆上的未使用区域. 如[第 6.2.3 节](#section-6-2-3)所述, Fred 芯粒的主要面积开销来自支持高带宽晶圆级互连的 I/O, 而不是交换逻辑.
 
-**讨论: Fred Area Overhead.** As we discussed earlier, the unclaimed area on the wafer allows for designing large (but low power) Fred switches to deliver high I/O BW requirements for our topology. In fact, Fred’s internal logic occupies less than 5% of the chip area. Hence, the area overhead of Fred can be significantly reduced if the I/O density increases.
+**讨论: Fred 的面积开销.** 如前所述, 晶圆上未被占用的面积可以用来设计面积较大但功耗较低的 Fred 交换机, 满足该拓扑的高 I/O 带宽需求. Fred 的内部逻辑实际占不到芯片面积的 5%. 因此, 只要提高 I/O 密度, Fred 的面积开销就能大幅下降.
 
 <span id="table-05"></span>
 
@@ -372,9 +372,9 @@ Additionally, each input port has a 24KB buffer per data VC and a 2KB buffer for
 
 **表 5.** 目标配置.
 
-In our design, we conservatively assume the switch chips use the same interconnect technology as the NPUs (e.g., pitch, frequency, etc.). However, switch area can be further reduced by applying more aggressive network bandwidth technologies. Next generation of I/O technology is expected to deliver up to 250 GBps/mm (compared to 107.4 GBps/mm in our design) [Het24]. This results in designing Fred switch chips with only 18.4% of current area with the same I/O BW.
+设计中保守假设交换芯片采用与 NPU 相同的互连技术, 包括间距和频率等参数. 如果使用更激进的网络带宽技术, 交换机面积还能继续缩小. 下一代 I/O 技术预计可提供最高 250 GBps/mm 的带宽密度, 而本文设计为 107.4 GBps/mm [Het24]. 在 I/O 带宽不变的情况下, Fred 交换芯片的面积可降至当前的 18.4%.
 
-The other I/O technology alternative is using the serialized high-speed links such as UCIe Advanced [Uni24], which can deliver up to 1 TBps/$mm$. This results in designing Fred switch chips with only 5% of the current area. Note that even with the high area assumption of Fred, we don’t expect the yield issue to be a practical problem since compared to the compute NPUs, Fred switches have much less internal logic and hence encounter fewer defects.
+另一种 I/O 技术方案是采用 UCIe Advanced [Uni24] 等串行高速链路, 带宽密度最高可达 1 TBps/mm. 这样可把 Fred 交换芯片面积降至当前的 5%. 即便沿用本文对 Fred 面积的较高估计, 良率在实践中也不成问题, 因为 Fred 交换机的内部逻辑远少于计算 NPU, 出现的缺陷也更少.
 
 <span id="table-06"></span>
 
@@ -390,31 +390,31 @@ The other I/O technology alternative is using the serialized high-speed links su
 
 ### 7.1 基线和 Fred 配置
 
-**Baseline.** The baseline topology is a $5\times 4$ 2D-mesh with I/O controllers attached to the edge NPUs, similar to prior multi-chiplet wafer-scale prototypes [Arc19, Des21, Sim19, Enh24, Chi24a]. Since each NPU has 3 TBps bandwidth ([第 6.2.2 节](#section-6-2-2)), each NPU-to-NPU link in the 2D-Mesh is equal to $750$ GBps, resulting in the bisection BW of 3.75 TBps. The I/O Controller-to-NPU is $128$ GBps.
+**基线.** 基线拓扑为 $5\times 4$ 2D Mesh, I/O 控制器连接在边缘 NPU 上, 与已有的多芯粒晶圆级原型类似 [Arc19, Des21, Sim19, Enh24, Chi24a]. 每个 NPU 的带宽为 3 TBps (见[第 6.2.2 节](#section-6-2-2)), 所以 2D Mesh 中每条 NPU 到 NPU 链路的带宽为 750 GBps, 二分带宽为 3.75 TBps. I/O 控制器到 NPU 的带宽为 128 GBps.
 
-**Fred.** We test four different variations of Fred to show how different features of Fred contribute to the overall performance. [表 5](#table-05) shows the target configurations. *Fred-A* shows the effect of going from mesh to switch-based topology with the same bisection and without in-network collective execution. *Fred-B* builds on top of Fred-A and adds the in-network collective execution feature. *Fred-C* increases the bisection BW without in-network collective execution. Finally, Fred-D is the most optimal variant of Fred by adding the in-network collective execution to the previous variant.
+**Fred.** 我们测试了 Fred 的四种变体, 以观察各项特性对整体性能的贡献. 目标配置见[表 5](#table-05). *Fred-A* 在保持相同二分带宽且不使用网络内集合通信的条件下, 展示从 Mesh 改为交换式拓扑的效果. *Fred-B* 在 Fred-A 上加入网络内集合通信. *Fred-C* 提高二分带宽, 但不使用网络内集合通信. 最后, Fred-D 在 Fred-C 上加入网络内集合通信, 是性能最优的变体.
 
 <span id="section-7-2"></span>
 
-### 7.2 Collective Algorithm
+### 7.2 集合通信算法
 
-For the baseline 2D mesh and when there is a wafer-wide collective, we use the hierarchical 2D algorithm with two concurrent chunks (in reverse direction) to enhance utilization [Hig20, Enh24]. For collectives between arbitrary NPUs, we build logical rings between involved NPUs and perform the ring algorithm. We also use X-Y routing, which is common in real systems [Hig20]. For Fred-A and Fred-C, we use the hierarchical 2-D ring algorithm to reduce the traffic of L1-L2 links, similar to [Cho19]. Fred-B and Fred-D use the in-network capability and use the hierarchical Fred switch topology to perform the collective, as explained in [第 6.1 节](#section-6-1).
+基线 2D Mesh 执行全晶圆集合通信时, 使用分层 2D 算法, 让两个数据块沿相反方向并发传输, 以提高利用率 [Hig20, Enh24]. 对任意 NPU 之间的集合通信, 我们在参与的 NPU 之间构建逻辑环并执行环形算法. 路由采用真实系统中常见的 X-Y 路由 [Hig20]. Fred-A 和 Fred-C 使用分层 2D 环形算法, 以减少 L1-L2 链路上的流量, 与 [Cho19] 类似. Fred-B 和 Fred-D 使用网络内集合通信能力, 通过分层 Fred 交换机拓扑执行集合通信, 详见[第 6.1 节](#section-6-1).
 
 <span id="section-7-3"></span>
 
 ### 7.3 目标工作负载和执行模式
 
-In the interest of space, we evaluate four training workloads, ranging from 60M to 1T parameters to be the representative for a broad range of ML workloads. [表 6](#table-06) shows the target workloads and their corresponding parallelization strategy and execution models studied in [第 8.2 节](#section-8-2). ResNet-152 and Transformer-17B (Transformer model with 17 billion parameters) can fit on the on-wafer memory and hence, use the *权重驻留* execution mode ([第 3.1 节](#section-3-1)). In contrast, GPT-3 and Transformer-1T (Transformer model with 1 trillion parameters) use the *权重流式传输* execution mode ([第 3.1 节](#section-3-1)). Workers within the same DP group perform All-Reduce together during the back-propagation to sync on weight gradients. In *权重驻留* mode, the workers use the Microsoft ZeRO optimizer stage 2 [Raj20b] along the DP dimension to reduce the memory footprint. Note that in *权重流式传输* mode, the DP groups should reduce the gradients as they stream them out to the external memory through the I/O controller. The pattern is the reverse communication direction of [图 4](#figure-04). For Transformer-17B, GPT-3 and Transformer-1T, the model split is based on the Megatron-LM method [Sho19], which requires two All-Reduces (along the MP dimension) for each transformer layer stack during forward-pass & back-propagation. For the PP split on Transformer-17B, we assume the minibatch is divided into 8 microbatches to hide the effect of pipeline bubbles [Hua19]. For GPT-3, however, pipelining works differently since it is combined with the 权重流式传输. In this case, $\mathrm{\mathrm{PP}}\>=\>2$ indicates that each time $2$ consecutive layers are brought to the wafer and distributed among different NPUs along the PP dimension. Thus, splitting the minibatch into two microbatches is enough to hide the pipeline latency. In [第 8.1 节](#section-8-1) and [第 8.2 节](#section-8-2), the minibatch size for all workloads is set to DP_size$\times 16$, while in [第 8.3 节](#section-8-3) (and also [图 2](#figure-02)) the minibatch size is increased to DP_size$\times 40$ to allow for finer-grain pipelining when PP_size increases [+6]. All workloads use FP16 gradient precision.
+受篇幅限制, 我们选择四种训练工作负载进行评估, 参数量从 60M 到 1T, 覆盖较广的机器学习工作负载范围. [表 6](#table-06) 列出了目标工作负载, 相应的并行策略, 以及[第 8.2 节](#section-8-2)研究的执行模式. ResNet-152 和 Transformer-17B (含 170 亿参数的 Transformer 模型) 可以装入晶圆上内存, 因而采用 *权重驻留* 模式 (见[第 3.1 节](#section-3-1)). GPT-3 和 Transformer-1T (含 1 万亿参数的 Transformer 模型) 则采用 *权重流式传输* 模式 (见[第 3.1 节](#section-3-1)). 同一 DP 组内的工作器在反向传播期间共同执行 All-Reduce, 以同步权重梯度. 在 *权重驻留* 模式下, 工作器沿 DP 维度采用 Microsoft ZeRO optimizer stage 2 [Raj20b], 以减少内存占用. 在 *权重流式传输* 模式下, DP 组应在通过 I/O 控制器把梯度流式写入外部内存的同时完成归约. 其通信方向与[图 4](#figure-04) 相反. Transformer-17B, GPT-3 和 Transformer-1T 按 Megatron-LM 方法 [Sho19] 切分模型, 每个 Transformer 层堆栈在前向传播和反向传播期间都要沿 MP 维度执行两次 All-Reduce. 对 Transformer-17B 的 PP 切分, 我们把 minibatch 分成 8 个 microbatch, 以隐藏流水线气泡的影响 [Hua19]. GPT-3 的流水线方式不同, 因为它还结合了权重流式传输. 此时 $\mathrm{PP}=2$ 表示每次把连续 $2$ 层送入晶圆, 再沿 PP 维度分配到不同 NPU. 因而把 minibatch 分成两个 microbatch 就足以隐藏流水线延迟. 在[第 8.1 节](#section-8-1)和[第 8.2 节](#section-8-2)中, 所有工作负载的 minibatch 大小都设为 $\mathit{DP\_size}\times 16$; 在[第 8.3 节](#section-8-3)及[图 2](#figure-02) 中, 则增至 $\mathit{DP\_size}\times 40$, 以便在 $\mathit{PP\_size}$ 增大时进行更细粒度的流水线处理 [+6]. 所有工作负载都采用 FP16 梯度精度.
 
 <span id="section-7-4"></span>
 
 ### 7.4 仿真框架
 
-We use ASTRA-SIM [Ast20, Ast20a], which is an open-source simulation methodology for modeling distributed training systems. ASTRA-SIM enables the profiling of compute and communication performance of distinct wafer-scale fabrics, including Fred. It can model various parallelization strategies and the overlapping of compute with comm kernels. Additionally, its network back-end can simulate the comm operations in detail. We extend ASTRA-SIM to model the I/O-to-wafer transfers for both the 权重驻留 and 权重流式传输 scenarios. For each workload, we run the simulation for two training iterations (i.e., two forward + two backward-pass).
+我们使用开源分布式训练系统仿真工具 ASTRA-SIM [Ast20, Ast20a]. ASTRA-SIM 可以分析包括 Fred 在内的不同晶圆级互连的计算和通信性能. 它能够建模各种并行策略, 以及计算内核与通信内核之间的重叠. 其网络后端还可以详细模拟通信操作. 我们扩展了 ASTRA-SIM, 为权重驻留和权重流式传输两种场景建模 I/O 到晶圆的数据传输. 每种工作负载都仿真两次训练迭代, 即两次前向传播和两次反向传播.
 
-Previous works have shown that endpoint-based collective execution (our baseline) puts more pressure on the endpoint’s compute and memory BW resources, hindering the compute kernel efficiency [Ena21]. To favor the baseline and only focus on the network characteristics, we omit such effects in our baseline system and assume the compute kernels can run as efficient as the in-network collective execution systems such as Fred.
+已有工作表明, 基于端点的集合通信执行 (即本文基线) 会给端点的计算资源和内存带宽带来更大压力, 降低计算内核效率 [Ena21]. 为使基线更占优势并只考察网络特性, 我们在基线系统中忽略这些影响, 假设其计算内核能像 Fred 等网络内集合通信系统一样高效运行.
 
-**Metric of Evaluation.** In [第 8 节](#section-8), we report the end-to-end training times and their breakdowns into total compute time and different *exposed* communication times. Since the minibatch size per training iteration may be different depending on the parallelization strategy, we normalize the reported times by dividing the latencies by the minibatch size when comparing the different parallelization strategies of the same workload (e.g., [图 2](#figure-02)). The exposed communication time refers to the amount of time that is not overlapped with the compute time and the workload is waiting for the communication to be finished. Depending on the parallelization strategy and execution model, there might be multiple sources of exposed communication times—load, DP, MP, PP, and/or 权重流式传输.
+**评估指标.** [第 8 节](#section-8)报告端到端训练时间, 并将其分解为总计算时间和不同的 *暴露* 通信时间. 每次训练迭代的 minibatch 大小可能随并行策略变化, 因而在比较同一工作负载的不同并行策略时 (如[图 2](#figure-02)), 我们用延迟除以 minibatch 大小, 对结果作归一化. 暴露通信时间是指无法与计算重叠, 工作负载必须等待通信完成的时间. 根据并行策略和执行模式, 暴露通信时间可能来自加载, DP, MP, PP 和/或权重流式传输.
 
 <span id="section-8"></span>
 
@@ -424,90 +424,92 @@ Previous works have shown that endpoint-based collective execution (our baseline
 
 ### 8.1 微基准测试结果
 
-[图 9](#figure-09) presents the communication breakdown across 3D parallelism phases for two parallelization strategies for Transformer-17B. For the MP(20)-DP(1)-PP(1) strategy, there are only wafer-wide All-Reduce operations for the MP communication. The baseline effective BW utilization is bounded by the corner NPUs since they have only 2 links to other NPUs. This limits the average network BW utilization of each NPU to be around $2\times 750\mathrm{\mathrm{GBps}}=1500\mathrm{\mathrm{GBps}}$. In Fred-A, each NPU-L1 BW is 3 TBps, but NPU-L2 BW is 375GBps. [+7] Using a similar analysis as [The22a], we see that hierarchical collectives result in NPU-L2 BW being the bottleneck and the effective NPU BW utilization is $375\mathrm{\mathrm{GBps}}+4\times 375\mathrm{\mathrm{GBps}}=1850\mathrm{\mathrm{GBps}}$. In Fred-B, the L1 switches first perform the All-Reduce and then use the entire L1-L2 BW to forward the data to the L2 switches for the second All-Reduce. Therefore, each NPU can send the data to L2 switch at the speed of $1500\mathrm{\mathrm{GBps}}$ (L1-L2 BW). However, since it is an in-network collective execution, the amount of traffic each NPU sends out is almost half of the traffic in the endpoint-based collective. Fred-C has much more L1-L2 BW and therefore each NPU can drive the BW utilization to $3\mathrm{\mathrm{TBps}}$. In Fred-D, an additional in-network collective execution reduces the traffic by half in addition to the $3\mathrm{\mathrm{TBps}}$ NPU BW utilization.
+[图 9](#figure-09) 给出了 Transformer-17B 两种并行策略在 3D 并行各阶段的通信分解. 对于 MP(20)-DP(1)-PP(1) 策略, MP 通信只有覆盖整块晶圆的 All-Reduce. 基线的有效带宽利用率受角落 NPU 限制, 因为它们只有两条通往其他 NPU 的链路. 因此, 每个 NPU 的平均网络带宽利用率约为 $2\times 750\,\mathrm{GBps}=1500\,\mathrm{GBps}$. Fred-A 中, 每个 NPU-L1 的带宽为 3 TBps, 但 NPU-L2 带宽只有 375 GBps [+7]. 采用与 [The22a] 类似的分析可知, 分层集合通信以 NPU-L2 带宽为瓶颈, NPU 的有效带宽利用率为 $375\,\mathrm{GBps}+4\times 375\,\mathrm{GBps}=1850\,\mathrm{GBps}$. 在 Fred-B 中, L1 交换机先执行 All-Reduce, 再使用全部 L1-L2 带宽把数据转发到 L2 交换机, 执行第二次 All-Reduce. 因而每个 NPU 可以按 $1500\,\mathrm{GBps}$ 的速率 (即 L1-L2 带宽) 向 L2 交换机发送数据. 不过, 由于这里采用网络内集合通信, 每个 NPU 发出的流量约为基于端点方案的一半. Fred-C 提供了更高的 L1-L2 带宽, 每个 NPU 因而能把带宽利用率推至 $3\,\mathrm{TBps}$. Fred-D 在 $3\,\mathrm{TBps}$ NPU 带宽利用率的基础上加入网络内集合通信, 又将流量减半.
 
 <span id="figure-09"></span>
 
 ![图 9. Transformer-17B 两种并行策略在 3D 并行不同阶段的通信微基准结果, 仅比较通信性能 (策略见[图 2](#figure-02)).](./fred/figure-09.png)
 
-**图 9.** Communication microbenchmark results for comparing only communication performance at different phases of 3D-parallelism, for two different parallelization strategies of Transformer-17B from [图 2](#figure-02).
+**图 9.** Transformer-17B 两种并行策略在 3D 并行不同阶段的通信微基准结果, 仅比较通信性能; 两种策略取自[图 2](#figure-02).
 
-The MP(2)-DP(5)-PP(2) case has all MP (All-Reduce), DP (All-Reduce), and PP (multicast) communications. For the MP communications, the baseline NPU can only utilize 1 link (out of its up to 4 links), resulting in only $750\mathrm{\mathrm{GBps}}$ BW utilization. Since all the communicating NPUs are below the same L1 switch in Fred topologies, they can use the entire $3\mathrm{\mathrm{TBps}}$ of NPU-L1 BW to communicate. Additionally, in the special case when the number of peer NPUs is two, the amount of traffic for endpoint-based vs. in-network execution is the same. Hence, all Fred variants have the same performance for MP communication.
+MP(2)-DP(5)-PP(2) 同时包含 MP (All-Reduce), DP (All-Reduce) 和 PP (组播) 通信. 对 MP 通信而言, 基线 NPU 最多四条链路中只能使用一条, 带宽利用率仅为 $750\,\mathrm{GBps}$. Fred 拓扑中, 所有参与通信的 NPU 都位于同一台 L1 交换机下, 可以使用完整的 $3\,\mathrm{TBps}$ NPU-L1 带宽通信. 此外, 对等 NPU 只有两个时, 基于端点和网络内执行产生的流量相同. 因此, 所有 Fred 变体的 MP 通信性能都一样.
 
-Again, the baseline is limited by the corner NPUs, which can utilize only one of their links for DP communication. Hence, the baseline NPU BW is $750\mathrm{\mathrm{GBps}}$. In Fred, and for the DP communication, each NPU should communicate with four other NPUs under different L1 switches. Therefore, in Fred variants the L1-L2 BW should be shared across four collective flows. Therefore, L1-L2 BW plays a significant role in the performance of this collective. In Fred-A, each NPU has an average NPU-L2 BW of $375\mathrm{\mathrm{GBps}}$, and hence, the NPU BW utilization is only $375\mathrm{\mathrm{GBps}}$, which is worse than the baseline. In Fred-B, however, the L2 switch is used to perform All-Reduce for each flow. This reduces the traffic generated by each NPU roughly by $37.5\%$, which makes its overall performance closer to the baseline. In Fred-C, however, the NPU-L2 BW is increased to $3\mathrm{\mathrm{TBps}}$. Finally, Fred-D Improves the Fred-C by performing in-network collective and reducing the traffic by $37.5\%$.
+DP 通信同样受角落 NPU 限制, 因为基线中的角落 NPU 只能使用一条链路. 所以基线 NPU 带宽为 $750\,\mathrm{GBps}$. 在 Fred 中执行 DP 通信时, 每个 NPU 都要与其他 L1 交换机下的四个 NPU 通信, 所以 Fred 各变体的 L1-L2 带宽必须由四条集合通信流共享. L1-L2 带宽因此会显著影响该集合通信的性能. Fred-A 中, 每个 NPU 的平均 NPU-L2 带宽为 $375\,\mathrm{GBps}$, NPU 带宽利用率也只有 $375\,\mathrm{GBps}$, 低于基线. Fred-B 则让 L2 交换机为每条流执行 All-Reduce, 将每个 NPU 产生的流量减少约 $37.5\%$, 总体性能因而更接近基线. Fred-C 把 NPU-L2 带宽提高到 $3\,\mathrm{TBps}$. Fred-D 在 Fred-C 上执行网络内集合通信, 将流量再减少 $37.5\%$.
 
-For the PP comm, the baseline NPU can utilize one of its links to forward data to the next pipeline stage and hence, its BW utilization is 750GBps. Note that this is possible since in the case of language models such as Transformer-17B, one NPU within the mp group is sufficient to multicast the output to all NPUs at the next stage, [+8] and hence, there is no contention between NPUs of the same MP group at the same stage. In Fred, all peer NPUs are below the same L1 switch and can utilize the entire $3{\mathrm{\mathrm{TBps}}}$ BW for the PP comm.
+对于 PP 通信, 基线 NPU 可以用一条链路把数据转发到下一流水线阶段, 带宽利用率为 750 GBps. 对 Transformer-17B 这类语言模型, MP 组内只需一台 NPU 把输出组播给下一阶段的所有 NPU [+8], 因而同一阶段的同一 MP 组内不存在 NPU 间竞争. 在 Fred 中, 所有对等 NPU 都位于同一台 L1 交换机下, PP 通信可以利用完整的 $3\,\mathrm{TBps}$ 带宽.
 
-**讨论: Fred’s NPU to L1 Topology Logic.** Now that we have presented the microbenchmark results, we can discuss why we preferred to choose a tree-based topology to connect every four NPUs to the L1 switches. An alternative solution can be a fully-connected topology to connect every four NPUs and then use only one switch level. However, this design choice still suffers from the endpoint-based effects (i.e., increased use of compute and memory BW at the endpoint) discussed in [第 7.4 节](#section-7-4). Furthermore, as explained in [第 2.2 节](#section-2-2), endpoint-based methods produce more communication traffic. For example, in the case of four NPUs, the most endpoint-based BW optimal algorithms produce 1.5D traffic per NPU to perform an All-Reduce of size D [Tha05, The22a], while the in-network collective execution produces only D traffic per NPU [Sca21], 50% lower than the fully connected topology.
+**讨论: NPU 到 L1 的 Fred 拓扑设计.** 根据上述微基准结果, 下面解释为什么我们选择树形拓扑, 每四个 NPU 连接到 L1 交换机. 另一种方案是把每四个 NPU 完全互连, 只使用一级交换机. 但这种设计仍会受到[第 7.4 节](#section-7-4)所述的端点效应影响, 即端点需要占用更多计算资源和内存带宽. 而且如[第 2.2 节](#section-2-2)所述, 基于端点的方法会产生更多通信流量. 以四个 NPU 为例, 带宽最优的端点算法在执行大小为 $D$ 的 All-Reduce 时, 每个 NPU 会产生 $1.5D$ 流量 [Tha05, The22a]; 网络内集合通信每个 NPU 只产生 $D$ 流量 [Sca21], 比完全互连拓扑低 50%.
 
 <span id="figure-10"></span>
 
 ![图 10. 端到端训练时间分解为计算时间和不同通信时间. 每个工作负载的运行时间均相对于对应基线归一化.](./fred/figure-10.png)
 
-**图 10.** End-to-end training times are decomposed into compute times and different communication times. The runtime of each workload is normalized to its corresponding baseline.
+**图 10.** 端到端训练时间分解为计算时间和不同通信时间. 每个工作负载的运行时间均相对于对应基线归一化.
 
 <span id="section-8-2"></span>
 
 ### 8.2 全工作负载结果: 深入分析
 
-[图 10](#figure-10) shows the end-to-end runtimes of the training workloads for the baseline vs. Fred. Due to space limitations, we only show the Fred-C and Fred-D in comparison with the baseline. However, we note that Fred-A and Fred-B results are between the baseline and Fred-C, in terms of performance. In general, input activations, compared to the model parameters, are relatively small in size and hence, do not have significant overhead on the total iteration time. Additionally, the input activations of the next iteration can be prefetched to the wafer whenever the wafer-scale interconnect is idle. Hence, we observe **no** *initial_input_load* exposed comm for any of our target workloads, except for the Transformer-1T.
+[图 10](#figure-10) 比较了基线与 Fred 上各训练工作负载的端到端运行时间. 受篇幅限制, 图中只展示 Fred-C, Fred-D 与基线的对比. Fred-A 和 Fred-B 的性能介于基线与 Fred-C 之间. 通常, 输入激活值比模型参数小得多, 因而对总迭代时间影响不大. 只要晶圆级互连空闲, 还可以把下一次迭代的输入激活值预取到晶圆上. 因此, 除 Transformer-1T 外, 所有目标工作负载都 **没有** 暴露的 *initial_input_load* 通信时间.
 
-ResNet-152 uses pure DP with a 权重驻留 model. Hence, the only communication costs that repeat on each training iteration are the input minibatch loading and DP communication. As explained earlier, in wafer-wide All-Reduce collective, the baseline is able to utilize $1.5$ TBps of NPU BW. Fred-C and Fred-D can achieve $3$ TBps NPU BW but Fred-D can further reduce the network traffic by $\approx 2\times$, resulting in a significant reduction of DP exposed comm. Thus, Fred-C and Fred-D can improve the end-to-end training runtime by $1.41\times$ and $1.76\times$, respectively, for ResNet-152.
+ResNet-152 采用纯 DP 和权重驻留模式. 因而每次训练迭代中重复出现的通信开销只有输入 minibatch 加载和 DP 通信. 如前所述, 在全晶圆 All-Reduce 中, 基线能利用 1.5 TBps 的 NPU 带宽. Fred-C 和 Fred-D 可达到 3 TBps; Fred-D 还能把网络流量再减少约 $2\times$, 明显降低暴露的 DP 通信时间. 对 ResNet-152, Fred-C 和 Fred-D 可分别把端到端训练加速 $1.41\times$ 和 $1.76\times$.
 
-Transformer-17B uses all dimensions of the 3D-parallelism and therefore, has all DP, MP, and PP communication overheads. The baseline device placement favors MP, but compromises the PP and DP comms, especially due to the non-aligned parallelization strategy dimensions as explained in [第 3 节](#section-3). Another drawback of the baseline is the underutilized links due to the non-overlapping nature of MP/DP/PP comms (see [第 3 节](#section-3)). Fred-C, on the other hand, does not have the problem of underutilized links and non-aligned parallelization strategies. It also does not require favoring any of DP, MP, or PP over the other strategies. Fred-D can further improve the MP and DP collectives’ performance due to in-switch collective execution capability. As a result, Fred-C and Fred-D can improve the overall end-to-end training performance by $1.75\times$ and $1.87\times$, respectively.
+Transformer-17B 使用 3D 并行的所有维度, 因而同时包含 DP, MP 和 PP 通信开销. 基线设备放置偏向 MP, 牺牲了 PP 和 DP 通信, 尤其是在[第 3 节](#section-3)所述的并行策略维度不对齐时. 基线还有一个问题: MP/DP/PP 通信互不重叠, 导致部分链路利用不足 (见[第 3 节](#section-3)). Fred-C 没有链路利用不足和并行策略不对齐的问题, 也无需在 DP, MP, PP 之间偏向某一种策略. Fred-D 还可借助交换机内集合通信进一步提高 MP 和 DP 集合通信性能. 最终, Fred-C 和 Fred-D 分别将整体端到端训练加速 $1.75\times$ 和 $1.87\times$.
 
-GPT-3 combines 权重流式传输 with 3D-parallelism. Using the analysis of [第 3 节](#section-3), the baseline topology is unable to stream weights with the full line-rate of I/O controllers. The reason is that the hotspot link requires $(2\times 5\>-1)\times 128\text{ \mathrm{\mathrm{GBps}}}\>=\>1152\text{ \mathrm{\mathrm{GBps}}}$, while link capacity is only $750$ GBps. Therefore, the I/O channels should work with $\frac{750}{1152}=0.65\times$ of the line-rate. The MP/PP comm performance of Fred-C and Fred-D is $\approx 4\times$ better than the baseline, due to the underutilized links in the baseline. Note that the reason why Fred-C and Fred-D have the same performance for MP collective comm is because dim(MP)=2. In this special case, as explained earlier, end-to-end and in-switch collective execution have the same amount of networking traffic and hence, have the same performance. In total, Fred-D and Fred-C outperform the baseline by $1.34\times$ in terms of overall training time for GPT-3.
+GPT-3 将权重流式传输与 3D 并行结合. 根据[第 3 节](#section-3)的分析, 基线拓扑无法按 I/O 控制器的全线速传输权重. 热点链路需要 $(2\times 5-1)\times 128\,\mathrm{GBps}=1152\,\mathrm{GBps}$, 但链路容量只有 750 GBps. 所以 I/O 通道只能按线速的 $\frac{750}{1152}=0.65\times$ 工作. 由于基线链路利用不足, Fred-C 和 Fred-D 的 MP/PP 通信性能约为基线的 $4\times$. Fred-C 和 Fred-D 的 MP 集合通信性能相同, 原因是 $\dim(\mathrm{MP})=2$. 如前所述, 在这一特殊情况下, 基于端点和交换机内集合通信产生的网络流量相同, 性能也相同. 总体而言, Fred-D 和 Fred-C 都将 GPT-3 的整体训练加速 $1.34\times$.
 
-Transformer-1T is another 权重流式传输 workload, but with only DP parallelism. As a result, the 权重流式传输 delay is the only communication overhead in addition to the initial input load. The high-performance compute NPUs and limited off-chip I/O BW puts the 权重流式传输 performance directly on the critical path. This means that the NPUs can work with the line-rate of the weight being streamed, and the main limiting factor is how fast all the weights can be streamed. In this case, both Fred-C and Fred-D can leverage the full I/O BW, while the baseline topology can only work with $0.65\times$ of the total I/O BW as explained earlier. Additionally, since I/O controllers are always being utilized for 权重流式传输, there is no idle time to prefetch the input minibatch of the next iteration during the current training iteration. Hence, the initial input load cannot be hidden, although its overhead is very negligible. In total, using Fred-C/Fred-D improves the training time by $1.4\times$.
+Transformer-1T 同样采用权重流式传输, 但只使用 DP. 因此, 除初始输入加载外, 唯一的通信开销就是权重流式传输延迟. 高性能计算 NPU 与有限的片外 I/O 带宽使权重流式传输直接落在关键路径上. NPU 可以按权重流的线速工作, 主要限制因素是所有权重完成传输的速度. Fred-C 和 Fred-D 都能利用全部 I/O 带宽, 而基线拓扑如前所述只能使用总 I/O 带宽的 $0.65\times$. 由于 I/O 控制器始终用于权重流式传输, 当前训练迭代中没有空闲时间预取下一次迭代的输入 minibatch. 初始输入加载因此无法隐藏, 尽管其开销很小. 总体上, Fred-C/Fred-D 可将训练加速 $1.4\times$.
 
 <span id="figure-11"></span>
 
 ![图 11. Transformer-1T 和 Transformer-17B 在不同并行策略下的基线与 Fred-D 对比.](./fred/figure-11.png)
 
-**图 11.** Baseline vs. Fred-D for various parallelization strategies of Transformer-1T and Transformer-17B
+**图 11.** Transformer-1T 和 Transformer-17B 在不同并行策略下的基线与 Fred-D 对比.
 
 <span id="section-8-3"></span>
 
 ### 8.3 不同并行策略
 
-To test the efficiency of Fred for different parallelization strategies, we pick two workloads, Transformer-17B and Transformer-1T, and compare the baseline performance vs. Fred-D in [11(a)](#figure-11) and [11(b)](#figure-11), respectively. The Avg. bars are obtained across all parallelization strategies similar to [图 2](#figure-02), however, not all individual parallelization strategies of [图 2](#figure-02) are shown in [11(a)](#figure-11) and [11(b)](#figure-11) due to lack of space. As can be observed from both figures, Fred-D can significantly improve communication performance and reduce the total exposed communication in all parallelization strategies.
+为测试 Fred 在不同并行策略下的效率, 我们选择 Transformer-17B 和 Transformer-1T 两种工作负载, 分别在[图 11(a)](#figure-11) 和[图 11(b)](#figure-11) 中比较基线与 Fred-D 的性能. Avg. 柱与[图 2](#figure-02) 类似, 是所有并行策略的平均值; 但受篇幅限制, [图 11(a)](#figure-11) 和[图 11(b)](#figure-11) 没有列出[图 2](#figure-02) 中的每一种并行策略. 两幅图都表明, Fred-D 在所有并行策略下都能明显提高通信性能, 减少总暴露通信时间.
 
-Such improvements make the most compute-efficient (i.e., least compute time) parallelization strategy also to be the be the best parallelization strategy overall. For example, for Transformer-17B the most compute efficient strategy is MP(20)-DP(1)-PP(1). However, this configuration does not have the lowest overall training time in the baseline system due to its huge exposed communication overheads. Thanks to the benefits of Fred-D in reducing the share of exposed communication overheads, this configuration is now the most optimal compared to other parallelization strategies. This is also true for Transformer-1T, where the most compute-efficient strategy (i.e., MP(5)-DP(1)-PP(4)) is now the most optimal strategy.
+这些改进使计算效率最高, 即计算时间最短的并行策略, 也成为整体最优策略. 以 Transformer-17B 为例, 计算效率最高的策略是 MP(20)-DP(1)-PP(1). 但在基线系统中, 其暴露通信开销很大, 总训练时间并非最低. Fred-D 降低了暴露通信开销的占比, 使这一配置优于其他并行策略. Transformer-1T 也是如此: 计算效率最高的 MP(5)-DP(1)-PP(4) 现在也是整体最优策略.
 
-Overall, when averaged across all parallelization strategies, Fred-D can improve the exposed communication time by $4.22\times$ and $3.92\times$, resulting in training speedup by $1.63\times$ and $1.44\times$ for Transformer-17B and Transformer-1T, respectively.
+对所有并行策略取平均后, Fred-D 将 Transformer-17B 和 Transformer-1T 的暴露通信时间分别改善 $4.22\times$ 和 $3.92\times$, 对应的训练加速比分别为 $1.63\times$ 和 $1.44\times$.
 
-**讨论: going beyond a single wafer.** While the main focus of this paper is on providing flexible on-wafer interconnects to allow for more flexible parallelization strategies, here we discuss the possible scenarios when the model cannot fit on a single wafer. The first method is to pyramidically load and unload parts of the model (i.e., 权重流式传输) as we considered and evaluated in the paper. However, in some cases more than one wafer is needed for training to reduce the training time. In that case, the optimal inter-wafer topology is an open question. Some methods use reduction trees to accumulate the gradients obtained from different wafers [Cer21]. This method, although efficient for data-parallel strategy across the wafers, is not flexible if we consider other parallelization strategies across wafers. A Fred-like inter-wafer interconnect can be constructed to allow for more flexibility across the wafers. In any case, on-wafer Fred topology can work in tandem with the inter-wafer interconnect to form efficient hierarchical collectives. For example, a global all-reduce can be broken into: i) a special intra-wafer reduce scatter performed by Fred where only the boundary NPUs with access to the I/O maintain the results, followed by ii) an All-Reduce facilitated by the inter-wafer interconnect where boundary NPUs reduce the data across different wafers, iii) followed by the final intra-wafer special All-Gather done by Fred where the boundary NPUs broadcast the final result to all NPUs within the same wafer.
+**讨论: 扩展到单晶圆之外.** 本文主要研究灵活的晶圆内互连, 让系统可以采用更多并行策略; 这里再讨论模型无法装入单块晶圆时的几种情况. 第一种方法就是本文评估的权重流式传输, 分层加载和卸载模型的不同部分. 但有时为了缩短训练时间, 仍需使用多块晶圆. 此时, 最优的晶圆间拓扑尚无定论. 一些方法用归约树累积来自不同晶圆的梯度 [Cer21]. 这种方法适合晶圆间的数据并行, 但不便支持其他跨晶圆并行策略. 可以构建类似 Fred 的晶圆间互连, 提高跨晶圆通信的灵活性. 无论采用哪种晶圆间互连, 晶圆内 Fred 拓扑都可与其配合, 形成高效的分层集合通信. 例如, 全局 All-Reduce 可以拆成三步: i) Fred 先执行一种特殊的晶圆内 Reduce-Scatter, 只让能访问 I/O 的边界 NPU 保留结果; ii) 晶圆间互连执行 All-Reduce, 由边界 NPU 归约不同晶圆的数据; iii) Fred 最后执行一种特殊的晶圆内 All-Gather, 由边界 NPU 把最终结果广播给同一晶圆内的所有 NPU.
 
-**讨论: going beyond 3D Parallelism.** While the main focus of this paper was on the MP/DP/PP parallelism, recently, more parallelization strategies have been proposed. Examples include Expert-Parallelism (EP) [A23b], Context Parallelism (CP) [Dis25], and more customized and non-homogeneous strategies where the parallelization strategy might change layer by layer [Jia19a]. While not quantitatively studied in this paper, we expect that increasing the parallelization strategy dimensions further increases the network congestion and reduces the effective network BW for each parallelism dimension on the baseline 2D Mesh. This highlights the need to have a flexible network fabric such as Fred.
+**讨论: 扩展到 3D 并行之外.** 本文主要考察 MP/DP/PP 并行, 但近期还出现了更多并行策略, 如专家并行 (EP) [A23b], 上下文并行 (CP) [Dis25], 以及按层改变并行策略的定制化非均质方案 [Jia19a]. 本文没有对这些方案进行定量研究, 但我们预计, 并行策略的维度继续增加时, 基线 2D Mesh 上的网络拥塞会加剧, 每个并行维度的有效网络带宽也会下降. 因而需要 Fred 这类灵活的网络互连.
 
 <span id="section-9"></span>
 
 ## 9 相关工作
 
-**Accelerator Fabrics.** Prior works on *flexible* DNN Accelerators [Mae18, Sig20, Fle23, Eye19, Cus17] have explored indirect topologies such as Benes/Fat-tree/Clos for efficiently distributing operands and reducing partial sums. This work leverages this concept to build a topology optimized for collectives.
+**加速器互连.** 关于 *灵活* DNN 加速器的已有工作 [Mae18, Sig20, Fle23, Eye19, Cus17] 探索了 Benes, Fat-tree, Clos 等间接拓扑, 用于高效分发操作数和归约部分和. 本文沿用这一思路, 构建针对集合通信优化的拓扑.
 
-**In-switch Collectives.** The idea of in-switch collective execution has been proposed in many previous works for different network levels. The *P4* language [P14] allows for offloading application-specific tasks to network switches that support the P4 abstract architecture. [Sca21, Atp21] proposed programming datacenter Ethernet switches for offloading the All-Reduce collective for data-parallel training. iSwitch [Acc19] utilizes FPGA logic within switches to offload the All-Reduce functionality for the distributed training of reinforcement learning. Mellanox SHARP [Mel20] is an Infiniband switch architecture for performing collectives. Klenk *et al.* [An20] propose a method to offload collectives to the scale-up (e.g., NVlink[Eva19]) NPU fabric. Clos topologies have also been explored in prior works [Cus17, Atp21]. A fundamental difference between these works and Fred is that they are proposed for *off-chip* networks, which have significantly less BW compared to on-package networks. In many of these solutions, the internal switch BW should be at least $2\times$ and $P\times$ the link BW to be efficient (i.e., line-rate) for All-Reduce and Reduce between $P$ ports, respectively. This is due to the switch architecture that performs the reductions only after the routing and on the output port. While the difference between off-chip links and on-chip switch architectures allows for provisioning such BW differences, it is not applicable for on-package/on-wafer platforms where the links are on-chip and can have the same BW as the switches. In contrast, Fred performs the reduction operations in multiple steps ($\mu$Switches) during the routing on the Fred interconnect. Hence, the Fred switch works with the same BW as the links and can provide line-rate throughput.
+**交换机内集合通信.** 许多已有工作都在不同网络层级提出过交换机内集合通信执行. *P4* 语言 [P14] 可以把应用特定任务卸载到支持 P4 抽象架构的网络交换机. [Sca21, Atp21] 提出对数据中心以太网交换机编程, 为数据并行训练卸载 All-Reduce. iSwitch [Acc19] 利用交换机内的 FPGA 逻辑, 为强化学习的分布式训练卸载 All-Reduce. Mellanox SHARP [Mel20] 是用于执行集合通信的 Infiniband 交换机架构. Klenk 等人 [An20] 提出把集合通信卸载到纵向扩展的 NPU 互连 (如 NVLink [Eva19]) 上. 已有工作也研究过 Clos 拓扑 [Cus17, Atp21]. 这些工作与 Fred 的根本区别是, 它们面向 *片外* 网络, 带宽远低于封装内网络. 在许多这类方案中, 为了在线速下高效执行 All-Reduce 和 $P$ 个端口之间的 Reduce, 交换机内部带宽必须分别至少达到链路带宽的 $2\times$ 和 $P\times$. 原因是这类交换机只会在完成路由后, 于输出端口执行归约. 片外链路与片上交换机架构之间的差异允许提供如此悬殊的带宽, 但在封装内/晶圆上平台中并不适用, 因为链路位于芯片上, 带宽可以与交换机相同. Fred 则在 Fred 互连中进行路由时, 通过多个 $\mu$Switch 分步完成归约. 因此, Fred 交换机能以与链路相同的带宽工作, 并提供线速吞吐.
 
 <span id="section-10"></span>
 
 ## 10 结论与未来工作
 
-We propose Fred, a high-BW wafer-scale fabric that is flexible for different configurations of the 3D parallelization strategies of distributed training workloads. Fred is able to support concurrent in-network collective execution efficiently, enabling the upper-level compiler to further optimize the parallelization strategy for compute and memory utilization. We plan to study Fred for distributed inference as a part of our future work.
+本文提出 Fred, 一种高带宽晶圆级互连, 可灵活适配分布式训练工作负载的各种 3D 并行配置. Fred 能够高效支持并发的网络内集合通信, 让上层编译器可以根据计算和内存利用率继续优化并行策略. 未来我们将研究 Fred 在分布式推理中的应用.
 
-Acknowledgements.
+## 致谢
 
-[+1]: All model updates over different training iterations happen on-chip.
+本工作获得 Intel 和半导体研究联盟 (SRC) 的资助. 本研究还得到 ACE Center for Evolvable Computing 的支持, 该中心是 SRC JUMP 2.0 的七个研究中心之一. 感谢审稿人提出的意见. 也感谢 Jinsun Yoo 帮助修订论文.
 
-[+2]: Model updates involve low operational intensity. Hence, performing these updates off-chip prevents wasting I/O bandwidth by avoiding loading optimizer states onto the chip for lightweight operations.
+[+1]: 不同训练迭代中的所有模型更新都在片上完成.
 
-[+3]: For example, Fred<sub>3</sub>($8$) can route all the flows in [图 7](#figure-07)(j).
+[+2]: 模型更新的运算强度较低. 在片外执行这些更新, 可以避免为轻量操作把优化器状态加载到芯片上, 从而减少 I/O 带宽浪费.
 
-[+4]: We note that Fred layout shown is not tiled. This means that the substrate (where chiplets are bonded) may not be able to use stepper-based lithography. But direct-written maskless lithography is not uncommon for substrate patterning. This was used in a commercial packaging provider ThinkDeca [Ada24a]. Such patterning has no symmetry requirement, albeit it has a lower throughput. Also, note that using maskless lithography increases the substrate manufacturing moderately [Cos10], but substrate manufacturing is a small fraction of the total system cost [Des21].
+[+3]: 例如, Fred<sub>3</sub>($8$) 可以路由[图 7(j)](#figure-07) 中的所有流.
 
-[+5]: Compound collectives have multiple phases
+[+4]: 图中的 Fred 布局并未平铺, 因而键合芯粒的基底可能无法使用基于步进式曝光机的光刻. 但基底图形化采用直写无掩模光刻并不少见, 商业封装厂商 ThinkDeca 就使用了该技术 [Ada24a]. 这种图形化方法不要求对称, 但吞吐量较低. 无掩模光刻也会适度增加基底制造成本 [Cos10], 不过基底制造只占系统总成本的一小部分 [Des21].
 
-[+6]: For these results, we assume the number of microbatches is 1, 10, 20, 20, 20, 40 for the Transformer-17B with $\mathrm{\mathrm{PP}}$ size of 1, 2, 4, 5, 10, 20, respectively. For Transformer-1T, the number of microbatches is equal to the $\mathrm{\mathrm{PP}}$ size.
+[+5]: 复合集合通信包含多个阶段.
 
-[+7]: Assuming the L1-L2 BW is equally shared among all NPUs.
+[+6]: 对于这些结果, 当 Transformer-17B 的 $\mathrm{PP}$ 规模分别为 1, 2, 4, 5, 10, 20 时, 假设 microbatch 数量分别为 1, 10, 20, 20, 20, 40. 对 Transformer-1T, microbatch 数量等于 $\mathrm{PP}$ 规模.
 
-[+8]: All NPUs within the same MP group produce the same output in this case
+[+7]: 假设所有 NPU 均分 L1-L2 带宽.
+
+[+8]: 此时同一 MP 组内的所有 NPU 都会产生相同的输出.

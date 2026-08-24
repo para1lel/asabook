@@ -5,54 +5,54 @@ permalink: /ja/papers/fred/
 pageClass: paper-reading
 ---
 
-> [Saeed Rashidi](https://orcid.org/0000-0002-6472-9920), [William Won](https://orcid.org/0000-0002-1715-9144), [Sudarshan Srinivasan](https://orcid.org/0009-0002-8662-5820), [Puneet Gupta](https://orcid.org/0000-0002-6188-1134), and [Tushar Krishna](https://orcid.org/0001-5738-6942). 2024 年 6 月 28 日に arXiv へ初投稿、現行版は v2 (2025 年 6 月 9 日). [第 52 回 IEEE/ACM International Symposium on Computer Architecture (ISCA 2025)](https://doi.org/10.1145/3695053.3731055) 掲載、2025 年 6 月 21-25 日. [FRED: A Wafer-scale Fabric for 3D Parallel DNN Training](https://arxiv.org/abs/2406.19580v2). [原著 PDF](/paper/fred.pdf). [arXiv DOI](https://doi.org/10.48550/arXiv.2406.19580). [TeX ソース](https://export.arxiv.org/e-print/2406.19580v2). 正確な印刷レイアウトと参考文献は原著 PDF を参照されたい.
+> [Saeed Rashidi](https://orcid.org/0000-0002-6472-9920)、[William Won](https://orcid.org/0000-0002-1715-9144)、[Sudarshan Srinivasan](https://orcid.org/0009-0002-8662-5820)、[Puneet Gupta](https://orcid.org/0000-0002-6188-1134)、[Tushar Krishna](https://orcid.org/0001-5738-6942)。2024 年 6 月 28 日に arXiv へ初投稿。現行版は v2（2025 年 6 月 9 日）。[第 52 回 IEEE/ACM International Symposium on Computer Architecture（ISCA 2025）](https://doi.org/10.1145/3695053.3731055) 掲載、2025 年 6 月 21-25 日。[FRED: A Wafer-scale Fabric for 3D Parallel DNN Training](https://arxiv.org/abs/2406.19580v2)。[原著 PDF](/paper/fred.pdf)。[arXiv DOI](https://doi.org/10.48550/arXiv.2406.19580)。[TeX ソース](https://export.arxiv.org/e-print/2406.19580v2)。正確な印刷レイアウトと参考文献は原著 PDF を参照されたい。
 
 ## 概要
 
-ウェハスケールシステムは, 高性能アクセラレータチップレットと高速ウェハスケールインターコネクトを密に統合し, 低レイテンシかつ広帯域の接続を提供する技術である. これは深層ニューラルネットワーク (DNN) の学習基盤として有望である. しかし, 2D Mesh など現在のウェハ上ネットワークトポロジーは, さまざまな並列化戦略を効率よく扱うための柔軟性に欠ける. 本稿では, DNN 学習の通信要件に合わせたウェハスケールファブリック Fred を提案する. Fred は小型マイクロスイッチによる分散ウェハ上トポロジーを構成し, 任意のアクセラレータ群の集合通信に対するノンブロッキング接続とスイッチ内集合通信を実現する. 例示した並列化戦略では, ベースラインのウェハスケール Mesh と比べて, ResNet-152, Transformer-17B, GPT-3, Transformer-1T のエンドツーエンド学習時間を平均でそれぞれ $1.76\times$, $1.87\times$, $1.34\times$, $1.4\times$ に短縮できる.
+ウェハスケールシステムは、高性能アクセラレータチップレットと高速ウェハスケールインターコネクトを密に統合し、低レイテンシかつ広帯域の接続を提供する技術である。これは深層ニューラルネットワーク（DNN）の学習基盤として有望である。しかし、2D Mesh など現在のウェハ上ネットワークトポロジーは、さまざまな並列化戦略を効率よく扱うための柔軟性に欠ける。本稿では、DNN 学習の通信要件に合わせたウェハスケールファブリック Fred を提案する。Fred は小型マイクロスイッチによる分散ウェハ上トポロジーを構成し、任意のアクセラレータ群の集合通信に対するノンブロッキング接続とスイッチ内集合通信を実現する。例示した並列化戦略では、ベースラインのウェハスケール Mesh と比べて、ResNet-152、Transformer-17B、GPT-3、Transformer-1T のエンドツーエンド学習時間を平均でそれぞれ $1.76\times$、$1.87\times$、$1.34\times$、$1.4\times$ に短縮できる。
 
 <span id="section-1"></span>
 
 ## 1 序論
 
-DNN models are on an exponential growth curve. A recent study shows that in less than two years, the compute and memory requirements for DNN training have increased by 1,$800\times$ and 1,$500\times$, respectively [Thi21]. Distributing the training across multiple accelerators or neural processing units (NPUs) is a common practice today to reduce the training time. However, one critical side effect of distributed training is the communication overhead between NPUs to synchronize model gradients and/or activations, depending on the parallelization strategy. As the number of NPUs scales, communication overhead increases, up to a point where it becomes the dominant factor in distributed training latency [Ast20, Sca20b, Jia19a, An20].
+DNN モデルの規模は指数関数的に拡大している。最近の研究によれば、2 年足らずの間に DNN 学習に必要な計算量とメモリ量はそれぞれ 1,800$\times$、1,500$\times$ に増加した [Thi21]。学習時間を短縮するため、複数のアクセラレータ、すなわち Neural Processing Unit（NPU）に学習を分散することが現在では一般的である。一方、分散学習では、並列化戦略に応じてモデル勾配やアクティベーションを同期する NPU 間通信がオーバーヘッドとなる。NPU 数が増えるほど通信オーバーヘッドも増加し、やがて分散学習レイテンシの支配要因になる [Ast20, Sca20b, Jia19a, An20]。
 
-There are fundamental limits to the bandwidth that can be provided even by high-speed rack-scale fabrics (such as NVLink [Eva19]), and thus there has been a growing interest in platforms that integrate multiple NPUs together in the same package. Cerebras [Cer21] demonstrated one extreme incarnation of this idea in the form of a monolithic wafer with NPUs connected to one another. More cost- and yield-effective approaches include silicon/organic interposer-based approaches [Sim19, Cen20] or using Silicon Interconnect Fabric (Si-IF), which bonds chiplets directly onto a full thickness silicon *wafer* without needing a package [Arc19, Des21, Waf24]. *In this work, we assume a passive, interconnect-only wafer-scale substrate onto which chiplets are bonded at fine pitch similar to Si-IF or TSMC-SoW [Tsm24]. This allows for heterogeneous integration of compute, memory, and network chiplets from disparate technologies, unlike the monolithic Cerebras approach.*
+NVLink [Eva19] のような高速ラックスケールファブリックでも、提供できる帯域幅には根本的な上限がある。このため、複数の NPU を同一パッケージに統合するプラットフォームへの関心が高まっている。Cerebras [Cer21] は、NPU 同士を接続したモノリシックウェハという形で、この考え方の極端な実装例を示した。コストと歩留まりの面でより有利な方法には、シリコン／有機インターポーザを用いる方式 [Sim19, Cen20] や、パッケージを介さずチップレットを厚みのあるシリコン *ウェハ* に直接接合する Silicon Interconnect Fabric（Si-IF）[Arc19, Des21, Waf24] がある。*本研究では、Si-IF や TSMC-SoW [Tsm24] と同様に、チップレットを微細ピッチで接合する受動的なインターコネクト専用ウェハスケール基板を想定する。モノリシックな Cerebras 方式とは異なり、異なる技術で製造した計算、メモリ、ネットワークの各チップレットをヘテロジニアスに統合できる。*
 
-While there is broad agreement on the scalability and bandwidth benefits that wafer-scale substrates can provide, the *architecture of the fabric connecting the NPUs* remains an open question. All wafer-scale accelerator proposals to date (e.g., Cerebras CS2 [Cer21], NVIDIA’s SIMBA [Sim19], UCLA’s waferscale GPU [Arc19], Chiplet Cloud [Chi24a], Chen et al., TTO [Enh24]) have implemented a 2D Mesh topology for the fabric. The choice of a Mesh is understandable. It is the most pervasive topology in many-core chips given its ease of place-and-route and scalability and is the natural choice on a wafer-scale substrate as well. *However, we demonstrate that the inherent blocking nature of the 2D Mesh topology is extremely inefficient for DNN training communication use cases*.
+ウェハスケール基板がもたらす拡張性と帯域幅の利点は広く認められているが、*NPU を接続するファブリックのアーキテクチャ* は未解決である。これまでに提案されたウェハスケールアクセラレータ（Cerebras CS2 [Cer21]、NVIDIA SIMBA [Sim19]、UCLA waferscale GPU [Arc19]、Chiplet Cloud [Chi24a]、Chen らの TTO [Enh24] など）は、すべてファブリックに 2D Mesh トポロジーを採用している。Mesh が選ばれる理由は明快である。配置配線が容易で拡張性も高いため、多コアチップで最も広く使われており、ウェハスケール基板でも自然な選択となる。*しかし本稿では、2D Mesh トポロジー固有のブロッキング性が DNN 学習通信にはきわめて非効率であることを示す。*
 
 <span id="figure-01"></span>
 
-![図 1. HW-SW Co-Design Stack for Optimizing DNN training communication. This work addresses the three phases highlighted in red. The left part of the figure shows a sample logical view of training workers in 3D parallelism. The parallelization strategy is of size MP(4)-DP(3)-PP(2), meaning that there are 4/3/2 peer workers for the MP/DP/PP dimension. Each worker is named with 3 digits, representing the ID of the worker in the MP, DP, and PP dimensions, respectively. Workers that are aligned along each dimension should *communicate* for that respective dimension’s parallelization type. For example, workers 000, 100, 200, and 300 should communicate for MP type (i.e., activation/input gradient sync during forward-pass/back-propagation), while workers 300, 310, 320 should communicate for DP type (weight gradient sync during backpropagation).](../../papers/fred/figure-01.png)
+![図 1. DNN 学習通信を最適化する HW-SW 協調設計スタック。赤色で示した三つの段階が本研究の対象である。左側には、3D 並列における学習ワーカーの論理構成例を示す。並列化戦略は MP(4)-DP(3)-PP(2) であり、MP／DP／PP の各次元にそれぞれ 4／3／2 個のピアワーカーが存在する。各ワーカー名は 3 桁で、各桁が MP、DP、PP 次元のワーカー ID を表す。各次元に沿って並ぶワーカーは、対応する種類の並列化のために *通信* する。たとえばワーカー 000、100、200、300 は MP 通信、すなわち順伝播／逆伝播時のアクティベーション／入力勾配同期を行い、ワーカー 300、310、320 は DP 通信、すなわち逆伝播時の重み勾配同期を行う。](../../papers/fred/figure-01.png)
 
-**図 1.** HW-SW Co-Design Stack for Optimizing DNN training communication. This work addresses the three phases highlighted in red. The left part of the figure shows a sample logical view of training workers in 3D parallelism. The parallelization strategy is of size MP(4)-DP(3)-PP(2), meaning that there are 4/3/2 peer workers for the MP/DP/PP dimension. Each worker is named with 3 digits, representing the ID of the worker in the MP, DP, and PP dimensions, respectively. Workers that are aligned along each dimension should *communicate* for that respective dimension’s parallelization type. For example, workers 000, 100, 200, and 300 should communicate for MP type (i.e., activation/input gradient sync during forward-pass/back-propagation), while workers 300, 310, 320 should communicate for DP type (weight gradient sync during backpropagation).
+**図 1.** DNN 学習通信を最適化する HW-SW 協調設計スタック。赤色で示した三つの段階が本研究の対象である。左側には、3D 並列における学習ワーカーの論理構成例を示す。並列化戦略は MP(4)-DP(3)-PP(2) であり、MP／DP／PP の各次元にそれぞれ 4／3／2 個のピアワーカーが存在する。各ワーカー名は 3 桁で、各桁が MP、DP、PP 次元のワーカー ID を表す。各次元に沿って並ぶワーカーは、対応する種類の並列化のために *通信* する。たとえばワーカー 000、100、200、300 は MP 通信、すなわち順伝播／逆伝播時のアクティベーション／入力勾配同期を行い、ワーカー 300、310、320 は DP 通信、すなわち逆伝播時の重み勾配同期を行う。
 
-Communication in DNN training depends inherently on the parallelism strategy being employed. Data-Parallel (DP) [Li20c, An20], Model-Parallel (MP) [Lep20, Jia19a], and Pipeline-Parallel (PP) [Hua19, Pip19] are the building blocks of any parallelism strategy. In DP, the DNN model is replicated across NPUs and each NPU works on a different set of training samples (i.e., minibatch). In MP, each DNN layer is sharded across NPUs while they work on the same training samples. In PP, each NPU hosts a subset of DNN layers, and training samples flow through the NPUs in a pipeline manner. 3D parallelism [Eff21] utilizes all the aforementioned strategies by creating different MP/DP/PP groups between NPUs. The optimal balance between DP, MP, and PP is heavily dependent on the workload and underlying platform and can *significantly vary for different workload/platform configurations* [Jia19a, Ali24]. [Figure 1](#figure-01) shows an example of a 3D parallelism strategy.
+DNN 学習の通信は、採用する並列化戦略に本質的に依存する。Data-Parallel（DP）[Li20c, An20]、Model-Parallel（MP）[Lep20, Jia19a]、Pipeline-Parallel（PP）[Hua19, Pip19] は、あらゆる並列化戦略の構成要素である。DP では DNN モデルを複数の NPU に複製し、各 NPU が異なる学習サンプル集合、すなわち minibatch を処理する。MP では、同じ学習サンプルを処理しながら各 DNN 層を複数の NPU に分割する。PP では各 NPU が DNN 層の一部を保持し、学習サンプルが NPU 間をパイプライン方式で流れる。3D 並列 [Eff21] は NPU 間に異なる MP/DP/PP グループを作り、これらすべての戦略を組み合わせる。DP、MP、PP の最適な配分はワークロードと基盤プラットフォームに大きく依存し、*ワークロード／プラットフォーム構成によって大幅に変わり得る* [Jia19a, Ali24]。[図 1](#figure-01) に 3D 並列戦略の例を示す。
 
 <span id="figure-02"></span>
 
-![図 2. さまざまな並列化戦略における計算・通信オーバーヘッドの正規化値.](../../papers/fred/figure-02.png)
+![図 2. さまざまな並列化戦略における計算・通信オーバーヘッドの正規化値。](../../papers/fred/figure-02.png)
 
-**図 2.** ウェハ上の 20 個の NPU を接続する 2D Mesh トポロジー (詳細は[第 6 節](#section-6)) で Transformer-17B を実行したときの, さまざまな並列化戦略 (説明は[第 2 節](#section-2)) における計算・通信オーバーヘッドの正規化値.
+**図 2.** ウェハ上の 20 個の NPU を接続する 2D Mesh トポロジー（詳細は[第 6 節](#section-6)）で Transformer-17B を実行したときの、さまざまな並列化戦略（説明は[第 2 節](#section-2)）における計算・通信オーバーヘッドの正規化値。
 
-From a communication perspective, 3D parallelism requires executing *multiple concurrent communication operations* between NPUs within the same MP/DP/PP group at different stages of distributed training. Moreover, different parallelism strategies stress the compute and communication differently. This is quantified in [Figure 2](#figure-02). As the figure shows, high communication overhead can result in the total training overhead of compute-efficient strategies being greater than that of less compute-efficient strategies (e.g., MP(20)-DP(1)-PP(1) vs. MP(5)-DP(4)-PP(1)). Other than the communication volume which is determined by the workload, the main purpose of such high network overhead in [Figure 2](#figure-02) is the *inefficient use of network resources* in the baseline topology. This is mainly because: (i) for the majority of the comm operations, only half or less than half of the NPU links get activated (discussed in detail in [第 3.2.4 節](#section-3-2-4)), (ii) network contention between MP/DP/PP parallel groups (discussed in detail in [第 3.2.2 節](#section-3-2-2)). The full list of baseline topology challenges is discussed in [第 3.2 節](#section-3-2).
+通信の観点では、3D 並列は分散学習の各段階で、同じ MP/DP/PP グループに属する NPU 間の *複数の通信操作を同時に実行* する必要がある。また、並列化戦略によって計算と通信への負荷は異なる。この差を[図 2](#figure-02)に示す。同図のように、通信オーバーヘッドが大きいと、計算効率の高い戦略の総学習オーバーヘッドが、計算効率の低い戦略を上回ることがある（MP(20)-DP(1)-PP(1) と MP(5)-DP(4)-PP(1) の比較など）。ワークロードによって決まる通信量を除けば、[図 2](#figure-02) の大きなネットワークオーバーヘッドは、主としてベースライントポロジーにおける *ネットワークリソースの非効率な利用* による。具体的には、（i）大半の通信操作で NPU リンクの半分以下しか有効にならないこと（[第 3.2.4 節](#section-3-2-4)）、（ii）MP/DP/PP 並列グループ間でネットワーク競合が起きること（[第 3.2.2 節](#section-3-2-2)）が原因である。ベースライントポロジーの課題は[第 3.2 節](#section-3-2)にまとめる。
 
-In summary, an optimal wafer-scale fabric for distributed DNN training should meet the following three needs:
+以上より、分散 DNN 学習に適したウェハスケールファブリックは、次の三要件を満たす必要がある。
 
-- Handle *multiple* non-blocking collective communications with minimum congestion.
-- Be efficient for *all* 3D parallelism configurations.
-- Provide *high-BW* connectivity between NPUs.
+- 輻輳を最小限に抑えながら、*複数* のノンブロッキング集合通信を処理する。
+- *すべて* の 3D 並列構成で効率よく動作する。
+- NPU 間に *広帯域* 接続を提供する。
 
-In this work, we propose **Fred**, a wafer-scale fabric with Flexible REduction-Distribution feature for supporting arbitrary 3D parallelism. Fred includes: (i) a novel topology with switches that provide native support for reduction and broadcast for bandwidth amplification, (ii) a collective routing algorithm with non-blocking support, and (iii) a device placement algorithm to minimize congestion. We deploy Fred over a wafer-scale substrate [Des21]. Each NPU in our architecture is a hybrid integration of high-end compute chiplets and 3D-stack DRAM chiplets (analogous to H100 [Nvi23]). We also discuss solutions to physically layout and scale the Fred topology over a wafer substrate.
+本稿では、任意の 3D 並列を支える Flexible REduction-Distribution 機能を備えたウェハスケールファブリック **Fred** を提案する。Fred は、（i）帯域幅を増幅するため、リダクションとブロードキャストをネイティブに支援するスイッチトポロジー、（ii）ノンブロッキング集合通信ルーティングアルゴリズム、（iii）輻輳を抑えるデバイス配置アルゴリズムから構成される。Fred はウェハスケール基板 [Des21] 上に実装する。本アーキテクチャの各 NPU は、H100 [Nvi23] と同様に、高性能計算チップレットと 3D 積層 DRAM チップレットを混載したものである。ウェハ基板上で Fred トポロジーを物理配置し、拡張する方法も論じる。
 
-To the best of our knowledge, *Fred is the first wafer-scale fabric proposal tailored for DNN training, that can efficiently support multiple concurrent collectives for hybrid parallelization strategies (e.g., 3D parallelism)*. Hence, Fred enables the compiler to consider any type of parallelization strategy without any concern about how efficiently they can be executed on the network. To summarize:
+著者らの知る限り、*Fred は DNN 学習向けに設計され、3D 並列などの複合並列化戦略における複数の同時集合通信を効率よく支援できる、初のウェハスケールファブリック提案である*。したがってコンパイラは、ネットワーク上での実行効率を懸念せず、任意の並列化戦略を検討できる。貢献は次のとおりである。
 
-- We motivate the challenges with designing a wafer-scale fabric for 3D parallelism ([第 3 節](#section-3)).
-- We propose Fred, a novel network fabric that includes several innovative features: *a switch fabric* with flexible reduction-distribution trees connected via a scalable topology ([第 4 節](#section-4)), and *a novel routing algorithm* to route multiple collectives concurrently, along with a congestion-aware device placement policy for 3D parallelism ([第 5 節](#section-5)).
-- We demonstrate how Fred can be implemented as a wafer-scale fabric ([第 6 節](#section-6)).
-- We compare Fred with baseline fabrics for some sample workloads and parallelization strategies ([第 8 節](#section-8)).
+- 3D 並列向けウェハスケールファブリック設計の課題を明らかにする（[第 3 節](#section-3)）。
+- 拡張可能なトポロジーで接続した柔軟な reduction-distribution tree からなる *スイッチファブリック*（[第 4 節](#section-4)）、複数の集合通信を同時にルーティングする *新しいルーティングアルゴリズム*、および 3D 並列向けの輻輳対応デバイス配置方針（[第 5 節](#section-5)）を備えた Fred を提案する。
+- Fred をウェハスケールファブリックとして実装する方法を示す（[第 6 節](#section-6)）。
+- いくつかのワークロードと並列化戦略について、Fred とベースラインファブリックを比較する（[第 8 節](#section-8)）。
 
-Our 結果 show that Fred can improve the average end-to-end training time of ResNet-152, Transformer-17B, GPT-3, and Transformer-1T by $1.76\times$, $1.87\times$, $1.34\times$, and $1.4\times$, respectively, when compared to the baseline 2D Mesh.
+評価の結果、ベースライン 2D Mesh と比べて、Fred は ResNet-152、Transformer-17B、GPT-3、Transformer-1T の平均エンドツーエンド学習時間をそれぞれ $1.76\times$、$1.87\times$、$1.34\times$、$1.4\times$ 高速化できる。
 
 <span id="section-2"></span>
 
@@ -62,49 +62,49 @@ Our 結果 show that Fred can improve the average end-to-end training time of Re
 
 ### 2.1 集合通信パターン
 
-Although DNN models can be highly diverse, most of their communication during distributed training can be handled through collective patterns [An20]. Depending on the model type and parallelization strategy, different types of collectives may be needed to synchronize on activations/gradients during forward-pass/back-propagation [Ast20]. [Figure 3](#figure-03) shows the mathematical implication of the most common collective patterns between three workers. During *Reduce-Scatter*, workers communicate in such a way that, at the end, each worker has a portion of globally reduced data. In *All-Gather*, each worker broadcasts its local data to all other workers. *All-Reduce* is the most common pattern in distributed training [An20] and can be thought of as a *Reduce-Scatter* followed by an *All-Gather*. In *Reduce*, multiple NPUs participate in reducing data, and the result is stored only on one NPU, while *Gather* collects the data from all NPUs and stores them on a single NPU. *Multicast* means a single NPU sends its data to multiple NPUs. In *All-to-All*, each worker sends a portion of its local data to each worker.
+DNN モデルは多様だが、分散学習中の通信の大部分は集合通信パターンで処理できる [An20]。モデルの種類と並列化戦略によっては、順伝播／逆伝播中にアクティベーションや勾配を同期するため、異なる集合通信が必要になる [Ast20]。[図 3](#figure-03) は、3 ワーカー間でよく使われる集合通信パターンの数学的な意味を示す。*Reduce-Scatter* では、通信完了時に各ワーカーがグローバルにリダクションされたデータの一部を持つように通信する。*All-Gather* では、各ワーカーがローカルデータを他の全ワーカーへブロードキャストする。*All-Reduce* は分散学習で最も一般的なパターン [An20] であり、*Reduce-Scatter* の後に *All-Gather* を実行するものとみなせる。*Reduce* では複数の NPU がデータをリダクションし、その結果を一つの NPU だけに保存する。一方、*Gather* は全 NPU からデータを集め、一つの NPU に保存する。*Multicast* は一つの NPU から複数の NPU へデータを送る。*All-to-All* では、各ワーカーがローカルデータの一部を全ワーカーへ送信する。
 
 <span id="figure-03"></span>
 
-![図 3. 集合通信パターン among three workers.](../../papers/fred/figure-03.png)
+![図 3. 3 ワーカー間の集合通信パターン。](../../papers/fred/figure-03.png)
 
-**図 3.** 集合通信パターン among three workers.
+**図 3.** 3 ワーカー間の集合通信パターン。
 
 <span id="section-2-2"></span>
 
 ### 2.2 集合通信アルゴリズム
 
-The patterns described in [第 2.1 節](#section-2-1) can be handled through different *集合通信アルゴリズムs*. In general, there are two distinct way to implement such algorithms:
+[第 2.1 節](#section-2-1)のパターンは、さまざまな *集合通信アルゴリズム* で処理できる。実装方法は大きく二つに分かれる。
 
-**1) Endpoint-based.** NPUs communicate in a peer-to-peer distributed manner through explicit send/recv of messages with themselves and without requiring central coordination. In this case, the optimal algorithm is usually dependent on the physical network topology and collective size. For example, ring-based All-Reduce is optimal when the physical topology is a ring, while tree-based All-Reduce is optimal for tree-based topologies, or when the message size is small [Tha05].
+**1）エンドポイントベース。** NPU は中央の調停を必要とせず、明示的なメッセージの send/recv により、ピアツーピアの分散方式で通信する。この場合、最適なアルゴリズムは通常、物理ネットワークトポロジーと集合通信の規模に依存する。たとえば、物理トポロジーがリングならリングベース All-Reduce が最適であり、ツリー型トポロジーやメッセージが小さい場合はツリーベース All-Reduce が最適である [Tha05]。
 
-One drawback of the NPU-to-NPU-based approach is the amount of traffic it generates. For example, the most BW-optimal NPU-to-NPU algorithms require each NPU to send/receive nearly $\frac{2(N-1)}{N}D$ bytes of data to execute an All-Reduce of $D$ bytes among $N$ NPUs [An20], which is almost $2\times$ of the All-Reduce size ($D$ bytes) [Tha05, Col06, Col07]. This is because all endpoint-based algorithms must perform reduction and gather phases separately, resulting in $\frac{(N-1)}{N}D$ send/recv per NPU to accomplish each phase, respectively [Tha05, Col06, Col07].
+NPU 間方式の欠点は、生成するトラフィック量である。帯域幅の点で最適な NPU 間アルゴリズムでも、$N$ 個の NPU 間で $D$ バイトの All-Reduce を行うには、各 NPU が約 $\frac{2(N-1)}{N}D$ バイトを送受信する必要がある [An20]。これは All-Reduce サイズ（$D$ バイト）のほぼ $2\times$ に相当する [Tha05, Col06, Col07]。すべてのエンドポイントベースアルゴリズムではリダクション段階と収集段階を別々に実行し、各段階で NPU ごとに $\frac{(N-1)}{N}D$ バイトを送受信するためである [Tha05, Col06, Col07]。
 
-**2) ネットワーク内集合通信実行.** To alleviate the extra traffic of endpoint-based approach, recent proposals have introduced in-network 集合通信アルゴリズムs by adding compute capability to the switches [Sca21, An20, Acc19] to perform both reduction and gather at the same time. For example, an All-Reduce of $D$ bytes only requires each NPU to send/receive $D$ bytes to the switch/switch-hierarchy. The switch/switch-hierarchy receives $D$ bytes from each NPU, performs reduction across all received data from all $N$ NPUs, and broadcasts $D$ bytes back to all NPUs. Therefore, compared to the endpoint-based approach, each NPU sends/receives almost half the traffic ($D$ bytes vs. $\frac{2(N-1)}{N}D$ bytes.) [Acc19]. Additionally, ネットワーク内集合通信実行 allows the endpoint resources to be allocated for training compute tasks, while the network switches handle the collectives efficiently.
+**2）ネットワーク内集合通信実行。** エンドポイント方式の余分なトラフィックを減らすため、近年の提案ではスイッチに計算機能を加え [Sca21, An20, Acc19]、リダクションと収集を同時に行うネットワーク内集合通信アルゴリズムを導入している。たとえば、$D$ バイトの All-Reduce では、各 NPU がスイッチまたはスイッチ階層と $D$ バイトを送受信するだけでよい。スイッチまたはスイッチ階層は各 NPU から $D$ バイトを受信し、$N$ 個の NPU から届いた全データをリダクションして、その $D$ バイトを全 NPU へブロードキャストする。したがって、エンドポイント方式と比べて各 NPU の送受信トラフィックはほぼ半分になる（$D$ バイト対 $\frac{2(N-1)}{N}D$ バイト）[Acc19]。ネットワークスイッチが集合通信を処理するため、エンドポイントのリソースを学習計算に割り当てられる利点もある。
 
 <span id="section-2-3"></span>
 
 ### 2.3 3D 並列化における通信
 
-There are multiple ways of distributing the distributed training tasks across multiple NPUs (a.k.a. the parallelization strategy): MP (a.k.a. Tensor-parallelism) [Sho19], DP [Li20c], and PP [Hua19, Pip19]. The combination of these strategies can be generalized in the form of 3D-parallelism [Eff21]. [Figure 1](#figure-01) shows the concept of 3D-parallelism. In this case, each training worker is part of one MP, DP, and PP group, where the ID (offset) of each NPU within its MP/DP/PP group is determined using the first/second/third digits of a 3-digit worker ID. Therefore, the NPUs that have the same DP & PP digits are within the same MP group (e.g., 000, 100, 200, and 300).
+分散学習タスクを複数の NPU に割り当てる並列化戦略には、MP（Tensor-parallelism）[Sho19]、DP [Li20c]、PP [Hua19, Pip19] がある。これらの組合せは 3D 並列 [Eff21] として一般化できる。[図 1](#figure-01) に 3D 並列の概念を示す。この場合、各学習ワーカーは一つずつの MP、DP、PP グループに属し、各 NPU の MP/DP/PP グループ内 ID（オフセット）は、3 桁のワーカー ID の第 1／第 2／第 3 桁で決まる。したがって、DP 桁と PP 桁が同じ NPU は同一 MP グループに属する（000、100、200、300 など）。
 
-The NPUs within the same DP group should communicate through the *All-Reduce* collective pattern during back-propagation to sync their locally computed model gradients and update the model before starting the next training iteration [An20]. For the MP group case, NPUs need to communicate during forward-pass/back-propagation to synchronize on output-activations/input-gradients. The communication pattern, however, depends on the layer type and the way it is sharded. The usually observed patterns are: *All-Reduce* [Sho19], *All-to-All* [Nau19], *Reduce-Scatter* [Lep20], and *All-Gather* [Lep20]. For the PP group, the NPUs need to transfer the output-activations/input-gradients during forward-pass/back-propagation on the borderline layers and pass the data to the NPU(s) hosting the next set of layers. [Table 1](#table-01) represents collective patterns incurred by each parallelization strategy.
+同じ DP グループの NPU は、逆伝播中に *All-Reduce* で通信してローカルに計算したモデル勾配を同期し、次の学習イテレーションを始める前にモデルを更新する [An20]。MP グループでは、順伝播／逆伝播中に出力アクティベーション／入力勾配を同期するため、NPU 間通信が必要になる。ただし通信パターンは層の種類と分割方法に依存する。よく使われるのは *All-Reduce* [Sho19]、*All-to-All* [Nau19]、*Reduce-Scatter* [Lep20]、*All-Gather* [Lep20] である。PP グループでは、境界層の順伝播／逆伝播時に出力アクティベーション／入力勾配を転送し、次の層群を保持する NPU にデータを渡す必要がある。[表 1](#table-01) に各並列化戦略で発生する集合通信パターンを示す。
 
-[Figure 1](#figure-01)also shows the necessity to handle multiple collectives at the same time. For e.g., there are eight different DP groups, meaning that up to eight concurrent All-Reduces should be handled for the DP communications (similarly, there are six/twelve concurrent communication operations for MP/PP communications). Moreover, the communication type and peer workers differ across MP, DP, and PP groups. Thus, *it is crucial for the underlying network fabric to be flexible for concurrent and different collective patterns*.
+[図 1](#figure-01) は、複数の集合通信を同時に扱う必要性も示している。たとえば 8 個の DP グループがあるため、DP 通信では最大 8 個の All-Reduce を同時に処理しなければならない（MP／PP 通信では、それぞれ 6／12 個の通信操作が同時に発生する）。さらに、MP、DP、PP グループでは通信種別もピアワーカーも異なる。したがって、*基盤となるネットワークファブリックには、異なる集合通信パターンを同時かつ柔軟に扱う能力が不可欠である*。
 
 <span id="table-01"></span>
 
-![表 1. Collective patterns incurred by distinct parallelizations.](../../papers/fred/table-01.png)
+![表 1. 各並列化方式で発生する集合通信パターン。](../../papers/fred/table-01.png)
 
-**表 1.** Collective patterns incurred by distinct parallelizations.
+**表 1.** 各並列化方式で発生する集合通信パターン。
 
 <span id="section-2-4"></span>
 
 ### 2.4 マルチチップレット統合
 
-In chiplet-based integration, NPU chips are fabricated and then bonded to a package interconnect (e.g., Si-IF) [Sim19, Des21, Tsm24]. In this approach, components from different technologies (e.g., even DRAM) can be integrated on the package. Additionally, since the chiplets can be tested before integration, this approach has a better yield, supports heterogeneity, and requires less redundancy compared to fully monolithic approaches such as Cerebras [Cer21].
+チップレット統合では、NPU チップを製造した後、Si-IF などのパッケージインターコネクトに接合する [Sim19, Des21, Tsm24]。この方式では、DRAM を含む異なる技術の部品をパッケージ上に統合できる。また、統合前にチップレットを試験できるため、Cerebras [Cer21] のような完全モノリシック方式より歩留まりが高く、ヘテロジニアス統合に対応し、必要な冗長性も少ない。
 
-**Multi-chiplet Fabric Topologies.** Recent products and research in multi-chiplet platforms are all based on interconnecting NPUs through a 2D-mesh topology [Arc19, Cer21, Des21, Sim19, Enh24, Chi24a]. Among the main reasons for choosing 2D-mesh for on-package/on-wafer is ease of place & route and area optimality over a 2D substrate [Arc19]. *Thus, in this paper, we choose 2D-mesh as the main baseline topology and compare our proposal against it*.
+**マルチチップレットファブリックトポロジー。** 近年のマルチチップレット製品と研究はいずれも、2D Mesh トポロジーで NPU を相互接続している [Arc19, Cer21, Des21, Sim19, Enh24, Chi24a]。パッケージ内／ウェハ上で 2D Mesh が選ばれる主な理由は、配置配線が容易で、2 次元基板上の面積効率が高いことである [Arc19]。*そこで本稿では 2D Mesh を主要なベースライントポロジーとし、提案方式と比較する。*
 
 <span id="section-3"></span>
 
@@ -114,43 +114,43 @@ In chiplet-based integration, NPU chips are fabricated and then bonded to a pack
 
 ### 3.1 通信要件
 
-First, we discuss two execution modes for running DNN training over a wafer-scale substrate.
+まず、ウェハスケール基板上で DNN 学習を実行する二つのモードを説明する。
 
 <span id="section-3-1-1"></span>
 
 #### 3.1.1 重み定常
 
-When DNN models can fit entirely in the available on-chip memory within a wafer, loading the entire model parameters and collecting the training result to/from the package is a one-time overhead. [+1] The cost of loading the pre-trained and storing the trained model is amortized over thousands of training iterations. The input samples, however, need to be loaded at the beginning of each training iteration. Such I/O operations have minimal impact on the overall training performance since the samples are much smaller than the model size. Therefore, *in this mode, the main performance factor is the efficiency of compute cores and the NPU-to-NPU communication performance*. A non-optimized interconnect can result in poor NPU-to-NPU communication performance for certain parallelization strategies, forcing the compiler to discard some strategies despite their better compute and on-chip memory utilization, solely because of their poor communication performance ([第 3.2 節](#section-3-2)).
+DNN モデル全体がウェハ内のオンチップメモリに収まる場合、モデルパラメータ全体のロードと、学習結果のパッケージへの入出力は一度だけのオーバーヘッドとなる。 [+1] 事前学習済みモデルのロードと学習済みモデルの保存にかかるコストは、数千回の学習イテレーションにわたって償却される。一方、入力サンプルは各イテレーションの開始時にロードする必要がある。サンプルはモデルよりはるかに小さいため、この I/O が学習性能全体に与える影響は小さい。したがって、*このモードの主な性能要因は、計算コアの効率と NPU 間通信性能である*。インターコネクトが最適化されていないと、特定の並列化戦略で NPU 間通信性能が低下し、計算資源とオンチップメモリをより有効に利用できる戦略であっても、通信性能だけを理由にコンパイラが除外せざるを得なくなる（[第 3.2 節](#section-3-2)）。
 
 <span id="section-3-1-2"></span>
 
 #### 3.1.2 重みストリーミング
 
-When the available on-chip memory is insufficient to fit the model, the execution model shifts to *重みストリーミング* [Cer21, Thi21]. In this scenario, only a subset of DNN layers is loaded onto the package at any given time. After processing these layers, the on-chip storage is reclaimed for the next set of layers. Consequently, the entire model must be loaded onto the chip multiple times during the model training (at least once during the forward pass and once during back-propagation). Additionally, as NPUs compute model gradients, they push this data to off-chip storage, and a lightweight on-storage compute core updates the model for the next iteration [+2] [Cer21]. This approach makes the performance I/O bound, meaning that the upper-bound training performance scales as $\propto\frac{\mathrm{\mathrm{model}}\_\mathrm{\mathrm{size}}}{I/O\_\mathrm{\mathrm{BW}}}$. Therefore, *in addition to compute efficiency and NPU-to-NPU communication performance, maintaining maximum I/O bandwidth is crucial*. A rigid topology can create hotspots when distributing/collecting the model/gradients to/from the I/O channels, which *limits the I/O data rate* ([第 3.2 節](#section-3-2)) and directly impacts training performance.
+利用可能なオンチップメモリにモデルが収まらない場合、実行モデルは *重みストリーミング* に移行する [Cer21, Thi21]。この方式では、任意の時点で DNN 層の一部だけをパッケージにロードする。処理を終えると、そのオンチップ領域を解放して次の層群に利用する。そのため学習中にはモデル全体を複数回、少なくとも順伝播と逆伝播で一度ずつチップにロードしなければならない。さらに NPU がモデル勾配を計算すると、そのデータをオフチップストレージへ送り、ストレージ側の軽量な計算コアが次のイテレーションに向けてモデルを更新する [+2] [Cer21]。この方式の性能は I/O 律速となり、学習性能の上限は $\propto \frac{\mathit{model\_size}}{\mathit{I/O\_BW}}$ に比例する。したがって、*計算効率と NPU 間通信性能に加え、最大 I/O 帯域幅を維持する必要がある*。固定的なトポロジーでは、I/O チャネルとの間でモデルや勾配を分配・収集するときにホットスポットが生じ、*I/O データレートが制限される*（[第 3.2 節](#section-3-2)）ため、学習性能へ直接影響する。
 
 <span id="section-3-2"></span>
 
 ### 3.2 2D Mesh の課題
 
-Next, we discuss specific challenges in a 2D Mesh for supporting the communication needs of DNN training.
+次に、DNN 学習の通信要件を 2D Mesh で支える際の具体的な課題を説明する。
 
 <span id="section-3-2-1"></span>
 
 #### 3.2.1 効率的な I/O
 
-As mentioned earlier, maintaining high I/O bandwidth is critical for achieving optimal performance in the 重みストリーミング execution model. However, the 2D mesh often falls short of delivering maximum I/O performance. [Figure 4](#figure-04) illustrates this problem using a $4\times 4$ mesh topology with a pure DP parallelization strategy. In this scenario, each weight fetched from an off-chip memory channel must be broadcast to all NPUs. [Figure 4](#figure-04)(A) shows a broadcast algorithm, based on the *MPI* implementation of one-to-many pattern on 2D mesh [For09], when reading from two different memory channels (shown as the red and blue flows).
+前述のとおり、重みストリーミングで最適な性能を得るには、高い I/O 帯域幅の維持が欠かせない。しかし 2D Mesh では最大 I/O 性能を得られないことが多い。[図 4](#figure-04) は、純粋な DP 戦略を用いる $4\times 4$ Mesh でこの問題を示す。この場合、オフチップメモリチャネルから取得した各重みを全 NPU へブロードキャストしなければならない。[図 4(A)](#figure-04) は、2D Mesh 上の one-to-many パターンの *MPI* 実装 [For09] に基づき、二つのメモリチャネルから読み出すブロードキャストアルゴリズムを示す。赤と青が各フローである。
 
-Ideally, all memory channels should stream (different) weights simultaneously and with the line-rate to maximize the I/O BW. However, *the shape of 2D Mesh topology inherently generates hotspots and negatively affects the I/O BW*. [Figure 4](#figure-04)(B) shows the maximum channel load, for one hotspot link, when all memory channels are fetching the weights at the same time. If the BW of each memory channel is $P$ bytes/s, then the hotspot link should have the capacity (BW) of $7P$ bytes/s to allow the maximum I/O BW on a $4\times 4$ mesh.
+理想的には、I/O 帯域幅を最大化するため、全メモリチャネルが異なる重みを同時にラインレートでストリーミングすべきである。しかし、*2D Mesh の形状は本質的にホットスポットを生み、I/O 帯域幅を低下させる*。[図 4(B)](#figure-04) は、全メモリチャネルが同時に重みを取得するときの、あるホットスポットリンクにおける最大負荷を示す。各メモリチャネルの帯域幅を $P$ バイト／秒とすると、$4\times 4$ Mesh で最大 I/O 帯域幅を得るには、ホットスポットリンクに $7P$ バイト／秒の容量が必要になる。
 
 <span id="figure-04"></span>
 
-![図 4. (A) The broadcast communication pattern when reading from two different I/O channels (shown in red and blue arrows). The number associated with each arrow shows the timestamp when data crosses that link for one packet. In practice, multiple packets are pipelined across each path. In this example, the parallelization strategy is MP(1)-DP(16)-PP(1), and the model weights are broadcast among all NPUs for the 重みストリーミング execution model. Note that the reverse order is used to sum the weight gradients during the back-propagation and write the final 結果 into the remote storage. (B) The maximum channel load analysis corresponding to [Figure 4](#figure-04).a, when all of the I/O channels are used simultaneously.](../../papers/fred/figure-04.png)
+![図 4. （A）二つの異なる I/O チャネルから読み出すときのブロードキャスト通信パターン（赤と青の矢印）。各矢印の数字は、一つのパケットがリンクを通過する時刻を表す。実際には、各経路で複数のパケットをパイプライン転送する。この例の並列化戦略は MP(1)-DP(16)-PP(1) であり、重みストリーミング実行のためにモデル重みを全 NPU へブロードキャストする。逆伝播では逆順に重み勾配を加算し、最終結果をリモートストレージへ書き込む。（B）全 I/O チャネルを同時に使用した場合の[図 4(a)](#figure-04)に対応する最大チャネル負荷の分析。](../../papers/fred/figure-04.png)
 
-**図 4.** (A) The broadcast communication pattern when reading from two different I/O channels (shown in red and blue arrows). The number associated with each arrow shows the timestamp when data crosses that link for one packet. In practice, multiple packets are pipelined across each path. In this example, the parallelization strategy is MP(1)-DP(16)-PP(1), and the model weights are broadcast among all NPUs for the 重みストリーミング execution model. Note that the reverse order is used to sum the weight gradients during the back-propagation and write the final 結果 into the remote storage. (B) The maximum channel load analysis corresponding to [Figure 4](#figure-04).a, when all of the I/O channels are used simultaneously.
+**図 4.** （A）二つの異なる I/O チャネルから読み出すときのブロードキャスト通信パターン（赤と青の矢印）。各矢印の数字は、一つのパケットがリンクを通過する時刻を表す。実際には、各経路で複数のパケットをパイプライン転送する。この例の並列化戦略は MP(1)-DP(16)-PP(1) であり、重みストリーミング実行のためにモデル重みを全 NPU へブロードキャストする。逆伝播では逆順に重み勾配を加算し、最終結果をリモートストレージへ書き込む。（B）全 I/O チャネルを同時に使用した場合の[図 4(a)](#figure-04)に対応する最大チャネル負荷の分析。
 
-In general, for an $N\times N$ mesh and $4\times N$ external I/O channels, the wafer-scale fabric links should have a bandwidth of $\mathbf{(2N-1)P}$ bytes/s to fully utilize the I/O bandwidth in all parallelization strategies, assuming each I/O channel has a bandwidth of $P$ bytes/s. As the formula indicates, the required link bandwidth grows $O(N)$ with the mesh width. For larger packages, the technology might not support such high-bandwidth requirements on the package. In such cases, the I/O channel rate must be scaled down proportionally to accommodate the maximum link bandwidth, i.e., $P=\frac{\mathrm{\mathrm{link}}\_\mathrm{\mathrm{BW}}}{(2N-1)}$.
+一般に、$N\times N$ Mesh と $4\times N$ 個の外部 I/O チャネルがあり、各 I/O チャネルの帯域幅を $P$ バイト／秒とすると、すべての並列化戦略で I/O 帯域幅を使い切るため、ウェハスケールファブリックのリンクには $\mathbf{(2N-1)P}$ バイト／秒の帯域幅が必要である。式のとおり、必要なリンク帯域幅は Mesh 幅に対して $O(N)$ で増加する。パッケージが大きくなると、この帯域幅を実現できない場合がある。その場合は最大リンク帯域幅に合わせて I/O チャネルレートを比例的に下げ、$P=\frac{\mathit{link\_BW}}{2N-1}$ とする必要がある。
 
-**Fred’s Solution.** Fred prevents network hotspots by adaptively routing the traffic through all of its links equally, enabling further scalability of the wafer-scale systems.
+**Fred の解決策。** Fred は全リンクへトラフィックを均等に適応ルーティングしてネットワークホットスポットを防ぎ、ウェハスケールシステムの拡張性を高める。
 
 <span id="section-3-2-2"></span>
 
@@ -158,15 +158,15 @@ In general, for an $N\times N$ mesh and $4\times N$ external I/O channels, the w
 
 <span id="figure-05"></span>
 
-![図 5. Two different device placement mappings for an MP(2)-DP(4)-PP(2) strategy. (A) A device placement that favors MP and DP communications but causes congestion for PP communications. (B) A device placement that favors DP and PP communications but causes congestion for MP communications.](../../papers/fred/figure-05.png)
+![図 5. MP(2)-DP(4)-PP(2) 戦略に対する二つのデバイス配置。（A）MP と DP 通信を優先する一方で PP 通信に輻輳を生じさせる配置。（B）DP と PP 通信を優先する一方で MP 通信に輻輳を生じさせる配置。](../../papers/fred/figure-05.png)
 
-**図 5.** Two different device placement mappings for an MP(2)-DP(4)-PP(2) strategy. (A) A device placement that favors MP and DP communications but causes congestion for PP communications. (B) A device placement that favors DP and PP communications but causes congestion for MP communications.
+**図 5.** MP(2)-DP(4)-PP(2) 戦略に対する二つのデバイス配置。（A）MP と DP 通信を優先する一方で PP 通信に輻輳を生じさせる配置。（B）DP と PP 通信を優先する一方で MP 通信に輻輳を生じさせる配置。
 
-Device placement involves assigning each logical training worker to a physical NPU. With $N$ NPUs, there are $N!$ possible device placement mappings. This becomes critical in 3D parallelism, as each training worker may have different communication volumes and patterns with other workers across distinct parallelization groups (refer to [Figure 1](#figure-01)). Therefore, finding a device placement that minimizes network contention is essential.
+デバイス配置とは、各論理学習ワーカーを物理 NPU に割り当てることである。$N$ 個の NPU には $N!$ 通りの配置がある。3D 並列では、各学習ワーカーと異なる並列グループの他ワーカーとの通信量・パターンが異なり得るため、この配置が重要になる（[図 1](#figure-01)）。したがって、ネットワーク競合を最小化する配置を求める必要がある。
 
-However, this is challenging with rigid topologies, especially 2D Mesh, where certain communication patterns are inherently prioritized over others. [Figure 5](#figure-05) illustrates two different mappings for a given MP(2)-DP(4)-PP(2) strategy. In [Figure 5](#figure-05)(A), the MP and DP communications are free of congestion, but PP communications cause congestion between different PP groups. Conversely, in [Figure 5](#figure-05)(B), DP and PP communications are optimized, but MP communications face congestion between MP groups. Ultimately, as 2D mesh offers two logically disjoint dimensions ($x$ and $y$), *it is mathematically impossible for all 3D parallelism dimensions to be optimally mapped onto a 2D Mesh*. This is trivial by observing the four corner NPUs, where each NPU offers two outgoing links. Consequently, due to the limited path diversity, one out of the three parallelization groups must experience network congestion and reduced communication performance. Determining which communication patterns to prioritize, unavoidable on 2D Mesh, requires a thorough analysis of the end-to-end workload and understanding the impact of different communication operations.
+ところが、固定的なトポロジー、特に一部の通信パターンを本質的に優先する 2D Mesh では、この配置が難しい。[図 5](#figure-05) に MP(2)-DP(4)-PP(2) 戦略の二つの配置を示す。[図 5(A)](#figure-05) では MP と DP 通信に輻輳はないが、異なる PP グループ間で輻輳する。[図 5(B)](#figure-05) では DP と PP 通信が最適化される一方、MP グループ間で輻輳する。2D Mesh には論理的に独立した $x$、$y$ の二次元しかないため、*3D 並列の全次元を 2D Mesh に最適に割り当てることは数学的に不可能である*。各角の NPU に出力リンクが二本しかないことからも分かる。経路の多様性が限られるため、三つの並列グループのいずれかで輻輳が生じ、通信性能が低下する。2D Mesh では優先する通信パターンを選ばざるを得ず、その判断にはエンドツーエンドワークロードと各通信操作の影響を詳しく分析する必要がある。
 
-**Fred’s Solution.** Fred supports congestion-free routing for all communication patterns simultaneously.
+**Fred の解決策。** Fred は、すべての通信パターンに対して同時に無輻輳ルーティングを提供する。
 
 <span id="section-3-2-3"></span>
 
@@ -174,37 +174,37 @@ However, this is challenging with rigid topologies, especially 2D Mesh, where ce
 
 <span id="figure-06"></span>
 
-![図 6. Network communications on a $4\times 4$ mesh topology for a non-aligned MP(5)-DP(3)-PP(1) parallelization strategy. (A) Non-optimized execution of communication patterns (e.g., All-Reduce) within the NPUs of the same MP group. (B) Traffic congestion between two different DP groups, shown in red and blue, assuming X-Y routing (other group traffic is not shown for clarity).](../../papers/fred/figure-06.png)
+![図 6. 非整列な MP(5)-DP(3)-PP(1) 並列化戦略を $4\times 4$ Mesh トポロジーで実行したときのネットワーク通信。（A）同じ MP グループの NPU 間で最適化されていない通信パターン（All-Reduce など）を実行する場合。（B）X-Y ルーティングを仮定した、赤と青で示す二つの DP グループ間のトラフィック輻輳（明瞭さのため他グループのトラフィックは省略）。](../../papers/fred/figure-06.png)
 
-**図 6.** Network communications on a $4\times 4$ mesh topology for a non-aligned MP(5)-DP(3)-PP(1) parallelization strategy. (A) Non-optimized execution of communication patterns (e.g., All-Reduce) within the NPUs of the same MP group. (B) Traffic congestion between two different DP groups, shown in red and blue, assuming X-Y routing (other group traffic is not shown for clarity).
+**図 6.** 非整列な MP(5)-DP(3)-PP(1) 並列化戦略を $4\times 4$ Mesh トポロジーで実行したときのネットワーク通信。（A）同じ MP グループの NPU 間で最適化されていない通信パターン（All-Reduce など）を実行する場合。（B）X-Y ルーティングを仮定した、赤と青で示す二つの DP グループ間のトラフィック輻輳（明瞭さのため他グループのトラフィックは省略）。
 
-When searching for the best parallelization strategy itself, there are many possible configurations where the size of MP/DP/PP is not aligned with the physical topology dimensions. Such configurations create extra challenges on a 2D Mesh, due to the limited path diversity with distinct NPU-to-NPU distances.
+最適な並列化戦略を探索すると、MP/DP/PP の規模が物理トポロジーの次元と整合しない構成が数多く現れる。2D Mesh は経路の多様性が限られ、NPU 間距離も一様でないため、このような構成ではさらに問題が生じる。
 
-[Figure 6](#figure-06)illustrates the communication issues within a $4\times 4$ 2D-mesh topology for an MP(5)-DP(3)-PP(1) strategy. [Figure 6](#figure-06)(A) demonstrates how NPUs in the same MP group need to communicate. Collective communications are often optimized for well-structured topologies (e.g., rings, trees, switches). However, as shown in [Figure 6](#figure-06)(A), the MP groups form non-standard shapes, making it challenging to identify the most optimized 集合通信アルゴリズム for each shape. For example, the distance between NPU 420 and 020 is two hops, due to the rigid shape of 2D Mesh, *making it impossible to construct a well-constructed ring*, even without considering network congestion. [Figure 6](#figure-06)(B) depicts the extra traffic congestion between two different DP groups, marked in red and blue, caused by non-aligned dimensions.
+[図 6](#figure-06) は、MP(5)-DP(3)-PP(1) 戦略を $4\times 4$ 2D Mesh で実行する際の通信問題を示す。[図 6(A)](#figure-06) は同じ MP グループの NPU 間通信を示す。集合通信は通常、リング、ツリー、スイッチなど規則的なトポロジー向けに最適化される。しかし[図 6(A)](#figure-06)では MP グループが不規則な形となり、各形状に最適な集合通信アルゴリズムを見つけにくい。たとえば 2D Mesh の固定的な形状により NPU 420 と 020 は 2 ホップ離れており、ネットワーク輻輳を無視しても *整ったリングを構成できない*。[図 6(B)](#figure-06) は、次元の不整合によって異なる二つの DP グループ間に生じる追加の輻輳を赤と青で示す。
 
-**Fred’s Solution.** Fred provides congestion-free topology and routing mechanisms for any size/placement of MP/DP/PP.
+**Fred の解決策。** Fred は MP/DP/PP の規模や配置を問わず、無輻輳のトポロジーとルーティング機構を提供する。
 
 <span id="section-3-2-4"></span>
 
 #### 3.2.4 ネットワーク帯域利用率
 
-Maintaining high bandwidth utilization is challenging for a 2D Mesh. For instance, MP communications are required during both forward-pass and back-propagation phases, while DP communications occur only during back-propagation. However, these links cannot be utilized by MP communications due to the limited paths and lack of optimal routing. Consequently, the links used for DP communication during back-propagation remain underutilized during the forward-pass phase, detrimenting full bandwidth utilization for many strategies on a 2D Mesh.
+2D Mesh では高い帯域利用率を保つことが難しい。たとえば MP 通信は順伝播と逆伝播の両方で必要だが、DP 通信は逆伝播でのみ発生する。しかし経路が限られ、最適なルーティングもないため、MP 通信はこれらのリンクを利用できない。その結果、逆伝播で DP 通信に使うリンクは順伝播中に十分利用されず、多くの戦略で 2D Mesh の全帯域を活用できない。
 
-**Fred’s Solution.** Fred can utilize the full bandwidth of each NPU for every communication phase.
+**Fred の解決策。** Fred は各通信フェーズで、すべての NPU の帯域幅を使い切ることができる。
 
 <span id="section-3-2-5"></span>
 
 #### 3.2.5 ネットワーク内集合通信実行
 
-Supporting in-network collectives can significantly reduce network traffic and improve execution performance as described in [第 2.2 節](#section-2-2). This feature, currently employed in off-chip switches [An20, Mel20], requires centralized or hierarchical switches which can perform the collection, reduction, and broadcast of multiple data. A 2D Mesh with distributed NPUs and without a shared central entity, however, impedes the adaptation of the in-network collective support.
+[第 2.2 節](#section-2-2)で述べたように、ネットワーク内集合通信はトラフィックを大幅に減らし、実行性能を高める。この機能はすでにオフチップスイッチ [An20, Mel20] で使われているが、複数データの収集、リダクション、ブロードキャストを行う集中型または階層型スイッチを必要とする。NPU が分散し、共有の中央要素を持たない 2D Mesh では、ネットワーク内集合通信の導入が難しい。
 
-**Fred’s Solution.** Fred employs a switch-based topology that supports ネットワーク内集合通信実行.
+**Fred の解決策。** Fred はネットワーク内集合通信を支援するスイッチベーストポロジーを採用する。
 
 <span id="section-3-2-6"></span>
 
 #### 3.2.6 まとめ
 
-Ideally, a fabric for DNN training should enable each NPU to fully utilize its network bandwidth for any communication phase of 3D-parallel training without congestion and with support for in-network collectives. These requirements cannot be met via a 2D Mesh, due to their natural shape and rigidity. This underscores the need for the adaptation of new topology and routing mechanisms, such as Fred.
+DNN 学習向けファブリックは、3D 並列学習のどの通信フェーズでも各 NPU がネットワーク帯域幅を使い切り、輻輳せず、ネットワーク内集合通信を支援することが望ましい。2D Mesh はその形状と固定性のため、これらの要件を満たせない。したがって Fred のような新しいトポロジーとルーティング機構が必要になる。
 
 <span id="section-4"></span>
 
@@ -212,19 +212,19 @@ Ideally, a fabric for DNN training should enable each NPU to fully utilize its n
 
 <span id="figure-07"></span>
 
-![図 7. (a) An overview of the Fred switch with P ports. (b) Fred interconnect (recursively constructed) when the number of ports is even ($2r$) or odd ($2r+1$). (c) Fred<sub>*m*</sub>($2$) switch. (d) Fred<sub>*m*</sub>($3$) switch. (e) R-$\mu$Switch. (f) D-$\mu$Switch. (g) RD-$\mu$Switch. (h) An example of a Fred<sub>*2*</sub>($8$) interconnect implementation and two routed All-Reduce communication patterns (green and orange). (i) Routing Algorithm for three All-Reduce comm flows on Fred<sub>2</sub>($8$) with conflict graph. (j) Example of Routing conflict.](../../papers/fred/figure-07.png)
+![図 7. （a）$P$ ポート Fred スイッチの概要。（b）ポート数が偶数（$2r$）または奇数（$2r+1$）の場合に再帰的に構成する Fred インターコネクト。（c）Fred<sub>*m*</sub>($2$) スイッチ。（d）Fred<sub>*m*</sub>($3$) スイッチ。（e）R-$\mu$Switch。（f）D-$\mu$Switch。（g）RD-$\mu$Switch。（h）Fred<sub>*2*</sub>($8$) インターコネクトの実装例と、ルーティングされた二つの All-Reduce 通信パターン（緑と橙）。（i）競合グラフを用いて Fred<sub>2</sub>($8$) 上の三つの All-Reduce 通信フローを処理するルーティングアルゴリズム。（j）ルーティング競合の例。](../../papers/fred/figure-07.png)
 
-**図 7.** (a) An overview of the Fred switch with P ports. (b) Fred interconnect (recursively constructed) when the number of ports is even ($2r$) or odd ($2r+1$). (c) Fred<sub>*m*</sub>($2$) switch. (d) Fred<sub>*m*</sub>($3$) switch. (e) R-$\mu$Switch. (f) D-$\mu$Switch. (g) RD-$\mu$Switch. (h) An example of a Fred<sub>*2*</sub>($8$) interconnect implementation and two routed All-Reduce communication patterns (green and orange). (i) Routing Algorithm for three All-Reduce comm flows on Fred<sub>2</sub>($8$) with conflict graph. (j) Example of Routing conflict.
+**図 7.** （a）$P$ ポート Fred スイッチの概要。（b）ポート数が偶数（$2r$）または奇数（$2r+1$）の場合に再帰的に構成する Fred インターコネクト。（c）Fred<sub>*m*</sub>($2$) スイッチ。（d）Fred<sub>*m*</sub>($3$) スイッチ。（e）R-$\mu$Switch。（f）D-$\mu$Switch。（g）RD-$\mu$Switch。（h）Fred<sub>*2*</sub>($8$) インターコネクトの実装例と、ルーティングされた二つの All-Reduce 通信パターン（緑と橙）。（i）競合グラフを用いて Fred<sub>2</sub>($8$) 上の三つの All-Reduce 通信フローを処理するルーティングアルゴリズム。（j）ルーティング競合の例。
 
-A Fred switch forms the backbone of the fabric. Hierarchical connections of the Fred switches form the full Fred fabric, which is described in [第 6.1 節](#section-6-1). The key idea behind a Fred switch is simple: **break the switch into the most fundamental components, and add small compute capability to each component.** The fine-grained distribution of compute enables supporting flexible and concurrent in-switch collective execution for 3D parallelism communication patterns. In addition, distributed computation of collectives is more scalable to map over the high-BW wafer-scale links than having centralized compute and memory entities.
+Fred スイッチはファブリックの骨格となる。Fred スイッチを階層的に接続して完全な Fred ファブリックを構成する。詳細は[第 6.1 節](#section-6-1)で述べる。Fred スイッチの考え方は単純である。**スイッチを最小の基本要素に分解し、各要素へ小規模な計算機能を加える。** 計算機能を細粒度に分散することで、3D 並列の通信パターンに対し、柔軟で同時実行可能なスイッチ内集合通信を支援できる。集合通信の計算を分散させる方式は、計算・メモリを集中配置する方式よりも、高帯域なウェハスケールリンクへ拡張しやすい。
 
-[Figure 7](#figure-07)(a) shows a Fred switch, which consists of a control unit, input port buffers, and the Fred interconnect. The control unit performs routing between the input ports and the output ports.
+[図 7(a)](#figure-07) の Fred スイッチは、制御ユニット、入力ポートバッファ、Fred インターコネクトからなる。制御ユニットが入力ポートと出力ポートの間をルーティングする。
 
-The Fred interconnect, shown in [Figure 7](#figure-07)(b), is inspired by *Clos* networks [A53]. Clos networks are identified through the tuple $(m,n,r)$, where $m\geq 2$ is the number of middle stage switches, $n$ is the number of input/output ports per each input/output micro-switch ($\mu$Switch), and $r$ is the number of input/output $\mu$Switches. Fred’s connectivity is similar to the $(m,n=2,r)$ Clos network, which is denoted as Fred<sub>*m*</sub>($P$). $m$ denotes to the number of middle-stage switches, and $P$ identifies the number of input(output) ports. Fred can be designed for an arbitrary number of ports by building on top of the previous works [Arb97]. $P$ is $\frac{2r}{2r+1}$ when $P$ is an $\frac{\mathrm{\mathrm{even}}}{\text{odd}}$ number. Similar to the Clos network, Fred interconnect is constructed recursively, where the middle stage switches are the $\frac{m\times\text{{\mathrm{\mathrm{Fred}}}${}_{m}$($r$)}}{\text{$m\times${\mathrm{\mathrm{Fred}}}${}_{m}$($r+1$)}}$ switches for the $\frac{\mathrm{\mathrm{even}}}{\text{odd}}$ number of ports, as shown in [Figure 7](#figure-07)(b). The recursive design of Fred ends when encountering the base Fred<sub>*m*</sub>($2$) or Fred<sub>*m*</sub>($3$) Switches, which are depicted in [Figure 7](#figure-07)(c) and [Figure 7](#figure-07)(d), respectively.
+[図 7(b)](#figure-07) の Fred インターコネクトは *Clos* ネットワーク [A53] に着想を得ている。Clos ネットワークは組 $(m,n,r)$ で表され、$m\geq 2$ は中間段スイッチ数、$n$ は各入出力マイクロスイッチ（$\mu$Switch）の入出力ポート数、$r$ は入出力 $\mu$Switch 数である。Fred の接続は $(m,n=2,r)$ Clos に似ており、Fred<sub>*m*</sub>($P$) と記す。$m$ は中間段スイッチ数、$P$ は入力（出力）ポート数である。既存研究 [Arb97] に基づき、Fred は任意のポート数で設計できる。$P$ が偶数なら $P=2r$、奇数なら $P=2r+1$ である。Clos と同様、Fred は再帰的に構成される。ポート数が偶数なら中間段は $m\times \mathrm{Fred}_{m}(r)$、奇数なら $m\times \mathrm{Fred}_{m}(r+1)$ のスイッチとなる（[図 7(b)](#figure-07)）。再帰は[図 7(c)](#figure-07)と[図 7(d)](#figure-07)の基本 Fred<sub>*m*</sub>($2$) または Fred<sub>*m*</sub>($3$) スイッチで終了する。
 
-*The main difference of Fred, compared to a baseline Clos, is adding the reduction and/or distribution (broadcast) support* to the baseline $\mu$Switches. This creates three types of $\mu$Switches depending on which of these two features is present in the $\mu$Switch. [Figure 7](#figure-07)(e) shows the *R-$\mu$Switch* structure that has the reduction feature, i.e., reducing data on the two input ports and routing to one of the output ports. [Figure 7](#figure-07)(f) shows the *D-$\mu$Switch*, which is able to perform distribution by broadcasting one of the input data to both output ports. *RD-$\mu$Switch* is a $2\times 2$ $\mu$Switch and can perform both reduction and distribution, as shown in [Figure 7](#figure-07)(g). The entire Fred switch is built using these three $\mu$Switch types (plus *Muxes* and *Demuxes* to connect the last port to all intermediate stage switches when $P$ is odd) through the recursive process explained earlier.
+*Fred と基準 Clos の主な違いは、基準 $\mu$Switch にリダクションおよび／または分配（ブロードキャスト）機能を加える点である*。二機能の有無により三種類の $\mu$Switch を用いる。[図 7(e)](#figure-07) の *R-$\mu$Switch* は二つの入力データをリダクションし、一方の出力へ送る。[図 7(f)](#figure-07) の *D-$\mu$Switch* は一方の入力データを両出力へブロードキャストする。[図 7(g)](#figure-07) の *RD-$\mu$Switch* は $2\times 2$ で、両機能を備える。Fred スイッチ全体は、この三種類と、$P$ が奇数のとき最後のポートを全中間段へ接続する *Mux*／*Demux* を用い、前述の再帰処理で構成する。
 
-[Figure 7](#figure-07)(h) shows the complete structure of a Fred<sub>*2*</sub>($8$) switch with two concurrent All-Reduce operations (green and orange). The highlighted $R/D/\mathrm{\mathrm{RD}}$ means that the reduction/distribution/reduction-distribution features of the corresponding $\mu$Switch are activated. For instance, the input $\mu$Switch connecting the input ports $4,5$ performs the reduction and routes the result to one of its output ports. Other non-highlighted $\mu$Switches operate like Clos $\mu$Switches.
+[図 7(h)](#figure-07) は、緑と橙の二つの All-Reduce を同時実行する Fred<sub>*2*</sub>($8$) の全構造を示す。強調した $\mathrm{R}/\mathrm{D}/\mathrm{RD}$ は、対応する $\mu$Switch のリダクション／分配／両機能が有効であることを表す。たとえば入力ポート $4,5$ を接続する入力 $\mu$Switch はリダクションし、結果を一方の出力へ送る。強調していない $\mu$Switch は Clos $\mu$Switch と同様に動作する。
 
 <span id="section-5"></span>
 
@@ -234,153 +234,153 @@ The Fred interconnect, shown in [Figure 7](#figure-07)(b), is inspired by *Clos*
 
 ### 5.1 Fred 上の通信パターン
 
-The fine-grained reduction and broadcast features enable Fred $\mu$Switches to perform all different types of 集合通信パターン observed in distributed training. Collective implementation on Fred, however, can be 概要ed through the notation of *communication flow* (or *flow* in short).
+細粒度のリダクションとブロードキャスト機能により、Fred $\mu$Switch は分散学習で使われる各種の集合通信パターンを実行できる。Fred 上の集合通信実装は、*通信フロー*、略して *フロー* という表記で抽象化できる。
 
-A *flow* on Fred<sub>*m*</sub>($P$) includes a set of input ports ($\mathrm{\mathrm{IPs}}$)={ip<sub>1</sub>, ip<sub>2</sub>, …., ip<sub>*i*</sub>} and output ports ($\mathrm{\mathrm{OPs}}$)={op<sub>1</sub>, op<sub>2</sub>, …., op<sub>*j*</sub>}, where $|\mathrm{\mathrm{IPs}}|\leq P$ and $|\mathrm{\mathrm{OPs}}|\leq P$. The *flow* 結果 in reducing the data across the input ports determined in $\mathrm{\mathrm{IPs}}$ and broadcasting the final result to the output ports identified in $\mathrm{\mathrm{OPs}}$. The port numbers and cardinality of $\mathrm{\mathrm{IPs}}$ and $\mathrm{\mathrm{OPs}}$ can be set independently, depending on the communication pattern. Each communication algorithm can be expressed in terms of performing one or more *flows*. For example, the orange All-Reduce pattern in [Figure 7](#figure-07)(h) is a single *flow* with $\mathrm{\mathrm{IPs}}=\{3,4,5\}$ and $\mathrm{\mathrm{OPs}}=\{3,4,5\}$.
+Fred<sub>*m*</sub>($P$) 上の *フロー* は、入力ポート集合 $\mathrm{IPs}=\{\mathit{ip}_1,\mathit{ip}_2,\ldots,\mathit{ip}_i\}$ と出力ポート集合 $\mathrm{OPs}=\{\mathit{op}_1,\mathit{op}_2,\ldots,\mathit{op}_j\}$ を持ち、$|\mathrm{IPs}|\leq P$、$|\mathrm{OPs}|\leq P$ である。*フロー* は $\mathrm{IPs}$ の入力データをリダクションし、最終結果を $\mathrm{OPs}$ の出力ポートへブロードキャストする。両集合のポート番号と要素数は通信パターンに応じて独立に設定できる。各通信アルゴリズムは一つ以上の *フロー* として表せる。たとえば[図 7(h)](#figure-07) の橙色 All-Reduce は、$\mathrm{IPs}=\{3,4,5\}$、$\mathrm{OPs}=\{3,4,5\}$ の単一 *フロー* である。
 
-**Simple Communication Algorithms.** Simple communication algorithms refer to communication patterns that can be realized on Fred by performing only one *flow*. [Table 2](#table-02) summarizes different simple Fred 上の通信パターン and the number of involved input/output ports.
+**単純通信アルゴリズム。** 一つの *フロー* だけで Fred 上に実現できる通信パターンを指す。[表 2](#table-02) に各パターンと入出力ポート数を示す。
 
-**Compound Communication Algorithms.** Compound communication algorithms realize the communication patterns through multiple *flows* on Fred. [Table 2](#table-02) summarizes different compound Fred 上の通信パターン. For example, *Reduce-Scatter* among $i$ inputs is broken into $i$ serial steps of the *reduce* *flow*, and during step $1\leq j\leq i$, the *reduce* operation corresponding to the result of the $op_{j}$ is done. The process is similar for other compound communication algorithms.
+**複合通信アルゴリズム。** 複数の *フロー* で通信パターンを実現する。[表 2](#table-02) に各複合パターンを示す。たとえば $i$ 入力の *Reduce-Scatter* は $i$ 個の直列な *reduce フロー* に分解し、$1\leq j\leq i$ の第 $j$ ステップで出力 $\mathit{op}_j$ に対応する *reduce* を行う。他の複合アルゴリズムも同様である。
 
 <span id="section-5-2"></span>
 
 ### 5.2 ルーティングプロトコル
 
-Fred considers a *flow* as a unit of routing, and supports concurrent routing of multiple *flows*. Similar to the previous methods [Nov22], Fred ルーティングプロトコル is also recursive, meaning that first the status of outermost $\mu$Switch levels (i.e., input/output $\mu$Switches) are determined, and then routing is recursively called on the middle stage switches. The difference is, however, supporting reduction/distribution features on the Fred $\mu$switches, and the dependency between the input/output ports of a *flow*, which requires a new routing algorithm to realize these differences. Fred’s ルーティングプロトコル is built upon the following intuitions:
+Fred は *フロー* をルーティング単位とし、複数フローの同時ルーティングを支援する。既存手法 [Nov22] と同様に再帰的であり、まず最外層の $\mu$Switch、すなわち入力／出力 $\mu$Switch の状態を決め、次に中間段スイッチへ再帰する。ただし Fred $\mu$Switch はリダクション／分配機能を持ち、フローの入出力ポート間にも依存関係があるため、新しいアルゴリズムが必要になる。プロトコルは次の考え方に基づく。
 
-- If two flows share the same input or output $\mu$Switch, they should be routed through different middle-stage switches (subnetworks).
-- If both input ports of an R-$\mu$Switch or RD-$\mu$Switch belong to the same *flow*, the reduction feature is activated.
-- If both output ports of a D-$\mu$Switch or RD-$\mu$Switch belong to the same *flow*, the distribution (broadcast) feature of the $\mu$Switch is activated.
+- 二つのフローが同じ入出力 $\mu$Switch を共有するなら、異なる中間段スイッチ（サブネットワーク）へ送る。
+- R-$\mu$Switch または RD-$\mu$Switch の両入力が同じ *フロー* なら、リダクション機能を有効にする。
+- D-$\mu$Switch または RD-$\mu$Switch の両出力が同じ *フロー* なら、$\mu$Switch の分配機能を有効にする。
 
-The latter two points are easy to realize. To satisfy the first point, Fred ルーティングプロトコル creates a *conflict graph*. [Figure 7](#figure-07)(i) shows the first step of a routing example for a Fred<sub>2</sub>($8$) interconnect with the associated conflict graph for this step.
+後二点は容易に実現できる。第一点を満たすため、Fred は *競合グラフ* を作る。[図 7(i)](#figure-07) に Fred<sub>2</sub>($8$) のルーティング例の第 1 ステップと対応する競合グラフを示す。
 
-In the conflict graph, each node represents a *flow* and the edges between the nodes represent a conflict (i.e., sharing an input or output $\mu$Switch) between the two nodes (*flows*). Fred routing applies the graph coloring on the conflict graph to find the routing of each *flow*. The number of colors is the number of intermediate stage switches (i.e., $m$). [Figure 7](#figure-07)(i) also shows the 結果 of the graph coloring. Here, there are only two colors since $m=2$. Two flows are routed to the up subnetwork (blue), and one to the down subnetwork (red). After this step, the ルーティングプロトコル and the conflict graph generation are recursively called on the middle blue and red Fred<sub>2</sub>($4$) switches. Note that a desired property of DL training is the deterministic and repetitive nature of its communication patterns that can be inferred at compile time. Therefore, the routing algorithm for different comm phases of the training workload can be executed at compile time and then saved at the control unit of the Fred switches and used during the training to minimize the routing overhead.
+競合グラフの各ノードは *フロー*、ノード間の辺は同じ入出力 $\mu$Switch を共有する競合を表す。Fred はグラフ彩色で各フローの経路を求め、色数は中間段スイッチ数 $m$ とする。[図 7(i)](#figure-07) では $m=2$ のため二色だけを使い、二つのフローを上側（青）、一つを下側（赤）のサブネットワークへ送る。その後、青と赤の Fred<sub>2</sub>($4$) でプロトコルと競合グラフ生成を再帰的に実行する。DL 学習の通信パターンは決定的かつ反復的で、コンパイル時に推論できる。そのため各通信フェーズのルーティングをコンパイル時に実行し、Fred の制御ユニットへ保存して、学習中のルーティングオーバーヘッドを抑えられる。
 
 <span id="section-5-3"></span>
 
 ### 5.3 ルーティング競合と解決方法
 
-There are certain cases where not all *flows* can be routed at the same time, causing *routing conflict*. The routing conflict is identified when the graph coloring fails to color all of the nodes within the conflict graph. [Figure 7](#figure-07)(j) shows an example of a routing conflict when there are four *flows* to be routed on a Fred<sub>2</sub>($8$) and the resulting conflict graph. The conflict graph cannot be colored using only two colors due to the circular dependencies between *flows: 0, 1, 2*. Note that the routing conflict may happen during any recursive call to the routing algorithm (for routing the subnetworks). If the routing conflict is identified, the entire routing is marked to have a conflict.
+すべての *フロー* を同時にルーティングできず、*ルーティング競合* が生じる場合がある。競合グラフの全ノードを彩色できなければ競合と判定する。[図 7(j)](#figure-07) は Fred<sub>2</sub>($8$) 上の四フローと競合グラフの例である。*フロー 0、1、2* が循環依存するため、二色では彩色できない。競合はサブネットワークを処理する任意の再帰呼出しで発生し得る。検出時にはルーティング全体を競合ありとする。
 
 <span id="table-02"></span>
 
-![表 2. Simple (shaded) and Compound 集合通信アルゴリズムs.](../../papers/fred/table-02.png)
+![表 2. 単純（網掛け）集合通信アルゴリズムと複合集合通信アルゴリズム。](../../papers/fred/table-02.png)
 
-**表 2.** Simple (shaded) and Compound 集合通信アルゴリズムs.
+**表 2.** 単純（網掛け）集合通信アルゴリズムと複合集合通信アルゴリズム。
 
-We now discuss ways to address such conflicts.
+以下では、この競合を解決する方法を述べる。
 
-**(1) Blocking the Conflicting *Flows*.** The first trivial way is to block some of the conflicting *flows* and run them after the other *flows* are finished. This translates to removing some of the nodes in the conflict graph. For example, in [Figure 7](#figure-07)(j), if any of the *flows* $1,2,$ or $3$ is blocked, the routing can proceed to the next step (i.e., subnetworks). This option is, however, costly in terms of performance since it blocks some of the flows.
+**（1）競合 *フロー* のブロック。** 一部の競合フローを止め、他の完了後に実行する。競合グラフから一部ノードを除くことに相当する。[図 7(j)](#figure-07) では *フロー* $1,2,3$ のいずれかを止めれば次のサブネットワーク処理へ進めるが、性能コストは大きい。
 
-**(2) Increasing the Number of Middle Stages.** Another method is to design Fred switches with more intermediate stage switches (i.e., increase $m$). This method increases the number of colors for the graph coloring algorithm. Therefore, more conflicting *flows* can be routed simultaneously. [+3] However, this comes at the expense of more HW overhead.
+**（2）中間段スイッチ数の増加。** $m$ を増やして彩色に使える色数を増やせば、より多くの競合 *フロー* を同時にルーティングできる。 [+3] ただしハードウェアオーバーヘッドが増える。
 
-**(3) Decomposing the Communication Algorithms.** For the unicast-only traffic, Fred interconnect is *rearrangeably nonblocking* when $m=2$ and *strict-sense nonblocking* when $m\geq 3$. This fact can be leveraged to decompose some of the communication algorithms into multiple steps and break the dependency among input/output ports in each step (i.e., making them unicast traffic). In the worst case, any 集合通信アルゴリズム can be decomposed into complete unicast traffic. For example, All-Reduce can be handled through a ring-based algorithm at the endpoints (NPUs), rather than in-network execution, which is complete unicast traffic. As a result, *flows* $0,1,$ and $2$ in [Figure 7](#figure-07)(j) can switch to ring-based All-Reduce at the endpoint, while *flow* $3$ uses an in-network All-Reduce algorithm. This method solves the routing by degrading the communication performance of the conflicting *flows* (but it does not block any *flow*).
+**（3）通信アルゴリズムの分解。** 単一キャストだけなら Fred は $m=2$ で *rearrangeably nonblocking*、$m\geq 3$ で *strict-sense nonblocking* である。通信を複数ステップへ分け、各ステップの入出力依存を解消して単一キャスト化できる。最悪の場合、任意の集合通信を完全な単一キャストへ分解できる。たとえば All-Reduce をネットワーク内ではなく NPU 上のリング方式で処理する。[図 7(j)](#figure-07) の *フロー* $0,1,2$ をリング方式へ切り替え、*フロー* $3$ だけをネットワーク内で実行できる。フローは止めないが、競合フローの性能は低下する。
 
-**(4) Intelligent Device Placement.** Another method to prevent conflicts is through intelligent device placement (mapping) of the training workers to the physical NPUs at the start time. For example, if in [Figure 7](#figure-07)(j) the workers mapped to NPUs of ports $1$ and $4$ swap their locations, the conflict does not happen.
+**（4）インテリジェントなデバイス配置。** 起動時に学習ワーカーを物理 NPU へ適切に配置して競合を防ぐ。[図 7(j)](#figure-07) でポート $1$ と $4$ の NPU に割り当てたワーカーを交換すれば、競合は起きない。
 
-*In Fred, we prioritize the communication performance and do not use options (1) and (3). We use option (2) to simplify the device placement algorithm by only using Fred<sub>*3*</sub>($P$) switches, ensuring that we have three colors in our routing algorithm protocol. Then, for the device placement algorithm, we map the training workers within the same MP group on consecutive physical NPUs, followed by iterating over workers within PP and DP, respectively. This is sufficient to prevent routing conflicts for 3D-Parallelism communication patterns.*
+*Fred は通信性能を優先し、（1）と（3）は使わない。（2）を採用し、Fred<sub>*3*</sub>($P$) だけを使って三色を確保し、配置アルゴリズムを簡単にする。同じ MP グループのワーカーを連続する物理 NPU へ割り当て、続いて PP、DP の順に反復する。これで 3D 並列のルーティング競合を防げる。*
 
 <span id="section-5-4"></span>
 
 ### 5.4 重複通信の処理
 
-In training, the workload at a given time may require multiple communication operations. For example, while handling the DP communication in backpropagation, the workload may initiate the PP communication to exchange the next microbatch between the workers. However, FRED’s circuit switch configuration may handle one communication phase at a given time. Additionally, different NPUs might issue communication at different times, due to variations in the compute latencies. Hence, there should be a mechanism to safely preempt the current executing communication operation and execute the new communication, with minimal effects to the in-flight packets, if the latter has a higher priority.
+学習中には同時に複数の通信が必要になる。たとえば逆伝播の DP 通信中に、次の microbatch を交換する PP 通信が始まることがある。しかし FRED の回線交換設定は一度に一つの通信フェーズしか扱えず、計算遅延の差で NPU ごとの発行時刻も異なる。新しい通信の優先度が高い場合、転送中パケットへの影響を抑えつつ、現在の通信を安全にプリエンプトする仕組みが必要である。
 
-We address this issue by allocating multiple Virtual Circuits (VCs) per port, each dedicated to a specific communication group (e.g., MP), and the FRED’s interconnect to be reconfigured between different overlapping communication operations. While it is possible to frequently reconfigure FRED’s interconnect in short intervals to handle overlapping communication operations concurrently, we choose to reconfigure FRED to execute the highest priority communication operation among the currently pending operations (and preempt the current communication if a new higher priority communication is issued). This decision simplifies the design and minimizes the FRED’s reconfiguration overhead, and is in line with the training workload requirements, since the workload is usually blocking on one communication operation (highest priority) at any given point in time. In our 3D-parallel case, the priority of communication operations in descending order is: MP, PP, and DP. More discussion on FRED’s buffer management and flow control is described in [第 6.2.3 節](#section-6-2-3).
+各ポートに複数の Virtual Circuit（VC）を割り当て、それぞれを MP など特定の通信グループ専用とし、重複する通信間で FRED を再構成する。短い間隔で再構成して同時処理することも可能だが、本設計では待機中で最優先の通信を実行し、より高優先度の通信が来れば現在の通信をプリエンプトする。学習は通常、任意時点で最優先の一通信に阻まれているため、この方法は設計と再構成オーバーヘッドを抑えつつ要件に合う。3D 並列では MP、PP、DP の順に優先する。バッファ管理とフロー制御は[第 6.2.3 節](#section-6-2-3)で述べる。
 
 <span id="section-6"></span>
 
 ## 6 ウェハスケールアーキテクチャ
 
-We present an instance of a wafer-scale NPU system connected using Fred, for evaluation purposes. We note that alternate configurations are also feasible.
+評価用に Fred で接続したウェハスケール NPU システムの一例を示す。別の構成も可能である。
 
 <span id="section-6-1"></span>
 
 ### 6.1 Fred ファブリックのレイアウト
 
-A Fred switch builds a foundation to connect multiple wafer-scale NPUs. However, for large wafer-scale systems, due to physical limitations such as wiring, area, etc., it is not feasible to connect all of the NPUs through a single Fred switch. Hence, the *Fred fabric* provides a hierarchical design for the scalable connection of large wafer-scale systems. [Figure 8](#figure-08) shows an example of the Fred fabric that shows a 2-level tree connection of the Fred switches and the NPUs connected to the leaf (*L1*) switches [+4]. In general, tree height and the BW across different levels are determined by the system size and physical 制約 (see [第 6.2 節](#section-6-2)).
+Fred スイッチは複数のウェハスケール NPU を接続する基礎となる。大規模システムでは配線や面積の制約から、全 NPU を一つの Fred スイッチに接続できない。そこで *Fred ファブリック* は階層構造を用いる。[図 8](#figure-08) は、Fred スイッチを 2 段ツリーで接続し、NPU を葉の *L1* スイッチへ接続した例である [+4]。ツリー高と各階層間の帯域幅は、システム規模と物理制約で決まる（[第 6.2 節](#section-6-2)）。
 
-When there are multiple levels of Fred switches, the communication algorithms might need to cross several switches and hence, need to be optimized accordingly. For example, [Figure 8](#figure-08)(a) shows the flow path for an All-Reduce between NPUs $1,5,$ and $6$. In this case, the data of NPUs $1\text{ \mathrm{\mathrm{and}} }5$ are reduced on their local L1 switch (to reduce the traffic going to the L2 switch), and the result along with the data of NPU $6$ are reduced on the L2 switch. The final result is sent back to the corresponding L1 switches. The L1 switch attached to NPUs $1\text{ \mathrm{\mathrm{and}} }5$ also multicasts the result to the NPUs.
+複数階層の Fred スイッチがあると、通信アルゴリズムは複数スイッチをまたぐため最適化が必要になる。[図 8(a)](#figure-08) は NPU $1,5,6$ 間の All-Reduce 経路を示す。NPU $1$ と $5$ のデータをローカル L1 で先にリダクションし、L2 へのトラフィックを減らす。その結果と NPU $6$ のデータを L2 でリダクションし、最終結果を対応する L1 へ戻す。NPU $1$ と $5$ の L1 は結果を両 NPU へマルチキャストする。
 
 <span id="figure-08"></span>
 
-![図 8. Physical and Logical Views of 2-level Fred Topologies.](../../papers/fred/figure-08.png)
+![図 8. 2 階層 Fred トポロジーの物理構成と論理構成。](../../papers/fred/figure-08.png)
 
-**図 8.** Physical and Logical Views of 2-level Fred Topologies.
+**図 8.** 2 階層 Fred トポロジーの物理構成と論理構成。
 
 <span id="section-6-2"></span>
 
 ### 6.2 ウェハスケールアーキテクチャの構成
 
-We assume a standard 300 $mm$ wafer diameter, similar to the prior works [Arc19, Sca21a], resulting in a 70000 $mm^{2}$ wafer area.
+既存研究 [Arc19, Sca21a] と同様に、直径 $300\,\mathrm{mm}$、面積 $70000\,\mathrm{mm}^2$ の標準ウェハを想定する。
 
 <span id="section-6-2-1"></span>
 
 #### 6.2.1 制約
 
-Fundamentally, there are two physical limitations that limit the amount of compute and other resources on the wafer: (i) Thermal 制約, and (ii) Power delivery network [Des21, Arc19, Sca21a]. Thermal 制約 limit the amount of power that can be delivered to the wafer, depending on the cooling mechanism. Previous works report the maximum power limit within the $9.6\>\mathrm{\mathrm{KW}}$ [Arc19] to $15\>kW$ [Cer21] range. In this paper, we assume $\boldsymbol{15\>kW}$ power is available for the wafer-scale system. The other limitation is the power delivery network, which might necessitate using big on-wafer *voltage regulator modules (VRMs)*, limiting the available area for NPUs [Arc19]. However, alternative solutions can eliminate the need for on-wafer VRMs by either supplying the voltage from the top of the wafer [Cer21], or delivering the power from the back of the wafer by using the *through-wafer-vias (TWVs)* [Pro19]. In this paper, we assume the **on-wafer VRMs are not used** by using any of the solutions described earlier.
+ウェハ上の計算資源は、（i）熱制約と（ii）電力供給網に制限される [Des21, Arc19, Sca21a]。冷却方式に応じた熱制約が供給可能電力を決め、既存研究の上限は $9.6\,\mathrm{kW}$ [Arc19] から $15\,\mathrm{kW}$ [Cer21] である。本稿は $\boldsymbol{15\,\mathrm{kW}}$ を想定する。電力供給網は大型のオンウェハ *Voltage Regulator Module（VRM）* を必要とし、NPU 面積を制限し得る [Arc19]。一方、ウェハ上面からの給電 [Cer21] や *Through-Wafer Via（TWV）* による背面給電 [Pro19] で VRM を不要にできる。本稿ではこれらを用い、**オンウェハ VRM は使用しない**。
 
 <span id="section-6-2-2"></span>
 
 #### 6.2.2 物理システムパラメータ
 
-[Table 3](#table-03) shows the other set of physical parameters. We assume that the NPU chiplets are tested before bonding. If Known Good Die testing is difficult, larger chiplets such as NPU Compute may need to be broken into smaller constituents. Recent work [Chi23c] has suggested that these chiplets actually need to be moderately large (40$mm^{2}$-400$mm^{2}$) in size for cost-optimality. For the purposes of our evaluation, we assume an H100 GPU-like NPU compute chiplet, each equipped with five stacks of HBM3 chiplet memories, resulting in combined power consumption of $700\>W$ and an area of $1314\>mm^{2}$ [Nvi23].
+[表 3](#table-03) に他の物理パラメータを示す。NPU チップレットは接合前に試験済みとする。Known Good Die 試験が難しければ、NPU Compute などの大きなチップレットを小さく分割する必要がある。最近の研究 [Chi23c] は、コスト最適化には $40\,\mathrm{mm}^2$-$400\,\mathrm{mm}^2$ 程度が適切だとする。評価では H100 GPU 相当の NPU 計算チップレットと 5 スタックの HBM3 を用い、合計 $700\,\mathrm{W}$、$1314\,\mathrm{mm}^2$ とする [Nvi23]。
 
-The NPU compute chiplet perimeter can support up to 12 TBps wafer-scale BW, where $6$ TBps of it is allocated to support the 3 TBs local HBM memory BW ($3$ TBps for read + $3$ TBps for write), and the other $6$ TBps is allocated to support $3$ TBps bi-directional total NPU-to-NPU BW ($3$ TBps for send + $3$ TBps for receive).
+NPU 計算チップレット周辺は最大 12 TBps を支援する。6 TBps をローカル HBM の 3 TBps（読出し 3 TBps＋書込み 3 TBps）に、残り 6 TBps を合計 3 TBps の双方向 NPU 間通信（送信 3 TBps＋受信 3 TBps）に割り当てる。
 
-The $15\>\mathrm{\mathrm{KW}}$ power budget limits the total amount of NPUs on the wafer to $15\>\mathrm{\mathrm{KW}}/700\>W\approx 21$, excluding other component power overheads (e.g., I/O controller, wafer-scale wires). This anticipated power density of 22W/cm<sup>2</sup> is well within the projection of cooling capability in heterogeneous integration roadmaps [Iee23]. In this paper, we consider a $20$-NPU wafer-scale system to make room for other component power overheads. Additionally, $18\times$I/O Controllers are used to connect the wafer to the external memory. Hence, the total NPU $+$ I/O Controller area overhead is $26640\>mm^{2}$.
+$15\,\mathrm{kW}$ の予算では、他部品を除いても NPU 数は $15\,\mathrm{kW}/700\,\mathrm{W}\approx 21$ に制限される。予想電力密度 $22\,\mathrm{W/cm}^2$ は異種統合ロードマップの冷却能力内にある [Iee23]。他部品の余地を残すため 20 NPU とし、外部メモリ接続に 18 個の I/O Controller を使う。NPU と I/O Controller の総面積は $26640\,\mathrm{mm}^2$ である。
 
-Similar to [Arc19], we assume in the baseline, the NPU chips are placed with a 100 $um$ distance from each other. Combined with the I/O controllers, the entire baseline can be fit within a rectangle with the size of 190.8 $mm$ $\times$ 150.4 $mm$ in the center of the wafer, leaving the rest of the wafer area unclaimed.
+[Arc19] と同様、ベースラインの NPU 間隔を $100\,\mathrm{um}$ とする。I/O Controller を含む全体はウェハ中央の $190.8\,\mathrm{mm}\times 150.4\,\mathrm{mm}$ に収まり、残りは未使用となる。
 
 <span id="table-03"></span>
 
-![表 3. 物理システムパラメータ.](../../papers/fred/table-03.png)
+![表 3. 物理システムパラメータ。](../../papers/fred/table-03.png)
 
-**表 3.** 物理システムパラメータ.
+**表 3.** 物理システムパラメータ。
 
 <span id="table-04"></span>
 
-![表 4. HW overhead of Fred implementation of [Figure 8](#figure-08)(b).](../../papers/fred/table-04.png)
+![表 4. [図 8(b)](#figure-08)の Fred 実装におけるハードウェアオーバーヘッド。](../../papers/fred/table-04.png)
 
-**表 4.** HW overhead of Fred implementation of [Figure 8](#figure-08)(b).
+**表 4.** [図 8(b)](#figure-08)の Fred 実装におけるハードウェアオーバーヘッド。
 
 <span id="section-6-2-3"></span>
 
 #### 6.2.3 Fred トポロジーとパラメータ
 
-To motivate Fred, we leverage the fact that the combination of a constrained power budget and high-end NPUs 結果 in utilizing $26640\>mm^{2}$ out of $70000\>mm^{2}$ area, **making room to utilize otherwise unclaimed area for flexible fabrics like Fred**. However, any fabric proposal must have low power consumption since most of the power budget is allocated to the NPUs. **We demonstrate that Fred meets these properties.**
+限られた電力予算と高性能 NPU の組合せでは、$70000\,\mathrm{mm}^2$ のうち $26640\,\mathrm{mm}^2$ しか使わず、**未使用面積を Fred のような柔軟なファブリックに利用できる**。ただし電力の大半は NPU が使うため、ファブリックは低消費電力でなければならない。**Fred が両条件を満たすことを示す。**
 
-Our target Fred topology is similar to [Figure 8](#figure-08)(a), where $20$ NPUs and I/O controllers are connected through a 2-level (almost) fat-tree topology. Similar to the baseline, the BW/NPU is still $3$ TBps, but the bisection BW is increased to $30$ TBps. It is almost fat-tree since the L1-to-L2 BW is the summation of attached NPU BW only (and not NPU $+$ I/O Controller). The reason is that if one participant of any *flow* (e.g., *Reduce*) is an I/O controller, then the entire *flow’s* BW requirement is determined by the I/O controller’s BW (e.g., 128 GBps), which is significantly less than NPU-to-NPU BW. Hence, an almost fat-tree gives the same performance as the full fat-tree.
+対象 Fred は[図 8(a)](#figure-08)のような 2 段のほぼ Fat-tree で、20 NPU と I/O Controller を接続する。NPU 当たり 3 TBps は同じだが、二分帯域幅は 30 TBps になる。L1-L2 帯域幅は接続 NPU の合計だけで、I/O Controller 分を含まないため「ほぼ」Fat-tree である。*フロー* の参加者に I/O Controller があれば、その要求は 128 GBps など NPU 間帯域より小さい I/O 帯域で決まるため、完全な Fat-tree と同等の性能を得られる。
 
-Looking at the BW requirements of Fred L1/L2 switches in [Figure 8](#figure-08)(a), it is clear that each switch chiplet requires a perimeter, to connect the wafer-scale network wires, that is not feasible to build. Hence, in reality, each of the Fred switches in [Figure 8](#figure-08)(a) is decomposed into multiple lower-BW Fred chiplets. [Figure 8](#figure-08)(b) shows a logical view of implementing the (almost) fat-tree based topology of [Figure 8](#figure-08)(a) using feasible Fred chiplets. As [Figure 8](#figure-08)(b) shows, each switch of [Figure 8](#figure-08)(a) is implemented by decomposing it into multiple smaller, but feasible, Fred switches (enclosed in the strip line). For our evaluations, we use Fred<sub>3</sub>($P$) switches.
+[図 8(a)](#figure-08) の L1/L2 帯域要件では、ウェハ配線を接続するためのスイッチ外周が製造可能範囲を超える。そのため各 Fred スイッチを複数の低帯域チップレットへ分解する。[図 8(b)](#figure-08) は、実現可能な Fred チップレットでほぼ Fat-tree を構成する論理図である。各スイッチを帯状の枠内にある小型 Fred へ分解し、評価では Fred<sub>3</sub>($P$) を使う。
 
-As [Figure 8](#figure-08)(b) shows, in Fred fabric, L1 switches have hybrid BW downstream links to connect to the NPUs and I/O controllers. This requires Fred L1 switches to use different interface circuitry for NPU vs. I/O controller links, which is accounted for in the overhead numbers in [Table 4](#table-04). In general, hybrid on-chip interconnects are widely used in many designs (e.g., to connect on-chip routers vs. memory controllers in multi-core processors) [Pri04].
+[図 8(b)](#figure-08) の L1 は NPU と I/O Controller に異なる帯域幅の下りリンクを使うため、別々のインターフェース回路が必要である。この分は[表 4](#table-04)に含む。異種オンチップインターコネクトは、多コアのルータとメモリコントローラ接続などで広く使われている [Pri04]。
 
-**Flow Control.** We assume a Virtual Cut-Through flow control with a credit-based backpressure mechanism to guarantee the switch buffer as packets flow through FRED’s fabric. To enable preemptive communication execution, we consider four VCs per port: three data VCs dedicated to MP, DP, and PP packets and one control VC for the ACK/NACK and other control messages. The data/control packet size is 4KB/512B, with each flit size set to be 512B. The packet header size is 6B to allow for large sequence numbers. Each packet header also has the index to the $\mu$Switch configuration bits, stored in the control unit for a specific communication phase [+5]. If all ports receive a packet belonging to a higher priority phase, Fred changes its $\mu$Switch configuration to that phase and starts forwarding the packets from that phase. Additionally, there is a default header index, which refers to a phase where all flows are unicast and Fred falls back to the online routing to determine the $\mu$Switch configs. While not present in our workloads, this mode is useful when dealing with communication patterns such as *alltoallv* where different src/dst pairs have different size flows that are changing dynamically.
+**フロー制御。** クレジットベースのバックプレッシャを備えた Virtual Cut-Through を想定する。プリエンプトのため、各ポートに MP、DP、PP 専用のデータ VC 三本と ACK/NACK 等の制御 VC 一本を置く。データ／制御パケットは 4KB／512B、flit は 512B、ヘッダは 6B である。ヘッダは通信フェーズごとの $\mu$Switch 設定ビットへの索引も持つ [+5]。全ポートに高優先度フェーズのパケットが届くと、その $\mu$Switch 設定へ切り替えて転送する。全フローが単一キャストとなる既定索引もあり、その場合はオンラインルーティングで $\mu$Switch 設定を決める。対象ワークロードにはないが、src/dst 対ごとのフローサイズが動的に変わる *alltoallv* などに有用である。
 
-The retransmission protocol is set to be simple Go-Back-N, with an accumulative ack per every 16 data packets to reduce the ack overhead to less than $1\%$ of the network BW. If a switch receives a NACK from an NPU, it forwards it to all input ports participating in that flow, which is then propagated to all NPUs serving as the source of the flow, and retransmission starts from the NACKed packet.
+再送には単純な Go-Back-N を使い、16 データパケットごとに累積 ACK を返して、ACK オーバーヘッドを帯域幅の $1\%$ 未満にする。NPU から NACK を受けたスイッチはフローの全入力ポートへ転送し、さらに全送信元 NPU へ伝播させ、NACK 対象パケットから再送する。
 
-Additionally, each input port has a 24KB buffer per data VC and a 2KB buffer for the control VC. These policies ensure that in the case of communication preemption, there are enough buffers available (i.e., $\mathrm{\mathrm{link}}\_\mathrm{\mathrm{BW}}\times \mathrm{\mathrm{RTT}}=\text{24\mathrm{\mathrm{KB}}}$) for the new communication operation to send at the full link BW.
+各入力ポートはデータ VC ごとに 24KB、制御 VC に 2KB のバッファを持つ。通信プリエンプト時にも $\mathit{link\_BW}\times \mathrm{RTT}=24\,\mathrm{KB}$ を確保し、新しい通信をリンク全帯域で送信できる。
 
-**HW Overhead.** [Table 4](#table-04) shows the overheads of our proposed Fred implementation shown in [Figure 8](#figure-08). We assume 1.5KB SRAM per FRED switch to store the $\mu$Switch configurations for different communication operations. The numbers are obtained post layout using 15nm NanGate PDK. The total power overhead is $179.35\>W$, which is about $1.2\%$ of the total power budget. The total area overhead is $25195\>mm^{2}$, which can be accommodated by using the unclaimed area available on the wafer. Note that, as discussed in [第 6.2.3 節](#section-6-2-3), the main area overhead of the Fred chiplets is due to I/O for supporting high-BW wafer-scale interconnects, and not because of the switch logic overhead.
+**ハードウェアオーバーヘッド。** [表 4](#table-04) に[図 8](#figure-08)の実装を示す。各 FRED に通信操作別の $\mu$Switch 設定を保存する 1.5KB SRAM を置き、15nm NanGate PDK のレイアウト後評価を用いた。電力は $179.35\,\mathrm{W}$、総予算の約 $1.2\%$、面積は $25195\,\mathrm{mm}^2$ で、未使用領域に収まる。[第 6.2.3 節](#section-6-2-3)のとおり、主な面積はスイッチロジックではなく広帯域 I/O による。
 
-**Discussion: Fred Area Overhead.** As we discussed earlier, the unclaimed area on the wafer allows for designing large (but low power) Fred switches to deliver high I/O BW requirements for our topology. In fact, Fred’s internal logic occupies less than 5% of the chip area. Hence, the area overhead of Fred can be significantly reduced if the I/O density increases.
+**考察：Fred の面積。** 未使用面積に大きく低消費電力な Fred を配置し、高 I/O 帯域要件を満たせる。内部ロジックはチップ面積の 5% 未満なので、I/O 密度が上がれば面積を大幅に減らせる。
 
 <span id="table-05"></span>
 
-![表 5. Target configurations.](../../papers/fred/table-05.png)
+![表 5. 評価対象の構成。](../../papers/fred/table-05.png)
 
-**表 5.** Target configurations.
+**表 5.** 評価対象の構成。
 
-In our design, we conservatively assume the switch chips use the same interconnect technology as the NPUs (e.g., pitch, frequency, etc.). However, switch area can be further reduced by applying more aggressive network bandwidth technologies. Next generation of I/O technology is expected to deliver up to 250 GBps/mm (compared to 107.4 GBps/mm in our design) [Het24]. This 結果 in designing Fred switch chips with only 18.4% of current area with the same I/O BW.
+保守的にスイッチと NPU に同じピッチ、周波数等を仮定する。次世代 I/O は本設計の 107.4 GBps/mm に対し最大 250 GBps/mm を見込む [Het24]。同じ帯域幅なら Fred 面積を現在の 18.4% にできる。
 
-The other I/O technology alternative is using the serialized high-speed links such as UCIe Advanced [Uni24], which can deliver up to 1 TBps/$mm$. This 結果 in designing Fred switch chips with only 5% of the current area. Note that even with the high area assumption of Fred, we don’t expect the yield issue to be a practical problem since compared to the compute NPUs, Fred switches have much less internal logic and hence encounter fewer defects.
+別案は最大 1 TBps/mm の UCIe Advanced [Uni24] などのシリアル高速リンクであり、面積を 5% にできる。現在の大きな面積仮定でも、Fred は計算 NPU より内部ロジックが少なく欠陥も少ないため、歩留まりは実用上の問題にならないと考える。
 
 <span id="table-06"></span>
 
-![表 6. Target workloads.](../../papers/fred/table-06.png)
+![表 6. 評価対象のワークロード。](../../papers/fred/table-06.png)
 
-**表 6.** Target workloads.
+**表 6.** 評価対象のワークロード。
 
 <span id="section-7"></span>
 
@@ -390,31 +390,31 @@ The other I/O technology alternative is using the serialized high-speed links su
 
 ### 7.1 ベースラインと Fred の構成
 
-**Baseline.** The baseline topology is a $5\times 4$ 2D-mesh with I/O controllers attached to the edge NPUs, similar to prior multi-chiplet wafer-scale prototypes [Arc19, Des21, Sim19, Enh24, Chi24a]. Since each NPU has 3 TBps bandwidth ([第 6.2.2 節](#section-6-2-2)), each NPU-to-NPU link in the 2D-Mesh is equal to $750$ GBps, resulting in the bisection BW of 3.75 TBps. The I/O Controller-to-NPU is $128$ GBps.
+**ベースライン。** 端の NPU に I/O Controller を接続した $5\times 4$ 2D Mesh で、既存のマルチチップレット・ウェハスケール試作に似る [Arc19, Des21, Sim19, Enh24, Chi24a]。各 NPU が 3 TBps（[第 6.2.2 節](#section-6-2-2)）なので NPU 間リンクは 750 GBps、二分帯域幅は 3.75 TBps、I/O Controller-NPU は 128 GBps である。
 
-**Fred.** We test four different variations of Fred to show how different features of Fred contribute to the overall performance. [Table 5](#table-05) shows the target configurations. *Fred-A* shows the effect of going from mesh to switch-based topology with the same bisection and without ネットワーク内集合通信実行. *Fred-B* builds on top of Fred-A and adds the ネットワーク内集合通信実行 feature. *Fred-C* increases the bisection BW without ネットワーク内集合通信実行. Finally, Fred-D is the most optimal variant of Fred by adding the ネットワーク内集合通信実行 to the previous variant.
+**Fred。** 各機能の寄与を見るため四変種を試す（[表 5](#table-05)）。*Fred-A* は二分帯域幅を同じにして Mesh からスイッチ型へ移行し、ネットワーク内集合通信は使わない。*Fred-B* は Fred-A にその機能を加える。*Fred-C* は機能なしで二分帯域幅を増やす。Fred-D は Fred-C に機能を加えた最適変種である。
 
 <span id="section-7-2"></span>
 
 ### 7.2 集合通信アルゴリズム
 
-For the baseline 2D mesh and when there is a wafer-wide collective, we use the hierarchical 2D algorithm with two concurrent chunks (in reverse direction) to enhance utilization [Hig20, Enh24]. For collectives between arbitrary NPUs, we build logical rings between involved NPUs and perform the ring algorithm. We also use X-Y routing, which is common in real systems [Hig20]. For Fred-A and Fred-C, we use the hierarchical 2-D ring algorithm to reduce the traffic of L1-L2 links, similar to [Cho19]. Fred-B and Fred-D use the in-network capability and use the hierarchical Fred switch topology to perform the collective, as explained in [第 6.1 節](#section-6-1).
+ベースラインの全ウェハ集合通信には、逆方向の二チャンクを同時に流す階層 2D アルゴリズムを使う [Hig20, Enh24]。任意 NPU 間では論理リングを作り、実機で一般的な X-Y ルーティングを使う [Hig20]。Fred-A/C は [Cho19] と同様の階層 2D リングで L1-L2 トラフィックを減らし、Fred-B/D は[第 6.1 節](#section-6-1)の階層 Fred とネットワーク内機能を使う。
 
 <span id="section-7-3"></span>
 
 ### 7.3 対象ワークロードと実行モード
 
-In the interest of space, we evaluate four training workloads, ranging from 60M to 1T parameters to be the representative for a broad range of ML workloads. [Table 6](#table-06) shows the target workloads and their corresponding parallelization strategy and execution models studied in [第 8.2 節](#section-8-2). ResNet-152 and Transformer-17B (Transformer model with 17 billion parameters) can fit on the on-wafer memory and hence, use the *重み定常* execution mode ([第 3.1 節](#section-3-1)). In contrast, GPT-3 and Transformer-1T (Transformer model with 1 trillion parameters) use the *重みストリーミング* execution mode ([第 3.1 節](#section-3-1)). Workers within the same DP group perform All-Reduce together during the back-propagation to sync on weight gradients. In *重み定常* mode, the workers use the Microsoft ZeRO optimizer stage 2 [Raj20b] along the DP dimension to reduce the memory footprint. Note that in *重みストリーミング* mode, the DP groups should reduce the gradients as they stream them out to the external memory through the I/O controller. The pattern is the reverse communication direction of [Figure 4](#figure-04). For Transformer-17B, GPT-3 and Transformer-1T, the model split is based on the Megatron-LM method [Sho19], which requires two All-Reduces (along the MP dimension) for each transformer layer stack during forward-pass & back-propagation. For the PP split on Transformer-17B, we assume the minibatch is divided into 8 microbatches to hide the effect of pipeline bubbles [Hua19]. For GPT-3, however, pipelining works differently since it is combined with the 重みストリーミング. In this case, $\mathrm{\mathrm{PP}}\>=\>2$ indicates that each time $2$ consecutive layers are brought to the wafer and distributed among different NPUs along the PP dimension. Thus, splitting the minibatch into two microbatches is enough to hide the pipeline latency. In [第 8.1 節](#section-8-1) and [第 8.2 節](#section-8-2), the minibatch size for all workloads is set to DP_size$\times 16$, while in [第 8.3 節](#section-8-3) (and also [Figure 2](#figure-02)) the minibatch size is increased to DP_size$\times 40$ to allow for finer-grain pipelining when PP_size increases [+6]. All workloads use FP16 gradient precision.
+紙幅の都合で 60M-1T パラメータの四ワークロードを評価する（[表 6](#table-06)）。ResNet-152 と Transformer-17B はウェハメモリに収まり *重み定常*、GPT-3 と Transformer-1T は *重みストリーミング* を使う（[第 3.1 節](#section-3-1)）。同じ DP グループは逆伝播で All-Reduce し、重み勾配を同期する。重み定常では Microsoft ZeRO optimizer stage 2 [Raj20b] を DP 次元で使う。重みストリーミングでは、I/O Controller 経由で外部メモリへ勾配を流しながらリダクションし、[図 4](#figure-04) と逆方向になる。Transformer-17B、GPT-3、Transformer-1T は Megatron-LM [Sho19] で分割し、各 Transformer 層スタックが順伝播と逆伝播で MP 方向に二回 All-Reduce する。Transformer-17B の PP は minibatch を 8 microbatch に分けてパイプラインバブルを隠す [Hua19]。GPT-3 は重みストリーミングと組み合わせ、$\mathrm{PP}=2$ なら連続二層を毎回ウェハへ載せ PP 方向へ分配するため、二 microbatch で十分である。[第 8.1 節](#section-8-1)と[第 8.2 節](#section-8-2)では minibatch を $\mathit{DP\_size}\times 16$、[第 8.3 節](#section-8-3)と[図 2](#figure-02)では $\mathit{DP\_size}\times 40$ とし、$\mathit{PP\_size}$ 増加時の細粒度パイプラインを可能にする [+6]。勾配はすべて FP16 である。
 
 <span id="section-7-4"></span>
 
 ### 7.4 シミュレーションフレームワーク
 
-We use ASTRA-SIM [Ast20, Ast20a], which is an open-source simulation methodology for modeling distributed training systems. ASTRA-SIM enables the profiling of compute and communication performance of distinct wafer-scale fabrics, including Fred. It can model さまざまな並列化戦略 and the overlapping of compute with comm kernels. Additionally, its network back-end can simulate the comm operations in detail. We extend ASTRA-SIM to model the I/O-to-wafer transfers for both the 重み定常 and 重みストリーミング scenarios. For each workload, we run the simulation for two training iterations (i.e., two forward + two backward-pass).
+分散学習システム用のオープンソースシミュレータ ASTRA-SIM [Ast20, Ast20a] を使う。Fred を含むファブリックの計算・通信性能、各種並列化戦略、計算と通信カーネルの重複、詳細なネットワーク操作をモデル化できる。重み定常／ストリーミングの I/O-ウェハ転送を追加し、各ワークロードを二イテレーション実行する。
 
-Previous works have shown that endpoint-based collective execution (our baseline) puts more pressure on the endpoint’s compute and memory BW resources, hindering the compute kernel efficiency [Ena21]. To favor the baseline and only focus on the network characteristics, we omit such effects in our baseline system and assume the compute kernels can run as efficient as the ネットワーク内集合通信実行 systems such as Fred.
+エンドポイント方式は計算資源とメモリ帯域幅への負荷を増やし、計算カーネル効率を下げる [Ena21]。ベースラインに有利な条件でネットワーク特性だけを見るため、その影響を無視し、Fred と同じ計算効率を仮定する。
 
-**Metric of Evaluation.** In [第 8 節](#section-8), we report the end-to-end training times and their breakdowns into total compute time and different *exposed* communication times. Since the minibatch size per training iteration may be different depending on the parallelization strategy, we normalize the reported times by dividing the latencies by the minibatch size when comparing the different parallelization strategies of the same workload (e.g., [Figure 2](#figure-02)). The exposed communication time refers to the amount of time that is not overlapped with the compute time and the workload is waiting for the communication to be finished. Depending on the parallelization strategy and execution model, there might be multiple sources of exposed communication times—load, DP, MP, PP, and/or 重みストリーミング.
+**評価指標。** [第 8 節](#section-8)ではエンドツーエンド時間を総計算時間と各 *露出* 通信時間に分解する。同一ワークロードの戦略比較では minibatch サイズが異なり得るため、レイテンシをサイズで割って正規化する（[図 2](#figure-02)）。露出通信時間は計算と重ならず、通信完了を待つ時間であり、load、DP、MP、PP、重みストリーミングなどから生じる。
 
 <span id="section-8"></span>
 
@@ -424,90 +424,92 @@ Previous works have shown that endpoint-based collective execution (our baseline
 
 ### 8.1 マイクロベンチマーク結果
 
-[Figure 9](#figure-09) presents the communication breakdown across 3D parallelism phases for two parallelization strategies for Transformer-17B. For the MP(20)-DP(1)-PP(1) strategy, there are only wafer-wide All-Reduce operations for the MP communication. The baseline effective BW utilization is bounded by the corner NPUs since they have only 2 links to other NPUs. This limits the average ネットワーク帯域利用率 of each NPU to be around $2\times 750\mathrm{\mathrm{GBps}}=1500\mathrm{\mathrm{GBps}}$. In Fred-A, each NPU-L1 BW is 3 TBps, but NPU-L2 BW is 375GBps. [+7] Using a similar analysis as [The22a], we see that hierarchical collectives result in NPU-L2 BW being the bottleneck and the effective NPU BW utilization is $375\mathrm{\mathrm{GBps}}+4\times 375\mathrm{\mathrm{GBps}}=1850\mathrm{\mathrm{GBps}}$. In Fred-B, the L1 switches first perform the All-Reduce and then use the entire L1-L2 BW to forward the data to the L2 switches for the second All-Reduce. Therefore, each NPU can send the data to L2 switch at the speed of $1500\mathrm{\mathrm{GBps}}$ (L1-L2 BW). However, since it is an ネットワーク内集合通信実行, the amount of traffic each NPU sends out is almost half of the traffic in the endpoint-based collective. Fred-C has much more L1-L2 BW and therefore each NPU can drive the BW utilization to $3\mathrm{\mathrm{TBps}}$. In Fred-D, an additional ネットワーク内集合通信実行 reduces the traffic by half in addition to the $3\mathrm{\mathrm{TBps}}$ NPU BW utilization.
+[図 9](#figure-09)に、Transformer-17B の二つの並列化戦略について、3D 並列の各フェーズにおける通信内訳を示す。MP(20)-DP(1)-PP(1) 戦略では、MP 通信としてウェハ全体の All-Reduce だけを実行する。ベースラインの実効帯域幅利用率は、他の NPU へのリンクを 2 本しか持たない角の NPU に制約される。そのため、各 NPU の平均ネットワーク帯域幅利用率は約 $2\times 750\,\mathrm{GBps}=1500\,\mathrm{GBps}$ に制限される。Fred-A では NPU-L1 帯域幅が NPU 当たり 3 TBps である一方、NPU-L2 帯域幅は 375 GBps である。 [+7] [The22a] と同様に分析すると、階層型集合通信では NPU-L2 帯域幅がボトルネックとなり、実効 NPU 帯域幅利用率は $375\,\mathrm{GBps}+4\times 375\,\mathrm{GBps}=1850\,\mathrm{GBps}$ になる。Fred-B では、L1 スイッチが最初の All-Reduce を実行し、続いて L1-L2 帯域幅全体を使ってデータを L2 スイッチへ転送し、2 回目の All-Reduce を行う。したがって、各 NPU は $1500\,\mathrm{GBps}$（L1-L2 帯域幅）で L2 スイッチへデータを送信できる。ただしネットワーク内で集合通信を実行するため、各 NPU が送出するトラフィック量はエンドポイント方式の集合通信のほぼ半分になる。Fred-C は L1-L2 帯域幅がはるかに広く、各 NPU は $3\,\mathrm{TBps}$ まで帯域幅を利用できる。Fred-D では、$3\,\mathrm{TBps}$ の NPU 帯域幅利用に加え、ネットワーク内集合通信によってトラフィックをさらに半減させる。
 
 <span id="figure-09"></span>
 
-![図 9. Communication microbenchmark 結果 for comparing only communication performance at different phases of 3D-parallelism, for two different parallelization strategies of Transformer-17B from [Figure 2](#figure-02).](../../papers/fred/figure-09.png)
+![図 9. [図 2](#figure-02)から選んだ Transformer-17B の二つの並列化戦略について、3D 並列の各フェーズにおける通信性能だけを比較した通信マイクロベンチマーク結果。](../../papers/fred/figure-09.png)
 
-**図 9.** Communication microbenchmark 結果 for comparing only communication performance at different phases of 3D-parallelism, for two different parallelization strategies of Transformer-17B from [Figure 2](#figure-02).
+**図 9.** [図 2](#figure-02)から選んだ Transformer-17B の二つの並列化戦略について、3D 並列の各フェーズにおける通信性能だけを比較した通信マイクロベンチマーク結果。
 
-The MP(2)-DP(5)-PP(2) case has all MP (All-Reduce), DP (All-Reduce), and PP (multicast) communications. For the MP communications, the baseline NPU can only utilize 1 link (out of its up to 4 links), resulting in only $750\mathrm{\mathrm{GBps}}$ BW utilization. Since all the communicating NPUs are below the same L1 switch in Fred topologies, they can use the entire $3\mathrm{\mathrm{TBps}}$ of NPU-L1 BW to communicate. Additionally, in the special case when the number of peer NPUs is two, the amount of traffic for endpoint-based vs. in-network execution is the same. Hence, all Fred variants have the same performance for MP communication.
+MP(2)-DP(5)-PP(2) では、MP（All-Reduce）、DP（All-Reduce）、PP（multicast）の通信がすべて発生する。MP 通信の場合、ベースライン NPU は最大 4 本あるリンクのうち 1 本しか利用できず、帯域幅利用率は $750\,\mathrm{GBps}$ にとどまる。Fred トポロジーでは、通信する NPU がすべて同じ L1 スイッチの配下にあるため、NPU-L1 帯域幅 $3\,\mathrm{TBps}$ の全量を通信に利用できる。また、ピア NPU が二つの場合に限り、エンドポイント方式とネットワーク内実行で生じるトラフィック量は等しい。したがって、すべての Fred 構成で MP 通信性能は同じになる。
 
-Again, the baseline is limited by the corner NPUs, which can utilize only one of their links for DP communication. Hence, the baseline NPU BW is $750\mathrm{\mathrm{GBps}}$. In Fred, and for the DP communication, each NPU should communicate with four other NPUs under different L1 switches. Therefore, in Fred variants the L1-L2 BW should be shared across four collective flows. Therefore, L1-L2 BW plays a significant role in the performance of this collective. In Fred-A, each NPU has an average NPU-L2 BW of $375\mathrm{\mathrm{GBps}}$, and hence, the NPU BW utilization is only $375\mathrm{\mathrm{GBps}}$, which is worse than the baseline. In Fred-B, however, the L2 switch is used to perform All-Reduce for each flow. This reduces the traffic generated by each NPU roughly by $37.5\%$, which makes its overall performance closer to the baseline. In Fred-C, however, the NPU-L2 BW is increased to $3\mathrm{\mathrm{TBps}}$. Finally, Fred-D Improves the Fred-C by performing in-network collective and reducing the traffic by $37.5\%$.
+DP 通信でも、ベースラインは角の NPU に制約され、各 NPU はリンクを 1 本しか利用できない。したがって、ベースラインの NPU 帯域幅は $750\,\mathrm{GBps}$ である。Fred の DP 通信では、各 NPU が異なる L1 スイッチ配下にある四つの NPU と通信する必要がある。そのため、Fred の各構成では L1-L2 帯域幅を四つの集合通信フローで共有する。ゆえに、L1-L2 帯域幅はこの集合通信の性能を大きく左右する。Fred-A では NPU 当たりの平均 NPU-L2 帯域幅が $375\,\mathrm{GBps}$ であり、NPU 帯域幅利用率も $375\,\mathrm{GBps}$ にとどまるため、ベースラインより低い。一方 Fred-B では、各フローの All-Reduce を L2 スイッチで実行する。これにより各 NPU が生成するトラフィックは約 $37.5\%$ 減少し、全体性能はベースラインに近づく。Fred-C では NPU-L2 帯域幅が $3\,\mathrm{TBps}$ に増える。最後に、Fred-D はネットワーク内集合通信を実行してトラフィックを $37.5\%$ 減らし、Fred-C の性能を改善する。
 
-For the PP comm, the baseline NPU can utilize one of its links to forward data to the next pipeline stage and hence, its BW utilization is 750GBps. Note that this is possible since in the case of language models such as Transformer-17B, one NPU within the mp group is sufficient to multicast the output to all NPUs at the next stage, [+8] and hence, there is no contention between NPUs of the same MP group at the same stage. In Fred, all peer NPUs are below the same L1 switch and can utilize the entire $3{\mathrm{\mathrm{TBps}}}$ BW for the PP comm.
+PP 通信では、ベースライン NPU はリンクを 1 本使って次のパイプライン段へデータを転送できるため、帯域幅利用率は 750 GBps である。Transformer-17B などの言語モデルでは、MP グループ内の一つの NPU だけで次段の全 NPU へ出力をマルチキャストできるため [+8]、同じ段にある同一 MP グループの NPU 間で競合は生じない。Fred ではすべてのピア NPU が同じ L1 スイッチの配下にあり、PP 通信に $3\,\mathrm{TBps}$ の帯域幅全体を利用できる。
 
-**Discussion: Fred’s NPU to L1 Topology Logic.** Now that we have presented the microbenchmark 結果, we can discuss why we preferred to choose a tree-based topology to connect every four NPUs to the L1 switches. An alternative solution can be a fully-connected topology to connect every four NPUs and then use only one switch level. However, this design choice still suffers from the endpoint-based effects (i.e., increased use of compute and memory BW at the endpoint) discussed in [第 7.4 節](#section-7-4). Furthermore, as explained in [第 2.2 節](#section-2-2), endpoint-based methods produce more communication traffic. For example, in the case of four NPUs, the most endpoint-based BW optimal algorithms produce 1.5D traffic per NPU to perform an All-Reduce of size D [Tha05, The22a], while the ネットワーク内集合通信実行 produces only D traffic per NPU [Sca21], 50% lower than the fully connected topology.
+**考察：Fred の NPU-L1 トポロジーを選んだ理由。** マイクロベンチマーク結果を踏まえ、四つの NPU を L1 スイッチへ接続する方式としてツリートポロジーを選んだ理由を説明する。別案として、四つの NPU を完全結合し、スイッチ階層を一つだけにする構成も考えられる。しかし、この設計にも[第 7.4 節](#section-7-4)で述べたエンドポイント方式の影響、すなわちエンドポイントで計算資源とメモリ帯域幅の使用量が増える問題が残る。また、[第 2.2 節](#section-2-2)で説明したとおり、エンドポイント方式は通信トラフィックも増やす。たとえば四つの NPU でサイズ $D$ の All-Reduce を実行する場合、エンドポイント方式で帯域幅効率が最も高いアルゴリズムでも NPU 当たり $1.5D$ のトラフィックを生成する [Tha05, The22a]。ネットワーク内集合通信が生成するトラフィックは NPU 当たり $D$ だけであり [Sca21]、完全結合トポロジーより 50% 少ない。
 
 <span id="figure-10"></span>
 
-![図 10. End-to-end training times are decomposed into compute times and different communication times. The runtime of each workload is normalized to its corresponding baseline.](../../papers/fred/figure-10.png)
+![図 10. エンドツーエンド学習時間を計算時間と各種通信時間に分解した結果。各ワークロードの実行時間は、対応するベースラインで正規化している。](../../papers/fred/figure-10.png)
 
-**図 10.** End-to-end training times are decomposed into compute times and different communication times. The runtime of each workload is normalized to its corresponding baseline.
+**図 10.** エンドツーエンド学習時間を計算時間と各種通信時間に分解した結果。各ワークロードの実行時間は、対応するベースラインで正規化している。
 
 <span id="section-8-2"></span>
 
 ### 8.2 全ワークロード結果: 詳細分析
 
-[Figure 10](#figure-10) shows the end-to-end runtimes of the training workloads for the baseline vs. Fred. Due to space limitations, we only show the Fred-C and Fred-D in comparison with the baseline. However, we note that Fred-A and Fred-B 結果 are between the baseline and Fred-C, in terms of performance. In general, input activations, compared to the model parameters, are relatively small in size and hence, do not have significant overhead on the total iteration time. Additionally, the input activations of the next iteration can be prefetched to the wafer whenever the wafer-scale interconnect is idle. Hence, we observe **no** *initial_input_load* exposed comm for any of our target workloads, except for the Transformer-1T.
+[図 10](#figure-10)に、ベースラインと Fred における学習ワークロードのエンドツーエンド実行時間を示す。紙幅の都合で、ベースラインとの比較には Fred-C と Fred-D だけを示す。ただし性能上、Fred-A と Fred-B の結果はベースラインと Fred-C の間に位置する。一般に、入力アクティベーションはモデルパラメータより小さく、イテレーション時間全体に占めるオーバーヘッドも大きくない。また、ウェハスケールインターコネクトがアイドル状態なら、次のイテレーションの入力アクティベーションをウェハへプリフェッチできる。そのため Transformer-1T を除き、評価対象のワークロードでは *initial_input_load* による *露出* 通信は生じない。
 
-ResNet-152 uses pure DP with a 重み定常 model. Hence, the only communication costs that repeat on each training iteration are the input minibatch loading and DP communication. As explained earlier, in wafer-wide All-Reduce collective, the baseline is able to utilize $1.5$ TBps of NPU BW. Fred-C and Fred-D can achieve $3$ TBps NPU BW but Fred-D can further reduce the network traffic by $\approx 2\times$, resulting in a significant reduction of DP exposed comm. Thus, Fred-C and Fred-D can improve the end-to-end training runtime by $1.41\times$ and $1.76\times$, respectively, for ResNet-152.
+ResNet-152 は重み定常モデルで純粋な DP を使う。したがって、各学習イテレーションで繰り返される通信コストは、入力 minibatch のロードと DP 通信だけである。前述のとおり、ウェハ全体の All-Reduce では、ベースラインは 1.5 TBps の NPU 帯域幅を利用できる。Fred-C と Fred-D は 3 TBps の NPU 帯域幅を達成し、Fred-D はネットワークトラフィックをさらに約 $2\times$ 削減するため、露出した DP 通信時間が大幅に減る。その結果、Fred-C と Fred-D は ResNet-152 のエンドツーエンド学習時間をそれぞれ $1.41\times$、$1.76\times$ 高速化する。
 
-Transformer-17B uses all dimensions of the 3D-parallelism and therefore, has all DP, MP, and PP communication overheads. The baseline device placement favors MP, but compromises the PP and DP comms, especially due to the non-aligned parallelization strategy dimensions as explained in [第 3 節](#section-3). Another drawback of the baseline is the underutilized links due to the non-overlapping nature of MP/DP/PP comms (see [第 3 節](#section-3)). Fred-C, on the other hand, does not have the problem of underutilized links and 非整列並列化戦略. It also does not require favoring any of DP, MP, or PP over the other strategies. Fred-D can further improve the MP and DP collectives’ performance due to in-switch collective execution capability. As a result, Fred-C and Fred-D can improve the overall end-to-end training performance by $1.75\times$ and $1.87\times$, respectively.
+Transformer-17B は 3D 並列の全次元を使うため、DP、MP、PP の通信オーバーヘッドがすべて発生する。ベースラインのデバイス配置は MP を優先する一方、PP と DP の通信を犠牲にする。とりわけ[第 3 節](#section-3)で説明したように、並列化戦略の次元が整列していない場合に影響が大きい。ベースラインには、MP／DP／PP 通信が重ならないためリンクを十分に利用できないという欠点もある（[第 3 節](#section-3)）。一方 Fred-C には、リンク利用率の低下や並列化戦略の非整列という問題がない。また、DP、MP、PP のいずれかを他より優先する必要もない。Fred-D はスイッチ内集合通信の実行機能により、MP と DP の集合通信性能をさらに改善できる。その結果、Fred-C と Fred-D はエンドツーエンド学習性能全体をそれぞれ $1.75\times$、$1.87\times$ 向上させる。
 
-GPT-3 combines 重みストリーミング with 3D-parallelism. Using the analysis of [第 3 節](#section-3), the baseline topology is unable to stream weights with the full line-rate of I/O controllers. The reason is that the hotspot link requires $(2\times 5\>-1)\times 128\text{ \mathrm{\mathrm{GBps}}}\>=\>1152\text{ \mathrm{\mathrm{GBps}}}$, while link capacity is only $750$ GBps. Therefore, the I/O channels should work with $\frac{750}{1152}=0.65\times$ of the line-rate. The MP/PP comm performance of Fred-C and Fred-D is $\approx 4\times$ better than the baseline, due to the underutilized links in the baseline. Note that the reason why Fred-C and Fred-D have the same performance for MP collective comm is because dim(MP)=2. In this special case, as explained earlier, end-to-end and in-switch collective execution have the same amount of networking traffic and hence, have the same performance. In total, Fred-D and Fred-C outperform the baseline by $1.34\times$ in terms of overall training time for GPT-3.
+GPT-3 は重みストリーミングと 3D 並列を組み合わせる。[第 3 節](#section-3)の分析によれば、ベースライントポロジーは I/O コントローラのラインレート全体で重みをストリーミングできない。ホットスポットリンクには $(2\times 5-1)\times 128\,\mathrm{GBps}=1152\,\mathrm{GBps}$ が必要だが、リンク容量は $750$ GBps しかないためである。したがって、I/O チャネルはラインレートの $\frac{750}{1152}=0.65\times$ で動作させる必要がある。ベースラインではリンクを十分に利用できないため、Fred-C と Fred-D の MP／PP 通信性能はベースラインの約 $4\times$ になる。Fred-C と Fred-D の MP 集合通信性能が等しいのは、$\dim(\mathrm{MP})=2$ だからである。前述のとおり、この特殊な場合には、エンドポイント方式とスイッチ内集合通信でネットワークトラフィック量が等しく、性能も同じになる。全体として、Fred-D と Fred-C は GPT-3 の総学習時間をベースラインより $1.34\times$ 改善する。
 
-Transformer-1T is another 重みストリーミング workload, but with only DP parallelism. As a result, the 重みストリーミング delay is the only communication overhead in addition to the initial input load. The high-performance compute NPUs and limited off-chip I/O BW puts the 重みストリーミング performance directly on the critical path. This means that the NPUs can work with the line-rate of the weight being streamed, and the main limiting factor is how fast all the weights can be streamed. In this case, both Fred-C and Fred-D can leverage the full I/O BW, while the baseline topology can only work with $0.65\times$ of the total I/O BW as explained earlier. Additionally, since I/O controllers are always being utilized for 重みストリーミング, there is no idle time to prefetch the input minibatch of the next iteration during the current training iteration. Hence, the initial input load cannot be hidden, although its overhead is very negligible. In total, using Fred-C/Fred-D improves the training time by $1.4\times$.
+Transformer-1T も重みストリーミングを使うワークロードだが、並列化は DP だけである。そのため、初期入力ロード以外の通信オーバーヘッドは重みストリーミングの遅延だけになる。高性能計算 NPU に対してオフチップ I/O 帯域幅が限られているため、重みストリーミング性能はクリティカルパスに直接入る。つまり NPU はストリーミングされる重みのラインレートで動作でき、すべての重みをどれだけ速く転送できるかが主な制約となる。この場合、Fred-C と Fred-D は I/O 帯域幅全体を利用できるが、ベースライントポロジーは前述のとおり、総 I/O 帯域幅の $0.65\times$ しか利用できない。また、I/O コントローラは常に重みストリーミングに使われるため、現在の学習イテレーション中に次のイテレーションの入力 minibatch をプリフェッチする空き時間がない。したがって、オーバーヘッド自体はごく小さいものの、初期入力ロードを隠蔽できない。全体として、Fred-C／Fred-D は学習時間を $1.4\times$ 改善する。
 
 <span id="figure-11"></span>
 
-![図 11. Baseline vs. Fred-D for さまざまな並列化戦略 of Transformer-1T and Transformer-17B](../../papers/fred/figure-11.png)
+![図 11. Transformer-1T と Transformer-17B の各種並列化戦略におけるベースラインと Fred-D の比較。](../../papers/fred/figure-11.png)
 
-**図 11.** Baseline vs. Fred-D for さまざまな並列化戦略 of Transformer-1T and Transformer-17B
+**図 11.** Transformer-1T と Transformer-17B の各種並列化戦略におけるベースラインと Fred-D の比較。
 
 <span id="section-8-3"></span>
 
 ### 8.3 さまざまな並列化戦略
 
-To test the efficiency of Fred for different parallelization strategies, we pick two workloads, Transformer-17B and Transformer-1T, and compare the baseline performance vs. Fred-D in [11(a)](#figure-11) and [11(b)](#figure-11), respectively. The Avg. bars are obtained across all parallelization strategies similar to [Figure 2](#figure-02), however, not all individual parallelization strategies of [Figure 2](#figure-02) are shown in [11(a)](#figure-11) and [11(b)](#figure-11) due to lack of space. As can be observed from both figures, Fred-D can significantly improve communication performance and reduce the total exposed communication in all parallelization strategies.
+異なる並列化戦略における Fred の効率を調べるため、Transformer-17B と Transformer-1T の二つのワークロードを選び、それぞれ[図 11(a)](#figure-11)と[図 11(b)](#figure-11)でベースラインと Fred-D の性能を比較する。Avg. の棒は[図 2](#figure-02)と同様に全並列化戦略の平均であるが、紙幅の都合で[図 2](#figure-02)にある個々の並列化戦略を[図 11(a)](#figure-11)と[図 11(b)](#figure-11)にすべては示していない。両図から分かるように、Fred-D はすべての並列化戦略で通信性能を大幅に改善し、露出した通信時間の総量を減らせる。
 
-Such improvements make the most compute-efficient (i.e., least compute time) parallelization strategy also to be the be the best parallelization strategy overall. For example, for Transformer-17B the most compute efficient strategy is MP(20)-DP(1)-PP(1). However, this configuration does not have the lowest overall training time in the baseline system due to its huge exposed communication overheads. Thanks to the benefits of Fred-D in reducing the share of exposed communication overheads, this configuration is now the most optimal compared to other parallelization strategies. This is also true for Transformer-1T, where the most compute-efficient strategy (i.e., MP(5)-DP(1)-PP(4)) is now the most optimal strategy.
+この改善により、計算効率が最も高い、すなわち計算時間が最も短い並列化戦略が、全体としても最良の並列化戦略になる。たとえば Transformer-17B で計算効率が最も高い戦略は MP(20)-DP(1)-PP(1) である。しかしベースラインシステムでは、露出通信オーバーヘッドが非常に大きく、この構成の総学習時間は最短にならない。Fred-D は露出通信オーバーヘッドの割合を減らすため、この構成が他の並列化戦略より最適になる。Transformer-1T でも同様に、計算効率が最も高い MP(5)-DP(1)-PP(4) が最適な戦略になる。
 
-Overall, when averaged across all parallelization strategies, Fred-D can improve the exposed communication time by $4.22\times$ and $3.92\times$, resulting in training speedup by $1.63\times$ and $1.44\times$ for Transformer-17B and Transformer-1T, respectively.
+全並列化戦略で平均すると、Fred-D は Transformer-17B と Transformer-1T の露出通信時間をそれぞれ $4.22\times$、$3.92\times$ 改善し、学習時間をそれぞれ $1.63\times$、$1.44\times$ 高速化する。
 
-**Discussion: going beyond a single wafer.** While the main focus of this paper is on providing flexible on-wafer interconnects to allow for more flexible parallelization strategies, here we discuss the possible scenarios when the model cannot fit on a single wafer. The first method is to pyramidically load and unload parts of the model (i.e., 重みストリーミング) as we considered and evaluated in the paper. However, in some cases more than one wafer is needed for training to reduce the training time. In that case, the optimal inter-wafer topology is an open question. Some methods use reduction trees to accumulate the gradients obtained from different wafers [Cer21]. This method, although efficient for data-parallel strategy across the wafers, is not flexible if we consider other parallelization strategies across wafers. A Fred-like inter-wafer interconnect can be constructed to allow for more flexibility across the wafers. In any case, on-wafer Fred topology can work in tandem with the inter-wafer interconnect to form efficient hierarchical collectives. For example, a global all-reduce can be broken into: i) a special intra-wafer reduce scatter performed by Fred where only the boundary NPUs with access to the I/O maintain the 結果, followed by ii) an All-Reduce facilitated by the inter-wafer interconnect where boundary NPUs reduce the data across different wafers, iii) followed by the final intra-wafer special All-Gather done by Fred where the boundary NPUs broadcast the final result to all NPUs within the same wafer.
+**考察：単一ウェハを越える場合。** 本稿の主眼は、より柔軟な並列化戦略を可能にする柔軟なウェハ内インターコネクトの提供にあるが、ここではモデルが単一ウェハに収まらない場合を考える。第一の方法は、本稿で検討・評価したように、モデルの一部を階層的にロード／アンロードする重みストリーミングである。しかし、学習時間を短縮するために複数のウェハが必要になる場合もある。その場合、最適なウェハ間トポロジーは未解決の問題である。異なるウェハで得た勾配をリダクションツリーで集約する手法もある [Cer21]。この手法はウェハ間のデータ並列には効率的だが、ウェハ間で他の並列化戦略を使う場合には柔軟性がない。Fred に似たウェハ間インターコネクトを構築すれば、ウェハ間の柔軟性を高められる。いずれの場合も、ウェハ内 Fred トポロジーはウェハ間インターコネクトと連携し、効率的な階層型集合通信を構成できる。たとえばグローバル All-Reduce は三段階に分解できる。（i）Fred が特殊なウェハ内 Reduce-Scatter を実行し、I/O にアクセスできる境界 NPU だけが結果を保持する。（ii）ウェハ間インターコネクトが All-Reduce を実行し、境界 NPU が異なるウェハ間のデータをリダクションする。（iii）最後に Fred が特殊なウェハ内 All-Gather を実行し、境界 NPU が最終結果を同じウェハ内の全 NPU へブロードキャストする。
 
-**Discussion: going beyond 3D Parallelism.** While the main focus of this paper was on the MP/DP/PP parallelism, recently, more parallelization strategies have been proposed. Examples include Expert-Parallelism (EP) [A23b], Context Parallelism (CP) [Dis25], and more customized and non-homogeneous strategies where the parallelization strategy might change layer by layer [Jia19a]. While not quantitatively studied in this paper, we expect that increasing the parallelization strategy dimensions further increases the network congestion and reduces the effective network BW for each parallelism dimension on the baseline 2D Mesh. This highlights the need to have a flexible network fabric such as Fred.
+**考察：3D 並列を越える場合。** 本稿では主に MP／DP／PP 並列を扱ったが、近年はさらに多くの並列化戦略が提案されている。たとえば Expert Parallelism（EP）[A23b]、Context Parallelism（CP）[Dis25]、層ごとに並列化戦略が変わり得る、より個別化された不均質な戦略 [Jia19a] がある。本稿では定量的に調べていないが、並列化戦略の次元が増えるほど、ベースライン 2D Mesh のネットワーク輻輳が増え、各並列次元の実効ネットワーク帯域幅が低下すると予想する。このことは、Fred のように柔軟なネットワークファブリックが必要であることを示している。
 
 <span id="section-9"></span>
 
 ## 9 関連研究
 
-**Accelerator Fabrics.** Prior works on *flexible* DNN Accelerators [Mae18, Sig20, Fle23, Eye19, Cus17] have explored indirect topologies such as Benes/Fat-tree/Clos for efficiently distributing operands and reducing partial sums. This work leverages this concept to build a topology optimized for collectives.
+**アクセラレータファブリック。** *柔軟な* DNN アクセラレータに関する先行研究 [Mae18, Sig20, Fle23, Eye19, Cus17] は、オペランドの効率的な分配と部分和のリダクションに向けて、Benes／Fat-tree／Clos などの間接トポロジーを検討してきた。本研究はこの考え方を利用し、集合通信に最適化したトポロジーを構築する。
 
-**In-switch Collectives.** The idea of in-switch collective execution has been proposed in many previous works for different network levels. The *P4* language [P14] allows for offloading application-specific tasks to network switches that support the P4 概要 architecture. [Sca21, Atp21] proposed programming datacenter Ethernet switches for offloading the All-Reduce collective for data-parallel training. iSwitch [Acc19] utilizes FPGA logic within switches to offload the All-Reduce functionality for the distributed training of reinforcement learning. Mellanox SHARP [Mel20] is an Infiniband switch architecture for performing collectives. Klenk *et al.* [An20] propose a method to offload collectives to the scale-up (e.g., NVlink[Eva19]) NPU fabric. Clos topologies have also been explored in prior works [Cus17, Atp21]. A fundamental difference between these works and Fred is that they are proposed for *off-chip* networks, which have significantly less BW compared to on-package networks. In many of these solutions, the internal switch BW should be at least $2\times$ and $P\times$ the link BW to be efficient (i.e., line-rate) for All-Reduce and Reduce between $P$ ports, respectively. This is due to the switch architecture that performs the reductions only after the routing and on the output port. While the difference between off-chip links and on-chip switch architectures allows for provisioning such BW differences, it is not applicable for on-package/on-wafer platforms where the links are on-chip and can have the same BW as the switches. In contrast, Fred performs the reduction operations in multiple steps ($\mu$Switches) during the routing on the Fred interconnect. Hence, the Fred switch works with the same BW as the links and can provide line-rate throughput.
+**スイッチ内集合通信。** スイッチ内で集合通信を実行する考え方は、さまざまなネットワーク階層を対象とする多くの先行研究で提案されている。*P4* 言語 [P14] は、P4 抽象アーキテクチャに対応するネットワークスイッチへアプリケーション固有の処理をオフロードできる。[Sca21, Atp21] は、データ並列学習の All-Reduce をオフロードするため、データセンターの Ethernet スイッチをプログラムする手法を提案した。iSwitch [Acc19] はスイッチ内の FPGA ロジックを使い、強化学習の分散学習における All-Reduce 機能をオフロードする。Mellanox SHARP [Mel20] は集合通信を実行する Infiniband スイッチアーキテクチャである。Klenk ら [An20] は、スケールアップ NPU ファブリック（NVLink [Eva19] など）へ集合通信をオフロードする手法を提案した。Clos トポロジーも先行研究で検討されている [Cus17, Atp21]。これらの研究と Fred の根本的な違いは、前者がパッケージ内ネットワークより帯域幅の大幅に狭い *オフチップ* ネットワーク向けに提案された点にある。こうした解決策の多くでは、$P$ ポート間の All-Reduce と Reduce をそれぞれ効率よく、すなわちラインレートで実行するために、スイッチ内部帯域幅をリンク帯域幅の少なくとも $2\times$、$P\times$ にする必要がある。これは、ルーティング後に出力ポートでのみリダクションを実行するスイッチアーキテクチャによる。オフチップリンクとオンチップスイッチアーキテクチャの違いを利用すれば、このような帯域幅の差を設けられる。しかし、リンクがオンチップにあり、スイッチと同じ帯域幅を持ち得るパッケージ内／ウェハ上プラットフォームには適用できない。一方 Fred は、Fred インターコネクト上のルーティング中に複数の段階（$\mu$Switch）でリダクションを実行する。したがって、Fred スイッチはリンクと同じ帯域幅で動作し、ラインレートのスループットを提供できる。
 
 <span id="section-10"></span>
 
 ## 10 結論と今後の課題
 
-We propose Fred, a high-BW wafer-scale fabric that is flexible for different configurations of the 3D parallelization strategies of distributed training workloads. Fred is able to support concurrent ネットワーク内集合通信実行 efficiently, enabling the upper-level compiler to further optimize the parallelization strategy for compute and memory utilization. We plan to study Fred for distributed inference as a part of our future work.
+本稿では、分散学習ワークロードのさまざまな 3D 並列化戦略構成に柔軟に対応する、高帯域幅ウェハスケールファブリック Fred を提案した。Fred はネットワーク内集合通信の同時実行を効率よく支援できるため、上位コンパイラは計算資源とメモリの利用率に合わせて並列化戦略をさらに最適化できる。今後は、Fred を用いた分散推論を研究する予定である。
 
-Acknowledgements.
+## 謝辞
 
-[+1]: All model updates over different training iterations happen on-chip.
+本研究は Intel および Semiconductor Research Corporation（SRC）の助成を受けた。また本研究は、SRC JUMP 2.0 の七つの研究センターの一つである ACE Center for Evolvable Computing の支援を受けた。有益なコメントを寄せてくださった査読者に感謝する。論文の改訂を手伝ってくださった Jinsun Yoo にも感謝する。
 
-[+2]: Model updates involve low operational intensity. Hence, performing these updates off-chip prevents wasting I/O bandwidth by avoiding loading optimizer states onto the chip for lightweight operations.
+[+1]: 異なる学習イテレーションにわたるモデル更新は、すべてオンチップで行われる。
 
-[+3]: For example, Fred<sub>3</sub>($8$) can route all the flows in [Figure 7](#figure-07)(j).
+[+2]: モデル更新の演算強度は低い。そのため、更新をオフチップで実行すれば、軽量な処理のためにオプティマイザ状態をチップへロードせずに済み、I/O 帯域幅の浪費を防げる。
 
-[+4]: We note that Fred layout shown is not tiled. This means that the substrate (where chiplets are bonded) may not be able to use stepper-based lithography. But direct-written maskless lithography is not uncommon for substrate patterning. This was used in a commercial packaging provider ThinkDeca [Ada24a]. Such patterning has no symmetry requirement, albeit it has a lower throughput. Also, note that using maskless lithography increases the substrate manufacturing moderately [Cos10], but substrate manufacturing is a small fraction of the total system cost [Des21].
+[+3]: たとえば Fred<sub>3</sub>($8$) は、[図 7(j)](#figure-07)の全フローをルーティングできる。
 
-[+5]: Compound collectives have multiple phases
+[+4]: 図示した Fred レイアウトはタイル状ではない。そのため、チップレットを接合する基板にはステッパ露光によるリソグラフィを使えない可能性がある。ただし、基板のパターニングに直接描画式のマスクレスリソグラフィを使うことは珍しくなく、商用パッケージング企業の ThinkDeca でも採用されている [Ada24a]。このパターニングには対称性の要件がないが、スループットは低い。また、マスクレスリソグラフィを使うと基板製造コストはある程度増えるものの [Cos10]、基板製造がシステム総コストに占める割合は小さい [Des21]。
 
-[+6]: For these 結果, we assume the number of microbatches is 1, 10, 20, 20, 20, 40 for the Transformer-17B with $\mathrm{\mathrm{PP}}$ size of 1, 2, 4, 5, 10, 20, respectively. For Transformer-1T, the number of microbatches is equal to the $\mathrm{\mathrm{PP}}$ size.
+[+5]: 複合集合通信は複数のフェーズを持つ。
 
-[+7]: Assuming the L1-L2 BW is equally shared among all NPUs.
+[+6]: これらの結果では、Transformer-17B の $\mathrm{PP}$ 規模が 1、2、4、5、10、20 の場合、microbatch 数をそれぞれ 1、10、20、20、20、40 と仮定する。Transformer-1T では、microbatch 数は $\mathrm{PP}$ 規模と等しい。
 
-[+8]: All NPUs within the same MP group produce the same output in this case
+[+7]: L1-L2 帯域幅を全 NPU で均等に共有すると仮定する。
+
+[+8]: この場合、同じ MP グループ内の全 NPU が同じ出力を生成する。
