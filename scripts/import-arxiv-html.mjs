@@ -82,8 +82,13 @@ function findExisting(reference) {
 }
 
 function allocateKey(reference) {
-  const authorField = reference.text.split(',')[0].split(/\s+and\s+/i)[0].trim()
-  const authorMatch = authorField.match(/^(?:[A-Z]\.(?:-[A-Z]\.)?\s+)+([A-Za-z][A-Za-z'-]*)$/)
+  const authorField = reference.text.split(',')[0].split(/\s+and\s+/i)[0]
+    .replace(/\.\s+(?:19|20)\d{2}\b.*$/, '')
+    .trim()
+  const organizationAuthor = /^(?:Gemma Team|Google|Meta AI|OpenAI|Qwen Team|Torch-MLIR Contributors)$/i.test(authorField)
+  const authorMatch = organizationAuthor
+    ? undefined
+    : authorField.match(/([\p{L}][\p{L}'-]*)$/u)
   const projectMatch = reference.title.match(/[A-Za-z][A-Za-z0-9'-]*/)
   const surname = (authorMatch?.[1] ?? projectMatch?.[0] ?? 'Ref').replace(/[^A-Za-z]/g, '')
   const prefix = surname.slice(0, 3)

@@ -662,7 +662,9 @@ for (const page of pages) {
     if (/\\(?:mathrm|operatorname)\{(?:min|max)\}/.test(expression)) {
       fail(`${label}: math expression ${index + 1} must use \\min or \\max`)
     }
-    const withoutRomanWords = expression.replace(/\\mathrm\{[^{}]*\}/g, '')
+    const withoutRomanWords = expression
+      .replace(/\\mathrm\{[^{}]*\}/g, '')
+      .replace(/\\mathit\{[^{}]*\}/g, '')
     if (/(?<![\\A-Za-z])(?:min|max)(?![A-Za-z])/.test(withoutRomanWords)) {
       fail(`${label}: math expression ${index + 1} contains raw min or max`)
     }

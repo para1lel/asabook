@@ -14,7 +14,7 @@ globalThis.DOMMatrix ??= DOMMatrix
 globalThis.ImageData ??= ImageData
 globalThis.Path2D ??= Path2D
 
-const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs')
+const { getDocument, VerbosityLevel } = await import('pdfjs-dist/legacy/build/pdf.mjs')
 
 const root = resolve(import.meta.dirname, '..')
 const papersDir = join(root, 'docs/papers')
@@ -591,6 +591,7 @@ for (const slug of paperSlugs(options.slugs)) {
     standardFontDataUrl,
     StandardFontDataFactory: LocalStandardFontDataFactory,
     useSystemFonts: false,
+    verbosity: VerbosityLevel.ERRORS,
     wasmUrl: pdfWasmUrl,
     WasmFactory: LocalWasmFactory,
   })
