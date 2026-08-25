@@ -2672,6 +2672,25 @@ const paperAbbreviations = {
   'Met24': 'Meta Engineering. "RoCE Networks for Distributed AI Training at Scale." 2024. [Link](https://engineering.fb.com/2024/08/05/data-center-engineering/roce-network-distributed-ai-training-at-scale/)',
   'Zho25a': 'Yang Zhou et al. "An Extensible Software Transport Layer for GPU Networking." 2025. [Link](https://arxiv.org/abs/2504.17307)',
   'Xie25a': 'Zhiqiang Xie et al. "Strata: Hierarchical Context Caching for Long Context Language Model Serving." 2025. [Link](https://arxiv.org/abs/2508.18572)',
+  'Bai26': 'Yushi Bai, Qian Dong, Ting Jiang, Xin Lv, Zhengxiao Du, Aohan Zeng, Jie Tang, and Juanzi Li. "IndexCache: Accelerating Sparse Attention via Cross-Layer Index Reuse." 2026. [Link](https://arxiv.org/abs/2603.12201)',
+  'Bel66': 'Laszlo A. Belady. "A Study of Replacement Algorithms for a Virtual-Storage Computer." IBM Systems Journal 5(2), 78-101. 1966. [DOI](https://doi.org/10.1147/sj.52.0078)',
+  'Che24t': 'Renze Chen, Zhuofeng Wang, Beiquan Cao, Tong Wu, Size Zheng, Xiuhong Li, Xuechao Wei, Shengen Yan, Meng Li, and Yun Liang. "ArkVale: Efficient Generative LLM Inference with Recallable Key-Value Eviction." NeurIPS 2024. [Link](https://proceedings.neurips.cc/paper_files/paper/2024/hash/cd4b49379efac6e84186a3ffce108c37-Abstract-Conference.html)',
+  'Che25aa': 'Xinhang Chen, Chao Zhang, Jiahuan He, Wei Liu, Jianming Zhang, Wenlong Zhou, Xiao Li, Pai Zeng, Shiyong Li, Yuanpan Qian, Dong Li, and Zhaogeng Li. "ESS: An Offload-Centric Latent-Cache Management Architecture for DeepSeek-V3.2-Exp." 2025. [Link](https://arxiv.org/abs/2512.10576)',
+  'Che25ab': 'Zhuoming Chen, Ranajoy Sadhukhan, Zihao Ye, Yang Zhou, Jianyu Zhang, Niklas Nolte, Yuandong Tian, Matthijs Douze, Leon Bottou, Zhihao Jia, and Beidi Chen. "MagicPIG: LSH Sampling for Efficient LLM Generation." ICLR 2025. [Link](https://openreview.net/forum?id=ALzTQUgW8a)',
+  'Dee25d': 'DeepSeek-AI. "DeepSeek-V3.2: Efficient Reasoning & Agentic AI." Hugging Face model card. 2025. [Link](https://huggingface.co/deepseek-ai/DeepSeek-V3.2)',
+  'Glm26': 'GLM-5.2. "Built for Long-Horizon Tasks." Hugging Face Blog. 2026. [Link](https://huggingface.co/blog/zai-org/glm-52-blog)',
+  'He24g': 'Jiaao He and Jidong Zhai. "FastDecode: High-Throughput GPU-Efficient LLM Serving Using Heterogeneous Pipelines." 2024. [Link](https://arxiv.org/abs/2403.11421)',
+  'Jia25e': 'Xuanlin Jiang, Yang Zhou, Shiyi Cao, Ion Stoica, and Minlan Yu. "NEO: Saving GPU Memory Crisis with CPU Offloading for Online LLM Inference." MLSys 2025. [Link](https://proceedings.mlsys.org/paper_files/paper/2025/hash/66a026c0d17040889b50f0dfa650e5e0-Abstract-Conference.html)',
+  'Liu26': 'Guangda Liu, Wenhao Chen, Chengwei Li, Zhenyu Ning, Jing Lin, Yiwu Yao, Quan Chen, Shixuan Sun, Jieru Zhao, and Minyi Guo. "ECHO: Efficient KV Cache Offloading with Lossless Prefetching for Serving Native Sparse Attention LLMs." OSDI 2026.',
+  'Nvi26a': 'NVIDIA. "NVIDIA GH200 Grace Hopper Superchip." 2026. [Link](https://www.nvidia.com/en-us/data-center/grace-hopper-superchip/)',
+  'Qin25c': 'Ruoyu Qin, Zheming Li, Weiran He, Jialei Cui, Feng Ren, Mingxing Zhang, Yongwei Wu, Weimin Zheng, and Xinran Xu. "Mooncake: Trading More Storage for Less Computation—A KVCache-Centric Architecture for Serving LLM Chatbot." FAST 2025. [Link](https://www.usenix.org/conference/fast25/presentation/qin)',
+  'Qwe25a': 'Qwen Team. "Qwen3-30B-A3B-Thinking-2507." Hugging Face model card. 2025. [Link](https://huggingface.co/Qwen/Qwen3-30B-A3B-Thinking-2507)',
+  'Sgl26': 'SGLang Project. "Bench Serving Guide." SGLang Documentation. 2026. [Link](https://docs.sglang.io/docs/developer_guide/bench_serving)',
+  'Sgl26a': 'SGLang Project. "HiSparse: Hierarchical Sparse Attention." SGLang Documentation. 2026. [Link](https://docs.sglang.io/docs/advanced_features/hisparse_guide)',
+  'Sun25f': 'Hanshi Sun, Li-Wen Chang, Wenlei Bao, Size Zheng, Ningxin Zheng, Xin Liu, Harry Dong, Yuejie Chi, and Beidi Chen. "ShadowKV: KV Cache in Shadows for High-Throughput Long-Context LLM Inference." ICML 2025.',
+  'Xie25d': 'Zhiqiang Xie. "SGLang HiCache: Fast Hierarchical KV Caching with Your Favorite Storage Backends." LMSYS Blog. 2025. [Link](https://lmsys.org/blog/2025-09-10-sglang-hicache/)',
+  'Xie26a': 'Zhiqiang Xie, Zhangheng Huang, and Tingwei Huang. "HiSparse: Turbocharging Sparse Attention with Hierarchical Memory." LMSYS Blog. 2026. [Link](https://www.lmsys.org/blog/2026-04-10-sglang-hisparse/)',
+  'Yua25e': 'Jingyang Yuan, Huazuo Gao, Damai Dai, Junyu Luo, Liang Zhao, Zhengyan Zhang, Zhenda Xie, Yuxing Wei, Lean Wang, Zhiping Xiao, Yuqing Wang, Chong Ruan, Ming Zhang, Wenfeng Liang, and Wangding Zeng. "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention." ACL 2025. [Link](https://aclanthology.org/2025.acl-long.1126/)',
   'Exp25': 'Exploding Topics. "Best 44 Large Language Models (LLMs) in 2025." 2025. [Link](https://explodingtopics.com/blog/list-of-llms)',
   'Vll25': 'vLLM Project. "vLLM Production Stack: Reference System for K8S-native Cluster-wide Deployment with Community-driven Performance Optimization." 2025. [Link](https://github.com/vllm-project/production-stack)',
   'Dyn25': 'NVIDIA Corporation. "NVIDIA Dynamo: A Datacenter-Scale Distributed Inference Serving Framework." 2025. [Link](https://github.com/ai-dynamo/dynamo)',
@@ -3992,7 +4011,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'Agent 工程',
@@ -4119,7 +4138,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'Agent Engineering',
@@ -4356,7 +4375,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'エージェント工学',
