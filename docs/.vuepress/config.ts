@@ -3871,6 +3871,47 @@ Object.assign(paperAbbreviations, {
   'Liu26a': 'Junqi Liu, Zihao Zhou, Zekai Zhu, Marco Dos Santos, Weikun He, Jiawei Liu, Ran Wang, Yunzhou Xie, Junqiao Zhao, Qiufeng Wang, et al. "Numina-Lean-Agent: An Open and General Agentic Reasoning System for Formal Mathematics." arXiv preprint arXiv:2601.14027, 2026. [Link](https://arxiv.org/abs/2601.14027).',
 })
 
+Object.assign(paperAbbreviations, {
+  'Rin24': 'Talia Ringer. "Proofs and Conversations." Notices of the American Mathematical Society 71(9): 1179-1182, 2024.',
+  'Tao24b': 'Terence Tao. "Machine Assisted Proof." Notices of the American Mathematical Society, 2024.',
+  'Kon25a': 'Alex Kontorovich. "The Shape of Math To Come." arXiv preprint arXiv:2510.15924, 2025. [Link](https://arxiv.org/abs/2510.15924).',
+  'Boy83': 'Robert S. Boyer and J. Strother Moore. "Proof-Checking, Theorem-Proving, and Program Verification." Institute for Computing Science, The University of Texas at Austin, 1983.',
+  'Cla97': 'Edmund M. Clarke. "Model Checking." International Conference on Foundations of Software Technology and Theoretical Computer Science, pp. 54-56, 1997.',
+  'Hoa03': 'Tony Hoare. "The Verifying Compiler: A Grand Challenge for Computing Research." Journal of the ACM 50(1): 63-69, 2003.',
+  'Per23': 'Neil Perry, Megha Srivastava, Deepak Kumar, and Dan Boneh. "Do Users Write More Insecure Code with AI Assistants?" Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security, pp. 2785-2799, 2023. [Link](https://doi.org/10.1145/3576915.3623157).',
+  'Kle09': 'Gerwin Klein et al. "seL4: Formal Verification of an OS Kernel." Proceedings of the ACM SIGOPS 22nd Symposium on Operating Systems Principles, pp. 207-220, 2009. [Link](https://doi.org/10.1145/1629575.1629596).',
+  'Win95': 'Glynn Winskel and Mogens Nielsen. "Models for Concurrency." Handbook of Logic in Computer Science: Semantic Modelling, vol. 4, pp. 1-148, Oxford University Press, 1995.',
+  'Che96': 'Ghassan Chehaibar, Hubert Garavel, Laurent Mounier, Nadia Tawbi, and Ferruccio Zulian. "Specification and Verification of the PowerScale Bus Arbitration Protocol: An Industrial Experiment with LOTOS." Formal Description Techniques IX: Theory, Application and Tools, pp. 435-450, 1996.',
+  'Gir11': 'Antoine Girard and George J. Pappas. "Approximate Bisimulation: A Bridge Between Computer Science and Control Theory." European Journal of Control 17(5-6): 568-578, 2011.',
+  'Zha21i': 'Amy Zhang, Rowan McAllister, Roberto Calandra, Yarin Gal, and Sergey Levine. "Learning Invariant Representations for Reinforcement Learning without Reconstruction." ICLR, 2021. [Link](https://openreview.net/forum?id=0zvfm-nZqQs).',
+  'Gul09': 'Sumit Gulwani, Krishna K. Mehra, and Trishul Chilimbi. "SPEED: Precise and Efficient Static Estimation of Program Computational Complexity." ACM SIGPLAN Notices 44(1): 127-139, 2009. [Link](https://doi.org/10.1145/1594834.1480904).',
+  'Ros89': 'Mads Rosendahl. "Automatic Complexity Analysis." Proceedings of the Fourth International Conference on Functional Programming Languages and Computer Architecture, pp. 144-156, 1989. [Link](https://doi.org/10.1145/99370.99381).',
+  'Cha19a': 'Arthur Charguéraud and François Pottier. "Verifying the Correctness and Amortized Complexity of a Union-Find Implementation in Separation Logic with Time Credits." Journal of Automated Reasoning 62(3): 331-365, 2019. [Link](https://doi.org/10.1007/s10817-017-9431-7).',
+  'Cha21b': 'Hing-Lun Chan and Michael Norrish. "Mechanisation of the AKS Algorithm." Journal of Automated Reasoning 65(2): 205-256, 2021. [Link](https://doi.org/10.1007/s10817-020-09553-y).',
+  'Nip25': 'Tobias Nipkow, Jasmin Christian Blanchette, Manuel Eberl, Alejandro Gómez-Londoño, Peter Lammich, Christian Sternagel, Simon Wimmer, and Bohua Zhan, eds. "Functional Data Structures and Algorithms: A Proof Assistant Approach." ACM Books, 2025. [Link](https://doi.org/10.1145/3731369).',
+  'Irv25': 'Geoffrey Irving. "Debate: Lean Formalization of Debate Protocols." GitHub repository, 2025. [Link](https://github.com/girving/debate).',
+  'Bro23': 'Jonah Brown-Cohen, Geoffrey Irving, and Georgios Piliouras. "Scalable AI Safety via Doubly-Efficient Debate." arXiv preprint arXiv:2311.14125, 2023. [Link](https://arxiv.org/abs/2311.14125).',
+  'Dan08': 'Nils Anders Danielsson. "Lightweight Semiformal Time Complexity Analysis for Purely Functional Data Structures." POPL, pp. 133-144, 2008. [Link](https://doi.org/10.1145/1328438.1328457).',
+  'Gib11': 'Jeremy Gibbons and Ralf Hinze. "Just do It: Simple Monadic Equational Reasoning." ICFP, pp. 2-14, 2011. [Link](https://doi.org/10.1145/2034773.2034777).',
+  'Ull22': 'Sebastian Ullrich and Leonardo de Moura. "‘do’ Unchained: Embracing Local Imperativity in a Purely Functional Language (Functional Pearl)." Proceedings of the ACM on Programming Languages 6(ICFP): 512-539, 2022. [Link](https://doi.org/10.1145/3547640).',
+  'Flo67': 'Robert W. Floyd. "Assigning Meanings to Programs." Mathematical Aspects of Computer Science, Proceedings of Symposia in Applied Mathematics, pp. 19-32, 1967.',
+  'Hoa69': 'C. A. R. Hoare. "An Axiomatic Basis for Computer Programming." Communications of the ACM 12(10): 576-580, 1969. [Link](https://doi.org/10.1145/363235.363259).',
+  'Lei08': 'K. Rustan M. Leino. "This Is Boogie 2." Manuscript KRML 178, 2008. [Link](https://www.microsoft.com/en-us/research/publication/this-is-boogie-2-2/).',
+  'Lei10': 'K. Rustan M. Leino and Philipp Rümmer. "A Polymorphic Intermediate Verification Language: Design and Logical Encoding." TACAS, pp. 312-327, 2010. [Link](https://doi.org/10.1007/978-3-642-12002-2_26).',
+  'Lei10a': 'K. Rustan M. Leino. "Dafny: An Automatic Program Verifier for Functional Correctness." International Conference on Logic for Programming, Artificial Intelligence and Reasoning, pp. 348-370, 2010. [Link](https://doi.org/10.1007/978-3-642-17511-4_20).',
+  'Juh14': 'U. Juhasz, I. T. Kassios, P. Müller, M. Novacek, M. Schwerhoff, and A. J. Summers. "Viper: A Verification Infrastructure for Permission-Based Reasoning." ETH Zurich technical report, 2014.',
+  'Kra21': 'Bernhard Kragl and Shaz Qadeer. "The Civl Verifier." FMCAD 2021, pp. 143-152, 2021. [Link](https://doi.org/10.34727/2021/isbn.978-3-85448-046-4_23).',
+  'Zho20': 'Jingyi Emma Zhong, Kevin Cheang, Shaz Qadeer, Wolfgang Grieskamp, Sam Blackshear, Junkil Park, Yoni Zohar, Clark Barrett, and David L. Dill. "The Move Prover." CAV 2020, pp. 137-150, 2020. [Link](http://theory.stanford.edu/~barrett/pubs/ZCQ+20.pdf).',
+  'Gla26': 'Vladimir Gladshtein, George Pîrlea, Qiyuan Zhao, Vitaly Kurin, and Ilya Sergey. "Foundational Multi-Modal Program Verifiers." Proceedings of the ACM on Programming Languages 10, 2026.',
+  'Moh25': 'Abdalrhman Mohamed, Tomaz Mascarenhas, Harun Khan, Haniel Barbosa, Andrew Reynolds, Yicheng Qian, Cesare Tinelli, and Clark Barrett. "lean-smt: An SMT Tactic for Discharging Proof Goals in Lean." CAV 2025, pp. 197-212, 2025. [Link](https://doi.org/10.1007/978-3-031-98682-6_11).',
+  'Mon23': 'Fabrizio Montesi. "Introduction to Choreographies." Cambridge University Press, 2023. [Link](https://doi.org/10.1017/9781108981491).',
+  'Rub24': 'Robert Rubbens, Petra van den Bos, and Marieke Huisman. "VeyMont: Choreography-Based Generation of Correct Concurrent Programs with Shared Memory." IFM 2024, pp. 217-236, 2024. [Link](https://doi.org/10.1007/978-3-031-76554-4_12).',
+  'Jun18': 'Ralf Jung, Robbert Krebbers, Jacques-Henri Jourdan, Aleš Bizjak, Lars Birkedal, and Derek Dreyer. "Iris from the Ground Up: A Modular Foundation for Higher-Order Concurrent Separation Logic." Journal of Functional Programming 28: e20, 2018. [Link](https://doi.org/10.1017/S0956796818000151).',
+  'Ohe19': 'Peter O\'Hearn. "Separation Logic." Communications of the ACM 62(2): 86-95, 2019. [Link](https://doi.org/10.1145/3211968).',
+  'Ho22a': 'Son Ho and Jonathan Protzenko. "Aeneas: Rust Verification by Functional Translation." Proceedings of the ACM on Programming Languages 6(ICFP): 711-741, 2022. [Link](https://doi.org/10.1145/3547647).',
+  'Baa25': 'Anne Baanen, Matthew Robert Ballard, Johan Commelin, Bryan Gin-ge Chen, Michael Rothgang, and Damiano Testa. "Growing Mathlib: Maintenance of a Large Scale Mathematical Library." arXiv preprint arXiv:2508.21593, 2025. [Link](https://arxiv.org/abs/2508.21593).',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4155,7 +4196,7 @@ export default defineUserConfig({
               {
                 text: 'Agent 工程',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: '强化学习',
@@ -4282,7 +4323,7 @@ export default defineUserConfig({
               {
                 text: 'Agent Engineering',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: 'RL',
@@ -4519,7 +4560,7 @@ export default defineUserConfig({
               {
                 text: 'エージェント工学',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: '強化学習',

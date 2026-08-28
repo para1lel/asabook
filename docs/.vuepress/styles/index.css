@@ -282,7 +282,14 @@ pre * {
 
 @media (max-width: 719px) {
   .paper-reading .annotations-popover {
-    max-width: min(calc(100vw - 48px), 360px);
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+    max-height: min(360px, calc(100vh - 32px));
+    transform: translateY(-50%) translateZ(0);
   }
 
   .vp-doc img.paper-table-narrow,
