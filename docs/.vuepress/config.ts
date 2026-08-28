@@ -1258,6 +1258,26 @@ const paperAbbreviations = {
   'Bal25': 'Mislav Balunović et al. "MathArena: Evaluating LLMs on Uncontaminated Math Competitions." Proceedings of the Neural Information Processing Systems Track on Datasets and Benchmark. 2025.',
   'Tso24': 'George Tsoukalas et al. "PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition." 2024. [Link](https://arxiv.org/abs/2407.11214)',
   'Mou21': 'Moura, Leonardo de et al. "The lean 4 theorem prover and programming language." International Conference on Automated Deduction. 2021.',
+  'Var25': 'Sumanth Varambally, Thomas Voice, Yanchao Sun, Zhifeng Chen, Rose Yu, and Ke Ye. "Hilbert: Recursively Building Formal Proofs with Informal Reasoning." The 5th Workshop on Mathematical Reasoning and AI at NeurIPS 2025. 2025. [Link](https://openreview.net/forum?id=ljAHonPrs1)',
+  'Hub26': 'Thomas Hubert et al. "Olympiad-level formal mathematical reasoning with reinforcement learning." Nature 651, pp. 607-613. 2026. [Link](https://doi.org/10.1038/s41586-025-09833-y)',
+  'Tay26': 'Alexander K. Taylor et al. "TaoBench: Do Automated Theorem Prover LLMs Generalize Beyond MathLib?" arXiv:2603.12744. 2026. [Link](https://arxiv.org/abs/2603.12744)',
+  'Fen26': 'Tony Feng et al. "Towards Autonomous Mathematics Research." arXiv:2602.10177. 2026. [Link](https://arxiv.org/abs/2602.10177)',
+  'Fen26a': 'Tony Feng et al. "Aletheia tackles FirstProof autonomously." arXiv:2602.21201. 2026. [Link](https://arxiv.org/abs/2602.21201)',
+  'Fen26b': 'Tony Feng et al. "Semi-Autonomous Mathematics Discovery with Gemini: A Case Study on the Erdos Problems, 2026b." arXiv:2601.22401. 2026. [Link](https://arxiv.org/abs/2601.22401)',
+  'Rav26': 'Nikil Ravi, Kexing Ying, Vasilii Nesterov, Rayan Krishnan, Elif Uskuplu, Bingyu Xia, Janitha Aswedige, and Langston Nashold. "FormalProofBench: Can Models Write Graduate Level Math Proofs That Are Formally Verified?" ICLR 2026 Workshop: VerifAI-2. 2026. [Link](https://openreview.net/forum?id=1LdnVndCEG)',
+  'Gre24': 'Christian Greiffenhagen. "Checking correctness in mathematical peer review." Social Studies of Science 54(2), pp. 184-209. 2024. [Link](https://doi.org/10.1177/03063127231200274)',
+  'Hal05': 'Thomas C. Hales. "A proof of the Kepler conjecture." Annals of Mathematics 162(3), pp. 1065-1185. 2005. [Link](https://doi.org/10.4007/annals.2005.162.1065)',
+  'Hal17': 'Thomas Hales et al. "A formal proof of the Kepler conjecture." Forum of Mathematics, Pi 5. 2017. [Link](https://doi.org/10.1017/fmp.2017.1)',
+  'Hue97': 'Gerard Huet, Gilles Kahn, and Christine Paulin-Mohring. "The Coq proof assistant: a tutorial." Rapport Technique 178. 1997. [Link](https://inria.hal.science/inria-00069917)',
+  'Har09': 'John Harrison. "HOL Light: An Overview." International Conference on Theorem Proving in Higher Order Logics, pp. 60-66. 2009. [Link](https://doi.org/10.1007/978-3-642-03359-9_4)',
+  'Tso26': 'George Tsoukalas et al. "Advancing Mathematics Research with AI-Driven Formal Proof Search." arXiv:2605.22763. 2026. [Link](https://arxiv.org/abs/2605.22763)',
+  'Car20': 'Mario Carneiro. "Metamath Zero: The Cartesian Theorem Prover." arXiv:1910.10703. 2020. [Link](https://arxiv.org/abs/1910.10703)',
+  'Lu21a': 'Pan Lu, Ran Gong, Shibiao Jiang, Liang Qiu, Siyuan Huang, Xiaodan Liang, and Song-Chun Zhu. "Inter-GPS: Interpretable Geometry Problem Solving with Formal Language and Symbolic Reasoning." ACL-IJCNLP 2021, pp. 6774-6786. 2021. [Link](https://aclanthology.org/2021.acl-long.528/)',
+  'Mat20b': 'The mathlib Community. "The Lean Mathematical Library." Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs, pp. 367-381. 2020. [Link](https://doi.org/10.1145/3372885.3373824)',
+  'Yan23e': 'Kaiyu Yang et al. "LeanDojo: Theorem Proving with Retrieval-Augmented Language Models." Advances in Neural Information Processing Systems 36, pp. 21573-21612. 2023. [Link](https://proceedings.neurips.cc/paper_files/paper/2023/hash/4441469427094f8873d0fecb0c4e1cee-Abstract-Datasets_and_Benchmarks.html)',
+  'Lam22': 'Guillaume Lample, Timothee Lacroix, Marie-Anne Lachaux, Aurelien Rodriguez, Amaury Hayat, Thibaut Lavril, Gabriel Ebner, and Xavier Martinet. "HyperTree Proof Search for Neural Theorem Proving." Advances in Neural Information Processing Systems 35, pp. 26337-26349. 2022. [Link](https://proceedings.neurips.cc/paper_files/paper/2022/hash/a8901c5e85fb8e1823bbf0f755053672-Abstract-Conference.html)',
+  'Fir23': 'Emily First, Markus N. Rabe, Talia Ringer, and Yuriy Brun. "Baldur: Whole-Proof Generation and Repair with Large Language Models." ESEC/FSE 2023, pp. 1229-1241. 2023. [Link](https://doi.org/10.1145/3611643.3616243)',
+  'Gao24g': 'Guoxiong Gao, Haocheng Ju, Jiedong Jiang, Zihan Qin, and Bin Dong. "A Semantic Search Engine for Mathlib4." Findings of ACL: EMNLP 2024, pp. 8001-8013. 2024. [Link](https://aclanthology.org/2024.findings-emnlp.470/)',
   'Sha25': 'Zhihong Shao et al. "DeepSeekMath-V2: Towards Self-Verifiable Mathematical Reasoning." 2025. [Link](https://arxiv.org/abs/2511.22570)',
   'Ope24d': 'OpenAI. "OpenAI MRCR: Long context multiple needle in a haystack benchmark." 2024. [Link](https://huggingface.co/datasets/openai/mrcr)',
   'Lu26': 'Lu, Zhiyuan et al. "CorpusQA: A 10 Million Token Benchmark for Corpus-Level Analysis and Reasoning." arXiv preprint arXiv:2601.14952. 2026.',
@@ -4107,7 +4127,7 @@ export default defineUserConfig({
               {
                 text: 'Agent 工程',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
               },
               {
                 text: '强化学习',
@@ -4234,7 +4254,7 @@ export default defineUserConfig({
               {
                 text: 'Agent Engineering',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
               },
               {
                 text: 'RL',
@@ -4471,7 +4491,7 @@ export default defineUserConfig({
               {
                 text: 'エージェント工学',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
               },
               {
                 text: '強化学習',
