@@ -2,7 +2,7 @@
   { "name": "table-01", "page": 3, "x": 105, "y": 68, "width": 412, "height": 73 },
   { "name": "table-02", "page": 3, "x": 357, "y": 316, "width": 161, "height": 114 },
   { "name": "table-03", "page": 6, "x": 105, "y": 73, "width": 388, "height": 82 },
-  { "name": "figure-01", "page": 2, "x": 304, "y": 374, "width": 263, "height": 162 },
+  { "name": "figure-01", "page": 2, "x": 304, "y": 372.5, "width": 202, "height": 155.5 },
   { "name": "figure-02", "page": 4, "x": 283, "y": 356, "width": 223, "height": 184 },
   { "name": "figure-03", "page": 5, "x": 263, "y": 199, "width": 242, "height": 332 },
   { "name": "figure-04", "page": 7, "x": 263, "y": 310, "width": 242, "height": 234 },

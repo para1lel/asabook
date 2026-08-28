@@ -84,6 +84,7 @@ function paperSlugs(requested) {
 function paperFiles(slug) {
   const markdown = readFileSync(join(papersDir, `${slug}.md`), 'utf8')
   const pdfTarget = markdown.match(/\]\(\/paper\/([^)]+\.pdf)\)/i)?.[1]
+    ?? markdown.match(/href=["']\/paper\/([^"']+\.pdf)["']/i)?.[1]
   if (!pdfTarget) throw new Error(`${slug}: cannot find the local PDF link`)
 
   const localizedMarkdown = [
