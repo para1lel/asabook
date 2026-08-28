@@ -3912,6 +3912,49 @@ Object.assign(paperAbbreviations, {
   'Baa25': 'Anne Baanen, Matthew Robert Ballard, Johan Commelin, Bryan Gin-ge Chen, Michael Rothgang, and Damiano Testa. "Growing Mathlib: Maintenance of a Large Scale Mathematical Library." arXiv preprint arXiv:2508.21593, 2025. [Link](https://arxiv.org/abs/2508.21593).',
 })
 
+Object.assign(paperAbbreviations, {
+  'Afp04': 'Archive of Formal Proofs. 2004. [Link](https://www.isa-afp.org/).',
+  'Aim23': 'AIMO Prize. 2023. [Link](https://aimoprize.com/).',
+  'Ale85': 'Gerald L. Alexanderson, Leonard F. Klosinski, and Loren C. Larson. "The William Lowell Putnam Mathematical Competition: Problems and Solutions, 1965-1984." Mathematical Association of America, 1985. [Link](https://books.google.com/books?id=mv0oAQAAMAAJ).',
+  'All20': 'Guillaume Allais, Sylvain Dailler, Hugo Férée, Jean-Marie Madiot, Pierre-Marie Pédrot, and Amaury Pouly. "Coqtail-Math." GitHub repository, 2020. [Link](https://github.com/coq-community/coqtail-math).',
+  'Aze24': 'Zhangir Azerbayev, Hailey Schoelkopf, Keiran Paster, Marco Dos Santos, Stephen McAleer, Albert Q. Jiang, Jia Deng, Stella Biderman, and Sean Welleck. "Llemma: An Open Language Model for Mathematics." arXiv preprint arXiv:2310.10631, 2024. [Link](https://arxiv.org/abs/2310.10631).',
+  'Bla20a': 'Lasse Blaauwbroek, Josef Urban, and Herman Geuvers. "The Tactician: A Seamless, Interactive Tactic Learner and Prover for Coq." Intelligent Computer Mathematics, pp. 271-277, 2020. [Link](https://doi.org/10.1007/978-3-030-53518-6_17).',
+  'Bla24b': 'Lasse Blaauwbroek, Miroslav Olšák, Jason Rute, Fidel Ivan Schaposnik Massolo, Jelle Piepenbrock, and Vasily Pestun. "Graph2Tac: Online Representation Learning of Formal Math Concepts." arXiv preprint arXiv:2401.02949, 2024. [Link](https://arxiv.org/abs/2401.02949).',
+  'Com24': 'Compfiles. "Catalog of Math Problems Formalized in Lean." GitHub repository, 2024. [Link](https://github.com/dwrensha/compfiles).',
+  'Coq15': 'Coquelicot. "Coquelicot." GitLab repository, 2015. [Link](https://gitlab.inria.fr/coquelicot/coquelicot).',
+  'Coq23': 'The Coq Development Team. "The Coq Proof Assistant." Version 8.18, Zenodo, 2023. [Link](https://doi.org/10.5281/zenodo.11551177).',
+  'Cza18': 'Łukasz Czajka and Cezary Kaliszyk. "Hammer for Coq: Automation for Dependent Type Theory." Journal of Automated Reasoning 61: 423-453, 2018. [Link](https://doi.org/10.1007/s10817-018-9458-4).',
+  'Geo15': 'GeoCoq. "GeoCoq: A Formalization of Geometry in Coq Based on Tarski’s Axiom System." GitHub repository, 2015. [Link](https://github.com/GeoCoq/GeoCoq).',
+  'Gon13': 'Georges Gonthier, Andrea Asperti, Jeremy Avigad, Yves Bertot, Cyril Cohen, François Garillot, Stéphane Le Roux, Assia Mahboubi, Russell O’Connor, Sidi Ould Biha, Ioana Pasca, Laurence Rideau, Alexey Solovyev, Enrico Tassi, and Laurent Théry. "A Machine-Checked Proof of the Odd Order Theorem." Interactive Theorem Proving, pp. 163-179, 2013. [Link](https://doi.org/10.1007/978-3-642-39634-2_14).',
+  'Imo19': 'IMO Grand Challenge. 2019. [Link](https://imo-grand-challenge.github.io/).',
+  'Jia21a': 'Albert Qiaochu Jiang, Wenda Li, Jesse Michael Han, and Yuhuai Wu. "LISA: Language Models of Isabelle Proofs." 2021. [Link](https://arxiv.org/abs/2109.04301).',
+  'Jia22': 'Albert Q. Jiang, Sean Welleck, Jin Peng Zhou, Wenda Li, Jiacheng Liu, Mateja Jamnik, Timothée Lacroix, Yuhuai Wu, and Guillaume Lample. "Draft, Sketch, and Prove: Guiding Formal Theorem Provers with Informal Proofs." arXiv preprint arXiv:2210.12283, 2022. [Link](https://arxiv.org/abs/2210.12283).',
+  'Jia22a': 'Albert Q. Jiang, Wenda Li, Szymon Tworkowski, Konrad Czechowski, Tomasz Odrzygóźdź, Piotr Miłoś, Yuhuai Wu, and Mateja Jamnik. "Thor: Wielding Hammers to Integrate Language Models and Automated Theorem Provers." arXiv preprint arXiv:2205.10893, 2022. [Link](https://arxiv.org/abs/2205.10893).',
+  'Ked02': 'Kiran S. Kedlaya, Bjorn Poonen, and Ravi Vakil. "The William Lowell Putnam Mathematical Competition 1985-2000: Problems, Solutions and Commentary." Mathematical Association of America, 2002. [Link](https://books.google.com/books?id=AA-lOA1nPDcC).',
+  'Ked20': 'Kiran S. Kedlaya, Daniel M. Kane, Jonathan M. Kane, and Evan M. O’Dorney. "The William Lowell Putnam Mathematical Competition 2001-2016: Problems, Solutions, and Commentary." American Mathematical Society, 2020. [Link](https://books.google.com/books?id=QwGWzQEACAAJ).',
+  'Ler09': 'Xavier Leroy. "Formal Verification of a Realistic Compiler." Communications of the ACM 52(7): 107-115, 2009. [Link](https://doi.org/10.1145/1538788.1538814).',
+  'Li24t': 'Zhaoyu Li, Jialiang Sun, Logan Murphy, Qidong Su, Zenan Li, Xian Zhang, Kaiyu Yang, and Xujie Si. "A Survey on Deep Learning for Theorem Proving." arXiv preprint arXiv:2404.09939, 2024. [Link](https://arxiv.org/abs/2404.09939).',
+  'Mat15': 'MathComp. "Mathematical Components." GitHub repository, 2015. [Link](https://github.com/math-comp/math-comp).',
+  'Mat17': 'MathComp. "Mathematical Components Compliant Analysis Library." GitHub repository, 2017. [Link](https://github.com/math-comp/analysis).',
+  'Meg19': 'Norman D. Megill and David A. Wheeler. "Metamath: A Computer Language for Pure Mathematics." 2019. [Link](https://us.metamath.org/downloads/metamath.pdf).',
+  'New57': 'Allen Newell, John Clifford Shaw, and Herbert A. Simon. "Empirical Explorations of the Logic Theory Machine: A Case Study in Heuristic." Western Joint Computer Conference, pp. 218-230, 1957. [Link](https://doi.org/10.1145/1455567.1455605).',
+  'Pau15': 'Lawrence C. Paulson and Jasmin C. Blanchette. "Three Years of Experience with Sledgehammer, a Practical Link between Automatic and Interactive Theorem Provers." Proceedings of the 8th International Workshop on the Implementation of Logics, 2015. [Link](https://doi.org/10.29007/tnfd).',
+  'Pau94': 'Lawrence C. Paulson. "Isabelle: A Generic Theorem Prover." Springer, 1994. [Link](https://doi.org/10.1007/BFb0030541).',
+  'Pol22': 'Stanislas Polu, Jesse Michael Han, Kunhao Zheng, Mantas Baksys, Igor Babuschkin, and Ilya Sutskever. "Formal Mathematics Statement Curriculum Learning." arXiv preprint arXiv:2202.01344, 2022. [Link](https://arxiv.org/abs/2202.01344).',
+  'Rah24': 'Rahul Vishwakarma, Pietro Monticone, and Abhijit Niser. "ProofNet-lean4: ProofNet Dataset Ported into Lean 4." GitHub repository, 2024. [Link](https://github.com/rahul3613/ProofNet-lean4).',
+  'Rob97': 'Neil Robertson, Daniel Sanders, Paul Seymour, and Robin Thomas. "The Four-Colour Theorem." Journal of Combinatorial Theory, Series B 70(1): 2-44, 1997. [Link](https://doi.org/10.1006/jctb.1997.1750).',
+  'San20a': 'Alex Sanchez-Stern, Yousef Alhessi, Lawrence Saul, and Sorin Lerner. "Generating Correctness Proofs with Neural Networks." Proceedings of the 4th ACM SIGPLAN International Workshop on Machine Learning and Programming Languages, pp. 1-10, 2020. [Link](https://doi.org/10.1145/3394452.3394456).',
+  'Wan24ac': 'Haiming Wang, Huajian Xin, Zhengying Liu, Wenda Li, Yinya Huang, Jianqiao Lu, Zhicheng Yang, Jing Tang, Jian Yin, Zhenguo Li, and Xiaodan Liang. "Proving Theorems Recursively." arXiv preprint arXiv:2405.14414, 2024. [Link](https://arxiv.org/abs/2405.14414).',
+  'Wen08': 'Makarius Wenzel, Lawrence C. Paulson, and Tobias Nipkow. "The Isabelle Framework." Theorem Proving in Higher Order Logics, pp. 33-38, 2008. [Link](https://doi.org/10.1007/978-3-540-71067-7_7).',
+  'Wil15': 'James R. Wilcox, Doug Woos, Pavel Panchekha, Zachary Tatlock, Xi Wang, Michael D. Ernst, and Thomas Anderson. "Verdi: A Framework for Implementing and Formally Verifying Distributed Systems." PLDI, pp. 357-368, 2015. [Link](https://doi.org/10.1145/2737924.2737958).',
+  'Wil24': 'Mathematical Association of America. "William Lowell Putnam Mathematical Competition." 2024. [Link](https://maa.org/putnam-2/).',
+  'Xin24': 'Huajian Xin, Daya Guo, Zhihong Shao, Zhizhou Ren, Qihao Zhu, Bo Liu, Chong Ruan, Wenda Li, and Xiaodan Liang. "DeepSeek-Prover: Advancing Theorem Proving in LLMs through Large-Scale Synthetic Data." arXiv preprint arXiv:2405.14333, 2024. [Link](https://arxiv.org/abs/2405.14333).',
+  'Yan19b': 'Kaiyu Yang and Jia Deng. "Learning to Prove Theorems via Interacting with Proof Assistants." International Conference on Machine Learning, pp. 6984-6994, 2019. [Link](https://proceedings.mlr.press/v97/yang19a.html).',
+  'Zha21j': 'Liao Zhang, Lasse Blaauwbroek, Bartosz Piotrowski, Prokop Černý, Cezary Kaliszyk, and Josef Urban. "Online Machine Learning Techniques for Coq: A Comparison." arXiv preprint arXiv:2104.05207, 2021. [Link](https://arxiv.org/abs/2104.05207).',
+  'Zha23o': 'Xueliang Zhao, Wenda Li, and Lingpeng Kong. "Decomposing the Enigma: Subgoal-Based Demonstration Learning for Formal Theorem Proving." arXiv preprint arXiv:2305.16366, 2023. [Link](https://arxiv.org/abs/2305.16366).',
+  'Zhe23b': 'Chuanyang Zheng, Haiming Wang, Enze Xie, Zhengying Liu, Jiankai Sun, Huajian Xin, Jianhao Shen, Zhenguo Li, and Yu Li. "Lyra: Orchestrating Dual Correction in Automated Theorem Proving." arXiv preprint arXiv:2309.15806, 2023. [Link](https://arxiv.org/abs/2309.15806).',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4196,7 +4239,7 @@ export default defineUserConfig({
               {
                 text: 'Agent 工程',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
+                items: ['putnambench', 'async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: '强化学习',
@@ -4323,7 +4366,7 @@ export default defineUserConfig({
               {
                 text: 'Agent Engineering',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
+                items: ['putnambench', 'async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: 'RL',
@@ -4560,7 +4603,7 @@ export default defineUserConfig({
               {
                 text: 'エージェント工学',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
+                items: ['putnambench', 'async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'cslib', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: '強化学習',
