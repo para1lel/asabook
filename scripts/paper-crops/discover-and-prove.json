@@ -8,7 +8,7 @@
   { "name": "table-05", "page": 16, "x": 70, "y": 103, "width": 450, "height": 115, "preserveSource": false },
   { "name": "table-06", "page": 16, "x": 72, "y": 260, "width": 451, "height": 135, "preserveSource": false },
   { "name": "table-07", "page": 16, "x": 321, "y": 586, "width": 188, "height": 81, "preserveSource": false },
-  { "name": "figure-03", "page": 17, "x": 69, "y": 31, "width": 456, "height": 338, "preserveSource": false },
-  { "name": "table-08", "page": 17, "x": 305, "y": 569, "width": 239, "height": 77, "preserveSource": false },
+  { "name": "figure-03", "page": 17, "x": 69, "y": 68, "width": 457, "height": 301, "preserveSource": false },
+  { "name": "table-08", "page": 17, "x": 305, "y": 569, "width": 221, "height": 77, "preserveSource": false },
   { "name": "figure-04", "page": 18, "x": 69, "y": 301, "width": 456, "height": 185, "preserveSource": false }
 ]
