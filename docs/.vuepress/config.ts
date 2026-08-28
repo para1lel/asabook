@@ -3841,6 +3841,16 @@ Object.assign(paperAbbreviations, {
   'Zho24j': 'Pengyuan Zhou, Lin Wang, Zhi Liu, Yanbin Hao, Pan Hui, Sasu Tarkoma, Jussi Kangasharju. "A survey on generative AI and LLM for video generation, understanding, and streaming". arXiv preprint arXiv:2404.16038, 2024.',
   'Zhu23b': 'Xunyu Zhu, Jian Li, Yong Liu, Can Ma, Weiping Wang. "A survey on model compression for large language models". arXiv preprint arXiv:2308.07633, 2023.',
   'Zhu24d': 'Zeyu Zhu, Fanrong Li, Gang Li, Zejian Liu, Zitao Mo, Qinghao Hu, Xiaoyao Liang, Jian Cheng. "MEGA: A Memory-Efficient GNN Accelerator Exploiting Degree-Aware Mixed-Precision Quantization". 2024 IEEE International Symposium on High-Performance Computer Architecture (HPCA), 2024.',
+  'Dro22': 'Iddo Drori, Sunny Tran, Roman Wang, Newman Cheng, Kevin Liu, Leonard Tang, Elizabeth Ke, Nikhil Singh, Taylor L. Patti, Jayson Lynch, Avi Shporer, Nakul Verma, Eugene Wu, and Gilbert Strang. "A Neural Network Solves, Explains, and Generates University Math Problems by Program Synthesis and Few-Shot Learning at Human Level." Proceedings of the National Academy of Sciences 119(32): e2123433119, 2022. [Link](https://doi.org/10.1073/pnas.2123433119).',
+  'Hu24c': 'Jiewen Hu, Thomas Zhu, and Sean Welleck. "miniCTX: Neural Theorem Proving with (Long-) Contexts." arXiv preprint arXiv:2408.03350, 2024. [Link](https://arxiv.org/abs/2408.03350).',
+  'Moe25b': 'Amir Moeini, Jiuqi Wang, Jacob Beck, Ethan Blaser, Shimon Whiteson, Rohan Chandra, and Shangtong Zhang. "A Survey of In-Context Reinforcement Learning." arXiv preprint arXiv:2502.07978, 2025. [Link](https://arxiv.org/abs/2502.07978).',
+  'Nja65': 'Olav Njåstad. "On Some Classes of Nearly Open Sets." Pacific Journal of Mathematics 15(3): 961–970, 1965. [Link](https://msp.org/pjm/1965/15-3/pjm-v15-n3-p20-p.pdf).',
+  'Poi25': 'Auguste Poiroux, Gail Weiss, Viktor Kunčak, and Antoine Bosselut. "Reliable Autoformalization via Synthesized Proofs." Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing, pp. 17947–17969, 2025. [Link](https://aclanthology.org/2025.emnlp-main.907/).',
+  'Son26b': 'Sho Sonoda, Shunta Akiyama, and Yuya Uezato. "Why Agentic Theorem Prover Works: A Statistical Provability Theory of Mathematical Reasoning Models." arXiv preprint arXiv:2602.10538, 2026. [Link](https://arxiv.org/abs/2602.10538).',
+  'Wan23k': 'Haiming Wang, Huajian Xin, Chuanyang Zheng, Lin Li, Zhengying Liu, Qingxing Cao, Yinya Huang, Jing Xiong, Han Shi, Enze Xie, Jian Yin, Zhenguo Li, and Xiaodan Liang. "Lego-Prover: Neural Theorem Proving with Growing Libraries." arXiv preprint arXiv:2310.00656, 2023. [Link](https://arxiv.org/abs/2310.00656).',
+  'Zha25ac': 'Shaoxiong Zhan, Yanlin Lai, Ziyu Lu, Dahua Lin, Ziqing Yang, and Fei Tang. "MathSmith: Towards Extremely Hard Mathematical Reasoning by Forging Synthetic Problems with a Reinforced Policy." arXiv preprint arXiv:2508.05592, 2025. [Link](https://arxiv.org/abs/2508.05592).',
+  'Zha26a': 'Jian Zhang and Si-Cheng Tan. "Automated Conjecturing and Theorem Finding: A Survey." Journal of Computer Science and Technology 41(1): 46–66, 2026. [Link](https://doi.org/10.1007/s11390-026-6040-0).',
+  'Zho22c': 'Denny Zhou, Nathanael Schärli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuurmans, Claire Cui, Olivier Bousquet, Quoc V. Le, and Ed H. Chi. "Least-to-Most Prompting Enables Complex Reasoning in Large Language Models." arXiv preprint arXiv:2205.10625, 2022. [Link](https://arxiv.org/abs/2205.10625).',
 })
 
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
@@ -4127,7 +4137,7 @@ export default defineUserConfig({
               {
                 text: 'Agent 工程',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
               },
               {
                 text: '强化学习',
@@ -4254,7 +4264,7 @@ export default defineUserConfig({
               {
                 text: 'Agent Engineering',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
               },
               {
                 text: 'RL',
@@ -4491,7 +4501,7 @@ export default defineUserConfig({
               {
                 text: 'エージェント工学',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
               },
               {
                 text: '強化学習',

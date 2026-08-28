@@ -1,0 +1,29 @@
+[
+  {
+    "name": "figure-01",
+    "page": 2,
+    "x": 69,
+    "y": 66,
+    "width": 474,
+    "height": 206,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 7,
+    "x": 185,
+    "y": 69,
+    "width": 247,
+    "height": 141,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 7,
+    "x": 185,
+    "y": 260,
+    "width": 247,
+    "height": 143,
+    "preserveSource": false
+  }
+]
