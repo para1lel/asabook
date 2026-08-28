@@ -3851,6 +3851,24 @@ Object.assign(paperAbbreviations, {
   'Zha25ac': 'Shaoxiong Zhan, Yanlin Lai, Ziyu Lu, Dahua Lin, Ziqing Yang, and Fei Tang. "MathSmith: Towards Extremely Hard Mathematical Reasoning by Forging Synthetic Problems with a Reinforced Policy." arXiv preprint arXiv:2508.05592, 2025. [Link](https://arxiv.org/abs/2508.05592).',
   'Zha26a': 'Jian Zhang and Si-Cheng Tan. "Automated Conjecturing and Theorem Finding: A Survey." Journal of Computer Science and Technology 41(1): 46–66, 2026. [Link](https://doi.org/10.1007/s11390-026-6040-0).',
   'Zho22c': 'Denny Zhou, Nathanael Schärli, Le Hou, Jason Wei, Nathan Scales, Xuezhi Wang, Dale Schuurmans, Claire Cui, Olivier Bousquet, Quoc V. Le, and Ed H. Chi. "Least-to-Most Prompting Enables Complex Reasoning in Large Language Models." arXiv preprint arXiv:2205.10625, 2022. [Link](https://arxiv.org/abs/2205.10625).',
+  'Ale25': 'Boris Alexeev and Dustin G. Mixon. "Forbidden Sidon Subsets of Perfect Difference Sets, Featuring a Human-Assisted Proof." arXiv preprint arXiv:2510.19804, 2025. [Link](https://arxiv.org/abs/2510.19804).',
+  'Blo23': 'Thomas Bloom. "Erdős Problems." 2023. [Link](https://www.erdosproblems.com/).',
+  'Blo25': 'Thomas Bloom. "Erdős Problem #124." 2025. [Link](https://www.erdosproblems.com/124).',
+  'Cen26': 'Center for AI Safety, Scale AI, and HLE Contributors Consortium. "A Benchmark of Expert-Level Academic Questions to Assess AI Capabilities." Nature 649: 1139–1146, 2026. [Link](https://doi.org/10.1038/s41586-025-09962-4).',
+  'Che25ac': 'Yuri Chervonyi, Trieu H. Trinh, Miroslav Olšák, Xiaomeng Yang, Hoang H. Nguyen, Marcelo Menegali, Junehyuk Jung, Junsu Kim, Vikas Verma, Quoc V. Le, et al. "Gold-Medalist Performance in Solving Olympiad Geometry with AlphaGeometry2." Journal of Machine Learning Research 26(241): 1–39, 2025. [Link](https://jmlr.org/papers/v26/24-1753.html).',
+  'Cho26': 'François Chollet, Mike Knoop, Gregory Kamradt, and Bryan Landers. "ARC Prize 2025: Technical Report." arXiv preprint arXiv:2601.10904, 2026. [Link](https://arxiv.org/abs/2601.10904).',
+  'Edi20': 'Editors of Mathematical Reviews and zbMATH. "MSC2020—Mathematics Subject Classification System." 2020. [Link](https://mathscinet.ams.org/mathscinet/msc/pdfs/classifications2020.pdf).',
+  'Erd68': 'P. Erdős and A. Hajnal. "On Chromatic Number of Infinite Graphs." Theory of Graphs (Proceedings of the Colloquium, Tihany, 1966), pp. 83–98, 1968.',
+  'Erd69': 'P. Erdős. "Problems and Results in Chromatic Graph Theory." Proof Techniques in Graph Theory, pp. 27–35, 1969.',
+  'Erd93': 'Paul Erdős. "Some of My Favorite Solved and Unsolved Problems in Graph Theory." Quaestiones Mathematicae 16(3): 333–350, 1993. [Link](https://doi.org/10.1080/16073606.1993.9631741).',
+  'Gla24': 'Elliot Glazer, Ege Erdil, Tamay Besiroglu, Diego Chicharro, Evan Chen, Alex Gunning, Caroline Falkman Olsson, Jean-Stanislas Denain, Anson Ho, Emily de Oliveira Santos, et al. "FrontierMath: A Benchmark for Evaluating Advanced Mathematical Reasoning in AI." arXiv preprint arXiv:2411.04872, 2024. [Link](https://arxiv.org/abs/2411.04872).',
+  'Goo26': 'Google DeepMind. "DeepMind Prover Agent." In preparation, 2026.',
+  'Har74': 'Robin Hartshorne. "Varieties of Small Codimension in Projective Space." Bulletin of the American Mathematical Society 80(6): 1017–1032, 1974.',
+  'IQO17': 'IQOQI Vienna and Reinhard Werner. "Open Quantum Problems." 2017. [Link](https://oqp.iqoqi.oeaw.ac.at/open-quantum-problems).',
+  'Jia25f': 'Jiedong Jiang, Wanyi He, Yuefeng Wang, Guoxiong Gao, Yongle Hu, Jingting Wang, Nailin Guan, Peihao Wu, Chunbo Dai, Liang Xiao, et al. "FATE: A Formal Benchmark Series for Frontier Algebra of Multiple Difficulty Levels." arXiv preprint arXiv:2511.02872, 2025. [Link](https://arxiv.org/abs/2511.02872).',
+  'Khu26': 'E. I. Khukhro and V. D. Mazurov. "Unsolved Problems in Group Theory: The Kourovka Notebook." 21st ed., arXiv:1401.0300v41, 2026. [Link](https://arxiv.org/abs/1401.0300v41).',
+  'Let26': 'Austin Letson, Leopoldo Sarra, Auguste Poiroux, Oliver Dressler, Paul Lezeau, Dhyan Aranha, Frederick Pu, Aaron Hill, Miguel Corredera Hidalgo, Julian Berman, et al. "SorryDB: Can AI Provers Complete Real-World Lean Theorems?" arXiv preprint arXiv:2603.02668, 2026. [Link](https://arxiv.org/abs/2603.02668).',
+  'Liu26a': 'Junqi Liu, Zihao Zhou, Zekai Zhu, Marco Dos Santos, Weikun He, Jiawei Liu, Ran Wang, Yunzhou Xie, Junqiao Zhao, Qiufeng Wang, et al. "Numina-Lean-Agent: An Open and General Agentic Reasoning System for Formal Mathematics." arXiv preprint arXiv:2601.14027, 2026. [Link](https://arxiv.org/abs/2601.14027).',
 })
 
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
@@ -4137,7 +4155,7 @@ export default defineUserConfig({
               {
                 text: 'Agent 工程',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: '强化学习',
@@ -4264,7 +4282,7 @@ export default defineUserConfig({
               {
                 text: 'Agent Engineering',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: 'RL',
@@ -4501,7 +4519,7 @@ export default defineUserConfig({
               {
                 text: 'エージェント工学',
                 collapsed: true,
-                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'leap-formal-mathematics'],
+                items: ['async-llm-function-calling', 'autellix', 'kvflow', 'conjecturing-proving-loop', 'continuum', 'discover-and-prove', 'formal-conjectures', 'leap-formal-mathematics'],
               },
               {
                 text: '強化学習',
