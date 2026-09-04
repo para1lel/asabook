@@ -3955,6 +3955,31 @@ Object.assign(paperAbbreviations, {
   'Zhe23b': 'Chuanyang Zheng, Haiming Wang, Enze Xie, Zhengying Liu, Jiankai Sun, Huajian Xin, Jianhao Shen, Zhenguo Li, and Yu Li. "Lyra: Orchestrating Dual Correction in Automated Theorem Proving." arXiv preprint arXiv:2309.15806, 2023. [Link](https://arxiv.org/abs/2309.15806).',
 })
 
+Object.assign(paperAbbreviations, {
+  'Isl20': 'Md. Amirul Islam, Sen Jia, and Neil D. B. Bruce. "How Much Position Information Do Convolutional Neural Networks Encode?" arXiv:2001.08248, 2020. [Link](https://arxiv.org/abs/2001.08248)',
+  'Yun20': 'Chulhee Yun, Srinadh Bhojanapalli, Ankit Singh Rawat, Sashank Reddi, and Sanjiv Kumar. "Are Transformers Universal Approximators of Sequence-to-Sequence Functions?" ICLR, 2020. [Link](https://openreview.net/forum?id=ByxRM0Ntvr)',
+  'Cla20': 'Kevin Clark, Minh-Thang Luong, Quoc V. Le, and Christopher D. Manning. "ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators." ICLR, 2020. [Link](https://openreview.net/forum?id=r1xMH1BtvB)',
+  'Sha18d': 'Peter Shaw, Jakob Uszkoreit, and Ashish Vaswani. "Self-Attention with Relative Position Representations." NAACL-HLT, 2018. [Link](https://aclanthology.org/N18-2074/)',
+  'Hua18a': 'Cheng-Zhi Anna Huang et al. "Music Transformer." arXiv:1809.04281, 2018. [Link](https://arxiv.org/abs/1809.04281)',
+  'Ke20': 'Guolin Ke, Di He, and Tie-Yan Liu. "Rethinking Positional Encoding in Language Pre-training." arXiv:2006.15595, 2020. [Link](https://arxiv.org/abs/2006.15595)',
+  'He20': 'Pengcheng He, Xiaodong Liu, Jianfeng Gao, and Weizhu Chen. "DeBERTa: Decoding-enhanced BERT with Disentangled Attention." arXiv:2006.03654, 2020. [Link](https://arxiv.org/abs/2006.03654)',
+  'Hua20a': 'Zhiheng Huang, Davis Liang, Peng Xu, and Bing Xiang. "Improve Transformer Models with Better Relative Position Embeddings." Findings of EMNLP, pp. 3327-3335, 2020. [Link](https://aclanthology.org/2020.findings-emnlp.298/)',
+  'Liu20': 'Xuanqing Liu, Hsiang-Fu Yu, Inderjit S. Dhillon, and Cho-Jui Hsieh. "Learning to Encode Position for Transformer with Continuous Dynamical Model." ICML, pp. 6327-6335, 2020. [Link](https://proceedings.mlr.press/v119/liu20n.html)',
+  'Che18g': 'Tian Qi Chen, Yulia Rubanova, Jesse Bettencourt, and David Duvenaud. "Neural Ordinary Differential Equations." NeurIPS, pp. 6572-6583, 2018. [Link](https://proceedings.neurips.cc/paper/2018/hash/69386f6bb1dfed68692a24c8686939b9-Abstract.html)',
+  'Wan20f': 'Benyou Wang, Donghao Zhao, Christina Lioma, Qiuchi Li, Peng Zhang, and Jakob Grue Simonsen. "Encoding Word Order in Complex Embeddings." ICLR, 2020. [Link](https://openreview.net/forum?id=Hke-WTVtwr)',
+  'She21': 'Zhuoran Shen, Mingyuan Zhang, Haiyu Zhao, Shuai Yi, and Hongsheng Li. "Efficient Attention: Attention with Linear Complexities." WACV, pp. 3531-3539, 2021. [Link](https://openaccess.thecvf.com/content/WACV2021/html/Shen_Efficient_Attention_Attention_With_Linear_Complexities_WACV_2021_paper.html)',
+  'Boj14': 'Ondřej Bojar et al. "Findings of the 2014 Workshop on Statistical Machine Translation." WMT, pp. 12-58, 2014. [Link](https://aclanthology.org/W14-3302/)',
+  'Wik21': 'Wikimedia Foundation. "Wikimedia Downloads." 2021. [Link](https://dumps.wikimedia.org/)',
+  'Dol05': 'William B. Dolan and Chris Brockett. "Automatically Constructing a Corpus of Sentential Paraphrases." IWP, 2005. [Link](https://aclanthology.org/I05-5002/)',
+  'Soc13': 'Richard Socher et al. "Recursive Deep Models for Semantic Compositionality over a Sentiment Treebank." EMNLP, pp. 1631-1642, 2013. [Link](https://aclanthology.org/D13-1170/)',
+  'Aln17': 'Hussein T. Al-Natsheh, Lucie Martinet, Fabrice Muhlenbach, and Djamel Abdelkader Zighed. "UdL at SemEval-2017 Task 1: Semantic Textual Similarity Estimation of English Sentence Pairs Using Regression Model over Pairwise Features." SemEval, pp. 115-119, 2017. [Link](https://aclanthology.org/S17-2013/)',
+  'Che18h': 'Z. Chen, H. Zhang, X. Zhang, and L. Zhao. "Quora Question Pairs." 2018. [Link](https://www.kaggle.com/c/quora-question-pairs)',
+  'Mah06': 'Matt Mahoney. "Large Text Compression Benchmark." 2006. [Link](http://www.mattmahoney.net/dc/text.html)',
+  'Su20': 'Jianlin Su. "WoBERT: Word-based Chinese BERT Model." 2020. [Link](https://github.com/ZhuiyiTechnology/WoBERT)',
+  'Wei19': 'Junqiu Wei et al. "NEZHA: Neural Contextualized Representation for Chinese Language Understanding." arXiv:1909.00204, 2019. [Link](https://arxiv.org/abs/1909.00204)',
+  'Xia19a': 'Chaojun Xiao et al. "CAIL2019-SCM: A Dataset of Similar Case Matching in Legal Domain." arXiv:1911.08962, 2019. [Link](https://arxiv.org/abs/1911.08962)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4254,7 +4279,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'gshard', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4381,7 +4406,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'gshard', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4618,7 +4643,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'gshard', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
