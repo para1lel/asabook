@@ -6,25 +6,52 @@
     "y": 70,
     "width": 223,
     "height": 326,
-    "preserveSource": true
+    "preserveSource": false
   },
   {
-    "name": "figure-02a",
+    "name": "figure-02",
     "page": 4,
-    "x": 173,
-    "y": 92,
-    "width": 68,
-    "height": 131,
-    "preserveSource": true
+    "x": 135,
+    "y": 68,
+    "width": 342,
+    "height": 204,
+    "preserveSource": false
   },
   {
-    "name": "figure-02b",
-    "page": 4,
-    "x": 345,
-    "y": 81,
-    "width": 124,
-    "height": 189,
-    "preserveSource": true
+    "name": "table-01",
+    "page": 6,
+    "x": 115,
+    "y": 109.5,
+    "width": 382,
+    "height": 80.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 8,
+    "x": 125.5,
+    "y": 89,
+    "width": 361,
+    "height": 159.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 9,
+    "x": 104.5,
+    "y": 126,
+    "width": 407.5,
+    "height": 261.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 10,
+    "x": 142,
+    "y": 90,
+    "width": 328,
+    "height": 148,
+    "preserveSource": false
   },
   {
     "name": "figure-03",
@@ -36,75 +63,21 @@
     "preserveSource": false
   },
   {
-    "name": "figure-04a",
-    "page": 14,
-    "x": 107,
-    "y": 144,
-    "width": 398,
-    "height": 217,
-    "preserveSource": false
-  },
-  {
-    "name": "figure-04b",
+    "name": "figure-04",
     "page": 14,
     "x": 105,
-    "y": 357,
+    "y": 144,
     "width": 403,
-    "height": 250,
+    "height": 463,
     "preserveSource": false
   },
   {
-    "name": "figure-05a",
+    "name": "figure-05",
     "page": 15,
     "x": 107,
     "y": 156,
     "width": 398,
-    "height": 222.5,
-    "preserveSource": false
-  },
-  {
-    "name": "figure-05b",
-    "page": 15,
-    "x": 107,
-    "y": 376,
-    "width": 398,
-    "height": 217.5,
-    "preserveSource": false
-  },
-  {
-    "name": "table-01",
-    "page": 6,
-    "x": 117,
-    "y": 111.5,
-    "width": 378,
-    "height": 76.5,
-    "preserveSource": false
-  },
-  {
-    "name": "table-02",
-    "page": 8,
-    "x": 127.5,
-    "y": 91,
-    "width": 357,
-    "height": 155.5,
-    "preserveSource": false
-  },
-  {
-    "name": "table-03",
-    "page": 9,
-    "x": 106.5,
-    "y": 128,
-    "width": 403.5,
-    "height": 257.5,
-    "preserveSource": false
-  },
-  {
-    "name": "table-04",
-    "page": 10,
-    "x": 144,
-    "y": 92,
-    "width": 324,
-    "height": 142.59,
+    "height": 437.5,
     "preserveSource": false
   }
 ]
