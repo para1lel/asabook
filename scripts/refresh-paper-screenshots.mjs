@@ -573,7 +573,33 @@ async function writeCrops(pdf, files, crops, scale) {
       )
       offsetY += part.height
     }
-    writeFileSync(join(files.outputDir, `${crop.name}.png`), canvas.toBuffer('image/png'))
+    const rotation = ((crop.rotate ?? 0) % 360 + 360) % 360
+    if (![0, 90, 180, 270].includes(rotation)) {
+      throw new Error(`${crop.name}: rotate must be a multiple of 90 degrees`)
+    }
+    if (rotation === 0) {
+      writeFileSync(join(files.outputDir, `${crop.name}.png`), canvas.toBuffer('image/png'))
+      continue
+    }
+
+    const rotatedWidth = rotation % 180 === 0 ? width : height
+    const rotatedHeight = rotation % 180 === 0 ? height : width
+    const rotatedCanvas = createCanvas(rotatedWidth, rotatedHeight)
+    const rotatedContext = rotatedCanvas.getContext('2d')
+    rotatedContext.fillStyle = '#fff'
+    rotatedContext.fillRect(0, 0, rotatedWidth, rotatedHeight)
+    if (rotation === 90) {
+      rotatedContext.translate(rotatedWidth, 0)
+      rotatedContext.rotate(Math.PI / 2)
+    } else if (rotation === 180) {
+      rotatedContext.translate(rotatedWidth, rotatedHeight)
+      rotatedContext.rotate(Math.PI)
+    } else {
+      rotatedContext.translate(0, rotatedHeight)
+      rotatedContext.rotate(-Math.PI / 2)
+    }
+    rotatedContext.drawImage(canvas, 0, 0)
+    writeFileSync(join(files.outputDir, `${crop.name}.png`), rotatedCanvas.toBuffer('image/png'))
   }
 }
 

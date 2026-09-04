@@ -79,8 +79,14 @@ for (const slug of paperSlugs()) {
 
     if (crop.page !== undefined || crop.parts?.length > 0) {
       const parts = crop.parts ?? [crop]
-      const requiredWidth = Math.max(...parts.map((part) => Math.round(part.width * 4)))
-      const requiredHeight = parts.reduce((sum, part) => sum + Math.round(part.height * 4), 0)
+      const rotation = ((crop.rotate ?? 0) % 360 + 360) % 360
+      if (![0, 90, 180, 270].includes(rotation)) {
+        fail(`${slug}: ${imageName} rotate must be a multiple of 90 degrees`)
+      }
+      const cropWidth = Math.max(...parts.map((part) => Math.round(part.width * 4)))
+      const cropHeight = parts.reduce((sum, part) => sum + Math.round(part.height * 4), 0)
+      const requiredWidth = rotation % 180 === 0 ? cropWidth : cropHeight
+      const requiredHeight = rotation % 180 === 0 ? cropHeight : cropWidth
       if (image.width < requiredWidth || image.height < requiredHeight) {
         fail(`${slug}: ${imageName} is ${image.width}x${image.height}, below the scale-4 requirement ${requiredWidth}x${requiredHeight}`)
       }

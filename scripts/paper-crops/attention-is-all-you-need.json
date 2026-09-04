@@ -14,7 +14,7 @@
     "x": 135,
     "y": 68,
     "width": 342,
-    "height": 204,
+    "height": 172,
     "preserveSource": false
   },
   {
@@ -30,9 +30,9 @@
     "name": "table-02",
     "page": 8,
     "x": 125.5,
-    "y": 89,
+    "y": 92,
     "width": 361,
-    "height": 159.5,
+    "height": 156.5,
     "preserveSource": false
   },
   {
@@ -60,6 +60,7 @@
     "y": 98.5,
     "width": 398,
     "height": 205,
+    "rotate": 90,
     "preserveSource": false
   },
   {
@@ -69,6 +70,7 @@
     "y": 144,
     "width": 403,
     "height": 463,
+    "rotate": 90,
     "preserveSource": false
   },
   {
@@ -78,6 +80,7 @@
     "y": 156,
     "width": 398,
     "height": 437.5,
+    "rotate": 90,
     "preserveSource": false
   }
 ]
