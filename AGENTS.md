@@ -40,6 +40,8 @@ There is no automated test framework or coverage requirement. The required check
 
 For browser-based visual checks, use the connected Chrome browser when it is available. A failed generic or default browser lookup does not prove that Chrome is unavailable; when Chrome is requested, select the Chrome connection explicitly and verify it before reporting a limitation. Start the local development server on an explicit loopback port, inspect every affected route at desktop and mobile viewport sizes, confirm images are loaded and do not introduce horizontal overflow, then reset temporary viewport overrides and close test tabs.
 
+For paper figure and table screenshots, crop the complete visual object with only a small, even whitespace margin on all four sides. Do not include surrounding body prose, printed captions, or explanatory text outside the figure or table. Inspect the rendered PNG at actual pixels and adjust the crop until no meaningful stroke or glyph touches an edge and no side retains excessive whitespace.
+
 After testing, stop any local development or preview servers started for the task. Do not leave test servers running when handing off the completed work.
 
 ## Add Paper Skill
