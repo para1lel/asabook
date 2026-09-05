@@ -12,9 +12,9 @@
     "name": "figure-02",
     "page": 8,
     "x": 136,
-    "y": 50,
-    "width": 350,
-    "height": 200,
+    "y": 68,
+    "width": 340,
+    "height": 175,
     "preserveSource": false
   },
   {
@@ -30,27 +30,27 @@
     "name": "figure-03",
     "page": 10,
     "x": 96,
-    "y": 55,
+    "y": 84,
     "width": 420,
-    "height": 174,
+    "height": 145,
     "preserveSource": false
   },
   {
     "name": "table-02",
     "page": 10,
     "x": 118,
-    "y": 512,
+    "y": 506,
     "width": 376,
-    "height": 64,
+    "height": 50,
     "preserveSource": false
   },
   {
     "name": "table-03",
     "page": 11,
     "x": 69,
-    "y": 380,
+    "y": 377,
     "width": 474,
-    "height": 48,
+    "height": 51,
     "preserveSource": false
   },
   {
