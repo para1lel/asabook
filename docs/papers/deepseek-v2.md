@@ -200,12 +200,12 @@ $$
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N_r}{f_i P_i}, \\
-    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{选择专家}\ i )}, \\
+    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathbb{1}( \mathrm{Token}\ t\ \text{选择专家}\ i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
 \end{aligned}
 $$
 
-其中 $\alpha_1$ 是一个称为专家级均衡因子的超参数; $\mathds{1}(\cdot)$ 表示指示函数; 而 $T$ 表示一个序列中的 token 数量.
+其中 $\alpha_1$ 是一个称为专家级均衡因子的超参数; $\mathbb{1}(\cdot)$ 表示指示函数; 而 $T$ 表示一个序列中的 token 数量.
 
 **设备级均衡损失.** 除了专家级均衡损失之外, 我们还额外设计了一种设备级均衡损失, 以确保不同设备之间的计算均衡. 在 DeepSeek-V2 的训练过程中, 我们将所有路由专家划分为 $D$ 组 $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$, 并把每组部署在单个设备上. 设备级均衡损失的计算如下:
 
@@ -224,7 +224,7 @@ $$
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{CommBal}} & = \alpha_{3} \sum_{i=1}^{D}{f_i^{\prime\prime} P_i^{\prime\prime}}, \\
-    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{被发送至设备}\ i )}, \\
+    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathbb{1}( \mathrm{Token}\ t\ \text{被发送至设备}\ i )}, \\
     P_i^{\prime\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
 \end{aligned}
 $$

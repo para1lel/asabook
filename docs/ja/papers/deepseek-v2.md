@@ -200,12 +200,12 @@ DeepSeek-V2 では、ルーティングされるエキスパートの単純な t
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N_r}{f_i P_i}, \\
-    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{がエキスパート}\ i\ \text{を選択} )}, \\
+    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathbb{1}( \mathrm{Token}\ t\ \text{がエキスパート}\ i\ \text{を選択} )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
 \end{aligned}
 $$
 
-ここで $\alpha_1$ はエキスパートレベルのバランス係数と呼ばれるハイパーパラメータ、$\mathds{1}(\cdot)$ は指示関数、$T$ はシーケンス内のトークン数を表します。
+ここで $\alpha_1$ はエキスパートレベルのバランス係数と呼ばれるハイパーパラメータ、$\mathbb{1}(\cdot)$ は指示関数、$T$ はシーケンス内のトークン数を表します。
 
 **デバイスレベルのバランス損失。** エキスパートレベルのバランス損失に加えて、異なるデバイス間での計算のバランスを確保するため、デバイスレベルのバランス損失も設計しました。DeepSeek-V2 の学習過程では、すべてのルーティングされるエキスパートを $D$ 個のグループ $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$ に分割し、各グループを単一のデバイスに配置します。デバイスレベルのバランス損失は次のように計算されます。
 
@@ -224,7 +224,7 @@ $$
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{CommBal}} & = \alpha_{3} \sum_{i=1}^{D}{f_i^{\prime\prime} P_i^{\prime\prime}}, \\
-    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{がデバイス}\ i\ \text{へ送信} )}, \\
+    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathbb{1}( \mathrm{Token}\ t\ \text{がデバイス}\ i\ \text{へ送信} )}, \\
     P_i^{\prime\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
 \end{aligned}
 $$

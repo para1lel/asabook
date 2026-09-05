@@ -200,12 +200,12 @@ We take the load balance into consideration for automatically learned routing st
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N_r}{f_i P_i}, \\
-    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \mathrm{selects\ Expert}\ i )}, \\
+    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathbb{1}( \mathrm{Token}\ t\ \mathrm{selects\ Expert}\ i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
 \end{aligned}
 $$
 
-where $\alpha_1$ is a hyper-parameter called expert-level balance factor; $\mathds{1}(\cdot)$ denotes the indicator function; and $T$ denotes the number of tokens in a sequence.
+where $\alpha_1$ is a hyper-parameter called expert-level balance factor; $\mathbb{1}(\cdot)$ denotes the indicator function; and $T$ denotes the number of tokens in a sequence.
 
 **Device-Level Balance Loss.** In addition to the expert-level balance loss, we additionally design a device-level balance loss to ensure balanced computation across different devices. In the training process of DeepSeek-V2, we partition all routed experts into $D$ groups $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$, and deploy each group on a single device. The device-level balance loss is computed as follows:
 
@@ -224,7 +224,7 @@ where $\alpha_{2}$ is a hyper-parameter called device-level balance factor.
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{CommBal}} & = \alpha_{3} \sum_{i=1}^{D}{f_i^{\prime\prime} P_i^{\prime\prime}}, \\
-    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \mathrm{is\ sent\ to\ Device}\ i )}, \\
+    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathbb{1}( \mathrm{Token}\ t\ \mathrm{is\ sent\ to\ Device}\ i )}, \\
     P_i^{\prime\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
 \end{aligned}
 $$
