@@ -6,8 +6,6 @@ permalink: /ja/papers/fast-transformer-decoding/
 
 > [Noam Shazeer](https://www.noamshazeer.com/)。2019 年 11 月 6 日に arXiv へ初回投稿、現行版は v1。[Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150v1)。[原論文 PDF](/paper/fast-transformer-decoding.pdf)。[DOI](https://doi.org/10.48550/arXiv.1911.02150)。[TeX ソース](https://export.arxiv.org/e-print/1911.02150v1)。正確な印刷レイアウトと参考文献については、原論文 PDF を正本とする。
 
-# Fast Transformer Decoding
-
 ## 概要
 
 Transformer ニューラル系列モデルで用いられるマルチヘッド注意層は、系列内および系列間で情報を移動させる手段として、RNN に代わる強力な選択肢である。系列長方向に並列化できるため、これらの層の訓練は一般に高速かつ単純だが、そのような並列化が不可能な増分推論は、大きな「キー」と「値」のテンソルを繰り返し読み込む際のメモリ帯域幅コストにより、しばしば低速になる。本稿では、異なるすべての注意「ヘッド」でキーと値を共有するマルチクエリ注意という変種を提案し、これらのテンソルのサイズと増分デコードに必要なメモリ帯域幅を大幅に削減する。実験により、得られたモデルは実際にデコードを大幅に高速化でき、ベースラインからの品質低下もわずかであることを確認する。

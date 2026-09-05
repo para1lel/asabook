@@ -6,8 +6,6 @@ permalink: /papers/fast-transformer-decoding/
 
 > [Noam Shazeer](https://www.noamshazeer.com/). 论文于 2019 年 11 月 6 日首次提交至 arXiv; 当前版本为 v1. [Fast Transformer Decoding: One Write-Head is All You Need](https://arxiv.org/abs/1911.02150v1). [原始 PDF](/paper/fast-transformer-decoding.pdf). [DOI](https://doi.org/10.48550/arXiv.1911.02150). [TeX 源文件](https://export.arxiv.org/e-print/1911.02150v1). 精确的印刷版式和参考文献以原始 PDF 为准.
 
-# Fast Transformer Decoding
-
 ## 摘要
 
 多头注意力层用于 Transformer 神经序列模型, 是在序列内部及序列之间传递信息的一种强大方案, 可替代 RNN. 由于可以沿序列长度并行计算, 这类层的训练通常快速而简单; 但增量推理无法采用这种并行方式, 往往较慢, 原因是反复加载大型 "键" 和 "值" 张量会产生内存带宽开销. 我们提出一种称为多查询注意力的变体, 让所有不同注意力 "头" 共享键和值, 从而大幅缩小这些张量, 降低增量解码所需的内存带宽. 实验表明, 由此得到的模型确实可以显著加快解码, 相比基线仅有轻微的质量下降.

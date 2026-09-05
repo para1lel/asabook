@@ -3960,6 +3960,10 @@ Object.assign(paperAbbreviations, {
 })
 
 Object.assign(paperAbbreviations, {
+  'Dau16': 'Yann N. Dauphin, Angela Fan, Michael Auli, and David Grangier. "Language Modeling with Gated Convolutional Networks." arXiv:1612.08083, 2016. [Link](https://arxiv.org/abs/1612.08083)',
+  'Glo11': 'Xavier Glorot, Antoine Bordes, and Yoshua Bengio. "Deep Sparse Rectifier Neural Networks." AISTATS, pp. 315-323, 2011. [Link](https://proceedings.mlr.press/v15/glorot11a.html)',
+  'Mni07': 'Andriy Mnih and Geoffrey Hinton. "Three New Graphical Models for Statistical Language Modelling." ICML, pp. 641-648, 2007. [Link](https://doi.org/10.1145/1273496.1273577)',
+  'Wan19h': 'Alex Wang, Yada Pruksachatkun, Nikita Nangia, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel R. Bowman. "SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems." arXiv:1905.00537, 2019. [Link](https://arxiv.org/abs/1905.00537)',
   'Isl20': 'Md. Amirul Islam, Sen Jia, and Neil D. B. Bruce. "How Much Position Information Do Convolutional Neural Networks Encode?" arXiv:2001.08248, 2020. [Link](https://arxiv.org/abs/2001.08248)',
   'Yun20': 'Chulhee Yun, Srinadh Bhojanapalli, Ankit Singh Rawat, Sashank Reddi, and Sanjiv Kumar. "Are Transformers Universal Approximators of Sequence-to-Sequence Functions?" ICLR, 2020. [Link](https://openreview.net/forum?id=ByxRM0Ntvr)',
   'Cla20': 'Kevin Clark, Minh-Thang Luong, Quoc V. Le, and Christopher D. Manning. "ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators." ICLR, 2020. [Link](https://openreview.net/forum?id=r1xMH1BtvB)',
@@ -4290,7 +4294,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4417,7 +4421,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4654,7 +4658,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
