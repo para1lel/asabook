@@ -4,9 +4,14 @@ import { load } from 'cheerio'
 
 const args = process.argv.slice(2)
 const updateConfig = args.includes('--update-config')
-const [input, output, configPath = 'docs/.vuepress/config.ts'] = args.filter((value) => value !== '--update-config')
+const bblIndex = args.indexOf('--bbl')
+const bblPath = bblIndex === -1 ? undefined : args[bblIndex + 1]
+const positional = args.filter((value, index) => (
+  value !== '--update-config' && value !== '--bbl' && index !== bblIndex + 1
+))
+const [input, output, configPath = 'docs/.vuepress/config.ts'] = positional
 if (!input || !output) {
-  throw new Error('Usage: node scripts/import-arxiv-html.mjs <input.html> <output.md> [config.ts] [--update-config]')
+  throw new Error('Usage: node scripts/import-arxiv-html.mjs <input.html> <output.md> [config.ts] [--bbl <main.bbl>] [--update-config]')
 }
 
 const $ = load(readFileSync(input, 'utf8'))
@@ -56,6 +61,49 @@ $('#bib li.ltx_bibitem').each((_, element) => {
   const urls = item.find('a[href]').map((__, link) => $(link).attr('href')).get().filter((url) => /^https?:/.test(url))
   if (id && text) bib.set(id, { blocks, id, tag, text, title, urls })
 })
+
+function texToPlainText(value) {
+  return normalizeSpace(value
+    .replace(/%.*$/gm, '')
+    .replace(/\\newblock\s*/g, '\n')
+    .replace(/\\(?:emph|texttt|url|doi)\{([^{}]*)\}/g, '$1')
+    .replace(/\\natexlab\{([^{}]*)\}/g, '$1')
+    .replace(/\\penalty\d+\s*/g, '')
+    .replace(/\\["'`^~=.uvHcdbkr]\{?([A-Za-z])\}?/g, '$1')
+    .replace(/\\&/g, '&')
+    .replace(/\\~/g, ' ')
+    .replace(/~/g, ' ')
+    .replace(/[{}]/g, '')
+    .replace(/\\[A-Za-z]+\*?(?:\[[^\]]*\])?\s*/g, ''))
+}
+
+if (bblPath) {
+  const bblEntries = [...readFileSync(bblPath, 'utf8').matchAll(
+    /\\bibitem(?:\[([^\]]*)])?\{([^}]+)\}([\s\S]*?)(?=\\bibitem|\\end\{thebibliography\})/g,
+  )]
+  const htmlItems = $('#bib li.ltx_bibitem').toArray()
+  if (htmlItems.length !== bblEntries.length) {
+    throw new Error(`Bibliography count mismatch: HTML has ${htmlItems.length}, BBL has ${bblEntries.length}`)
+  }
+  htmlItems.forEach((element, index) => {
+    const id = $(element).attr('id')
+    if (!id || bib.has(id)) return
+    const source = bblEntries[index][3]
+    const blocks = source.split(/\\newblock\s*/).map(texToPlainText).filter(Boolean)
+    const text = normalizeSpace(blocks.join(' '))
+    const urls = [...source.matchAll(/\\(?:url|doi)\{([^}]+)\}/g)].map((match) => (
+      match[0].startsWith('\\doi') ? `https://doi.org/${match[1]}` : match[1]
+    ))
+    bib.set(id, {
+      blocks,
+      id,
+      tag: texToPlainText(bblEntries[index][1] ?? ''),
+      text,
+      title: blocks[1] ?? blocks[0] ?? '',
+      urls,
+    })
+  })
+}
 
 function findExisting(reference) {
   const urls = reference.urls.map(normalizeUrl)
