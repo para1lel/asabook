@@ -2,6 +2,7 @@ import { viteBundler, type ViteBundlerOptions } from '@vuepress/bundler-vite'
 import { defineUserConfig } from 'vuepress'
 import { plumeTheme } from 'vuepress-theme-plume'
 import { lowMemoryBuildPlugin } from './low-memory-build.js'
+import { lowMemoryCompiler } from './low-memory-compiler.js'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
@@ -4163,8 +4164,15 @@ export default defineUserConfig({
 
   plugins: [
     {
-      name: 'search-index-chunk-size-limit',
-      extendsBundlerOptions(options) {
+      name: 'asabook:build-options',
+      extendsBundlerOptions(options, app) {
+        if (app.env.isBuild) {
+          const bundlerOptions = options as ViteBundlerOptions
+          bundlerOptions.vuePluginOptions = {
+            ...bundlerOptions.vuePluginOptions,
+            compiler: lowMemoryCompiler,
+          }
+        }
         const viteOptions = ((options as ViteBundlerOptions).viteOptions ??= {})
         const build = (viteOptions.build ??= {})
         build.chunkSizeWarningLimit = 4096
