@@ -6,6 +6,16 @@ import { lowMemoryCompiler } from './low-memory-compiler.js'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Goo23': 'Google. "Introducing Gemini: our largest and most capable AI model." 2023. [Link](https://blog.google/technology/ai/google-gemini-ai/)',
+  'Cui19': 'Yiming Cui, Ting Liu, Wanxiang Che, Li Xiao, Zhipeng Chen, Wentao Ma, Shijin Wang, and Guoping Hu. "A Span-Extraction Dataset for Chinese Machine Reading Comprehension." EMNLP-IJCNLP 2019. [Link](https://aclanthology.org/D19-1600)',
+  'Hig23': 'High-Flyer. "HAI-LLM: 高效且轻量的大模型训练工具." 2023. [Link](https://www.high-flyer.cn/en/blog/hai-llm)',
+  'Riq21': 'Carlos Riquelme, Joan Puigcerver, Basil Mustafa, Maxim Neumann, Rodolphe Jenatton, André Susano Pinto, Daniel Keysers, and Neil Houlsby. "Scaling Vision with Sparse Mixture of Experts." NeurIPS 2021. [Link](https://proceedings.neurips.cc/paper/2021/hash/48237d9f2dea8c74c2a72126cf63d933-Abstract.html)',
+  'Zhe19': 'Chujie Zheng, Minlie Huang, and Aixin Sun. "ChID: A Large-scale Chinese IDiom Dataset for Cloze Test." ACL 2019. [Link](https://doi.org/10.18653/v1/p19-1075)',
+  'Mis24': 'Mistral AI. "Cheaper, Better, Faster, Stronger: Continuing to Push the Frontier of AI and Make It Accessible to All." 2024. [Link](https://mistral.ai/news/mixtral-8x22b)',
+  'Dub24a': 'Yann Dubois, Xuechen Li, Rohan Taori, Tianyi Zhang, Ishaan Gulrajani, Jimmy Ba, Carlos Guestrin, Percy Liang, and Tatsunori B. Hashimoto. "Length-Controlled AlpacaEval: A Simple Way to Debias Automatic Evaluators." 2024. [Link](https://arxiv.org/abs/2404.04475)',
+  'Sun19c': 'Kai Sun, Dian Yu, Dong Yu, and Claire Cardie. "Investigating Prior Knowledge for Challenging Chinese Machine Reading Comprehension." TACL 2019.',
+  'You24a': 'Alex Young, Bei Chen, Chao Li, Chengen Huang, Ge Zhang, Guanwei Zhang, Heng Li, Jiangcheng Zhu, Jianqun Chen, Jing Chang, et al. "Yi: Open Foundation Models by 01.AI." 2024. [Link](https://arxiv.org/abs/2403.04652)',
+  'Li21e': 'Wenhao Li, Fanchao Qi, Maosong Sun, Xiaoyuan Yi, and Jiarui Zhang. "CCPM: A Chinese Classical Poetry Matching Dataset." 2021. [Link](https://aclanthology.org/2021.emnlp-main.504/)',
   'Age25': 'AgentOps. "AgentOps." 2025. [Link](https://www.agentops.ai/)',
   'Aho07': 'V. Aho Alfred, S. Lam Monica, and D. Ullman Jeffrey. "Compilers: Principles, Techniques & Tools." Pearson Education. 2007.',
   'Ant25e': 'Anthropic. "How We Built Our Multi-Agent Research System." 2025. [Link](https://www.anthropic.com/engineering/built-multi-agent-research-system)',
@@ -4308,7 +4318,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v2', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4435,7 +4445,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v2', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4672,7 +4682,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v2', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
