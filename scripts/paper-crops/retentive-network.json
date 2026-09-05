@@ -1,0 +1,128 @@
+[
+  {
+    "name": "figure-01",
+    "page": 1,
+    "x": 121,
+    "y": 475,
+    "width": 370,
+    "height": 163,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 2,
+    "x": 306,
+    "y": 139,
+    "width": 198,
+    "height": 173,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 4,
+    "x": 153,
+    "y": 68,
+    "width": 354,
+    "height": 150,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-04",
+    "page": 5,
+    "x": 106,
+    "y": 64,
+    "width": 400,
+    "height": 286,
+    "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 6,
+    "x": 104,
+    "y": 70,
+    "width": 408,
+    "height": 116,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 7,
+    "x": 142,
+    "y": 70,
+    "width": 328,
+    "height": 62,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-05",
+    "page": 7,
+    "x": 204,
+    "y": 158,
+    "width": 204,
+    "height": 119,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 8,
+    "x": 115,
+    "y": 70,
+    "width": 382,
+    "height": 98,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 8,
+    "x": 120,
+    "y": 191,
+    "width": 372,
+    "height": 87,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-06",
+    "page": 9,
+    "x": 106,
+    "y": 69,
+    "width": 400,
+    "height": 323,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 10,
+    "x": 121,
+    "y": 70,
+    "width": 368,
+    "height": 82,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 10,
+    "x": 110,
+    "y": 185,
+    "width": 390,
+    "height": 98,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 14,
+    "x": 185,
+    "y": 99,
+    "width": 242,
+    "height": 188,
+    "preserveSource": false
+  },
+  {
+    "name": "table-08",
+    "page": 14,
+    "x": 221,
+    "y": 406,
+    "width": 170,
+    "height": 52,
+    "preserveSource": false
+  }
+]

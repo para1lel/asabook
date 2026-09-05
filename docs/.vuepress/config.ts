@@ -4012,6 +4012,24 @@ Object.assign(paperAbbreviations, {
   'Gou21': 'Jianping Gou, Baosheng Yu, Stephen J. Maybank, and Dacheng Tao. "Knowledge Distillation: A Survey." International Journal of Computer Vision 129(6): 1789-1819, 2021. [Link](https://doi.org/10.1007/s11263-021-01453-z)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Che21g': 'Mingda Chen, Zewei Chu, Sam Wiseman, and Kevin Gimpel. "SummScreen: A Dataset for Abstractive Screenplay Summarization." arXiv:2104.07091, 2021. [Link](https://arxiv.org/abs/2104.07091)',
+  'Chi22a': 'Zewen Chi, Li Dong, Shaohan Huang, Damai Dai, Shuming Ma, Barun Patra, Saksham Singhal, Payal Bajaj, Xia Song, Xian-Ling Mao, Heyan Huang, and Furu Wei. "On the Representation Collapse of Sparse Mixture of Experts." NeurIPS, 2022. [Link](https://arxiv.org/abs/2204.09179)',
+  'Dao22g': 'Tri Dao, Daniel Y. Fu, Khaled K. Saab, Armin W. Thomas, Atri Rudra, and Christopher Ré. "Hungry Hungry Hippos: Towards Language Modeling with State Space Models." arXiv:2212.14052, 2022. [Link](https://arxiv.org/abs/2212.14052)',
+  'Dod21': 'Jesse Dodge, Ana Marasović, Gabriel Ilharco, Dirk Groeneveld, Margaret Mitchell, and Matt Gardner. "Documenting Large Webtext Corpora: A Case Study on the Colossal Clean Crawled Corpus." EMNLP, 2021. [Link](https://aclanthology.org/2021.emnlp-main.98/)',
+  'Hao22': 'Yaru Hao, Haoyu Song, Li Dong, Shaohan Huang, Zewen Chi, Wenhui Wang, Shuming Ma, and Furu Wei. "Language Models are General-Purpose Interfaces." arXiv:2206.06336, 2022. [Link](https://arxiv.org/abs/2206.06336)',
+  'Hao22a': 'Yaru Hao, Yutao Sun, Li Dong, Zhixiong Han, Yuxian Gu, and Furu Wei. "Structured Prompting: Scaling In-Context Learning to 1,000 Examples." arXiv:2212.06713, 2022. [Link](https://arxiv.org/abs/2212.06713)',
+  'Hua23c': 'Shaohan Huang, Li Dong, Wenhui Wang, Yaru Hao, Saksham Singhal, Shuming Ma, Tengchao Lv, Lei Cui, Owais Khan Mohammed, Qiang Liu, Kriti Aggarwal, Zewen Chi, Johan Bjorck, Vishrav Chaudhary, Subhojit Som, Xia Song, and Furu Wei. "Language Is Not All You Need: Aligning Perception with Language Models." arXiv:2302.14045, 2023. [Link](https://arxiv.org/abs/2302.14045)',
+  'Lev12': 'Hector Levesque, Ernest Davis, and Leora Morgenstern. "The Winograd Schema Challenge." KR, 2012. [Link](https://aaai.org/papers/00190-673-the-winograd-schema-challenge/)',
+  'Ma22': 'Shuming Ma, Hongyu Wang, Shaohan Huang, Wenhui Wang, Zewen Chi, Li Dong, Alon Benhaim, Barun Patra, Vishrav Chaudhary, Xia Song, and Furu Wei. "TorchScale: Transformers at Scale." arXiv:2211.13184, 2022. [Link](https://arxiv.org/abs/2211.13184)',
+  'Mos17': 'Nasrin Mostafazadeh, Michael Roth, Annie Louis, Nathanael Chambers, and James Allen. "LSDSem 2017 Shared Task: The Story Cloze Test." LSDSem, pp. 46-51, 2017. [Link](https://aclanthology.org/W17-0906/)',
+  'Pen23f': 'Zhiliang Peng, Wenhui Wang, Li Dong, Yaru Hao, Shaohan Huang, Shuming Ma, and Furu Wei. "Kosmos-2: Grounding Multimodal Large Language Models to the World." arXiv:2306.14824, 2023. [Link](https://arxiv.org/abs/2306.14824)',
+  'Pol23a': 'Michael Poli, Stefano Massaroli, Eric Nguyen, Daniel Y. Fu, Tri Dao, Stephen Baccus, Yoshua Bengio, Stefano Ermon, and Christopher Ré. "Hyena Hierarchy: Towards Larger Convolutional Language Models." arXiv:2302.10866, 2023. [Link](https://arxiv.org/abs/2302.10866)',
+  'Sun22': 'Yutao Sun, Li Dong, Barun Patra, Shuming Ma, Shaohan Huang, Alon Benhaim, Vishrav Chaudhary, Xia Song, and Furu Wei. "A Length-Extrapolatable Transformer." arXiv:2212.10554, 2022. [Link](https://arxiv.org/abs/2212.10554)',
+  'Wan22l': 'Hongyu Wang, Shuming Ma, Shaohan Huang, Li Dong, Wenhui Wang, Zhiliang Peng, Yu Wu, Payal Bajaj, Saksham Singhal, Alon Benhaim, et al. "Foundation Transformers." arXiv:2210.06423, 2022. [Link](https://arxiv.org/abs/2210.06423)',
+  'Wu18c': 'Yuxin Wu and Kaiming He. "Group Normalization." ECCV, pp. 3-19, 2018. [Link](https://openaccess.thecvf.com/content_ECCV_2018/html/Yuxin_Wu_Group_Normalization_ECCV_2018_paper.html)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4318,7 +4336,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'retentive-network', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4445,7 +4463,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'retentive-network', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4682,7 +4700,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'retentive-network', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
