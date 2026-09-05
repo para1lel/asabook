@@ -3988,6 +3988,20 @@ Object.assign(paperAbbreviations, {
   'Xia19a': 'Chaojun Xiao et al. "CAIL2019-SCM: A Dataset of Similar Case Matching in Legal Domain." arXiv:1911.08962, 2019. [Link](https://arxiv.org/abs/1911.08962)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Dej22': 'Michiel de Jong, Yury Zemlyanskiy, Joshua Ainslie, Nicholas FitzGerald, Sumit Sanghai, Fei Sha, and William Cohen. "FiDO: Fusion-in-Decoder Optimized for Stronger Performance and Faster Inference." arXiv:2212.08153, 2022. [Link](https://arxiv.org/abs/2212.08153)',
+  'Kom22a': 'Aran Komatsuzaki, Joan Puigcerver, James Lee-Thorp, Carlos Riquelme Ruiz, Basil Mustafa, Joshua Ainslie, Yi Tay, Mostafa Dehghani, and Neil Houlsby. "Sparse Upcycling: Training Mixture-of-Experts from Dense Checkpoints." arXiv:2212.05055, 2022. [Link](https://arxiv.org/abs/2212.05055)',
+  'Hee20': 'Jonathan Heek, Anselm Levskaya, Avital Oliver, Marvin Ritter, Bertrand Rondepierre, Andreas Steiner, and Marc van Zee. "Flax: A Neural Network Library and Ecosystem for JAX." Version 0.6.0, 2020. [Link](https://github.com/google/flax)',
+  'Coh18': 'Arman Cohan, Franck Dernoncourt, Doo Soon Kim, Trung Bui, Seokhwan Kim, Walter Chang, and Nazli Goharian. "A Discourse-Aware Attention Model for Abstractive Summarization of Long Documents." NAACL-HLT, pp. 615-621, 2018. [Link](https://aclanthology.org/N18-2097/)',
+  'Zhu21a': 'Chenguang Zhu, Yang Liu, Jie Mei, and Michael Zeng. "MediaSum: A Large-scale Media Interview Dataset for Dialogue Summarization." NAACL-HLT, pp. 5927-5934, 2021. [Link](https://aclanthology.org/2021.naacl-main.474/)',
+  'Xpr20': 'XProf. "Profile Your Model with Cloud TPU Tools." 2020. [Link](https://cloud.google.com/tpu/docs/cloud-tpu-tools)',
+  'Rab23': 'Markus Rabe. "Memory-efficient Attention." Flaxformer implementation, 2023. [Link](https://github.com/google/flaxformer/blob/main/flaxformer/components/attention/memory_efficient_attention.py)',
+  'Par20b': 'Sungrae Park, Geewook Kim, Junyeop Lee, Junbum Cha, Ji-Hoon Kim, and Hwalsuk Lee. "Scale Down Transformer by Grouping Features for a Lightweight Character-level Language Model." COLING, pp. 6883-6893, 2020. [Link](https://aclanthology.org/2020.coling-main.607/)',
+  'Luo22': 'Gen Luo, Yiyi Zhou, Xiaoshuai Sun, Yan Wang, Liujuan Cao, Yongjian Wu, Feiyue Huang, and Rongrong Ji. "Towards Lightweight Transformer via Group-Wise Transformation for Vision-and-Language Tasks." IEEE Transactions on Image Processing 31: 3386-3398, 2022. [Link](https://doi.org/10.1109/TIP.2021.3139234)',
+  'Ni23': 'Jinjie Ni, Rui Mao, Zonglin Yang, Han Lei, and Erik Cambria. "Finding the Pillars of Strength for Multi-Head Attention." ACL, pp. 14526-14540, 2023. [Link](https://aclanthology.org/2023.acl-long.812/)',
+  'Gou21': 'Jianping Gou, Baosheng Yu, Stephen J. Maybank, and Dacheng Tao. "Knowledge Distillation: A Survey." International Journal of Computer Vision 129(6): 1789-1819, 2021. [Link](https://doi.org/10.1007/s11263-021-01453-z)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4294,7 +4308,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4421,7 +4435,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4658,7 +4672,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
