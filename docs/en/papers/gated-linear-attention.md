@@ -21,7 +21,7 @@ Transformers with softmax attention [Vas17a] enjoy efficient parallel training b
 
 From a performance standpoint, linear attention has generally been found to underperform ordinary softmax attention, often by a significant margin in language modeling [Kas21]. Recent variants of linear attention such as RetNet [Sun23b] and TransNormerLLM [Qin23c] obtain significant improvements by multiplying the current hidden state with a decay factor before the RNN update. However, these works use a global, *data-independent* decay factor, despite the fact that in 1D RNNs, a *data-dependent* gating mechanism has been shown to be crucial for performance [Wes18, Qin23a]. And even with the decay factor, linear attention Transformers underperform the strongest Transformer architectures when pretrained from scratch.
 
-This work develops a hardware-efficient algorithm for linear attention, and applies it to train a gated variant of linear attention that is competitive with softmax attention. We first discuss aspects of optimizing ordinary linear attention on modern GPUs and give two I/O-aware algorithms (tailored for different training settings) based on these principles (§[Section 3](#section-3)). Our implementation of the algorithm, called FlashLinearAttention, is faster than FlashAttention-2 [Dao23b] even on short (e.g., 1K) sequences. We then describe a gated linear attention layer with a data-dependent gating mechanism and show how FlashLinearAttention can be generalized to the gated case (§[Section 4](#section-4)). We study the resulting *gated linear attention (GLA) Transformer* on moderate-scale language modeling benchmarks, where we train models with 340M/1.3B parameters on 15B/100B tokens, respectively. We find that the GLA Transformer performs favorably against a strong LLaMA architecture Transformer baseline that makes use of recent recipes [Tou23] as well as recent linear-time sequence models such as RetNet [Sun23b] and Mamba [Gu23]. GLA Transformer is found to be particularly strong at length generalization and recall-intensive tasks among linear recurrent models. For training speed, the GLA Transformer has significantly higher throughput than a similarly sized Mamba model.
+This work develops a hardware-efficient algorithm for linear attention, and applies it to train a gated variant of linear attention that is competitive with softmax attention. We first discuss aspects of optimizing ordinary linear attention on modern GPUs and give two I/O-aware algorithms (tailored for different training settings) based on these principles ([Section 3](#section-3)). Our implementation of the algorithm, called FlashLinearAttention, is faster than FlashAttention-2 [Dao23b] even on short (e.g., 1K) sequences. We then describe a gated linear attention layer with a data-dependent gating mechanism and show how FlashLinearAttention can be generalized to the gated case ([Section 4](#section-4)). We study the resulting *gated linear attention (GLA) Transformer* on moderate-scale language modeling benchmarks, where we train models with 340M/1.3B parameters on 15B/100B tokens, respectively. We find that the GLA Transformer performs favorably against a strong LLaMA architecture Transformer baseline that makes use of recent recipes [Tou23] as well as recent linear-time sequence models such as RetNet [Sun23b] and Mamba [Gu23]. GLA Transformer is found to be particularly strong at length generalization and recall-intensive tasks among linear recurrent models. For training speed, the GLA Transformer has significantly higher throughput than a similarly sized Mamba model.
 
 <span id="section-2"></span>
 
@@ -216,7 +216,7 @@ $$
 {\mathbf{S}}_{t}=({\bm{\alpha}}_{t}^{\top}\mathbf{1})\odot{\mathbf{S}}_{t-1}+{\bm{k}}_{t}^{\top}{\bm{v}}_{t}=\mathrm{Diag}({\bm{\alpha}}_{t}){\mathbf{S}}_{t-1}+{\bm{k}}_{t}^{\top}{\bm{v}}_{t},
 $$
 
-where ${\bm{\alpha}}_{t}$ is parameterized via a low-rank linear layer followed by sigmoid on ${\bm{x}}_{t}$ (see §[Section 4.4](#section-4-4)). Note that the above formulation is general and encompasses several recent RNNs [Kat23, Qin24a, Pen24a]. Thus, the hardware-efficient GLA implementation (described next) could be directly used or adapted to other models.
+where ${\bm{\alpha}}_{t}$ is parameterized via a low-rank linear layer followed by sigmoid on ${\bm{x}}_{t}$ (see [Section 4.4](#section-4-4)). Note that the above formulation is general and encompasses several recent RNNs [Kat23, Qin24a, Pen24a]. Thus, the hardware-efficient GLA implementation (described next) could be directly used or adapted to other models.
 
 **Parallel form.** We now describe a parallel form GLA for parallelizing across sequence length. Unrolling [Equation 3](#equation-03) gives
 
@@ -247,7 +247,7 @@ $$
 \mathbf{P}_{ij}=\sum_{k=1}^{d}\mathbf{Q}_{ik}\mathbf{K}_{jk}\,\exp(\log{\mathbf{B}}_{ik}-\log{\mathbf{B}}_{jk}),\quad i\geq j.
 $$
 
-where $k$ denotes feature indices. However, unlike vanilla linear attention, as [Equation 4](#equation-04) cannot be represented via a standard matmul, and it cannot make use of half-precision matmuls on tensor cores. We will show in §[Section 4.3](#section-4-3) how a secondary-level chunking mechanism can enable the use of half-precision matmuls for most computations while maintaining numerical stability, as illustrated in [Figure 3](#figure-03).
+where $k$ denotes feature indices. However, unlike vanilla linear attention, as [Equation 4](#equation-04) cannot be represented via a standard matmul, and it cannot make use of half-precision matmuls on tensor cores. We will show in [Section 4.3](#section-4-3) how a secondary-level chunking mechanism can enable the use of half-precision matmuls for most computations while maintaining numerical stability, as illustrated in [Figure 3](#figure-03).
 
 <span id="figure-03"></span>
 
@@ -259,7 +259,7 @@ where $k$ denotes feature indices. However, unlike vanilla linear attention, as 
 
 ### 4.2 Chunkwise Parallel Form of GLA
 
-We derive a chunkwise form of GLA similar to the chunkwise form of basic linear attention (§[Section 2.2](#section-2-2)). Here the intra-chunk operation implements the above parallel form at the chunk-level to obtain ${\mathbf{O}}^{\mathrm{intra}}$. For inter-chunk, we have
+We derive a chunkwise form of GLA similar to the chunkwise form of basic linear attention ([Section 2.2](#section-2-2)). Here the intra-chunk operation implements the above parallel form at the chunk-level to obtain ${\mathbf{O}}^{\mathrm{intra}}$. For inter-chunk, we have
 
 $$
 \begin{aligned}
@@ -275,7 +275,7 @@ Intuitively, $\mathbf{\Lambda}_{[i+1]}$ encodes the cumulative decay from the st
 
 ### 4.3 Hardware-Efficient GLA
 
-With the chunkwise form in hand, we can adapt the FlashLinear Attention algorithm presented in §[Section 3](#section-3) to the gated case. The adaptation additionally relies on two crucial techniques described below. We give high-level intuitions in this section and defer the full algorithms to [Algorithms 3–6](#algorithm-03) of Appendix [Section 9](#section-9).
+With the chunkwise form in hand, we can adapt the FlashLinear Attention algorithm presented in [Section 3](#section-3) to the gated case. The adaptation additionally relies on two crucial techniques described below. We give high-level intuitions in this section and defer the full algorithms to [Algorithms 3–6](#algorithm-03) of Appendix [Section 9](#section-9).
 
 **Secondary-level chunking.** Unlike in ordinary linear attention, the intra-chunk computations in GLA cannot leverage half-precision matmuls (and thus tensor cores) due to log space computations ([Equation 4](#equation-04)). To make better use of tensor cores, we use secondary-level chunking scheme, where a chunk is further divided into sub-chunks (i.e., another level of tiling) in the spirit of classic tiling techniques [Dao22]. The attention-like matrix ${\mathbf{P}}\in\mathbb{R}^{L\times L}$ is then computed in a chunkwise manner, as illustrated in [Figure 3](#figure-03). Concretely, the interactions between sub-chunks are computed via half-precision matmuls, [+7]
 
@@ -412,7 +412,7 @@ Following [Aro24], we also test our models on three real recall-intensive tasks:
 
 **Figure 6.** Training throughput and GPU memory usage for 1.3B models on a single H100 GPU.
 
-[Figure 6](#figure-06) shows the throughput and memory usage as a function of the sequence length and batch size for the different 1.3B models on a single H100 GPU. [+10] Here GLA adopts the materialization version of FlashLinearAttention with recomputation of hidden state (§[Section 3.3](#section-3-3)). All models have linear space complexity, and the total GPU footprint difference among them is minimal. In terms of training throughput, Mamba lags behind Transformer++ and GLA, with GLA shows greater advantages in training lengths beyond 4096.
+[Figure 6](#figure-06) shows the throughput and memory usage as a function of the sequence length and batch size for the different 1.3B models on a single H100 GPU. [+10] Here GLA adopts the materialization version of FlashLinearAttention with recomputation of hidden state ([Section 3.3](#section-3-3)). All models have linear space complexity, and the total GPU footprint difference among them is minimal. In terms of training throughput, Mamba lags behind Transformer++ and GLA, with GLA shows greater advantages in training lengths beyond 4096.
 
 <span id="section-5-4"></span>
 
@@ -430,7 +430,7 @@ Traditional RNNs are difficult to scale due to the nonlinear dependencies betwee
 
 Data-dependent decay rates have always been regarded important for RNNs [Ger00, Wes18]. Typical forget gate values depend on both the previous hidden state and the current input. However [Mar18] suggest that forget gate values should depend solely on the current inputs to enable parallel training. This simple strategy has been shown to be effective in moderate-scale experiments conducted by HGRN [Qin23a]. RWKV-v6 [Pen24a] and Mamba [Gu23] also use data-dependent decay rates that are reminiscent of forget gates. In the context of linear Transformers, [Pen21] employ a coarse-grained position-wise forget gate, while [Mao22] and [Kat23] use a more fine-grained forget gate.
 
-RNNs rely on fixed-dimensional hidden states to encode their entire history. The hidden state dimension serves as a proxy for memory capacity and thus significantly influences their expressive power. Linear Transformers expand the hidden dimension of RNNs via the outer-product parameterization, as discussed §[Section 2.1](#section-2-1). Linear SSMs on the other hand expand their hidden dimension via a single-input-single-output (SISO) strategy. Without data-dependent SSM parameters, this can be done efficiently during training via the Fast Fourier Transform (FFT). However, with data-dependent SSM parameters, FFT-based training is not possible, and thus [Gu23] implements a custom CUDA kernel to train a selective state-space model using the parallel scan algorithm [Smi23]. To fit all the hidden states into SRAM, they can only afford an expansion rate up to 16. In contrast our hardware-aware training algorithm provides an alternative, efficient approach for expanding the hidden dimension to a wider range, which we have shown useful in recall-intensive tasks.
+RNNs rely on fixed-dimensional hidden states to encode their entire history. The hidden state dimension serves as a proxy for memory capacity and thus significantly influences their expressive power. Linear Transformers expand the hidden dimension of RNNs via the outer-product parameterization, as discussed in [Section 2.1](#section-2-1). Linear SSMs on the other hand expand their hidden dimension via a single-input-single-output (SISO) strategy. Without data-dependent SSM parameters, this can be done efficiently during training via the Fast Fourier Transform (FFT). However, with data-dependent SSM parameters, FFT-based training is not possible, and thus [Gu23] implements a custom CUDA kernel to train a selective state-space model using the parallel scan algorithm [Smi23]. To fit all the hidden states into SRAM, they can only afford an expansion rate up to 16. In contrast our hardware-aware training algorithm provides an alternative, efficient approach for expanding the hidden dimension to a wider range, which we have shown useful in recall-intensive tasks.
 
 <span id="section-7"></span>
 

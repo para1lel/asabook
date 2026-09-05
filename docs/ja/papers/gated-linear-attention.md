@@ -21,7 +21,7 @@ Softmax attention を用いる Transformer [Vas17a] は効率よく並列学習�
 
 性能面では、linear attention は通常の softmax attention を下回り、language modeling では大きな差が生じることも多い [Kas21]。RetNet [Sun23b] や TransNormerLLM [Qin23c] など近年の手法は、RNN update の前に現在の hidden state へ decay factor を掛けて性能を大きく改善した。しかし、一次元 RNN では *data-dependent* gating が性能に不可欠だと示されている [Wes18, Qin23a] にもかかわらず、これらは global かつ *data-independent* な decay factor を使う。Decay factor を導入しても、linear attention Transformer を scratch から事前学習した性能は最良の Transformer architecture に届かない。
 
-本研究は hardware-efficient な linear attention アルゴリズムを開発し、softmax attention と競合できる gated variant の学習へ応用する。まず、現代の GPU 上で通常の linear attention を最適化する際の要点を整理し、異なる学習条件に向けた二つの I/O-aware algorithm を示す（§[第 3 節](#section-3)）。FlashLinearAttention と呼ぶ実装は、1K のような短い系列でも FlashAttention-2 [Dao23b] より速い。次に data-dependent gating mechanism を持つ gated linear attention layer を説明し、FlashLinearAttention を gated case へ一般化する（§[第 4 節](#section-4)）。得られた *gated linear attention（GLA）Transformer* を中規模 language modeling benchmark で検証し、340M/1.3B parameter model をそれぞれ 15B/100B token で学習する。GLA Transformer は、近年の recipe を使う強力な LLaMA architecture Transformer baseline [Tou23] と、RetNet [Sun23b]、Mamba [Gu23] など近年の linear-time sequence model の双方に対して良好な結果を示した。Linear recurrent model の中でも、とくに長さの一般化と recall-intensive task に強い。学習 throughput も同規模の Mamba より大幅に高い。
+本研究は hardware-efficient な linear attention アルゴリズムを開発し、softmax attention と競合できる gated variant の学習へ応用する。まず、現代の GPU 上で通常の linear attention を最適化する際の要点を整理し、異なる学習条件に向けた二つの I/O-aware algorithm を示す（[第 3 節](#section-3)）。FlashLinearAttention と呼ぶ実装は、1K のような短い系列でも FlashAttention-2 [Dao23b] より速い。次に data-dependent gating mechanism を持つ gated linear attention layer を説明し、FlashLinearAttention を gated case へ一般化する（[第 4 節](#section-4)）。得られた *gated linear attention（GLA）Transformer* を中規模 language modeling benchmark で検証し、340M/1.3B parameter model をそれぞれ 15B/100B token で学習する。GLA Transformer は、近年の recipe を使う強力な LLaMA architecture Transformer baseline [Tou23] と、RetNet [Sun23b]、Mamba [Gu23] など近年の linear-time sequence model の双方に対して良好な結果を示した。Linear recurrent model の中でも、とくに長さの一般化と recall-intensive task に強い。学習 throughput も同規模の Mamba より大幅に高い。
 
 <span id="section-2"></span>
 
@@ -216,7 +216,7 @@ $$
 {\mathbf{S}}_{t}=({\bm{\alpha}}_{t}^{\top}\mathbf{1})\odot{\mathbf{S}}_{t-1}+{\bm{k}}_{t}^{\top}{\bm{v}}_{t}=\mathrm{Diag}({\bm{\alpha}}_{t}){\mathbf{S}}_{t-1}+{\bm{k}}_{t}^{\top}{\bm{v}}_{t},
 $$
 
-${\bm{\alpha}}_{t}$ は ${\bm{x}}_{t}$ に low-rank linear layer と sigmoid を順に適用して parameterize する（§[第 4.4 節](#section-4-4)）。この定式化は一般的であり、近年の複数の RNN [Kat23, Qin24a, Pen24a] を包含する。したがって、次に述べる hardware-efficient な GLA 実装は、ほかのモデルにもそのまま、または調整して利用できる。
+${\bm{\alpha}}_{t}$ は ${\bm{x}}_{t}$ に low-rank linear layer と sigmoid を順に適用して parameterize する（[第 4.4 節](#section-4-4)）。この定式化は一般的であり、近年の複数の RNN [Kat23, Qin24a, Pen24a] を包含する。したがって、次に述べる hardware-efficient な GLA 実装は、ほかのモデルにもそのまま、または調整して利用できる。
 
 **並列形式.** 系列長方向に並列化する GLA の並列形式を説明する。[Equation 3](#equation-03) を展開すると、
 
@@ -247,7 +247,7 @@ $$
 \mathbf{P}_{ij}=\sum_{k=1}^{d}\mathbf{Q}_{ik}\mathbf{K}_{jk}\,\exp(\log{\mathbf{B}}_{ik}-\log{\mathbf{B}}_{jk}),\quad i\geq j.
 $$
 
-ここで $k$ は feature index を表す。ただし通常の linear attention と違い、[Equation 4](#equation-04) は標準的な matmul で表せず、tensor core 上の half-precision matmul を利用できない。§[第 4.3 節](#section-4-3) では、[Figure 3](#figure-03) のように secondary-level chunking によって、数値安定性を保ちながら大半の計算を half-precision matmul で行う方法を示す。
+ここで $k$ は feature index を表す。ただし通常の linear attention と違い、[Equation 4](#equation-04) は標準的な matmul で表せず、tensor core 上の half-precision matmul を利用できない。[第 4.3 節](#section-4-3) では、[Figure 3](#figure-03) のように secondary-level chunking によって、数値安定性を保ちながら大半の計算を half-precision matmul で行う方法を示す。
 
 <span id="figure-03"></span>
 
@@ -259,7 +259,7 @@ $$
 
 ### 4.2 GLA の Chunkwise 並列形式
 
-基本的な linear attention の chunkwise 形式（§[第 2.2 節](#section-2-2)）と同様に、GLA の chunkwise 形式を導く。Intra-chunk operation では、上の並列形式を chunk 単位で実行して ${\mathbf{O}}^{\mathrm{intra}}$ を得る。Inter-chunk については、
+基本的な linear attention の chunkwise 形式（[第 2.2 節](#section-2-2)）と同様に、GLA の chunkwise 形式を導く。Intra-chunk operation では、上の並列形式を chunk 単位で実行して ${\mathbf{O}}^{\mathrm{intra}}$ を得る。Inter-chunk については、
 
 $$
 \begin{aligned}
@@ -275,7 +275,7 @@ $$
 
 ### 4.3 Hardware-Efficient GLA
 
-Chunkwise 形式が得られたので、§[第 3 節](#section-3) の FlashLinearAttention algorithm を gated case に適用できる。この適用には、以下の二つの重要な技法も必要になる。本節では概要だけを説明し、完全な algorithm は Appendix [第 9 節](#section-9) の [Algorithms 3–6](#algorithm-03) に示す。
+Chunkwise 形式が得られたので、[第 3 節](#section-3) の FlashLinearAttention algorithm を gated case に適用できる。この適用には、以下の二つの重要な技法も必要になる。本節では概要だけを説明し、完全な algorithm は Appendix [第 9 節](#section-9) の [Algorithms 3–6](#algorithm-03) に示す。
 
 **Secondary-level chunking.** 通常の linear attention と違い、GLA の intra-chunk 計算は log space の計算（[Equation 4](#equation-04)）を含むため、half-precision matmul、したがって tensor core を利用できない。Tensor core をより有効に使うため、古典的な tiling [Dao22] と同様に、一つの chunk をさらに sub-chunk に分ける secondary-level chunking を採用する。すると attention-like matrix ${\mathbf{P}}\in\mathbb{R}^{L\times L}$ は、[Figure 3](#figure-03) のように chunkwise に計算できる。具体的には、sub-chunk 間の interaction を half-precision matmul で計算する。 [+7]
 
@@ -412,7 +412,7 @@ Wikitext（Wiki.）の perplexity（ppl）に加え、[Gu23] と同様に common
 
 **Figure 6.** 単一の H100 GPU 上での 1.3B モデルの training throughput と GPU memory 使用量。
 
-[Figure 6](#figure-06) は、単一の H100 GPU 上で 1.3B モデルの sequence length と batch size を変えたときの throughput と memory 使用量を示す。 [+10] GLA には hidden state を recompute する FlashLinearAttention の materialization 版（§[第 3.3 節](#section-3-3)）を用いる。全モデルの space complexity は線形で、GPU footprint の差はわずかである。Training throughput では Mamba が Transformer++ と GLA を下回り、training length が 4096 を超えると GLA の優位性が大きくなる。
+[Figure 6](#figure-06) は、単一の H100 GPU 上で 1.3B モデルの sequence length と batch size を変えたときの throughput と memory 使用量を示す。 [+10] GLA には hidden state を recompute する FlashLinearAttention の materialization 版（[第 3.3 節](#section-3-3)）を用いる。全モデルの space complexity は線形で、GPU footprint の差はわずかである。Training throughput では Mamba が Transformer++ と GLA を下回り、training length が 4096 を超えると GLA の優位性が大きくなる。
 
 <span id="section-5-4"></span>
 
@@ -430,7 +430,7 @@ GLA Transformer は一定の規模で実験したものの、計算資源の制�
 
 Data-dependent decay rate は以前から RNN に重要だと考えられてきた [Ger00, Wes18]。一般的な forget gate の値は、直前の hidden state と現在の入力の両方に依存する。一方 [Mar18] は、並列学習を可能にするため、forget gate を現在の入力だけに依存させることを提案した。この単純な方法は HGRN [Qin23a] の中規模実験で有効性が確認されている。RWKV-v6 [Pen24a] と Mamba [Gu23] も forget gate に似た data-dependent decay rate を用いる。Linear Transformer では、[Pen21] が粗粒度の position-wise forget gate を、[Mao22] と [Kat23] がより細粒度の forget gate を採用する。
 
-RNN は履歴全体を固定次元の hidden state に符号化する。Hidden-state dimension は memory capacity の指標となり、表現力に大きく影響する。§[第 2.1 節](#section-2-1)で述べたように、Linear Transformer は outer-product parameterization によって RNN の hidden dimension を拡張する。一方、linear SSM は single-input-single-output（SISO）によって拡張する。SSM parameter が data-dependent でなければ、Fast Fourier Transform（FFT）を使って学習時に効率よく計算できる。Data-dependent な場合は FFT-based training が使えないため、[Gu23] は parallel scan algorithm [Smi23] で selective state-space model を学習する custom CUDA kernel を実装した。すべての hidden state を SRAM に収める必要があり、expansion rate は最大 16 に限られる。これに対し本研究の hardware-aware training algorithm は、hidden dimension をより広い範囲へ効率よく拡張でき、recall-intensive task で有用であることを示した。
+RNN は履歴全体を固定次元の hidden state に符号化する。Hidden-state dimension は memory capacity の指標となり、表現力に大きく影響する。[第 2.1 節](#section-2-1)で述べたように、Linear Transformer は outer-product parameterization によって RNN の hidden dimension を拡張する。一方、linear SSM は single-input-single-output（SISO）によって拡張する。SSM parameter が data-dependent でなければ、Fast Fourier Transform（FFT）を使って学習時に効率よく計算できる。Data-dependent な場合は FFT-based training が使えないため、[Gu23] は parallel scan algorithm [Smi23] で selective state-space model を学習する custom CUDA kernel を実装した。すべての hidden state を SRAM に収める必要があり、expansion rate は最大 16 に限られる。これに対し本研究の hardware-aware training algorithm は、hidden dimension をより広い範囲へ効率よく拡張でき、recall-intensive task で有用であることを示した。
 
 <span id="section-7"></span>
 

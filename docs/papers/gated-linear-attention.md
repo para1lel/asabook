@@ -21,7 +21,7 @@ pageClass: paper-reading
 
 从效果看, 线性注意力通常不及普通 softmax 注意力, 在语言建模中差距往往很大 [Kas21]. RetNet [Sun23b]、TransNormerLLM [Qin23c] 等近期变体会在 RNN 更新前给当前隐状态乘上衰减因子, 因而取得明显提升. 但它们使用的是全局且*不依赖数据*的衰减因子, 而在一维 RNN 中, *依赖数据*的门控机制已被证明对性能至关重要 [Wes18, Qin23a]. 即便加入衰减因子, 从头预训练的线性注意力 Transformer 仍落后于最强的 Transformer 架构.
 
-本文为线性注意力设计了一种硬件高效算法, 并用它训练带门控的线性注意力变体, 使其能够与 softmax 注意力竞争. 作者先讨论如何在现代 GPU 上优化普通线性注意力, 再据此给出两种适配不同训练场景的 I/O 感知算法 (§[第 3 节](#section-3)). 其实现 FlashLinearAttention 即使面对 1K 一类短序列也快于 FlashAttention-2 [Dao23b]. 随后, 作者给出带数据依赖门控的线性注意力层, 并说明如何把 FlashLinearAttention 推广到门控情形 (§[第 4 节](#section-4)). 实验在中等规模语言建模基准上研究由此得到的*门控线性注意力 (GLA) Transformer*: 分别用 15B 和 100B token 训练 340M 与 1.3B 参数模型. 结果表明, GLA Transformer 相比采用近期训练配方的强 LLaMA 架构 Transformer 基线 [Tou23], 以及 RetNet [Sun23b]、Mamba [Gu23] 等近期线性时间序列模型, 都有良好表现. 在线性递归模型中, GLA Transformer 的长度泛化与高召回需求任务尤其突出; 它的训练吞吐量也明显高于规模相近的 Mamba 模型.
+本文为线性注意力设计了一种硬件高效算法, 并用它训练带门控的线性注意力变体, 使其能够与 softmax 注意力竞争. 作者先讨论如何在现代 GPU 上优化普通线性注意力, 再据此给出两种适配不同训练场景的 I/O 感知算法 ([第 3 节](#section-3)). 其实现 FlashLinearAttention 即使面对 1K 一类短序列也快于 FlashAttention-2 [Dao23b]. 随后, 作者给出带数据依赖门控的线性注意力层, 并说明如何把 FlashLinearAttention 推广到门控情形 ([第 4 节](#section-4)). 实验在中等规模语言建模基准上研究由此得到的*门控线性注意力 (GLA) Transformer*: 分别用 15B 和 100B token 训练 340M 与 1.3B 参数模型. 结果表明, GLA Transformer 相比采用近期训练配方的强 LLaMA 架构 Transformer 基线 [Tou23], 以及 RetNet [Sun23b]、Mamba [Gu23] 等近期线性时间序列模型, 都有良好表现. 在线性递归模型中, GLA Transformer 的长度泛化与高召回需求任务尤其突出; 它的训练吞吐量也明显高于规模相近的 Mamba 模型.
 
 <span id="section-2"></span>
 
@@ -77,7 +77,7 @@ $$
 {\mathbf{S}}_{t}={\mathbf{S}}_{t-1}+{\bm{k}}_{t}^\top{\bm{v}}_{t},\quad{\bm{o}}_{t}={\bm{q}}_{t}{\mathbf{S}}_{t}.
 $$
 
-[公式 1](#equation-01)清楚表明, 线性注意力层本质上是具有矩阵隐状态 ${\mathbf{S}}_{t}$ 的线性递归层, 该状态通过外积 ${\bm{k}}_{t}^\top{\bm{v}}_{t}=({\bm{x}}_{t}{\bm{W}}_{K})^\top({\bm{x}}_{t}{\bm{W}}_{V})$ 更新. [+1] 因果线性注意力的并行形式仍具有关于 $L$ 的二次复杂度: ${\mathbf{O}}=\big(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\mathbf{M}}\big){\mathbf{V}}$. 这里 ${\mathbf{M}}\in\{0,1\}^{L\times L}$ 是掩码, $i\geq j$ 时 ${\mathbf{M}}_{ij}=1$, $i<j$ 时 ${\mathbf{M}}_{ij}=0$. 由于存在 ${\mathbf{M}}$, 不能利用矩阵乘法结合律把并行形式的复杂度从二次降为线性. [+2]
+[公式 1](#equation-01) 清楚表明, 线性注意力层本质上是具有矩阵隐状态 ${\mathbf{S}}_{t}$ 的线性递归层, 该状态通过外积 ${\bm{k}}_{t}^\top{\bm{v}}_{t}=({\bm{x}}_{t}{\bm{W}}_{K})^\top({\bm{x}}_{t}{\bm{W}}_{V})$ 更新. [+1] 因果线性注意力的并行形式仍具有关于 $L$ 的二次复杂度: ${\mathbf{O}}=\big(({\mathbf{Q}}{\mathbf{K}}^\top)\odot{\mathbf{M}}\big){\mathbf{V}}$. 这里 ${\mathbf{M}}\in\{0,1\}^{L\times L}$ 是掩码, $i\geq j$ 时 ${\mathbf{M}}_{ij}=1$, $i<j$ 时 ${\mathbf{M}}_{ij}=0$. 由于存在 ${\mathbf{M}}$, 不能利用矩阵乘法结合律把并行形式的复杂度从二次降为线性. [+2]
 
 <span id="section-2-2"></span>
 
@@ -97,7 +97,7 @@ $$
 {\mathbf{O}}_{[i+1]}=\underbrace{{\mathbf{Q}}_{[i+1]}{\mathbf{S}}_{[i]}}_{\mathrm{inter-chunk}:{\mathbf{O}}^{\mathrm{inter}}_{[i+1]}}+\underbrace{\big(({\mathbf{Q}}_{[i+1]}{\mathbf{K}}_{[i+1]}^\top)\odot{\mathbf{M}}\big){\mathbf{V}}_{[i+1]}}_{\mathrm{intra-chunk}:{\mathbf{O}}^{\mathrm{intra}}_{[i+1]}},
 $$
 
-其中 ${\mathbf{O}}_{[i+1]}\in\mathbb{R}^{C\times d}$. “块内”分量 ${\mathbf{O}}^{\mathrm{intra}}_{[i+1]}$ 与[公式 1](#equation-01)的并行形式完全相同, 耗时 $O(C^{2}d+Cd^{2})$; “块间”分量 ${\mathbf{O}}^{\mathrm{inter}}_{[i+1]}$ 计入上一块隐状态的贡献, 耗时 $O(Cd^{2})$. 因而训练复杂度为 $O\left(\frac{L}{C}(C^{2}d+Cd^{2})\right)=O(L C d+L d^{2})$. 当 $L>d$ 时, 它小于 $O(L^{2}d)$. $C=L$ 时恢复并行形式, $C=1$ 时恢复递归形式.
+其中 ${\mathbf{O}}_{[i+1]}\in\mathbb{R}^{C\times d}$. “块内”分量 ${\mathbf{O}}^{\mathrm{intra}}_{[i+1]}$ 与 [公式 1](#equation-01) 的并行形式完全相同, 耗时 $O(C^{2}d+Cd^{2})$; “块间”分量 ${\mathbf{O}}^{\mathrm{inter}}_{[i+1]}$ 计入上一块隐状态的贡献, 耗时 $O(Cd^{2})$. 因而训练复杂度为 $O\left(\frac{L}{C}(C^{2}d+Cd^{2})\right)=O(L C d+L d^{2})$. 当 $L>d$ 时, 它小于 $O(L^{2}d)$. $C=L$ 时恢复并行形式, $C=1$ 时恢复递归形式.
 
 <span id="section-3"></span>
 
@@ -184,7 +184,7 @@ $$
 
 ## 4 门控线性注意力
 
-[公式 1](#equation-01)中的线性递归没有衰减项或遗忘门, 而这两者对 RNN 的性能十分重要 [Bec24, Cho14a, Wes18]. 没有衰减项, 模型就很难“忘记”信息; 有研究推测, 这也是线性注意力在长上下文任务中不稳定的部分原因 [Buc24]. 近期工作 [Sun23b, Qin23c] 给线性注意力加入全局且*不依赖数据*的衰减因子 [+3] $\gamma\in(0,1)$, 即 ${\mathbf{S}}_{t}=\gamma{\mathbf{S}}_{t-1}+{\bm{k}}_{t}^\top{\bm{v}}_{t}$, 从而提升性能. 使用单一 $\gamma$ 是为了保留类似注意力的并行形式, 便于高效训练. 本文改为考虑依赖数据的线性注意力门控机制, 并证明即使门控因子的表达能力更强, 得到的门控线性注意力 (GLA) 层仍有适合高效训练的硬件高效分块形式.
+[公式 1](#equation-01) 中的线性递归没有衰减项或遗忘门, 而这两者对 RNN 的性能十分重要 [Bec24, Cho14a, Wes18]. 没有衰减项, 模型就很难“忘记”信息; 有研究推测, 这也是线性注意力在长上下文任务中不稳定的部分原因 [Buc24]. 近期工作 [Sun23b, Qin23c] 给线性注意力加入全局且*不依赖数据*的衰减因子 [+3] $\gamma\in(0,1)$, 即 ${\mathbf{S}}_{t}=\gamma{\mathbf{S}}_{t-1}+{\bm{k}}_{t}^\top{\bm{v}}_{t}$, 从而提升性能. 使用单一 $\gamma$ 是为了保留类似注意力的并行形式, 便于高效训练. 本文改为考虑依赖数据的线性注意力门控机制, 并证明即使门控因子的表达能力更强, 得到的门控线性注意力 (GLA) 层仍有适合高效训练的硬件高效分块形式.
 
 <span id="section-4-1"></span>
 
@@ -216,9 +216,9 @@ $$
 {\mathbf{S}}_{t}=({\bm{\alpha}}_{t}^{\top}\mathbf{1})\odot{\mathbf{S}}_{t-1}+{\bm{k}}_{t}^{\top}{\bm{v}}_{t}=\mathrm{Diag}({\bm{\alpha}}_{t}){\mathbf{S}}_{t-1}+{\bm{k}}_{t}^{\top}{\bm{v}}_{t},
 $$
 
-${\bm{\alpha}}_{t}$ 由作用于 ${\bm{x}}_{t}$ 的低秩线性层与随后的 sigmoid 参数化, 详见 §[第 4.4 节](#section-4-4). 上述形式具有通用性, 涵盖多种近期 RNN [Kat23, Qin24a, Pen24a], 因而下文的硬件高效 GLA 实现可以直接用于其他模型, 或经调整后使用.
+${\bm{\alpha}}_{t}$ 由作用于 ${\bm{x}}_{t}$ 的低秩线性层与随后的 sigmoid 参数化, 详见 [第 4.4 节](#section-4-4). 上述形式具有通用性, 涵盖多种近期 RNN [Kat23, Qin24a, Pen24a], 因而下文的硬件高效 GLA 实现可以直接用于其他模型, 或经调整后使用.
 
-**并行形式.** 为了沿序列长度并行, 下面给出 GLA 的并行形式. 展开[公式 3](#equation-03)可得
+**并行形式.** 为了沿序列长度并行, 下面给出 GLA 的并行形式. 展开 [公式 3](#equation-03) 可得
 
 $$
 {\mathbf{S}}_{t}=\sum_{i=1}^{t}\left(\left(\prod_{j=i+1}^{t}{\bm{\alpha}}_{j}^{\top}\mathbf{1}\right)\odot{\bm{k}}_{i}^{\top}{\bm{v}}_{i}\right)
@@ -247,7 +247,7 @@ $$
 \mathbf{P}_{ij}=\sum_{k=1}^{d}\mathbf{Q}_{ik}\mathbf{K}_{jk}\,\exp(\log{\mathbf{B}}_{ik}-\log{\mathbf{B}}_{jk}),\quad i\geq j.
 $$
 
-其中 $k$ 表示特征索引. 与普通线性注意力不同, [公式 4](#equation-04)不能用标准矩阵乘法表示, 因而无法利用 tensor core 的半精度矩阵乘法. §[第 4.3 节](#section-4-3)将介绍二级分块机制: 在保持数值稳定的同时, 让大部分计算仍能使用半精度矩阵乘法, 如[图 3](#figure-03) 所示.
+其中 $k$ 表示特征索引. 与普通线性注意力不同, [公式 4](#equation-04) 不能用标准矩阵乘法表示, 因而无法利用 tensor core 的半精度矩阵乘法. [第 4.3 节](#section-4-3) 将介绍二级分块机制: 在保持数值稳定的同时, 让大部分计算仍能使用半精度矩阵乘法, 如[图 3](#figure-03) 所示.
 
 <span id="figure-03"></span>
 
@@ -259,7 +259,7 @@ $$
 
 ### 4.2 GLA 的分块并行形式
 
-与基本线性注意力的分块形式类似 (§[第 2.2 节](#section-2-2)), GLA 也可以推导出分块形式. 块内操作在块级实现上述并行形式, 得到 ${\mathbf{O}}^{\mathrm{intra}}$; 块间计算则为
+与基本线性注意力的分块形式类似 ([第 2.2 节](#section-2-2)), GLA 也可以推导出分块形式. 块内操作在块级实现上述并行形式, 得到 ${\mathbf{O}}^{\mathrm{intra}}$; 块间计算则为
 
 $$
 \begin{aligned}
@@ -275,7 +275,7 @@ $$
 
 ### 4.3 硬件高效的 GLA
 
-有了分块形式, 就能把 §[第 3 节](#section-3)的 FlashLinearAttention 算法推广到门控情形. 这一推广还依赖下述两项关键技术. 本节先给出高层直觉, 完整算法见附录[第 9 节](#section-9)的[算法 3–6](#algorithm-03).
+有了分块形式, 就能把 [第 3 节](#section-3) 的 FlashLinearAttention 算法推广到门控情形. 这一推广还依赖下述两项关键技术. 本节先给出高层直觉, 完整算法见附录[第 9 节](#section-9)的[算法 3–6](#algorithm-03).
 
 **二级分块.** 与普通线性注意力不同, GLA 的块内计算包含对数空间运算 ([公式 4](#equation-04)), 不能直接使用半精度矩阵乘法和 tensor core. 为了更充分地利用 tensor core, 本文沿用经典 tiling 思路 [Dao22], 再把每个块划分成子块. 随后按块计算类似注意力的矩阵 ${\mathbf{P}}\in\mathbb{R}^{L\times L}$, 如[图 3](#figure-03) 所示. 具体而言, 子块间交互采用半精度矩阵乘法: [+7]
 
@@ -285,7 +285,7 @@ $$
 \end{aligned}
 $$
 
-这对应[图 3](#figure-03) 中的橙色块. 对粉色的子块内部分, 为保证稳定性, 仍须按照[公式 4](#equation-04)以全精度计算矩阵乘法. 两级 tiling 大幅减少了非半精度矩阵乘法的 FLOPs, 从而缩短墙钟时间. Pytorch 风格的伪代码见附录[第 9 节](#section-9)的[代码 1](#listing-01).
+这对应[图 3](#figure-03) 中的橙色块. 对粉色的子块内部分, 为保证稳定性, 仍须按照 [公式 4](#equation-04) 以全精度计算矩阵乘法. 两级 tiling 大幅减少了非半精度矩阵乘法的 FLOPs, 从而缩短墙钟时间. Pytorch 风格的伪代码见附录[第 9 节](#section-9)的[代码 1](#listing-01).
 
 **内存高效的 ${\mathbf{d}\bm{\alpha}}_{t}$ 计算.** 以往工作 [Mao22] 认为, 由于 ${\mathbf{d}\bm{\alpha}}_{t}=({\mathbf{S}}_{t-1}\odot\mathbf{d}{\mathbf{S}}_{t})\mathbf{1}$, GLA 类模型要计算全部梯度 ${\mathbf{d}\bm{\alpha}}_{t}$, 就必须在 HBM 中物化大小为 $L\times d\times d$ 的矩阵隐状态. 本文改为给出 ${\mathbf{d}\log\bm{\alpha}}_{t}$ 的如下*闭式*表达:
 
@@ -295,7 +295,7 @@ $$
 \end{aligned}
 $$
 
-对[公式 4](#equation-04)求导即可得到该式, 完整推导见附录[第 9 节](#section-9). ${\mathbf{d}\bm{q}}_{t}$ 与 ${\mathbf{d}\bm{k}}_{t}$ 可按[算法 4 和 6](#algorithm-04)计算.
+对 [公式 4](#equation-04) 求导即可得到该式, 完整推导见附录[第 9 节](#section-9). ${\mathbf{d}\bm{q}}_{t}$ 与 ${\mathbf{d}\bm{k}}_{t}$ 可按[算法 4 和 6](#algorithm-04)计算.
 
 <span id="section-4-4"></span>
 
@@ -412,7 +412,7 @@ $$
 
 **图 6.** 单张 H100 GPU 上 1.3B 模型的训练吞吐量与 GPU 内存占用.
 
-[图 6](#figure-06) 展示单张 H100 GPU 上, 不同 1.3B 模型的吞吐量和内存占用如何随序列长度与 batch size 变化. [+10] GLA 采用 FlashLinearAttention 的物化版本, 并重计算隐状态 (§[第 3.3 节](#section-3-3)). 所有模型的空间复杂度均为线性, 总 GPU 占用差异很小. 训练吞吐量方面, Mamba 落后于 Transformer++ 与 GLA; 训练长度超过 4096 后, GLA 的优势更明显.
+[图 6](#figure-06) 展示单张 H100 GPU 上, 不同 1.3B 模型的吞吐量和内存占用如何随序列长度与 batch size 变化. [+10] GLA 采用 FlashLinearAttention 的物化版本, 并重计算隐状态 ([第 3.3 节](#section-3-3)). 所有模型的空间复杂度均为线性, 总 GPU 占用差异很小. 训练吞吐量方面, Mamba 落后于 Transformer++ 与 GLA; 训练长度超过 4096 后, GLA 的优势更明显.
 
 <span id="section-5-4"></span>
 
@@ -430,7 +430,7 @@ GLA Transformer 的实验规模已经不小, 但受算力限制, 作者未能开
 
 数据依赖衰减率一直被视为 RNN 的重要组成 [Ger00, Wes18]. 典型遗忘门同时依赖上一隐状态与当前输入. [Mar18] 则提出, 为实现并行训练, 遗忘门值应只依赖当前输入. HGRN [Qin23a] 的中等规模实验已证明这种简单策略有效. RWKV-v6 [Pen24a] 和 Mamba [Gu23] 也采用类似遗忘门的数据依赖衰减率. 在线性 Transformer 中, [Pen21] 使用粗粒度的逐位置遗忘门, [Mao22] 与 [Kat23] 使用更细粒度的遗忘门.
 
-RNN 依靠固定维度的隐状态编码全部历史. 隐状态维度可以近似反映内存容量, 因而显著影响表达能力. 如 §[第 2.1 节](#section-2-1)所述, 线性 Transformer 通过外积参数化扩大 RNN 隐状态维度, 线性 SSM 则采用单输入单输出 (SISO) 策略. SSM 参数不依赖数据时, 可以用快速傅里叶变换 (FFT) 高效训练; 参数依赖数据时, FFT 训练不再可行. 因此 [Gu23] 实现自定义 CUDA kernel, 用并行扫描算法 [Smi23] 训练选择性状态空间模型. 为把所有隐状态放入 SRAM, 扩展率最多只能到 16. 本文的硬件感知训练算法提供另一条高效路径, 可以在更大范围内扩展隐状态维度; 实验已显示这对高召回需求任务有帮助.
+RNN 依靠固定维度的隐状态编码全部历史. 隐状态维度可以近似反映内存容量, 因而显著影响表达能力. 如 [第 2.1 节](#section-2-1) 所述, 线性 Transformer 通过外积参数化扩大 RNN 隐状态维度, 线性 SSM 则采用单输入单输出 (SISO) 策略. SSM 参数不依赖数据时, 可以用快速傅里叶变换 (FFT) 高效训练; 参数依赖数据时, FFT 训练不再可行. 因此 [Gu23] 实现自定义 CUDA kernel, 用并行扫描算法 [Smi23] 训练选择性状态空间模型. 为把所有隐状态放入 SRAM, 扩展率最多只能到 16. 本文的硬件感知训练算法提供另一条高效路径, 可以在更大范围内扩展隐状态维度; 实验已显示这对高召回需求任务有帮助.
 
 <span id="section-7"></span>
 
