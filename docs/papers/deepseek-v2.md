@@ -1,11 +1,11 @@
 ---
 title: 'DeepSeek-V2'
-createTime: 2026/09/05 20:00:00
+createTime: 2026/09/05 18:30:00
 permalink: /papers/deepseek-v2/
 pageClass: paper-reading
 ---
 
-> DeepSeek-AI. 于 2024 年 5 月 7 日首次提交至 arXiv; 当前版本为 v5 (2024 年 6 月 19 日). [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434). [原始 PDF](/paper/deepseek-v2.pdf). [DOI](https://doi.org/10.48550/arXiv.2405.04434). [TeX 源码](https://export.arxiv.org/e-print/2405.04434). 原始 PDF 对于精确的印刷版式和参考文献仍具权威性.
+> [DeepSeek-AI](https://www.deepseek.com/). 于 2024 年 5 月 7 日首次提交至 arXiv; 当前版本为 v5 (2024 年 6 月 19 日). [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434). [原始 PDF](/paper/deepseek-v2.pdf). [DOI](https://doi.org/10.48550/arXiv.2405.04434). [TeX 源码](https://export.arxiv.org/e-print/2405.04434v5). 精确的印刷版式和参考文献以原始 PDF 为准.
 
 ## 摘要
 
@@ -24,10 +24,9 @@ pageClass: paper-reading
 过去几年里, 大语言模型 (LLM) [Ope22, Ope23, Ant23, Goo23] 经历了快速发展, 让我们得以一窥通用人工智能 (AGI) 的曙光. 总体而言, LLM 的智能往往随着参数数量的增加而提升, 使其能够在各项任务上展现涌现能力 [Wei22d]. 然而, 这种提升的代价是训练时需要更大的计算资源, 以及推理吞吐量可能下降. 这些约束带来了显著挑战, 阻碍了 LLM 的广泛采用与利用. 为了解决这一问题, 我们推出了 DeepSeek-V2, 一个性能强劲的开源混合专家 (MoE) 语言模型, 通过创新的 Transformer 架构实现训练经济与推理高效. 它总计配备 236B 参数, 每个 token 激活其中的 21B, 并支持 128K token 的上下文长度.
 
 我们借助所提出的 **多头潜在注意力 (MLA)** 与 **DeepSeekMoE**, 优化了 Transformer 框架 [Vas17d] 中的注意力模块和前馈网络 (FFN).
-(1)
-在注意力机制方面, 多头注意力 (MHA) [Vas17d] 的键值 (KV) cache 对 LLM 的推理效率构成了重大障碍. 为解决这一问题, 人们探索了多种方法, 包括分组查询注意力 (GQA) [Ain23] 和多查询注意力 (MQA) [Sha19]. 然而, 这些方法在尝试减小 KV cache 时往往以牺牲性能为代价. 为了兼得两者之优, 我们提出 MLA, 一种配备低秩键值联合压缩的注意力机制. 实验中, MLA 相比 MHA 取得了更优性能, 同时显著降低了推理期间的 KV cache, 从而提升了推理效率.
-(2)
-对于前馈网络 (FFN), 我们沿用 DeepSeekMoE 架构 [Dai24], 该架构采用细粒度专家切分与共享专家隔离, 以提升专家专业化的潜力. 与 GShard [Lep20] 等传统 MoE 架构相比, DeepSeekMoE 架构展现出巨大优势, 使我们能够以经济成本训练出强大的模型. 由于我们在训练中采用了专家并行, 还设计了补充机制来控制通信开销并确保负载均衡. 通过结合这两项技术, DeepSeek-V2 同时具备强大的性能 ([图 1](#figure-01)(a)), 经济的训练成本, 以及高效的推理吞吐量 ([图 1](#figure-01)(b)).
+
+1. 在注意力机制方面, 多头注意力 (MHA) [Vas17d] 的键值 (KV) cache 对 LLM 的推理效率构成了重大障碍. 为解决这一问题, 人们探索了多种方法, 包括分组查询注意力 (GQA) [Ain23] 和多查询注意力 (MQA) [Sha19]. 然而, 这些方法在尝试减小 KV cache 时往往以牺牲性能为代价. 为了兼得两者之优, 我们提出 MLA, 一种配备低秩键值联合压缩的注意力机制. 实验中, MLA 相比 MHA 取得了更优性能, 同时显著降低了推理期间的 KV cache, 从而提升了推理效率.
+2. 对于前馈网络 (FFN), 我们沿用 DeepSeekMoE 架构 [Dai24], 该架构采用细粒度专家切分与共享专家隔离, 以提升专家专业化的潜力. 与 GShard [Lep20] 等传统 MoE 架构相比, DeepSeekMoE 架构展现出巨大优势, 使我们能够以经济成本训练出强大的模型. 由于我们在训练中采用了专家并行, 还设计了补充机制来控制通信开销并确保负载均衡. 通过结合这两项技术, DeepSeek-V2 同时具备强大的性能 ([图 1](#figure-01)(a)), 经济的训练成本, 以及高效的推理吞吐量 ([图 1](#figure-01)(b)).
 
 <span id="figure-02"></span>
 
@@ -80,7 +79,7 @@ $$
     [\mathbf{q}_{t, 1};&\mathbf{q}_{t, 2};...;\mathbf{q}_{t, n_{h}}] = \mathbf{q}_{t}, \\
     [\mathbf{k}_{t, 1};&\mathbf{k}_{t, 2};...;\mathbf{k}_{t, n_{h}}] = \mathbf{k}_{t}, \\
     [\mathbf{v}_{t, 1};&\mathbf{v}_{t, 2};...;\mathbf{v}_{t, n_{h}}] = \mathbf{v}_{t}, \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
@@ -103,45 +102,45 @@ MLA 的核心是对键和值进行低秩联合压缩以减小 KV cache:
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{KV} &= W^{DKV} \mathbf{h}_{t}, \\
-    \mathbf{k}_{t}^{C} &= W^{UK} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{v}_{t}^{C} &= W^{UV} \mathbf{c}_{t}^{KV},
+    \mathbf{c}_{t}^{\mathit{KV}} &= W^{\mathit{DKV}} \mathbf{h}_{t}, \\
+    \mathbf{k}_{t}^{C} &= W^{\mathit{UK}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{v}_{t}^{C} &= W^{\mathit{UV}} \mathbf{c}_{t}^{\mathit{KV}},
 \end{aligned}
 $$
 
-其中 $\mathbf{c}_{t}^{KV} \in \mathbb{R}^{d_c}$ 是键和值的压缩潜在向量; $d_c (\ll d_h n_h)$ 表示 KV 压缩维度; $W^{DKV} \in \mathbb{R}^{d_c \times d}$ 是下投影矩阵; 而 $W^{UK},W^{UV} \in \mathbb{R}^{d_h n_h \times d_c}$ 分别是键和值的上投影矩阵. 推理期间, MLA 只需缓存 $\mathbf{c}_{t}^{KV}$, 因此其 KV cache 仅有 $d_{c}l$ 个元素, 其中 $l$ 表示层数. 此外, 推理期间由于 $W^{UK}$ 可被吸收进 $W^{Q}$, 且 $W^{UV}$ 可被吸收进 $W^{O}$, 我们甚至无需为注意力计算出键和值. [图 3](#figure-03) 直观地展示了 MLA 中的 KV 联合压缩如何降低 KV cache.
+其中 $\mathbf{c}_{t}^{\mathit{KV}} \in \mathbb{R}^{d_c}$ 是键和值的压缩潜在向量; $d_c (\ll d_h n_h)$ 表示 KV 压缩维度; $W^{\mathit{DKV}} \in \mathbb{R}^{d_c \times d}$ 是下投影矩阵; 而 $W^{\mathit{UK}},W^{\mathit{UV}} \in \mathbb{R}^{d_h n_h \times d_c}$ 分别是键和值的上投影矩阵. 推理期间, MLA 只需缓存 $\mathbf{c}_{t}^{\mathit{KV}}$, 因此其 KV cache 仅有 $d_{c}l$ 个元素, 其中 $l$ 表示层数. 此外, 推理期间由于 $W^{\mathit{UK}}$ 可被吸收进 $W^{Q}$, 且 $W^{\mathit{UV}}$ 可被吸收进 $W^{O}$, 我们甚至无需为注意力计算出键和值. [图 3](#figure-03) 直观地展示了 MLA 中的 KV 联合压缩如何降低 KV cache.
 
 此外, 为了降低训练期间的激活内存, 我们即使无法因此减小 KV cache, 也仍对查询进行低秩压缩:
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{Q} &= W^{DQ} \mathbf{h}_{t}, \\
-    \mathbf{q}_{t}^{C} &= W^{UQ} \mathbf{c}_{t}^{Q},
+    \mathbf{c}_{t}^{Q} &= W^{\mathit{DQ}} \mathbf{h}_{t}, \\
+    \mathbf{q}_{t}^{C} &= W^{\mathit{UQ}} \mathbf{c}_{t}^{Q},
 \end{aligned}
 $$
 
-其中 $\mathbf{c}_{t}^{Q} \in \mathbb{R}^{d_c^{\prime}}$ 是查询的压缩潜在向量; $d_c^{\prime} (\ll d_h n_h)$ 表示查询压缩维度; 而 $W^{DQ} \in \mathbb{R}^{d_c^{\prime} \times d}, W^{UQ} \in \mathbb{R}^{d_h n_h \times d_c^{\prime}}$ 分别是查询的下投影矩阵和上投影矩阵.
+其中 $\mathbf{c}_{t}^{Q} \in \mathbb{R}^{d_c^{\prime}}$ 是查询的压缩潜在向量; $d_c^{\prime} (\ll d_h n_h)$ 表示查询压缩维度; 而 $W^{\mathit{DQ}} \in \mathbb{R}^{d_c^{\prime} \times d}, W^{\mathit{UQ}} \in \mathbb{R}^{d_h n_h \times d_c^{\prime}}$ 分别是查询的下投影矩阵和上投影矩阵.
 
 <span id="section-2-1-3"></span>
 
 #### 2.1.3 解耦旋转位置编码
 
-沿袭 DeepSeek 67B [Dee24e], 我们打算为 DeepSeek-V2 使用旋转位置编码 (RoPE) [Su24]. 然而, RoPE 与低秩 KV 压缩不兼容. 具体而言, RoPE 对键和查询都具有位置敏感性. 如果我们将 RoPE 应用于键 $\mathbf{k}_{t}^{C}$, 那么 [式 10](#equation-10) 中的 $W^{UK}$ 将与一个位置敏感的 RoPE 矩阵耦合. 这样一来, 推理期间 $W^{UK}$ 便不能再被吸收进 $W^{Q}$, 因为与当前正在生成的 token 相关的 RoPE 矩阵会位于 $W^{Q}$ 与 $W^{UK}$ 之间, 而矩阵乘法不满足交换律. 其结果是, 我们必须在推理期间为所有前缀 token 重新计算键, 这会显著阻碍推理效率.
+沿袭 DeepSeek 67B [Dee24e], 我们打算为 DeepSeek-V2 使用旋转位置编码 (RoPE) [Su24]. 然而, RoPE 与低秩 KV 压缩不兼容. 具体而言, RoPE 对键和查询都具有位置敏感性. 如果我们将 RoPE 应用于键 $\mathbf{k}_{t}^{C}$, 那么 [式 10](#equation-10) 中的 $W^{\mathit{UK}}$ 将与一个位置敏感的 RoPE 矩阵耦合. 这样一来, 推理期间 $W^{\mathit{UK}}$ 便不能再被吸收进 $W^{Q}$, 因为与当前正在生成的 token 相关的 RoPE 矩阵会位于 $W^{Q}$ 与 $W^{\mathit{UK}}$ 之间, 而矩阵乘法不满足交换律. 其结果是, 我们必须在推理期间为所有前缀 token 重新计算键, 这会显著阻碍推理效率.
 
 作为解决方案, 我们提出了解耦 RoPE 策略, 它使用额外的多头查询 $\mathbf{q}_{t, i}^{R} \in \mathbb{R}^{d_h^R}$ 和一个共享键 $\mathbf{k}_{t}^{R} \in \mathbb{R}^{d_h^R}$ 来承载 RoPE, 其中 $d_h^R$ 表示解耦查询与键的每头维度. 配备解耦 RoPE 策略后, MLA 执行如下计算:
 
 $$
 \begin{aligned}
-    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \operatorname{RoPE}({W^{QR}} \mathbf{c}_{t}^{Q}), \\
-    \mathbf{k}_{t}^{R} &= \operatorname{RoPE}({W^{KR}} \mathbf{h}_{t}), \\
+    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{QR}}} \mathbf{c}_{t}^{Q}), \\
+    \mathbf{k}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{KR}}} \mathbf{h}_{t}), \\
     \mathbf{q}_{t, i} &= [\mathbf{q}_{t, i}^{C}; \mathbf{q}_{t, i}^{R}], \\
     \mathbf{k}_{t, i} &= [\mathbf{k}_{t, i}^{C}; \mathbf{k}_{t}^{R}], \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
 
-其中 $W^{QR} \in \mathbb{R}^{d_h^R n_h \times d_c^{\prime}}$ 与 $W^{KR} \in \mathbb{R}^{d_h^R \times d}$ 是分别产生解耦查询与键的矩阵; $\operatorname{RoPE}(\cdot)$ 表示施加 RoPE 矩阵的操作; 而 $[\cdot;\cdot]$ 表示拼接操作. 推理期间, 解耦键也应被缓存. 因此 DeepSeek-V2 所需的 KV cache 总计包含 $(d_{c} + d_h^R)l$ 个元素.
+其中 $W^{\mathit{QR}} \in \mathbb{R}^{d_h^R n_h \times d_c^{\prime}}$ 与 $W^{\mathit{KR}} \in \mathbb{R}^{d_h^R \times d}$ 是分别产生解耦查询与键的矩阵; $\mathop{\mathrm{RoPE}}(\cdot)$ 表示施加 RoPE 矩阵的操作; 而 $[\cdot;\cdot]$ 表示拼接操作. 推理期间, 解耦键也应被缓存. 因此 DeepSeek-V2 所需的 KV cache 总计包含 $(d_{c} + d_h^R)l$ 个元素.
 
 为了展示 MLA 的完整计算过程, 我们还在 [第 8 节](#section-8) 整理并给出了其完整公式.
 
@@ -171,16 +170,16 @@ $$
 
 $$
 \begin{aligned}
-    \mathbf{h}_{t}^{\prime} & = \mathbf{u}_{t} + \sum_{i=1}^{N_{s}} {\operatorname{FFN}^{(s)}_{i}\left( \mathbf{u}_{t} \right)} + \sum_{i=1}^{N_r} {g_{i,t} \operatorname{FFN}^{(r)}_{i}\left( \mathbf{u}_{t} \right)}, \\
+    \mathbf{h}_{t}^{\prime} & = \mathbf{u}_{t} + \sum_{i=1}^{N_{s}} {\mathop{\mathrm{FFN}}^{(s)}_{i}\left( \mathbf{u}_{t} \right)} + \sum_{i=1}^{N_r} {g_{i,t} \mathop{\mathrm{FFN}}^{(r)}_{i}\left( \mathbf{u}_{t} \right)}, \\
     g_{i,t} & = \begin{cases}
-    s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leq j \leq N_r \}, K_{r}), \\
-    0, & \text{otherwise},
+    s_{i,t}, & s_{i,t} \in \mathop{\mathrm{Topk}} (\{ s_{j, t} | 1 \leq j \leq N_r \}, K_{r}), \\
+    0, & \mathrm{otherwise},
     \end{cases} \\
-    s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}}^{T} \mathbf{e}_{i} \right),
+    s_{i,t} & = \mathop{\mathrm{Softmax}}_i \left( {\mathbf{u}_{t}}^\top \mathbf{e}_{i} \right),
 \end{aligned}
 $$
 
-其中 $N_{s}$ 与 $N_r$ 分别表示共享专家和路由专家的数量; $\operatorname{FFN}^{(s)}_{i}(\cdot)$ 与 $\operatorname{FFN}^{(r)}_{i}(\cdot)$ 分别表示第 $i$ 个共享专家和第 $i$ 个路由专家; $K_{r}$ 表示被激活的路由专家数量; $g_{i,t}$ 是第 $i$ 个专家的门控值; $s_{i,t}$ 是 token 与专家之间的亲和度; $\mathbf{e}_{i}$ 是该层第 $i$ 个路由专家的质心; 而 $\operatorname{Topk}(\cdot, K)$ 表示由针对第 $t$ 个 token 与所有路由专家计算出的亲和度分数中得分最高的 $K$ 个分数构成的集合.
+其中 $N_{s}$ 与 $N_r$ 分别表示共享专家和路由专家的数量; $\mathop{\mathrm{FFN}}^{(s)}_{i}(\cdot)$ 与 $\mathop{\mathrm{FFN}}^{(r)}_{i}(\cdot)$ 分别表示第 $i$ 个共享专家和第 $i$ 个路由专家; $K_{r}$ 表示被激活的路由专家数量; $g_{i,t}$ 是第 $i$ 个专家的门控值; $s_{i,t}$ 是 token 与专家之间的亲和度; $\mathbf{e}_{i}$ 是该层第 $i$ 个路由专家的质心; 而 $\mathop{\mathrm{Topk}}(\cdot, K)$ 表示由针对第 $t$ 个 token 与所有路由专家计算出的亲和度分数中得分最高的 $K$ 个分数构成的集合.
 
 <span id="section-2-2-2"></span>
 
@@ -201,7 +200,7 @@ $$
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N_r}{f_i P_i}, \\
-    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \text{Token $t$ selects Expert $i$} )}, \\
+    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{选择专家}\ i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
 \end{aligned}
 $$
@@ -225,12 +224,12 @@ $$
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{CommBal}} & = \alpha_{3} \sum_{i=1}^{D}{f_i^{\prime\prime} P_i^{\prime\prime}}, \\
-    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \text{Token $t$ is sent to Device $i$} )}, \\
+    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{被发送至设备}\ i )}, \\
     P_i^{\prime\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
 \end{aligned}
 $$
 
-其中 $\alpha_{3}$ 是一个称为通信均衡因子的超参数. 设备受限路由机制遵循的原则是确保每个设备向其他设备传输至多 $MT$ 个隐藏状态. 同时, 通信均衡损失被用来鼓励每个设备从其他设备接收约 $MT$ 个隐藏状态. 通信均衡损失保证了设备之间信息的均衡交换, 从而促进高效通信.
+其中 $\alpha_{3}$ 是一个称为通信均衡因子的超参数. 设备受限路由机制遵循的原则是确保每个设备向其他设备传输至多 $M T$ 个隐藏状态. 同时, 通信均衡损失被用来鼓励每个设备从其他设备接收约 $M T$ 个隐藏状态. 通信均衡损失保证了设备之间信息的均衡交换, 从而促进高效通信.
 
 <span id="section-2-2-4"></span>
 
@@ -331,12 +330,10 @@ DeepSeek-V2 在一个双语语料上预训练, 因此我们在一系列英语和
 在 [表 2](#table-02) 中, 我们将 DeepSeek-V2 与几个代表性开源模型比较, 包括 DeepSeek 67B [Dee24e] (我们此前发布的版本), Qwen1.5 72B [Bai23b], LLaMA3 70B [Dub24] 和 Mixtral 8x22B [Mis24]. 我们用内部评测框架评测所有这些模型, 并确保它们共享相同的评测设置. 总体而言, 仅有 21B 激活参数时, DeepSeek-V2 在几乎所有基准上都显著优于 DeepSeek 67B, 并在开源模型中取得顶尖性能.
 
 进一步, 我们逐一详细比较 DeepSeek-V2 与其开源同类.
-(1)
-与同时支持中文和英语的 Qwen1.5 72B 相比, DeepSeek-V2 在大部分英语, 代码和数学基准上展现出压倒性优势. 至于中文基准, Qwen1.5 72B 在多学科多项选择任务上表现更好, 而 DeepSeek-V2 在其他任务上与之相当或更优. 请注意, 对于 CHID 基准, Qwen1.5 72B 的 tokenizer 在我们的评测框架中会报错, 因此我们将 Qwen1.5 72B 的 CHID 分数留空.
-(2)
-与 Mixtral 8x22B 相比, DeepSeek-V2 取得了相当或更好的英语性能, 除了与英语常识知识密切相关的 TriviaQA, NaturalQuestions 和 HellaSwag. 值得注意的是, DeepSeek-V2 在 MMLU 上优于 Mixtral 8x22B. 在代码和数学基准上, DeepSeek-V2 展现出与 Mixtral 8x22B 相当的性能. 由于 Mixtral 8x22B 并未专门在中文数据上训练, 其中文能力远落后于 DeepSeek-V2.
-(3)
-与 LLaMA3 70B 相比, DeepSeek-V2 训练的英语 token 不足其四分之一. 因此, 我们承认 DeepSeek-V2 在基础英语能力上与 LLaMA3 70B 仍存在轻微差距. 然而, 即使训练 token 和激活参数都少得多, DeepSeek-V2 仍展现出与 LLaMA3 70B 相当的代码和数学能力. 此外, 作为双语语言模型, DeepSeek-V2 在中文基准上以压倒性优势超越 LLaMA3 70B.
+
+1. 与同时支持中文和英语的 Qwen1.5 72B 相比, DeepSeek-V2 在大部分英语, 代码和数学基准上展现出压倒性优势. 至于中文基准, Qwen1.5 72B 在多学科多项选择任务上表现更好, 而 DeepSeek-V2 在其他任务上与之相当或更优. 请注意, 对于 CHID 基准, Qwen1.5 72B 的 tokenizer 在我们的评测框架中会报错, 因此我们将 Qwen1.5 72B 的 CHID 分数留空.
+2. 与 Mixtral 8x22B 相比, DeepSeek-V2 取得了相当或更好的英语性能, 除了与英语常识知识密切相关的 TriviaQA, NaturalQuestions 和 HellaSwag. 值得注意的是, DeepSeek-V2 在 MMLU 上优于 Mixtral 8x22B. 在代码和数学基准上, DeepSeek-V2 展现出与 Mixtral 8x22B 相当的性能. 由于 Mixtral 8x22B 并未专门在中文数据上训练, 其中文能力远落后于 DeepSeek-V2.
+3. 与 LLaMA3 70B 相比, DeepSeek-V2 训练的英语 token 不足其四分之一. 因此, 我们承认 DeepSeek-V2 在基础英语能力上与 LLaMA3 70B 仍存在轻微差距. 然而, 即使训练 token 和激活参数都少得多, DeepSeek-V2 仍展现出与 LLaMA3 70B 相当的代码和数学能力. 此外, 作为双语语言模型, DeepSeek-V2 在中文基准上以压倒性优势超越 LLaMA3 70B.
 
 最后, 值得提及的是, 某些先前研究 [Hu24] 在预训练阶段纳入了 SFT 数据, 而 DeepSeek-V2 在预训练期间从未接触过 SFT 数据.
 
@@ -364,20 +361,20 @@ DeepSeek-V2 在一个双语语料上预训练, 因此我们在一系列英语和
 
 为了进一步释放 DeepSeek-V2 的潜力并使其与人类偏好对齐, 我们进行了强化学习 (RL) 以调整其偏好.
 
-**强化学习算法.** 为了节省 RL 的训练成本, 我们采用组相对策略优化 (GRPO) [Sha24d], 它舍弃了通常与策略模型同规模的评论家模型, 转而从组分数中估计基线. 具体而言, 对于每个问题 $q$, GRPO 从旧策略 $\pi_{\theta_{old}}$ 中采样一组输出 $\{o_1, o_2, \cdots, o_G\}$, 然后通过最大化如下目标来优化策略模型 $\pi_{\theta}$:
+**强化学习算法.** 为了节省 RL 的训练成本, 我们采用组相对策略优化 (GRPO) [Sha24d], 它舍弃了通常与策略模型同规模的评论家模型, 转而从组分数中估计基线. 具体而言, 对于每个问题 $q$, GRPO 从旧策略 $\pi_{\theta_{\mathrm{old}}}$ 中采样一组输出 $\{o_1, o_2, \cdots, o_G\}$, 然后通过最大化如下目标来优化策略模型 $\pi_{\theta}$:
 
 <span id="equation-25"></span>
 
 $$
 \begin{aligned}
-    \mathcal{J}_{GRPO}(\theta) &= \mathbb{E}{[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{old}}(O|q)]}  \\
-    & \frac{1}{G}\sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{old}}(o_i |q)} A_i, \text{clip} \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{old}}(o_i |q)}, 1 - \epsilon, 1 + \epsilon \right)  A_i \right) - \beta \mathbb{D}_{KL}\left(\pi_{\theta} \| \pi_{ref}\right)\right) ,
+    \mathcal{J}_{\mathrm{GRPO}}(\theta) &= \mathbb{E}{[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\mathrm{old}}}(O|q)]}  \\
+    & \frac{1}{G}\sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{\mathrm{old}}}(o_i |q)} A_i, \mathop{\mathrm{clip}} \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{\mathrm{old}}}(o_i |q)}, 1 - \epsilon, 1 + \epsilon \right)  A_i \right) - \beta \mathbb{D}_{\mathrm{KL}}\left(\pi_{\theta} \| \pi_{\mathrm{ref}}\right)\right) ,
 \end{aligned}
 $$
 
 $$
 \begin{aligned}
-    \mathbb{D}_{KL}\left(\pi_{\theta} \| \pi_{ref}\right) = \frac{\pi_{ref}(o_i|q)}{\pi_{\theta}(o_i|q)}- \log\frac{\pi_{ref}(o_i|q)}{\pi_{\theta}(o_i|q)} - 1,
+    \mathbb{D}_{\mathrm{KL}}\left(\pi_{\theta} \| \pi_{\mathrm{ref}}\right) = \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)}- \log\frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} - 1,
 \end{aligned}
 $$
 
@@ -389,19 +386,19 @@ $$
 \end{aligned}
 $$
 
-**训练策略.** 在我们的初步实验中, 我们发现对推理数据 (例如代码和数学提示) 进行的 RL 训练展现出与通用数据训练不同的独特特征. 例如, 我们模型的数学和编码能力可以在更长的训练步数内持续提升. 因此, 我们采用两阶段 RL 训练策略, 它首先进行推理对齐, 然后进行人类偏好对齐. 在第一阶段的推理对齐中, 我们为代码和数学推理任务训练一个奖励模型 $RM_{reasoning}$, 并用 $RM_{reasoning}$ 的反馈来优化策略模型:
+**训练策略.** 在我们的初步实验中, 我们发现对推理数据 (例如代码和数学提示) 进行的 RL 训练展现出与通用数据训练不同的独特特征. 例如, 我们模型的数学和编码能力可以在更长的训练步数内持续提升. 因此, 我们采用两阶段 RL 训练策略, 它首先进行推理对齐, 然后进行人类偏好对齐. 在第一阶段的推理对齐中, 我们为代码和数学推理任务训练一个奖励模型 $\mathit{RM}_{\mathrm{reasoning}}$, 并用 $\mathit{RM}_{\mathrm{reasoning}}$ 的反馈来优化策略模型:
 
 $$
 \begin{aligned}
-    r_i=RM_{reasoning}(o_i).
+    r_i=\mathit{RM}_{\mathrm{reasoning}}(o_i).
 \end{aligned}
 $$
 
-在第二阶段的类偏好对齐中, 我们采用一个多奖励框架, 它从一个有用性奖励模型 $RM_{helpful}$, 一个安全性奖励模型 $RM_{safety}$ 和一个基于规则的奖励模型 $RM_{rule}$ 获取奖励. 一个回复 $o_i$ 的最终奖励为
+在第二阶段的类偏好对齐中, 我们采用一个多奖励框架, 它从一个有用性奖励模型 $\mathit{RM}_{\mathrm{helpful}}$, 一个安全性奖励模型 $\mathit{RM}_{\mathrm{safety}}$ 和一个基于规则的奖励模型 $\mathit{RM}_{\mathrm{rule}}$ 获取奖励. 一个回复 $o_i$ 的最终奖励为
 
 $$
 \begin{aligned}
-    r_i = c_1 \cdot RM_{helpful}(o_i) + c_2 \cdot RM_{safety}(o_i) + c_3 \cdot RM_{rule}(o_i),
+    r_i = c_1 \cdot \mathit{RM}_{\mathrm{helpful}}(o_i) + c_2 \cdot \mathit{RM}_{\mathrm{safety}}(o_i) + c_3 \cdot \mathit{RM}_{\mathrm{rule}}(o_i),
 \end{aligned}
 $$
 
@@ -517,21 +514,21 @@ DeepSeek 将以长期主义持续投入开源大模型, 旨在逐步逼近人工
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{Q} &= W^{DQ} \mathbf{h}_{t}, \\
-    [\mathbf{q}_{t, 1}^{C};\mathbf{q}_{t, 2}^{C};...;\mathbf{q}_{t, n_{h}}^{C}] = \mathbf{q}_{t}^{C} &= W^{UQ} \mathbf{c}_{t}^{Q}, \\
-    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \operatorname{RoPE}({W^{QR}} \mathbf{c}_{t}^{Q}), \\
+    \mathbf{c}_{t}^{Q} &= W^{\mathit{DQ}} \mathbf{h}_{t}, \\
+    [\mathbf{q}_{t, 1}^{C};\mathbf{q}_{t, 2}^{C};...;\mathbf{q}_{t, n_{h}}^{C}] = \mathbf{q}_{t}^{C} &= W^{\mathit{UQ}} \mathbf{c}_{t}^{Q}, \\
+    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{QR}}} \mathbf{c}_{t}^{Q}), \\
     \mathbf{q}_{t, i} &= [\mathbf{q}_{t, i}^{C}; \mathbf{q}_{t, i}^{R}], \\
-    \mathbf{c}_{t}^{KV} &= W^{DKV} \mathbf{h}_{t}, \\
-    [\mathbf{k}_{t, 1}^{C};\mathbf{k}_{t, 2}^{C};...;\mathbf{k}_{t, n_{h}}^{C}] = \mathbf{k}_{t}^{C} &= W^{UK} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{k}_{t}^{R} &= \operatorname{RoPE}({W^{KR}} \mathbf{h}_{t}), \\
+    \mathbf{c}_{t}^{\mathit{KV}} &= W^{\mathit{DKV}} \mathbf{h}_{t}, \\
+    [\mathbf{k}_{t, 1}^{C};\mathbf{k}_{t, 2}^{C};...;\mathbf{k}_{t, n_{h}}^{C}] = \mathbf{k}_{t}^{C} &= W^{\mathit{UK}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{k}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{KR}}} \mathbf{h}_{t}), \\
     \mathbf{k}_{t, i} &= [\mathbf{k}_{t, i}^{C}; \mathbf{k}_{t}^{R}], \\
-    [\mathbf{v}_{t, 1}^{C};\mathbf{v}_{t, 2}^{C};...;\mathbf{v}_{t, n_{h}}^{C}] = \mathbf{v}_{t}^{C} &= W^{UV} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
+    [\mathbf{v}_{t, 1}^{C};\mathbf{v}_{t, 2}^{C};...;\mathbf{v}_{t, n_{h}}^{C}] = \mathbf{v}_{t}^{C} &= W^{\mathit{UV}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
 
-其中蓝色的方框向量需要在生成时缓存. 推理期间, 朴素公式需要从 $\mathbf{c}_{t}^{KV}$ 恢复 $\mathbf{k}_{t}^{C}$ 与 $\mathbf{v}_{t}^{C}$ 以进行注意力. 幸运的是, 由于矩阵乘法的结合律, 我们可以将 $W^{UK}$ 吸收进 $W^{UQ}$, 将 $W^{UV}$ 吸收进 $W^{O}$. 因此, 我们无需为每个查询计算出键和值. 通过这一优化, 我们避免了推理期间重新计算 $\mathbf{k}_{t}^{C}$ 与 $\mathbf{v}_{t}^{C}$ 带来的计算开销.
+其中蓝色的方框向量需要在生成时缓存. 推理期间, 朴素公式需要从 $\mathbf{c}_{t}^{\mathit{KV}}$ 恢复 $\mathbf{k}_{t}^{C}$ 与 $\mathbf{v}_{t}^{C}$ 以进行注意力. 幸运的是, 由于矩阵乘法的结合律, 我们可以将 $W^{\mathit{UK}}$ 吸收进 $W^{\mathit{UQ}}$, 将 $W^{\mathit{UV}}$ 吸收进 $W^{O}$. 因此, 我们无需为每个查询计算出键和值. 通过这一优化, 我们避免了推理期间重新计算 $\mathbf{k}_{t}^{C}$ 与 $\mathbf{v}_{t}^{C}$ 带来的计算开销.
 
 <span id="section-9"></span>
 

@@ -1,11 +1,11 @@
 ---
 title: 'DeepSeek-V2'
-createTime: 2026/09/05 20:00:00
+createTime: 2026/09/05 18:30:00
 permalink: /ja/papers/deepseek-v2/
 pageClass: paper-reading
 ---
 
-> DeepSeek-AI。2024 年 5 月 7 日に arXiv へ初投稿されました。現在のバージョンは v5（2024 年 6 月 19 日）です。[DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434)。[原論文 PDF](/paper/deepseek-v2.pdf)。[DOI](https://doi.org/10.48550/arXiv.2405.04434)。[TeX ソース](https://export.arxiv.org/e-print/2405.04434)。正確な印刷レイアウトと参考文献については、元の PDF を正本とします。
+> [DeepSeek-AI](https://www.deepseek.com/)。2024 年 5 月 7 日に arXiv へ初投稿されました。現在のバージョンは v5（2024 年 6 月 19 日）です。[DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434)。[原論文 PDF](/paper/deepseek-v2.pdf)。[DOI](https://doi.org/10.48550/arXiv.2405.04434)。[TeX ソース](https://export.arxiv.org/e-print/2405.04434v5)。正確な印刷レイアウトと参考文献については、元の PDF を正本とします。
 
 ## 概要
 
@@ -24,10 +24,9 @@ pageClass: paper-reading
 ここ数年、大規模言語モデル（LLM）[Ope22, Ope23, Ant23, Goo23] は急速に発展し、汎用人工知能（AGI）の夜明けを垣間見せてくれています。一般に、LLM の知能はパラメータ数の増加に伴って向上する傾向があり、さまざまなタスクで創発的な能力を発揮できるようになります [Wei22d]。しかし、この向上は学習時の大規模な計算リソースと、推論スループットの潜在的な低下という代償を伴います。これらの制約は、LLM の広範な採用と利用を妨げる重大な課題をもたらします。この問題に取り組むため、革新的な Transformer アーキテクチャによって経済的な学習と効率的な推論を実現する強力なオープンソースの Mixture-of-Experts（MoE）言語モデル、DeepSeek-V2 を発表します。総パラメータは 236B で、各トークンにつきそのうち 21B を活性化し、128K トークンのコンテキスト長をサポートします。
 
 Transformer フレームワーク [Vas17d] 内のアテンションモジュールと Feed-Forward Networks（FFN）を、提案する **Multi-head Latent Attention（MLA）** と **DeepSeekMoE** によって最適化します。
-(1)
-アテンション機構の文脈では、Multi-Head Attention（MHA）[Vas17d] の Key-Value（KV）キャッシュが LLM の推論効率に対する大きな障害となります。この問題に対処するため、Grouped-Query Attention（GQA）[Ain23] や Multi-Query Attention（MQA）[Sha19] を含むさまざまな手法が探求されてきました。しかし、これらの手法は KV キャッシュを減らそうとする際に性能を犠牲にすることがよくあります。両方の利点を兼ね備えるため、低ランクの鍵・値同時圧縮を備えたアテンション機構である MLA を導入します。実験的に、MLA は MHA より優れた性能を達成し、同時に推論中の KV キャッシュを大幅に削減して推論効率を高めます。
-(2)
-Feed-Forward Networks（FFN）については、エキスパート専門化の可能性を高めるため、細粒度のエキスパート分割と共有エキスパート分離を採用する DeepSeekMoE アーキテクチャ [Dai24] に従います。DeepSeekMoE アーキテクチャは GShard [Lep20] のような従来の MoE アーキテクチャと比べて大きな利点を示し、経済的なコストで強力なモデルを学習できるようにします。学習中にエキスパート並列を採用するため、通信オーバーヘッドを制御し負荷バランスを確保する補助的な仕組みも考案しました。これら二つの技法を組み合わせることで、DeepSeek-V2 は強力な性能（[図 1](#figure-01)(a)）、経済的な学習コスト、効率的な推論スループット（[図 1](#figure-01)(b)）を同時に実現します。
+
+1. アテンション機構の文脈では、Multi-Head Attention（MHA）[Vas17d] の Key-Value（KV）キャッシュが LLM の推論効率に対する大きな障害となります。この問題に対処するため、Grouped-Query Attention（GQA）[Ain23] や Multi-Query Attention（MQA）[Sha19] を含むさまざまな手法が探求されてきました。しかし、これらの手法は KV キャッシュを減らそうとする際に性能を犠牲にすることがよくあります。両方の利点を兼ね備えるため、低ランクの鍵・値同時圧縮を備えたアテンション機構である MLA を導入します。実験的に、MLA は MHA より優れた性能を達成し、同時に推論中の KV キャッシュを大幅に削減して推論効率を高めます。
+2. Feed-Forward Networks（FFN）については、エキスパート専門化の可能性を高めるため、細粒度のエキスパート分割と共有エキスパート分離を採用する DeepSeekMoE アーキテクチャ [Dai24] に従います。DeepSeekMoE アーキテクチャは GShard [Lep20] のような従来の MoE アーキテクチャと比べて大きな利点を示し、経済的なコストで強力なモデルを学習できるようにします。学習中にエキスパート並列を採用するため、通信オーバーヘッドを制御し負荷バランスを確保する補助的な仕組みも考案しました。これら二つの技法を組み合わせることで、DeepSeek-V2 は強力な性能（[図 1](#figure-01)(a)）、経済的な学習コスト、効率的な推論スループット（[図 1](#figure-01)(b)）を同時に実現します。
 
 <span id="figure-02"></span>
 
@@ -80,7 +79,7 @@ $$
     [\mathbf{q}_{t, 1};&\mathbf{q}_{t, 2};...;\mathbf{q}_{t, n_{h}}] = \mathbf{q}_{t}, \\
     [\mathbf{k}_{t, 1};&\mathbf{k}_{t, 2};...;\mathbf{k}_{t, n_{h}}] = \mathbf{k}_{t}, \\
     [\mathbf{v}_{t, 1};&\mathbf{v}_{t, 2};...;\mathbf{v}_{t, n_{h}}] = \mathbf{v}_{t}, \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
@@ -103,45 +102,45 @@ MLA の中核は、KV キャッシュを減らすためのキーと値の低ラ�
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{KV} &= W^{DKV} \mathbf{h}_{t}, \\
-    \mathbf{k}_{t}^{C} &= W^{UK} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{v}_{t}^{C} &= W^{UV} \mathbf{c}_{t}^{KV},
+    \mathbf{c}_{t}^{\mathit{KV}} &= W^{\mathit{DKV}} \mathbf{h}_{t}, \\
+    \mathbf{k}_{t}^{C} &= W^{\mathit{UK}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{v}_{t}^{C} &= W^{\mathit{UV}} \mathbf{c}_{t}^{\mathit{KV}},
 \end{aligned}
 $$
 
-ここで $\mathbf{c}_{t}^{KV} \in \mathbb{R}^{d_c}$ はキーと値の圧縮潜在ベクトル、$d_c (\ll d_h n_h)$ は KV 圧縮次元、$W^{DKV} \in \mathbb{R}^{d_c \times d}$ は下向き射影行列、$W^{UK},W^{UV} \in \mathbb{R}^{d_h n_h \times d_c}$ はキーと値の上向き射影行列です。推論中、MLA は $\mathbf{c}_{t}^{KV}$ だけをキャッシュすればよいため、その KV キャッシュは $d_{c}l$ 個の要素しか持たず、ここで $l$ は層数を表します。さらに推論中は、$W^{UK}$ を $W^{Q}$ に、$W^{UV}$ を $W^{O}$ に吸収できるため、アテンションのためにキーと値を計算しなくても済みます。[図 3](#figure-03) は、MLA における KV 同時圧縮がどのように KV キャッシュを減らすかを直感的に示しています。
+ここで $\mathbf{c}_{t}^{\mathit{KV}} \in \mathbb{R}^{d_c}$ はキーと値の圧縮潜在ベクトル、$d_c (\ll d_h n_h)$ は KV 圧縮次元、$W^{\mathit{DKV}} \in \mathbb{R}^{d_c \times d}$ は下向き射影行列、$W^{\mathit{UK}},W^{\mathit{UV}} \in \mathbb{R}^{d_h n_h \times d_c}$ はキーと値の上向き射影行列です。推論中、MLA は $\mathbf{c}_{t}^{\mathit{KV}}$ だけをキャッシュすればよいため、その KV キャッシュは $d_{c}l$ 個の要素しか持たず、ここで $l$ は層数を表します。さらに推論中は、$W^{\mathit{UK}}$ を $W^{Q}$ に、$W^{\mathit{UV}}$ を $W^{O}$ に吸収できるため、アテンションのためにキーと値を計算しなくても済みます。[図 3](#figure-03) は、MLA における KV 同時圧縮がどのように KV キャッシュを減らすかを直感的に示しています。
 
 さらに、学習中の活性化メモリを減らすため、KV キャッシュを減らせない場合でもクエリに対して低ランク圧縮を施します。
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{Q} &= W^{DQ} \mathbf{h}_{t}, \\
-    \mathbf{q}_{t}^{C} &= W^{UQ} \mathbf{c}_{t}^{Q},
+    \mathbf{c}_{t}^{Q} &= W^{\mathit{DQ}} \mathbf{h}_{t}, \\
+    \mathbf{q}_{t}^{C} &= W^{\mathit{UQ}} \mathbf{c}_{t}^{Q},
 \end{aligned}
 $$
 
-ここで $\mathbf{c}_{t}^{Q} \in \mathbb{R}^{d_c^{\prime}}$ はクエリの圧縮潜在ベクトル、$d_c^{\prime} (\ll d_h n_h)$ はクエリ圧縮次元、$W^{DQ} \in \mathbb{R}^{d_c^{\prime} \times d}, W^{UQ} \in \mathbb{R}^{d_h n_h \times d_c^{\prime}}$ はそれぞれクエリの下向き射影行列と上向き射影行列です。
+ここで $\mathbf{c}_{t}^{Q} \in \mathbb{R}^{d_c^{\prime}}$ はクエリの圧縮潜在ベクトル、$d_c^{\prime} (\ll d_h n_h)$ はクエリ圧縮次元、$W^{\mathit{DQ}} \in \mathbb{R}^{d_c^{\prime} \times d}, W^{\mathit{UQ}} \in \mathbb{R}^{d_h n_h \times d_c^{\prime}}$ はそれぞれクエリの下向き射影行列と上向き射影行列です。
 
 <span id="section-2-1-3"></span>
 
 #### 2.1.3 分離型回転位置埋め込み
 
-DeepSeek 67B [Dee24e] に従い、DeepSeek-V2 には回転位置埋め込み（RoPE）[Su24] を用いるつもりでした。しかし、RoPE は低ランク KV 圧縮と互換性がありません。具体的には、RoPE はキーとクエリの両方に対して位置に敏感です。キー $\mathbf{k}_{t}^{C}$ に RoPE を適用すると、[式 10](#equation-10) の $W^{UK}$ は位置に敏感な RoPE 行列と結合されます。この場合、現在生成中のトークンに関連する RoPE 行列が $W^{Q}$ と $W^{UK}$ の間に位置し、行列の乗算は交換法則を満たさないため、推論中に $W^{UK}$ を $W^{Q}$ に吸収できなくなります。その結果、推論中にすべてのプレフィックストークンのキーを再計算しなければならず、推論効率を著しく損なうことになります。
+DeepSeek 67B [Dee24e] に従い、DeepSeek-V2 には回転位置埋め込み（RoPE）[Su24] を用いるつもりでした。しかし、RoPE は低ランク KV 圧縮と互換性がありません。具体的には、RoPE はキーとクエリの両方に対して位置に敏感です。キー $\mathbf{k}_{t}^{C}$ に RoPE を適用すると、[式 10](#equation-10) の $W^{\mathit{UK}}$ は位置に敏感な RoPE 行列と結合されます。この場合、現在生成中のトークンに関連する RoPE 行列が $W^{Q}$ と $W^{\mathit{UK}}$ の間に位置し、行列の乗算は交換法則を満たさないため、推論中に $W^{\mathit{UK}}$ を $W^{Q}$ に吸収できなくなります。その結果、推論中にすべてのプレフィックストークンのキーを再計算しなければならず、推論効率を著しく損なうことになります。
 
 解決策として、RoPE を運ぶために追加のマルチヘッドクエリ $\mathbf{q}_{t, i}^{R} \in \mathbb{R}^{d_h^R}$ と共有キー $\mathbf{k}_{t}^{R} \in \mathbb{R}^{d_h^R}$ を用いる分離型 RoPE 戦略を提案します。ここで $d_h^R$ は分離されたクエリとキーのヘッドごとの次元です。分離型 RoPE 戦略を備えた MLA は以下の計算を実行します。
 
 $$
 \begin{aligned}
-    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \operatorname{RoPE}({W^{QR}} \mathbf{c}_{t}^{Q}), \\
-    \mathbf{k}_{t}^{R} &= \operatorname{RoPE}({W^{KR}} \mathbf{h}_{t}), \\
+    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{QR}}} \mathbf{c}_{t}^{Q}), \\
+    \mathbf{k}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{KR}}} \mathbf{h}_{t}), \\
     \mathbf{q}_{t, i} &= [\mathbf{q}_{t, i}^{C}; \mathbf{q}_{t, i}^{R}], \\
     \mathbf{k}_{t, i} &= [\mathbf{k}_{t, i}^{C}; \mathbf{k}_{t}^{R}], \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
 
-ここで $W^{QR} \in \mathbb{R}^{d_h^R n_h \times d_c^{\prime}}$ と $W^{KR} \in \mathbb{R}^{d_h^R \times d}$ はそれぞれ分離されたクエリとキーを生成する行列、$\operatorname{RoPE}(\cdot)$ は RoPE 行列を適用する操作、$[\cdot;\cdot]$ は連結操作を表します。推論中は分離されたキーもキャッシュする必要があります。したがって DeepSeek-V2 は $(d_{c} + d_h^R)l$ 個の要素を含む合計 KV キャッシュを必要とします。
+ここで $W^{\mathit{QR}} \in \mathbb{R}^{d_h^R n_h \times d_c^{\prime}}$ と $W^{\mathit{KR}} \in \mathbb{R}^{d_h^R \times d}$ はそれぞれ分離されたクエリとキーを生成する行列、$\mathop{\mathrm{RoPE}}(\cdot)$ は RoPE 行列を適用する操作、$[\cdot;\cdot]$ は連結操作を表します。推論中は分離されたキーもキャッシュする必要があります。したがって DeepSeek-V2 は $(d_{c} + d_h^R)l$ 個の要素を含む合計 KV キャッシュを必要とします。
 
 MLA の完全な計算過程を示すため、その完全な式を [第 8 節](#section-8) にまとめて示します。
 
@@ -171,16 +170,16 @@ $\mathbf{u}_{t}$ を $t$ 番目のトークンの FFN 入力とすると、FFN �
 
 $$
 \begin{aligned}
-    \mathbf{h}_{t}^{\prime} & = \mathbf{u}_{t} + \sum_{i=1}^{N_{s}} {\operatorname{FFN}^{(s)}_{i}\left( \mathbf{u}_{t} \right)} + \sum_{i=1}^{N_r} {g_{i,t} \operatorname{FFN}^{(r)}_{i}\left( \mathbf{u}_{t} \right)}, \\
+    \mathbf{h}_{t}^{\prime} & = \mathbf{u}_{t} + \sum_{i=1}^{N_{s}} {\mathop{\mathrm{FFN}}^{(s)}_{i}\left( \mathbf{u}_{t} \right)} + \sum_{i=1}^{N_r} {g_{i,t} \mathop{\mathrm{FFN}}^{(r)}_{i}\left( \mathbf{u}_{t} \right)}, \\
     g_{i,t} & = \begin{cases}
-    s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leq j \leq N_r \}, K_{r}), \\
-    0, & \text{otherwise},
+    s_{i,t}, & s_{i,t} \in \mathop{\mathrm{Topk}} (\{ s_{j, t} | 1 \leq j \leq N_r \}, K_{r}), \\
+    0, & \mathrm{otherwise},
     \end{cases} \\
-    s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}}^{T} \mathbf{e}_{i} \right),
+    s_{i,t} & = \mathop{\mathrm{Softmax}}_i \left( {\mathbf{u}_{t}}^\top \mathbf{e}_{i} \right),
 \end{aligned}
 $$
 
-ここで $N_{s}$ と $N_r$ はそれぞれ共有エキスパートとルーティングされるエキスパートの数、$\operatorname{FFN}^{(s)}_{i}(\cdot)$ と $\operatorname{FFN}^{(r)}_{i}(\cdot)$ はそれぞれ $i$ 番目の共有エキスパートと $i$ 番目のルーティングされるエキスパート、$K_{r}$ は活性化されるルーティングエキスパートの数、$g_{i,t}$ は $i$ 番目のエキスパートのゲート値、$s_{i,t}$ はトークンとエキスパートの親和度、$\mathbf{e}_{i}$ はこの層における $i$ 番目のルーティングされるエキスパートの重心、$\operatorname{Topk}(\cdot, K)$ は $t$ 番目のトークンとすべてのルーティングされるエキスパートについて計算された親和度スコアのうち上位 $K$ 個からなる集合を表します。
+ここで $N_{s}$ と $N_r$ はそれぞれ共有エキスパートとルーティングされるエキスパートの数、$\mathop{\mathrm{FFN}}^{(s)}_{i}(\cdot)$ と $\mathop{\mathrm{FFN}}^{(r)}_{i}(\cdot)$ はそれぞれ $i$ 番目の共有エキスパートと $i$ 番目のルーティングされるエキスパート、$K_{r}$ は活性化されるルーティングエキスパートの数、$g_{i,t}$ は $i$ 番目のエキスパートのゲート値、$s_{i,t}$ はトークンとエキスパートの親和度、$\mathbf{e}_{i}$ はこの層における $i$ 番目のルーティングされるエキスパートの重心、$\mathop{\mathrm{Topk}}(\cdot, K)$ は $t$ 番目のトークンとすべてのルーティングされるエキスパートについて計算された親和度スコアのうち上位 $K$ 個からなる集合を表します。
 
 <span id="section-2-2-2"></span>
 
@@ -201,7 +200,7 @@ DeepSeek-V2 では、ルーティングされるエキスパートの単純な t
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N_r}{f_i P_i}, \\
-    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \text{Token $t$ selects Expert $i$} )}, \\
+    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{がエキスパート}\ i\ \text{を選択} )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
 \end{aligned}
 $$
@@ -225,12 +224,12 @@ $$
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{CommBal}} & = \alpha_{3} \sum_{i=1}^{D}{f_i^{\prime\prime} P_i^{\prime\prime}}, \\
-    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \text{Token $t$ is sent to Device $i$} )}, \\
+    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \text{がデバイス}\ i\ \text{へ送信} )}, \\
     P_i^{\prime\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
 \end{aligned}
 $$
 
-ここで $\alpha_{3}$ は通信バランス係数と呼ばれるハイパーパラメータです。デバイス制限付きルーティング機構は、各デバイスが最大 $MT$ 個の隠れ状態を他のデバイスへ送信することを保証する原理で動作します。同時に、通信バランス損失は各デバイスが他のデバイスから約 $MT$ 個の隠れ状態を受け取ることを促すために用いられます。通信バランス損失はデバイス間の情報の均衡した交換を保証し、効率的な通信を促進します。
+ここで $\alpha_{3}$ は通信バランス係数と呼ばれるハイパーパラメータです。デバイス制限付きルーティング機構は、各デバイスが最大 $M T$ 個の隠れ状態を他のデバイスへ送信することを保証する原理で動作します。同時に、通信バランス損失は各デバイスが他のデバイスから約 $M T$ 個の隠れ状態を受け取ることを促すために用いられます。通信バランス損失はデバイス間の情報の均衡した交換を保証し、効率的な通信を促進します。
 
 <span id="section-2-2-4"></span>
 
@@ -331,12 +330,10 @@ DeepSeek-V2 はバイリンガルコーパスで事前学習されているた�
 [表 2](#table-02) では、DeepSeek-V2 を、DeepSeek 67B [Dee24e]（以前のリリース）、Qwen1.5 72B [Bai23b]、LLaMA3 70B [Dub24]、Mixtral 8x22B [Mis24] を含むいくつかの代表的なオープンソースモデルと比較します。これらすべてのモデルを社内評価フレームワークで評価し、同じ評価設定を共有することを保証します。全体として、わずか 21B の活性化パラメータで、DeepSeek-V2 はほぼすべてのベンチマークで DeepSeek 67B を大幅に上回り、オープンソースモデルの中でトップクラスの性能を達成します。
 
 さらに、DeepSeek-V2 をオープンソースの競合と一つずつ丁寧に比較します。
-(1)
-中国語と英語の両方をサポートする別のモデルである Qwen1.5 72B と比べ、DeepSeek-V2 はほとんどの英語、コード、数学ベンチマークで圧倒的な優位性を示します。中国語ベンチマークについては、Qwen1.5 72B は多分野の多肢選択タスクでより良い性能を示す一方、DeepSeek-V2 は他のタスクで同等かそれ以上です。CHID ベンチマークについては、Qwen1.5 72B のトークナイザが当社の評価フレームワークでエラーを起こすため、Qwen1.5 72B の CHID スコアは空欄にしています。
-(2)
-Mixtral 8x22B と比べ、DeepSeek-V2 は英語の常識的知識に密接に関連する TriviaQA、NaturalQuestions、HellaSwag を除き、同等かそれ以上の英語性能を達成します。特筆すべきは、DeepSeek-V2 が MMLU で Mixtral 8x22B を上回ることです。コードと数学のベンチマークでは、DeepSeek-V2 は Mixtral 8x22B と同等の性能を示します。Mixtral 8x22B は中国語データで特別に学習されていないため、その中国語能力は DeepSeek-V2 に大きく遅れを取ります。
-(3)
-LLaMA3 70B と比べ、DeepSeek-V2 は英語トークンの 4 分の 1 未満で学習されています。したがって、DeepSeek-V2 は基本的な英語能力において LLaMA3 70B と依然としてわずかな差があることを認めます。しかし、はるかに少ない学習トークンと活性化パラメータでも、DeepSeek-V2 は LLaMA3 70B と同等のコードおよび数学能力を示します。また、バイリンガル言語モデルとして、DeepSeek-V2 は中国語ベンチマークで LLaMA3 70B を圧倒的に上回ります。
+
+1. 中国語と英語の両方をサポートする別のモデルである Qwen1.5 72B と比べ、DeepSeek-V2 はほとんどの英語、コード、数学ベンチマークで圧倒的な優位性を示します。中国語ベンチマークについては、Qwen1.5 72B は多分野の多肢選択タスクでより良い性能を示す一方、DeepSeek-V2 は他のタスクで同等かそれ以上です。CHID ベンチマークについては、Qwen1.5 72B のトークナイザが当社の評価フレームワークでエラーを起こすため、Qwen1.5 72B の CHID スコアは空欄にしています。
+2. Mixtral 8x22B と比べ、DeepSeek-V2 は英語の常識的知識に密接に関連する TriviaQA、NaturalQuestions、HellaSwag を除き、同等かそれ以上の英語性能を達成します。特筆すべきは、DeepSeek-V2 が MMLU で Mixtral 8x22B を上回ることです。コードと数学のベンチマークでは、DeepSeek-V2 は Mixtral 8x22B と同等の性能を示します。Mixtral 8x22B は中国語データで特別に学習されていないため、その中国語能力は DeepSeek-V2 に大きく遅れを取ります。
+3. LLaMA3 70B と比べ、DeepSeek-V2 は英語トークンの 4 分の 1 未満で学習されています。したがって、DeepSeek-V2 は基本的な英語能力において LLaMA3 70B と依然としてわずかな差があることを認めます。しかし、はるかに少ない学習トークンと活性化パラメータでも、DeepSeek-V2 は LLaMA3 70B と同等のコードおよび数学能力を示します。また、バイリンガル言語モデルとして、DeepSeek-V2 は中国語ベンチマークで LLaMA3 70B を圧倒的に上回ります。
 
 最後に、特定の先行研究 [Hu24] が事前学習段階に SFT データを組み込んでいる一方、DeepSeek-V2 は事前学習中に SFT データに一度も触れていないことに言及する価値があります。
 
@@ -364,20 +361,20 @@ LLaMA3 70B と比べ、DeepSeek-V2 は英語トークンの 4 分の 1 未満で
 
 DeepSeek-V2 の潜在能力をさらに引き出し、人間の好みに合わせるため、強化学習（RL）を実施してその好みを調整します。
 
-**強化学習アルゴリズム。** RL の学習コストを節約するため、通常ポリシーモデルと同じ規模の批評家モデルを捨て、グループスコアからベースラインを推定する Group Relative Policy Optimization（GRPO）[Sha24d] を採用します。具体的には、各質問 $q$ について、GRPO は古いポリシー $\pi_{\theta_{old}}$ から出力のグループ $\{o_1, o_2, \cdots, o_G\}$ をサンプリングし、以下の目的を最大化することでポリシーモデル $\pi_{\theta}$ を最適化します。
+**強化学習アルゴリズム。** RL の学習コストを節約するため、通常ポリシーモデルと同じ規模の批評家モデルを捨て、グループスコアからベースラインを推定する Group Relative Policy Optimization（GRPO）[Sha24d] を採用します。具体的には、各質問 $q$ について、GRPO は古いポリシー $\pi_{\theta_{\mathrm{old}}}$ から出力のグループ $\{o_1, o_2, \cdots, o_G\}$ をサンプリングし、以下の目的を最大化することでポリシーモデル $\pi_{\theta}$ を最適化します。
 
 <span id="equation-25"></span>
 
 $$
 \begin{aligned}
-    \mathcal{J}_{GRPO}(\theta) &= \mathbb{E}{[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{old}}(O|q)]}  \\
-    & \frac{1}{G}\sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{old}}(o_i |q)} A_i, \text{clip} \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{old}}(o_i |q)}, 1 - \epsilon, 1 + \epsilon \right)  A_i \right) - \beta \mathbb{D}_{KL}\left(\pi_{\theta} \| \pi_{ref}\right)\right) ,
+    \mathcal{J}_{\mathrm{GRPO}}(\theta) &= \mathbb{E}{[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\mathrm{old}}}(O|q)]}  \\
+    & \frac{1}{G}\sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{\mathrm{old}}}(o_i |q)} A_i, \mathop{\mathrm{clip}} \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{\mathrm{old}}}(o_i |q)}, 1 - \epsilon, 1 + \epsilon \right)  A_i \right) - \beta \mathbb{D}_{\mathrm{KL}}\left(\pi_{\theta} \| \pi_{\mathrm{ref}}\right)\right) ,
 \end{aligned}
 $$
 
 $$
 \begin{aligned}
-    \mathbb{D}_{KL}\left(\pi_{\theta} \| \pi_{ref}\right) = \frac{\pi_{ref}(o_i|q)}{\pi_{\theta}(o_i|q)}- \log\frac{\pi_{ref}(o_i|q)}{\pi_{\theta}(o_i|q)} - 1,
+    \mathbb{D}_{\mathrm{KL}}\left(\pi_{\theta} \| \pi_{\mathrm{ref}}\right) = \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)}- \log\frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} - 1,
 \end{aligned}
 $$
 
@@ -389,19 +386,19 @@ $$
 \end{aligned}
 $$
 
-**学習戦略。** 予備実験では、コードや数学のプロンプトなどの推論データに対する RL 学習が、一般的なデータに対する学習とは異なる独自の特性を示すことが分かりました。例えば、モデルの数学的・コーディング能力は、より長い学習ステップにわたって改善し続けることができます。そこで、まず推論アライメントを行い、その後人間の好みアライメントを行う二段階の RL 学習戦略を採用します。第一段階の推論アライメントでは、コードと数学の推論タスクのための報酬モデル $RM_{reasoning}$ を学習し、$RM_{reasoning}$ のフィードバックでポリシーモデルを最適化します。
+**学習戦略。** 予備実験では、コードや数学のプロンプトなどの推論データに対する RL 学習が、一般的なデータに対する学習とは異なる独自の特性を示すことが分かりました。例えば、モデルの数学的・コーディング能力は、より長い学習ステップにわたって改善し続けることができます。そこで、まず推論アライメントを行い、その後人間の好みアライメントを行う二段階の RL 学習戦略を採用します。第一段階の推論アライメントでは、コードと数学の推論タスクのための報酬モデル $\mathit{RM}_{\mathrm{reasoning}}$ を学習し、$\mathit{RM}_{\mathrm{reasoning}}$ のフィードバックでポリシーモデルを最適化します。
 
 $$
 \begin{aligned}
-    r_i=RM_{reasoning}(o_i).
+    r_i=\mathit{RM}_{\mathrm{reasoning}}(o_i).
 \end{aligned}
 $$
 
-第二段階の人間の好みアライメントでは、有用性報酬モデル $RM_{helpful}$、安全性報酬モデル $RM_{safety}$、ルールベース報酬モデル $RM_{rule}$ から報酬を得るマルチ報酬フレームワークを採用します。応答 $o_i$ の最終報酬は
+第二段階の人間の好みアライメントでは、有用性報酬モデル $\mathit{RM}_{\mathrm{helpful}}$、安全性報酬モデル $\mathit{RM}_{\mathrm{safety}}$、ルールベース報酬モデル $\mathit{RM}_{\mathrm{rule}}$ から報酬を得るマルチ報酬フレームワークを採用します。応答 $o_i$ の最終報酬は
 
 $$
 \begin{aligned}
-    r_i = c_1 \cdot RM_{helpful}(o_i) + c_2 \cdot RM_{safety}(o_i) + c_3 \cdot RM_{rule}(o_i),
+    r_i = c_1 \cdot \mathit{RM}_{\mathrm{helpful}}(o_i) + c_2 \cdot \mathit{RM}_{\mathrm{safety}}(o_i) + c_3 \cdot \mathit{RM}_{\mathrm{rule}}(o_i),
 \end{aligned}
 $$
 
@@ -517,21 +514,21 @@ MLA の完全な計算過程を示すため、以下にその完全な式を提�
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{Q} &= W^{DQ} \mathbf{h}_{t}, \\
-    [\mathbf{q}_{t, 1}^{C};\mathbf{q}_{t, 2}^{C};...;\mathbf{q}_{t, n_{h}}^{C}] = \mathbf{q}_{t}^{C} &= W^{UQ} \mathbf{c}_{t}^{Q}, \\
-    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \operatorname{RoPE}({W^{QR}} \mathbf{c}_{t}^{Q}), \\
+    \mathbf{c}_{t}^{Q} &= W^{\mathit{DQ}} \mathbf{h}_{t}, \\
+    [\mathbf{q}_{t, 1}^{C};\mathbf{q}_{t, 2}^{C};...;\mathbf{q}_{t, n_{h}}^{C}] = \mathbf{q}_{t}^{C} &= W^{\mathit{UQ}} \mathbf{c}_{t}^{Q}, \\
+    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{QR}}} \mathbf{c}_{t}^{Q}), \\
     \mathbf{q}_{t, i} &= [\mathbf{q}_{t, i}^{C}; \mathbf{q}_{t, i}^{R}], \\
-    \mathbf{c}_{t}^{KV} &= W^{DKV} \mathbf{h}_{t}, \\
-    [\mathbf{k}_{t, 1}^{C};\mathbf{k}_{t, 2}^{C};...;\mathbf{k}_{t, n_{h}}^{C}] = \mathbf{k}_{t}^{C} &= W^{UK} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{k}_{t}^{R} &= \operatorname{RoPE}({W^{KR}} \mathbf{h}_{t}), \\
+    \mathbf{c}_{t}^{\mathit{KV}} &= W^{\mathit{DKV}} \mathbf{h}_{t}, \\
+    [\mathbf{k}_{t, 1}^{C};\mathbf{k}_{t, 2}^{C};...;\mathbf{k}_{t, n_{h}}^{C}] = \mathbf{k}_{t}^{C} &= W^{\mathit{UK}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{k}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{KR}}} \mathbf{h}_{t}), \\
     \mathbf{k}_{t, i} &= [\mathbf{k}_{t, i}^{C}; \mathbf{k}_{t}^{R}], \\
-    [\mathbf{v}_{t, 1}^{C};\mathbf{v}_{t, 2}^{C};...;\mathbf{v}_{t, n_{h}}^{C}] = \mathbf{v}_{t}^{C} &= W^{UV} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
+    [\mathbf{v}_{t, 1}^{C};\mathbf{v}_{t, 2}^{C};...;\mathbf{v}_{t, n_{h}}^{C}] = \mathbf{v}_{t}^{C} &= W^{\mathit{UV}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
 
-ここで青い枠で囲まれたベクトルは生成時にキャッシュする必要があります。推論中、単純な式はアテンションのために $\mathbf{c}_{t}^{KV}$ から $\mathbf{k}_{t}^{C}$ と $\mathbf{v}_{t}^{C}$ を復元する必要があります。幸いにも、行列乗算の結合法則により、$W^{UK}$ を $W^{UQ}$ に、$W^{UV}$ を $W^{O}$ に吸収できます。したがって、各クエリについてキーと値を計算し出す必要はありません。この最適化により、推論中に $\mathbf{k}_{t}^{C}$ と $\mathbf{v}_{t}^{C}$ を再計算する計算オーバーヘッドを回避します。
+ここで青い枠で囲まれたベクトルは生成時にキャッシュする必要があります。推論中、単純な式はアテンションのために $\mathbf{c}_{t}^{\mathit{KV}}$ から $\mathbf{k}_{t}^{C}$ と $\mathbf{v}_{t}^{C}$ を復元する必要があります。幸いにも、行列乗算の結合法則により、$W^{\mathit{UK}}$ を $W^{\mathit{UQ}}$ に、$W^{\mathit{UV}}$ を $W^{O}$ に吸収できます。したがって、各クエリについてキーと値を計算し出す必要はありません。この最適化により、推論中に $\mathbf{k}_{t}^{C}$ と $\mathbf{v}_{t}^{C}$ を再計算する計算オーバーヘッドを回避します。
 
 <span id="section-9"></span>
 

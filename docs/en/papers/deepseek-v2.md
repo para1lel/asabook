@@ -1,11 +1,11 @@
 ---
 title: 'DeepSeek-V2'
-createTime: 2026/09/05 20:00:00
+createTime: 2026/09/05 18:30:00
 permalink: /en/papers/deepseek-v2/
 pageClass: paper-reading
 ---
 
-> DeepSeek-AI. First submitted to arXiv on May 7, 2024; current version v5 (June 19, 2024). [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434). [Original PDF](/paper/deepseek-v2.pdf). [DOI](https://doi.org/10.48550/arXiv.2405.04434). [TeX source](https://export.arxiv.org/e-print/2405.04434). The original PDF remains authoritative for the exact print layout and bibliography.
+> [DeepSeek-AI](https://www.deepseek.com/). First submitted to arXiv on May 7, 2024; current version v5 (June 19, 2024). [DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model](https://arxiv.org/abs/2405.04434). [Original PDF](/paper/deepseek-v2.pdf). [DOI](https://doi.org/10.48550/arXiv.2405.04434). [TeX source](https://export.arxiv.org/e-print/2405.04434v5). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 
@@ -24,10 +24,9 @@ We present DeepSeek-V2, a strong Mixture-of-Experts (MoE) language model charact
 In the past few years, Large Language Models (LLMs) [Ope22, Ope23, Ant23, Goo23] have undergone rapid development, offering a glimpse into the dawn of Artificial General Intelligence (AGI). In general, the intelligence of an LLM tends to improve as the number of parameters increases, allowing it to exhibit emergent capabilities across various tasks [Wei22d]. However, the improvement comes at the cost of larger computing resources for training and a potential decrease in inference throughput. These constraints present significant challenges that impede the widespread adoption and utilization of LLMs. In order to tackle this problem, we introduce DeepSeek-V2, a strong open-source Mixture-of-Experts (MoE) language model, characterized by economical training and efficient inference through an innovative Transformer architecture. It is equipped with a total of 236B parameters, of which 21B are activated for each token, and supports a context length of 128K tokens.
 
 We optimize the attention modules and Feed-Forward Networks (FFNs) within the Transformer framework [Vas17d] with our proposed **Multi-head Latent Attention (MLA)** and **DeepSeekMoE**.
-(1)
-In the context of attention mechanisms, the Key-Value (KV) cache of the Multi-Head Attention (MHA) [Vas17d] poses a significant obstacle to the inference efficiency of LLMs. Various approaches have been explored to address this issue, including Grouped-Query Attention (GQA) [Ain23] and Multi-Query Attention (MQA) [Sha19]. However, these methods often compromise performance in their attempt to reduce the KV cache. In order to achieve the best of both worlds, we introduce MLA, an attention mechanism equipped with low-rank key-value joint compression. Empirically, MLA achieves superior performance compared with MHA, and meanwhile significantly reduces the KV cache during inference, thus boosting the inference efficiency.
-(2)
-For Feed-Forward Networks (FFNs), we follow the DeepSeekMoE architecture [Dai24], which adopts fine-grained expert segmentation and shared expert isolation for higher potential in expert specialization. The DeepSeekMoE architecture demonstrates great advantages compared with conventional MoE architectures like GShard [Lep20], enabling us to train strong models at an economical cost. As we employ expert parallelism during training, we also devise supplementary mechanisms to control communication overheads and ensure load balance. By combining these two techniques, DeepSeek-V2 features strong performance ([Figure 1](#figure-01)(a)), economical training costs, and efficient inference throughput ([Figure 1](#figure-01)(b)), simultaneously.
+
+1. In the context of attention mechanisms, the Key-Value (KV) cache of the Multi-Head Attention (MHA) [Vas17d] poses a significant obstacle to the inference efficiency of LLMs. Various approaches have been explored to address this issue, including Grouped-Query Attention (GQA) [Ain23] and Multi-Query Attention (MQA) [Sha19]. However, these methods often compromise performance in their attempt to reduce the KV cache. In order to achieve the best of both worlds, we introduce MLA, an attention mechanism equipped with low-rank key-value joint compression. Empirically, MLA achieves superior performance compared with MHA, and meanwhile significantly reduces the KV cache during inference, thus boosting the inference efficiency.
+2. For Feed-Forward Networks (FFNs), we follow the DeepSeekMoE architecture [Dai24], which adopts fine-grained expert segmentation and shared expert isolation for higher potential in expert specialization. The DeepSeekMoE architecture demonstrates great advantages compared with conventional MoE architectures like GShard [Lep20], enabling us to train strong models at an economical cost. As we employ expert parallelism during training, we also devise supplementary mechanisms to control communication overheads and ensure load balance. By combining these two techniques, DeepSeek-V2 features strong performance ([Figure 1](#figure-01)(a)), economical training costs, and efficient inference throughput ([Figure 1](#figure-01)(b)), simultaneously.
 
 <span id="figure-02"></span>
 
@@ -80,7 +79,7 @@ $$
     [\mathbf{q}_{t, 1};&\mathbf{q}_{t, 2};...;\mathbf{q}_{t, n_{h}}] = \mathbf{q}_{t}, \\
     [\mathbf{k}_{t, 1};&\mathbf{k}_{t, 2};...;\mathbf{k}_{t, n_{h}}] = \mathbf{k}_{t}, \\
     [\mathbf{v}_{t, 1};&\mathbf{v}_{t, 2};...;\mathbf{v}_{t, n_{h}}] = \mathbf{v}_{t}, \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
@@ -103,45 +102,45 @@ The core of MLA is the low-rank joint compression for keys and values to reduce 
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{KV} &= W^{DKV} \mathbf{h}_{t}, \\
-    \mathbf{k}_{t}^{C} &= W^{UK} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{v}_{t}^{C} &= W^{UV} \mathbf{c}_{t}^{KV},
+    \mathbf{c}_{t}^{\mathit{KV}} &= W^{\mathit{DKV}} \mathbf{h}_{t}, \\
+    \mathbf{k}_{t}^{C} &= W^{\mathit{UK}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{v}_{t}^{C} &= W^{\mathit{UV}} \mathbf{c}_{t}^{\mathit{KV}},
 \end{aligned}
 $$
 
-where $\mathbf{c}_{t}^{KV} \in \mathbb{R}^{d_c}$ is the compressed latent vector for keys and values; $d_c (\ll d_h n_h)$ denotes the KV compression dimension; $W^{DKV} \in \mathbb{R}^{d_c \times d}$ is the down-projection matrix; and $W^{UK},W^{UV} \in \mathbb{R}^{d_h n_h \times d_c}$ are the up-projection matrices for keys and values, respectively. During inference, MLA only needs to cache $\mathbf{c}_{t}^{KV}$, so its KV cache has only $d_{c}l$ elements, where $l$ denotes the number of layers. In addition, during inference, since $W^{UK}$ can be absorbed into $W^{Q}$, and $W^{UV}$ can be absorbed into $W^{O}$, we even do not need to compute keys and values out for attention. [Figure 3](#figure-03) intuitively illustrates how the KV joint compression in MLA reduces the KV cache.
+where $\mathbf{c}_{t}^{\mathit{KV}} \in \mathbb{R}^{d_c}$ is the compressed latent vector for keys and values; $d_c (\ll d_h n_h)$ denotes the KV compression dimension; $W^{\mathit{DKV}} \in \mathbb{R}^{d_c \times d}$ is the down-projection matrix; and $W^{\mathit{UK}},W^{\mathit{UV}} \in \mathbb{R}^{d_h n_h \times d_c}$ are the up-projection matrices for keys and values, respectively. During inference, MLA only needs to cache $\mathbf{c}_{t}^{\mathit{KV}}$, so its KV cache has only $d_{c}l$ elements, where $l$ denotes the number of layers. In addition, during inference, since $W^{\mathit{UK}}$ can be absorbed into $W^{Q}$, and $W^{\mathit{UV}}$ can be absorbed into $W^{O}$, we even do not need to compute keys and values out for attention. [Figure 3](#figure-03) intuitively illustrates how the KV joint compression in MLA reduces the KV cache.
 
 Moreover, in order to reduce the activation memory during training, we also perform low-rank compression for the queries, even if it cannot reduce the KV cache:
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{Q} &= W^{DQ} \mathbf{h}_{t}, \\
-    \mathbf{q}_{t}^{C} &= W^{UQ} \mathbf{c}_{t}^{Q},
+    \mathbf{c}_{t}^{Q} &= W^{\mathit{DQ}} \mathbf{h}_{t}, \\
+    \mathbf{q}_{t}^{C} &= W^{\mathit{UQ}} \mathbf{c}_{t}^{Q},
 \end{aligned}
 $$
 
-where $\mathbf{c}_{t}^{Q} \in \mathbb{R}^{d_c^{\prime}}$ is the compressed latent vector for queries; $d_c^{\prime} (\ll d_h n_h)$ denotes the query compression dimension; and $W^{DQ} \in \mathbb{R}^{d_c^{\prime} \times d}, W^{UQ} \in \mathbb{R}^{d_h n_h \times d_c^{\prime}}$ are the down-projection and up-projection matrices for queries, respectively.
+where $\mathbf{c}_{t}^{Q} \in \mathbb{R}^{d_c^{\prime}}$ is the compressed latent vector for queries; $d_c^{\prime} (\ll d_h n_h)$ denotes the query compression dimension; and $W^{\mathit{DQ}} \in \mathbb{R}^{d_c^{\prime} \times d}, W^{\mathit{UQ}} \in \mathbb{R}^{d_h n_h \times d_c^{\prime}}$ are the down-projection and up-projection matrices for queries, respectively.
 
 <span id="section-2-1-3"></span>
 
 #### 2.1.3 Decoupled Rotary Position Embedding
 
-Following DeepSeek 67B [Dee24e], we intend to use the Rotary Position Embedding (RoPE) [Su24] for DeepSeek-V2. However, RoPE is incompatible with low-rank KV compression. To be specific, RoPE is position-sensitive for both keys and queries. If we apply RoPE for the keys $\mathbf{k}_{t}^{C}$, $W^{UK}$ in [Equation 10](#equation-10) will be coupled with a position-sensitive RoPE matrix. In this way, $W^{UK}$ cannot be absorbed into $W^{Q}$ any more during inference, since a RoPE matrix related to the currently generating token will lie between $W^{Q}$ and $W^{UK}$ and matrix multiplication does not obey a commutative law. As a result, we must recompute the keys for all the prefix tokens during inference, which will significantly hinder the inference efficiency.
+Following DeepSeek 67B [Dee24e], we intend to use the Rotary Position Embedding (RoPE) [Su24] for DeepSeek-V2. However, RoPE is incompatible with low-rank KV compression. To be specific, RoPE is position-sensitive for both keys and queries. If we apply RoPE for the keys $\mathbf{k}_{t}^{C}$, $W^{\mathit{UK}}$ in [Equation 10](#equation-10) will be coupled with a position-sensitive RoPE matrix. In this way, $W^{\mathit{UK}}$ cannot be absorbed into $W^{Q}$ any more during inference, since a RoPE matrix related to the currently generating token will lie between $W^{Q}$ and $W^{\mathit{UK}}$ and matrix multiplication does not obey a commutative law. As a result, we must recompute the keys for all the prefix tokens during inference, which will significantly hinder the inference efficiency.
 
 As a solution, we propose the decoupled RoPE strategy that uses additional multi-head queries $\mathbf{q}_{t, i}^{R} \in \mathbb{R}^{d_h^R}$ and a shared key $\mathbf{k}_{t}^{R} \in \mathbb{R}^{d_h^R}$ to carry RoPE, where $d_h^R$ denotes the per-head dimension of the decoupled queries and key. Equipped with the decoupled RoPE strategy, MLA performs the following computation:
 
 $$
 \begin{aligned}
-    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \operatorname{RoPE}({W^{QR}} \mathbf{c}_{t}^{Q}), \\
-    \mathbf{k}_{t}^{R} &= \operatorname{RoPE}({W^{KR}} \mathbf{h}_{t}), \\
+    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{QR}}} \mathbf{c}_{t}^{Q}), \\
+    \mathbf{k}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{KR}}} \mathbf{h}_{t}), \\
     \mathbf{q}_{t, i} &= [\mathbf{q}_{t, i}^{C}; \mathbf{q}_{t, i}^{R}], \\
     \mathbf{k}_{t, i} &= [\mathbf{k}_{t, i}^{C}; \mathbf{k}_{t}^{R}], \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
 
-where $W^{QR} \in \mathbb{R}^{d_h^R n_h \times d_c^{\prime}}$ and $W^{KR} \in \mathbb{R}^{d_h^R \times d}$ are matrices to produce the decouples queries and key, respectively; $\operatorname{RoPE}(\cdot)$ denotes the operation that applies RoPE matrices; and $[\cdot;\cdot]$ denotes the concatenation operation. During inference, the decoupled key should also be cached. Therefore, DeepSeek-V2 requires a total KV cache containing $(d_{c} + d_h^R)l$ elements.
+where $W^{\mathit{QR}} \in \mathbb{R}^{d_h^R n_h \times d_c^{\prime}}$ and $W^{\mathit{KR}} \in \mathbb{R}^{d_h^R \times d}$ are matrices to produce the decouples queries and key, respectively; $\mathop{\mathrm{RoPE}}(\cdot)$ denotes the operation that applies RoPE matrices; and $[\cdot;\cdot]$ denotes the concatenation operation. During inference, the decoupled key should also be cached. Therefore, DeepSeek-V2 requires a total KV cache containing $(d_{c} + d_h^R)l$ elements.
 
 In order to demonstrate the complete computation process of MLA, we also organize and provide its full formulas in [Section 8](#section-8).
 
@@ -171,16 +170,16 @@ Let $\mathbf{u}_{t}$ be the FFN input of the $t$-th token, we compute the FFN ou
 
 $$
 \begin{aligned}
-    \mathbf{h}_{t}^{\prime} & = \mathbf{u}_{t} + \sum_{i=1}^{N_{s}} {\operatorname{FFN}^{(s)}_{i}\left( \mathbf{u}_{t} \right)} + \sum_{i=1}^{N_r} {g_{i,t} \operatorname{FFN}^{(r)}_{i}\left( \mathbf{u}_{t} \right)}, \\
+    \mathbf{h}_{t}^{\prime} & = \mathbf{u}_{t} + \sum_{i=1}^{N_{s}} {\mathop{\mathrm{FFN}}^{(s)}_{i}\left( \mathbf{u}_{t} \right)} + \sum_{i=1}^{N_r} {g_{i,t} \mathop{\mathrm{FFN}}^{(r)}_{i}\left( \mathbf{u}_{t} \right)}, \\
     g_{i,t} & = \begin{cases}
-    s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leq j \leq N_r \}, K_{r}), \\
-    0, & \text{otherwise},
+    s_{i,t}, & s_{i,t} \in \mathop{\mathrm{Topk}} (\{ s_{j, t} | 1 \leq j \leq N_r \}, K_{r}), \\
+    0, & \mathrm{otherwise},
     \end{cases} \\
-    s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}}^{T} \mathbf{e}_{i} \right),
+    s_{i,t} & = \mathop{\mathrm{Softmax}}_i \left( {\mathbf{u}_{t}}^\top \mathbf{e}_{i} \right),
 \end{aligned}
 $$
 
-where $N_{s}$ and $N_r$ denote the numbers of shared experts and routed experts, respectively; $\operatorname{FFN}^{(s)}_{i}(\cdot)$ and $\operatorname{FFN}^{(r)}_{i}(\cdot)$ denote the $i$-th shared expert and the $i$-th routed expert, respectively; $K_{r}$ denotes the number of activated routed experts; $g_{i,t}$ is the gate value for the $i$-th expert; $s_{i,t}$ is the token-to-expert affinity; $\mathbf{e}_{i}$ is the centroid of the $i$-th routed expert in this layer; and $\operatorname{Topk}(\cdot, K)$ denotes the set comprising $K$ highest scores among the affinity scores calculated for the $t$-th token and all routed experts.
+where $N_{s}$ and $N_r$ denote the numbers of shared experts and routed experts, respectively; $\mathop{\mathrm{FFN}}^{(s)}_{i}(\cdot)$ and $\mathop{\mathrm{FFN}}^{(r)}_{i}(\cdot)$ denote the $i$-th shared expert and the $i$-th routed expert, respectively; $K_{r}$ denotes the number of activated routed experts; $g_{i,t}$ is the gate value for the $i$-th expert; $s_{i,t}$ is the token-to-expert affinity; $\mathbf{e}_{i}$ is the centroid of the $i$-th routed expert in this layer; and $\mathop{\mathrm{Topk}}(\cdot, K)$ denotes the set comprising $K$ highest scores among the affinity scores calculated for the $t$-th token and all routed experts.
 
 <span id="section-2-2-2"></span>
 
@@ -201,7 +200,7 @@ We take the load balance into consideration for automatically learned routing st
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N_r}{f_i P_i}, \\
-    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \text{Token $t$ selects Expert $i$} )}, \\
+    f_i & = \frac{N_r}{K_r T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \mathrm{selects\ Expert}\ i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
 \end{aligned}
 $$
@@ -225,12 +224,12 @@ where $\alpha_{2}$ is a hyper-parameter called device-level balance factor.
 $$
 \begin{aligned}
     \mathcal{L}_{\mathrm{CommBal}} & = \alpha_{3} \sum_{i=1}^{D}{f_i^{\prime\prime} P_i^{\prime\prime}}, \\
-    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \text{Token $t$ is sent to Device $i$} )}, \\
+    f_i^{\prime\prime} & = \frac{D}{M T} \sum_{t=1}^{T}{ \mathds{1}( \mathrm{Token}\ t\ \mathrm{is\ sent\ to\ Device}\ i )}, \\
     P_i^{\prime\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
 \end{aligned}
 $$
 
-where $\alpha_{3}$ is a hyper-parameter called communication balance factor. The device-limited routing mechanism operates on the principle of ensuring that each device transmits at most $MT$ hidden states to other devices. Simultaneously, the communication balance loss is employed to encourage each device to receive around $MT$ hidden states from other devices. The communication balance loss guarantees a balanced exchange of information among devices, promoting efficient communications.
+where $\alpha_{3}$ is a hyper-parameter called communication balance factor. The device-limited routing mechanism operates on the principle of ensuring that each device transmits at most $M T$ hidden states to other devices. Simultaneously, the communication balance loss is employed to encourage each device to receive around $M T$ hidden states from other devices. The communication balance loss guarantees a balanced exchange of information among devices, promoting efficient communications.
 
 <span id="section-2-2-4"></span>
 
@@ -331,12 +330,10 @@ For an intuitive overview of these benchmarks, we additionally provide our evalu
 In [Table 2](#table-02), we compare DeepSeek-V2 with several representative open-source models, including DeepSeek 67B [Dee24e] (our previous release), Qwen1.5 72B [Bai23b], LLaMA3 70B [Dub24], and Mixtral 8x22B [Mis24]. We evaluate all these models with our internal evaluation framework, and ensure that they share the same evaluation setting. Overall, with only 21B activated parameters, DeepSeek-V2 significantly outperforms DeepSeek 67B on almost all benchmarks, and achieves top-tier performance among open-source models.
 
 Further, we elaborately compare DeepSeek-V2 with its open-source counterparts one by one.
-(1)
-Compared with Qwen1.5 72B, another model that supports both Chinese and English, DeepSeek-V2 demonstrates overwhelming advantages on the majority of English, code, and math benchmarks. As for Chinese benchmarks, Qwen1.5 72B shows better performance on multi-subject multiple-choice tasks while DeepSeek-V2 is comparable or better on others. Note that for the CHID benchmark, the tokenizer of Qwen1.5 72B will encounter errors in our evaluation framework, so we leave the CHID score blank for Qwen1.5 72B.
-(2)
-Compared with Mixtral 8x22B, DeepSeek-V2 achieves comparable or better English performance, except for TriviaQA, NaturalQuestions, and HellaSwag, which are closely related to English commonsense knowledge. Notably, DeepSeek-V2 outperforms Mixtral 8x22B on MMLU. On code and math benchmarks, DeepSeek-V2 demonstrates comparable performance with Mixtral 8x22B. Since Mixtral 8x22B is not specifically trained on Chinese data, its Chinese capability lags far behind DeepSeek-V2.
-(3)
-Compared with LLaMA3 70B, DeepSeek-V2 is trained on fewer than a quarter of English tokens. Therefore, we acknowledge that DeepSeek-V2 still has a slight gap in basic English capabilities with LLaMA3 70B. However, even with much fewer training tokens and activated parameters, DeepSeek-V2 still demonstrates comparable code and math capability with LLaMA3 70B. Also, as a bilingual language model, DeepSeek-V2 outperforms LLaMA3 70B overwhelmingly on Chinese benchmarks.
+
+1. Compared with Qwen1.5 72B, another model that supports both Chinese and English, DeepSeek-V2 demonstrates overwhelming advantages on the majority of English, code, and math benchmarks. As for Chinese benchmarks, Qwen1.5 72B shows better performance on multi-subject multiple-choice tasks while DeepSeek-V2 is comparable or better on others. Note that for the CHID benchmark, the tokenizer of Qwen1.5 72B will encounter errors in our evaluation framework, so we leave the CHID score blank for Qwen1.5 72B.
+2. Compared with Mixtral 8x22B, DeepSeek-V2 achieves comparable or better English performance, except for TriviaQA, NaturalQuestions, and HellaSwag, which are closely related to English commonsense knowledge. Notably, DeepSeek-V2 outperforms Mixtral 8x22B on MMLU. On code and math benchmarks, DeepSeek-V2 demonstrates comparable performance with Mixtral 8x22B. Since Mixtral 8x22B is not specifically trained on Chinese data, its Chinese capability lags far behind DeepSeek-V2.
+3. Compared with LLaMA3 70B, DeepSeek-V2 is trained on fewer than a quarter of English tokens. Therefore, we acknowledge that DeepSeek-V2 still has a slight gap in basic English capabilities with LLaMA3 70B. However, even with much fewer training tokens and activated parameters, DeepSeek-V2 still demonstrates comparable code and math capability with LLaMA3 70B. Also, as a bilingual language model, DeepSeek-V2 outperforms LLaMA3 70B overwhelmingly on Chinese benchmarks.
 
 Finally, it is worth mentioning that certain prior studies [Hu24] incorporate SFT data during the pre-training stage, whereas DeepSeek-V2 has never been exposed to SFT data during pre-training.
 
@@ -364,20 +361,20 @@ Building upon our prior research [Dee24e], we curate our instruction tuning data
 
 In order to further unlock the potential of DeepSeek-V2 and align it with human preference, we conduct Reinforcement Learning (RL) to adjust its preference.
 
-**Reinforcement Learning Algorithm.** In order to save the training costs of RL, we adopt Group Relative Policy Optimization (GRPO) [Sha24d], which foregoes the critic model that is typically with the same size as the policy model, and estimates the baseline from group scores instead. Specifically, for each question $q$, GRPO samples a group of outputs $\{o_1, o_2, \cdots, o_G\}$ from the old policy $\pi_{\theta_{old}}$ and then optimizes the policy model $\pi_{\theta}$ by maximizing the following objective:
+**Reinforcement Learning Algorithm.** In order to save the training costs of RL, we adopt Group Relative Policy Optimization (GRPO) [Sha24d], which foregoes the critic model that is typically with the same size as the policy model, and estimates the baseline from group scores instead. Specifically, for each question $q$, GRPO samples a group of outputs $\{o_1, o_2, \cdots, o_G\}$ from the old policy $\pi_{\theta_{\mathrm{old}}}$ and then optimizes the policy model $\pi_{\theta}$ by maximizing the following objective:
 
 <span id="equation-25"></span>
 
 $$
 \begin{aligned}
-    \mathcal{J}_{GRPO}(\theta) &= \mathbb{E}{[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{old}}(O|q)]}  \\
-    & \frac{1}{G}\sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{old}}(o_i |q)} A_i, \text{clip} \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{old}}(o_i |q)}, 1 - \epsilon, 1 + \epsilon \right)  A_i \right) - \beta \mathbb{D}_{KL}\left(\pi_{\theta} \| \pi_{ref}\right)\right) ,
+    \mathcal{J}_{\mathrm{GRPO}}(\theta) &= \mathbb{E}{[q \sim P(Q), \{o_i\}_{i=1}^G \sim \pi_{\theta_{\mathrm{old}}}(O|q)]}  \\
+    & \frac{1}{G}\sum_{i=1}^G \left( \min \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{\mathrm{old}}}(o_i |q)} A_i, \mathop{\mathrm{clip}} \left( \frac{\pi_\theta(o_i |q)}{\pi_{\theta_{\mathrm{old}}}(o_i |q)}, 1 - \epsilon, 1 + \epsilon \right)  A_i \right) - \beta \mathbb{D}_{\mathrm{KL}}\left(\pi_{\theta} \| \pi_{\mathrm{ref}}\right)\right) ,
 \end{aligned}
 $$
 
 $$
 \begin{aligned}
-    \mathbb{D}_{KL}\left(\pi_{\theta} \| \pi_{ref}\right) = \frac{\pi_{ref}(o_i|q)}{\pi_{\theta}(o_i|q)}- \log\frac{\pi_{ref}(o_i|q)}{\pi_{\theta}(o_i|q)} - 1,
+    \mathbb{D}_{\mathrm{KL}}\left(\pi_{\theta} \| \pi_{\mathrm{ref}}\right) = \frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)}- \log\frac{\pi_{\mathrm{ref}}(o_i|q)}{\pi_{\theta}(o_i|q)} - 1,
 \end{aligned}
 $$
 
@@ -389,19 +386,19 @@ $$
 \end{aligned}
 $$
 
-**Training Strategy.** In our preliminary experiments, we find that the RL training on reasoning data, such as code and math prompts, exhibits unique characteristics that are distinct from the training on general data. For example, the mathematical and coding abilities of our model can keep improving over a longer period of training steps. Therefore, we employ a two-stage RL training strategy, which first performs reasoning alignment, and then performs human preference alignment. In the first reasoning alignment stage, we train a reward model $RM_{reasoning}$ for code and math reasoning tasks, and optimize the policy model with the feedback of $RM_{reasoning}$:
+**Training Strategy.** In our preliminary experiments, we find that the RL training on reasoning data, such as code and math prompts, exhibits unique characteristics that are distinct from the training on general data. For example, the mathematical and coding abilities of our model can keep improving over a longer period of training steps. Therefore, we employ a two-stage RL training strategy, which first performs reasoning alignment, and then performs human preference alignment. In the first reasoning alignment stage, we train a reward model $\mathit{RM}_{\mathrm{reasoning}}$ for code and math reasoning tasks, and optimize the policy model with the feedback of $\mathit{RM}_{\mathrm{reasoning}}$:
 
 $$
 \begin{aligned}
-    r_i=RM_{reasoning}(o_i).
+    r_i=\mathit{RM}_{\mathrm{reasoning}}(o_i).
 \end{aligned}
 $$
 
-In the second human preference alignment stage, we adopt a multi-reward framework, which acquires rewards from a helpful reward model $RM_{helpful}$, a safety reward model $RM_{safety}$, and a rule-based reward model $RM_{rule}$. The final reward of a response $o_i$ is
+In the second human preference alignment stage, we adopt a multi-reward framework, which acquires rewards from a helpful reward model $\mathit{RM}_{\mathrm{helpful}}$, a safety reward model $\mathit{RM}_{\mathrm{safety}}$, and a rule-based reward model $\mathit{RM}_{\mathrm{rule}}$. The final reward of a response $o_i$ is
 
 $$
 \begin{aligned}
-    r_i = c_1 \cdot RM_{helpful}(o_i) + c_2 \cdot RM_{safety}(o_i) + c_3 \cdot RM_{rule}(o_i),
+    r_i = c_1 \cdot \mathit{RM}_{\mathrm{helpful}}(o_i) + c_2 \cdot \mathit{RM}_{\mathrm{safety}}(o_i) + c_3 \cdot \mathit{RM}_{\mathrm{rule}}(o_i),
 \end{aligned}
 $$
 
@@ -517,21 +514,21 @@ In order to demonstrate the complete computation process of MLA, we provide its 
 
 $$
 \begin{aligned}
-    \mathbf{c}_{t}^{Q} &= W^{DQ} \mathbf{h}_{t}, \\
-    [\mathbf{q}_{t, 1}^{C};\mathbf{q}_{t, 2}^{C};...;\mathbf{q}_{t, n_{h}}^{C}] = \mathbf{q}_{t}^{C} &= W^{UQ} \mathbf{c}_{t}^{Q}, \\
-    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \operatorname{RoPE}({W^{QR}} \mathbf{c}_{t}^{Q}), \\
+    \mathbf{c}_{t}^{Q} &= W^{\mathit{DQ}} \mathbf{h}_{t}, \\
+    [\mathbf{q}_{t, 1}^{C};\mathbf{q}_{t, 2}^{C};...;\mathbf{q}_{t, n_{h}}^{C}] = \mathbf{q}_{t}^{C} &= W^{\mathit{UQ}} \mathbf{c}_{t}^{Q}, \\
+    [\mathbf{q}_{t, 1}^{R};\mathbf{q}_{t, 2}^{R};...;\mathbf{q}_{t, n_{h}}^{R}] = \mathbf{q}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{QR}}} \mathbf{c}_{t}^{Q}), \\
     \mathbf{q}_{t, i} &= [\mathbf{q}_{t, i}^{C}; \mathbf{q}_{t, i}^{R}], \\
-    \mathbf{c}_{t}^{KV} &= W^{DKV} \mathbf{h}_{t}, \\
-    [\mathbf{k}_{t, 1}^{C};\mathbf{k}_{t, 2}^{C};...;\mathbf{k}_{t, n_{h}}^{C}] = \mathbf{k}_{t}^{C} &= W^{UK} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{k}_{t}^{R} &= \operatorname{RoPE}({W^{KR}} \mathbf{h}_{t}), \\
+    \mathbf{c}_{t}^{\mathit{KV}} &= W^{\mathit{DKV}} \mathbf{h}_{t}, \\
+    [\mathbf{k}_{t, 1}^{C};\mathbf{k}_{t, 2}^{C};...;\mathbf{k}_{t, n_{h}}^{C}] = \mathbf{k}_{t}^{C} &= W^{\mathit{UK}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{k}_{t}^{R} &= \mathop{\mathrm{RoPE}}({W^{\mathit{KR}}} \mathbf{h}_{t}), \\
     \mathbf{k}_{t, i} &= [\mathbf{k}_{t, i}^{C}; \mathbf{k}_{t}^{R}], \\
-    [\mathbf{v}_{t, 1}^{C};\mathbf{v}_{t, 2}^{C};...;\mathbf{v}_{t, n_{h}}^{C}] = \mathbf{v}_{t}^{C} &= W^{UV} \mathbf{c}_{t}^{KV}, \\
-    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \operatorname{Softmax}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
+    [\mathbf{v}_{t, 1}^{C};\mathbf{v}_{t, 2}^{C};...;\mathbf{v}_{t, n_{h}}^{C}] = \mathbf{v}_{t}^{C} &= W^{\mathit{UV}} \mathbf{c}_{t}^{\mathit{KV}}, \\
+    \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h} + d_{h}^{R}}}) \mathbf{v}_{j, i}^{C}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}
 $$
 
-where the boxed vectors in blue need to be cached for generation. During inference, the naive formula needs to recover $\mathbf{k}_{t}^{C}$ and $\mathbf{v}_{t}^{C}$ from $\mathbf{c}_{t}^{KV}$ for attention. Fortunately, due to the associative law of matrix multiplication, we can absorb $W^{UK}$ into $W^{UQ}$, and $W^{UV}$ into $W^{O}$. Therefore, we do not need to compute keys and values out for each query. Through this optimization, we avoid the computational overhead for recomputing $\mathbf{k}_{t}^{C}$ and $\mathbf{v}_{t}^{C}$ during inference.
+where the boxed vectors in blue need to be cached for generation. During inference, the naive formula needs to recover $\mathbf{k}_{t}^{C}$ and $\mathbf{v}_{t}^{C}$ from $\mathbf{c}_{t}^{\mathit{KV}}$ for attention. Fortunately, due to the associative law of matrix multiplication, we can absorb $W^{\mathit{UK}}$ into $W^{\mathit{UQ}}$, and $W^{\mathit{UV}}$ into $W^{O}$. Therefore, we do not need to compute keys and values out for each query. Through this optimization, we avoid the computational overhead for recomputing $\mathbf{k}_{t}^{C}$ and $\mathbf{v}_{t}^{C}$ during inference.
 
 <span id="section-9"></span>
 
