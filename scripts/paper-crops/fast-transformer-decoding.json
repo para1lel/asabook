@@ -1,0 +1,29 @@
+[
+  {
+    "name": "table-01",
+    "page": 8,
+    "x": 140,
+    "y": 101,
+    "width": 332,
+    "height": 127,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 8,
+    "x": 166.5,
+    "y": 288.5,
+    "width": 279,
+    "height": 78.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 8,
+    "x": 204.5,
+    "y": 415,
+    "width": 203.5,
+    "height": 90.5,
+    "preserveSource": false
+  }
+]
