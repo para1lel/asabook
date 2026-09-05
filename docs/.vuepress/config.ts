@@ -4318,7 +4318,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v2', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4445,7 +4445,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v2', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4682,7 +4682,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v2', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'gqa', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
