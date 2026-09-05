@@ -523,56 +523,56 @@ RNN 依靠固定维度的隐状态编码全部历史. 隐状态维度可以近�
 **代码 1: 用于训练 GLA 的两级分块算法, Pytorch 风格. 为清楚起见, 省略 batch size 与头数维度.**
 
 ```python
-  def gated_linear_attention_forward(Q, K, V, a, C, c):
-      '''
-      Q/K/V: query/key/value
-      a: log forget gate
-      C/c: chunk size, subchunk size
-      '''
-      # L: sequence length, d: head dimension
-      L, d_k = Q.shape
-      d_v = V.shape[-1]
-      S = torch.zeros(d_k, d_v)
-      O = torch.empty_like(V)
-      # cumsum of log decay within a chunk
-      B = torch.empty_like(a)
-      # local compute of cumulative product of decay within a chunk
-      for i in range(0, L//C):
-          b = torch.zeros(d_k)
-          for j in range(0, C):
-              b += a[i]
-              B[i] = b
+def gated_linear_attention_forward(Q, K, V, a, C, c):
+  '''
+  Q/K/V: query/key/value
+  a: log forget gate
+  C/c: chunk size, subchunk size
+  '''
+  # L: sequence length, d: head dimension
+  L, d_k = Q.shape
+  d_v = V.shape[-1]
+  S = torch.zeros(d_k, d_v)
+  O = torch.empty_like(V)
+  # cumsum of log decay within a chunk
+  B = torch.empty_like(a)
+  # local compute of cumulative product of decay within a chunk
+  for i in range(0, L//C):
+    b = torch.zeros(d_k)
+    for j in range(0, C):
+      b += a[i]
+      B[i] = b
 
-      for i in range(0, L // C):
-          r = range(i*C,(i+1)*C)
-          # (C, d) chunking
-          bq, bk, bv, bb = Q[r], K[r], V[r], B[r]
-          b = bb[-1,None]
-          #inter-chunk w/ matmul
-          q, k, g = bq*(bb.exp()), bk*((b-bb).exp()), b.exp()
-          o = q @ S
-          #hidden state update
-          S = g.t() * S + k.t() @ bv
-          #intra-chunk (secondary chunking)
-          for j in range(0, C // c):
-              t = range(j*c, (j+1)*c)
-              #(c, head_dim) subchunking
-              q, k, v, b = bq[t], bk[t], bv[t], bb[t]
-              p = torch.zeros(c,c)
-              #intra-subchunk w/o matmul.
-              for m in range(c):
-                  for n in range(m+1):
-                      p[m,n]=torch.sum(q[m]*k[n]*((b[m]-b[n]).exp()))
-              o[t] += p @ v
-              # inter-subchunk w/ matmul
-              z = b[0, None]
-              q = q * (b-z).exp()
-              for u in range(0, j):
-                  y = range(u*c, (u+1)*c)
-                  p = q @ (bk[y]*(z-bb[y]).exp()).t()
-                  o[t] += p@bv[y]
-          O[r] = o
-      return O
+  for i in range(0, L // C):
+    r = range(i*C,(i+1)*C)
+    # (C, d) chunking
+    bq, bk, bv, bb = Q[r], K[r], V[r], B[r]
+    b = bb[-1,None]
+    #inter-chunk w/ matmul
+    q, k, g = bq*(bb.exp()), bk*((b-bb).exp()), b.exp()
+    o = q @ S
+    #hidden state update
+    S = g.t() * S + k.t() @ bv
+    #intra-chunk (secondary chunking)
+    for j in range(0, C // c):
+      t = range(j*c, (j+1)*c)
+      #(c, head_dim) subchunking
+      q, k, v, b = bq[t], bk[t], bv[t], bb[t]
+      p = torch.zeros(c,c)
+      #intra-subchunk w/o matmul.
+      for m in range(c):
+        for n in range(m+1):
+          p[m,n]=torch.sum(q[m]*k[n]*((b[m]-b[n]).exp()))
+      o[t] += p @ v
+      # inter-subchunk w/ matmul
+      z = b[0, None]
+      q = q * (b-z).exp()
+      for u in range(0, j):
+        y = range(u*c, (u+1)*c)
+        p = q @ (bk[y]*(z-bb[y]).exp()).t()
+        o[t] += p@bv[y]
+    O[r] = o
+  return O
 ```
 
 <span id="algorithm-03"></span>

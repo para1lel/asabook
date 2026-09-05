@@ -192,6 +192,9 @@ function validateSectionReferences(markdown, locale, label) {
 
   for (const [index, line] of markdown.split(/\r?\n/).entries()) {
     if (/^#{1,6}\s/.test(line)) continue
+    if (/(?:§|\\S)\s*\[[^\]\n]+\]\(#section-[^)\s]+\)/u.test(line)) {
+      fail(`${label}: section reference at line ${index + 1} must not use a § or \\S prefix`)
+    }
     if (stalePattern.test(line)) {
       fail(`${label}: non-decimal section reference at line ${index + 1}`)
     }
@@ -233,13 +236,20 @@ function equationAnchors(markdown) {
   return [...markdown.matchAll(/<span id="([^"]+)"><\/span>\s*\$\$/g)].map((match) => match[1])
 }
 
-function validateFormulaReferenceTargets(markdown, label) {
+function validateFormulaReferenceTargets(markdown, locale, label) {
   const anchors = new Set(
     [...markdown.matchAll(/<span\s+id="([^"]+)"><\/span>/g)].map((match) => match[1]),
   )
   const targetPattern = /\]\(#((?:equation-[^)\s"]+)|(?:[AS]\d+(?:\.[A-Z]+)*\.E\d+))(?:\s+["'][^)]*["'])?\)/g
   for (const match of markdown.matchAll(targetPattern)) {
     if (!anchors.has(match[1])) fail(label + ': formula reference target #' + match[1] + ' does not exist')
+  }
+  if (locale === 'zh') {
+    for (const [index, line] of markdown.split(/\r?\n/).entries()) {
+      for (const match of line.matchAll(/\[[^\]\n]+\]\(#(?:equation-[^)\s"]+|[AS]\d+(?:\.[A-Z]+)*\.E\d+)(?:\s+["'][^)]*["'])?\)(?=\p{Script=Han})/gu)) {
+        fail(`${label}: add a space after Chinese formula reference '${match[0]}' at line ${index + 1}`)
+      }
+    }
   }
 }
 
@@ -293,8 +303,8 @@ function validateFencedCodeIndentation(markdown, label) {
         fenceLine = index + 1
         indentationWidths = []
       } else if (fenceMarker === marker) {
-        if (indentationWidths.length > 0 && Math.min(...indentationWidths) !== 2) {
-          fail(`${label}: fenced code block at line ${fenceLine} must start indentation at two spaces`)
+        if (indentationWidths.length > 0 && Math.min(...indentationWidths) !== 0) {
+          fail(`${label}: fenced code block at line ${fenceLine} must have a nonblank content line at column zero`)
         }
         fenceMarker = null
         fenceLine = null
@@ -304,8 +314,8 @@ function validateFencedCodeIndentation(markdown, label) {
     }
     if (fenceMarker === null) continue
 
-    const indentation = line.match(/^[ \t]+(?=\S)/)?.[0]
-    if (!indentation) continue
+    if (!line.trim()) continue
+    const indentation = line.match(/^[ \t]*/)?.[0] ?? ''
     if (indentation.includes('\t')) {
       fail(`${label}: fenced code block at line ${fenceLine} uses a tab at line ${index + 1}`)
       continue
@@ -682,7 +692,7 @@ for (const page of pages) {
   validateRunInParagraphHeadings(markdown, label)
   const formalContent = validateFormalStatementsAndProofs(markdown, page.locale, label)
   validateNoTypesetTables(markdown, label)
-  validateFormulaReferenceTargets(markdown, label)
+  validateFormulaReferenceTargets(markdown, page.locale, label)
   validateSectionReferences(markdown, page.locale, label)
   const badHyphenLines = consecutiveHyphenLines(markdown)
   if (badHyphenLines.length > 0) {

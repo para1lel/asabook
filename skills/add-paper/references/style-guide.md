@@ -10,6 +10,7 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - [Formal Statements and Proofs](#formal-statements-and-proofs)
 - [Hyphens and Dashes](#hyphens-and-dashes)
 - [Math](#math)
+- [Code Blocks](#code-blocks)
 - [Algorithms](#algorithms)
 - [Figures and Tables](#figures-and-tables)
 - [English](#english)
@@ -22,7 +23,7 @@ Apply these rules to English, Simplified Chinese, and Japanese paper pages. Trea
 - Use the same concise English title in all languages and keep it at 50 characters or fewer. Preserve the full source title in the provenance link when shortening it.
 - Preserve the source section and subsection hierarchy, but normalize every substantive heading to Arabic decimal numbering in all three languages: `## 1 ...`, `### 2.1 ...`, `#### 3.1.1 ...`. Convert Roman, alphabetic, and mixed source labels such as `II-A` and `III-A1` to `2.1` and `3.1.1`; never render those source numbering styles in a heading.
 - Keep the abstract and acknowledgements unnumbered because they are document apparatus. Treat appendices as substantive sections, continue the top-level decimal sequence after the main body, and remove any empty generic `Appendix`, `附录`, or `付録` heading that only introduces the first real appendix section.
-- Use decimal section anchors that mirror the normalized hierarchy, such as `section-2-1`, and update every localized section-reference label and target to match. Keep the heading-number and section-anchor sequences identical across all three languages.
+- Use decimal section anchors that mirror the normalized hierarchy, such as `section-2-1`, and update every localized section-reference label and target to match. Keep the heading-number and section-anchor sequences identical across all three languages. Never prefix an internal section reference with `§` or `\S`; write only the linked localized label, such as `[Section 2.1](#section-2-1)`, `[第 2.1 节](#section-2-1)`, or `[第 2.1 節](#section-2-1)`.
 - Preserve citations and figure, table, and algorithm numbering. Preserve source equation numbers in stable anchors and linked reference labels, but do not display number tags beside formulas.
 - Reproduce the complete substantive paper in source order. Do not abridge, summarize, expand, or omit body material, but omit the standalone reference list.
 - Render a source run-in paragraph heading such as `\paragraph{Heading.}` at the start of the same Markdown paragraph: `**Heading.** Paragraph text...`. Keep exactly one space after the closing bold marker; never separate the heading from its paragraph with a blank line or line break.
@@ -107,6 +108,18 @@ Localized summaries use the same body structure:
 - Preserve source macros only when KaTeX supports them in VuePress. Expand unsupported macros into standard KaTeX commands.
 - Keep punctuation outside inline math when it belongs to the sentence. Preserve commas inside display math when they are part of the expression.
 
+## Code Blocks
+
+- Put the least-indented nonblank content line of every fenced code block at column zero. Do not add a uniform base indent inside the fence.
+- Indent each nested level by exactly two spaces. Never use tabs or four spaces as one indentation level.
+- Preserve executable behavior while normalizing indentation, and keep corresponding code blocks identically indented across all three language pages.
+
+```python
+def example(items):
+  for item in items:
+    process(item)
+```
+
 ## Algorithms
 
 - Render every list in a paper page as a standard Markdown unordered or ordered list with `-` (or `*`) or `1.` markers. Do not emulate lists with bold paragraphs, manual numeric prefixes, or blank-line-separated pseudo-items.
@@ -168,6 +181,7 @@ Example:
 - Use half-width punctuation in prose: comma, period, colon, semicolon, and parentheses.
 - Insert one space after a half-width comma, period, colon, or semicolon when more text follows.
 - Keep one space between `图` or `表` and its number, and one space between a linked `图 N` or `表 N` reference and following Han text.
+- Keep one space between a linked formula reference such as `[公式 4](#equation-04)` and following Han text. Do not insert a space before punctuation.
 - Insert one space before a left parenthesis when it follows text: `大语言模型 (LLM)`.
 - Do not place spaces just inside parentheses. Insert a space after the right parenthesis when ordinary text continues.
 - Put spaces between Chinese text and adjacent Latin abbreviations, product names, numbers with Latin units, links, or inline math when they form separate tokens.
@@ -197,6 +211,7 @@ Example:
 - Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
 - Confirm no standalone reference-list or empty generic appendix heading remains.
 - Confirm every title is at most 50 characters and every matrix transpose uses `^\top`.
-- Confirm that internal section references use the localized label but the same target number.
+- Confirm that internal section references use the localized label and the same target number without a `§` or `\S` prefix.
+- Confirm that Chinese linked formula references have one space before following Han text, and that every fenced code block starts at column zero and uses two spaces per nested level.
 - Confirm that the concise title, authors, author URLs, arXiv version, DOI, and publication facts match across languages, and that the provenance link preserves the full source title.
 - Confirm sidebar placement uses the first arXiv submission date and is identical in all locales.
