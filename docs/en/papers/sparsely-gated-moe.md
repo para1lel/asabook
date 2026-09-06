@@ -4,13 +4,17 @@ createTime: 2026/08/04 23:48:22
 permalink: /en/papers/sparsely-gated-moe/
 ---
 
-> [Noam Shazeer](https://www.noamshazeer.com/), [Azalia Mirhoseini](https://www.azaliamirhoseini.com/), [Krzysztof Maziarz](https://x.com/MaziarzKris), [Andy Davis](https://research.google/people/104876/), [Quoc Le](http://cs.stanford.edu/~quocle/), [Geoffrey Hinton](http://www.cs.toronto.edu/~hinton/), and [Jeff Dean](https://research.google/people/jeff/). First submitted to arXiv on January 23, 2017; current version v1. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). [Original PDF](/paper/sparsely-gated-moe.pdf). [TeX source](https://export.arxiv.org/e-print/1701.06538). The original PDF remains authoritative for the exact print layout and bibliography.
+> [Noam Shazeer](https://www.noamshazeer.com/), [Azalia Mirhoseini](https://www.azaliamirhoseini.com/) [+author-equal] [+author-residency], [Krzysztof Maziarz](https://x.com/MaziarzKris) [+author-equal], [Andy Davis](https://research.google/people/104876/), [Quoc Le](http://cs.stanford.edu/~quocle/), [Geoffrey Hinton](http://www.cs.toronto.edu/~hinton/), and [Jeff Dean](https://research.google/people/jeff/). First submitted to arXiv on January 23, 2017; current version v1. Published at ICLR 2017. [Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer](https://arxiv.org/abs/1701.06538). <a href="/paper/sparsely-gated-moe.pdf" target="_blank" rel="noopener noreferrer">Original PDF</a>. [DOI](https://doi.org/10.48550/arXiv.1701.06538). [TeX source](https://export.arxiv.org/e-print/1701.06538). The original PDF remains authoritative for the exact print layout and bibliography.
 
 ## Abstract
 
 The capacity of a neural network to absorb information is limited by its number of parameters. Conditional computation, where parts of the network are active on a per-example basis, has been proposed in theory as a way of dramatically increasing model capacity without a proportional increase in computation. In practice, however, there are significant algorithmic and performance challenges. In this work, we address these challenges and finally realize the promise of conditional computation, achieving greater than 1000x improvements in model capacity with only minor losses in computational efficiency on modern GPU clusters. We introduce a Sparsely-Gated Mixture-of-Experts layer (MoE), consisting of up to thousands of feed-forward sub-networks. A trainable gating network determines a sparse combination of these experts to use for each example. We apply the MoE to the tasks of language modeling and machine translation, where model capacity is critical for absorbing the vast quantities of knowledge available in the training corpora. We present model architectures in which a MoE with up to 137 billion parameters is applied convolutionally between stacked LSTM layers. On large language modeling and machine translation benchmarks, these models achieve significantly better results than state-of-the-art at lower computational cost.
 
+<span id="section-1"></span>
+
 ## 1 Introduction and Related Work
+
+<span id="section-1-1"></span>
 
 ### 1.1 Conditional Computation
 
@@ -32,6 +36,8 @@ While these ideas are promising in theory, no work to date has yet demonstrated 
 
 In this work, we for the first time address all of the above challenges and finally realize the promise of conditional computation. We obtain greater than 1000x improvements in model capacity with only minor losses in computational efficiency and significantly advance the state-of-the-art results on public language modeling and translation data sets.
 
+<span id="section-1-2"></span>
+
 ### 1.2 Our Approach: The Sparsely-Gated Mixture-of-Experts Layer
 
 Our approach to conditional computation is to introduce a new type of general purpose neural network component: a Sparsely-Gated Mixture-of-Experts Layer (MoE). The MoE consists of a number of experts, each a simple feed-forward neural network, and a trainable gating network which selects a sparse combination of the experts to process each input (see [Figure 1](#figure-01)). All parts of the network are trained jointly by back-propagation.
@@ -42,7 +48,9 @@ Our approach to conditional computation is to introduce a new type of general pu
 
 **Figure 1.** A Mixture of Experts (MoE) layer embedded within a recurrent language model. In this case, the sparse gating function selects two experts to perform computations. Their outputs are modulated by the outputs of the gating network.
 
-While the introduced technique is generic, in this paper we focus on language modeling and machine translation tasks, which are known to benefit from very large models. In particular, we apply a MoE convolutionally between stacked LSTM layers [Hoc97], as in [Figure 1](#figure-01). The MoE is called once for each position in the text, selecting a potentially different combination of experts at each position. The different experts tend to become highly specialized based on syntax and semantics (see Appendix [E](#appendix-e) [Table 9](#table-09)). On both language modeling and machine translation benchmarks, we improve on best published results at a fraction of the computational cost.
+While the introduced technique is generic, in this paper we focus on language modeling and machine translation tasks, which are known to benefit from very large models. In particular, we apply a MoE convolutionally between stacked LSTM layers [Hoc97], as in [Figure 1](#figure-01). The MoE is called once for each position in the text, selecting a potentially different combination of experts at each position. The different experts tend to become highly specialized based on syntax and semantics (see [Section 11](#section-11) [Table 9](#table-09)). On both language modeling and machine translation benchmarks, we improve on best published results at a fraction of the computational cost.
+
+<span id="section-1-3"></span>
 
 ### 1.3 Related work on Mixtures of Experts
 
@@ -51,6 +59,8 @@ Since its introduction more than two decades ago [Jac91, Jor94], the mixture-of-
 The works above concern top-level mixtures of experts. The mixture of experts is the whole model. [Eig13] introduce the idea of using multiple MoEs with their own gating networks as parts of a deep model. It is intuitive that the latter approach is more powerful, since complex problems may contain many sub-problems each requiring different experts. They also allude in their conclusion to the potential to introduce sparsity, turning MoEs into a vehicle for computational computation.
 
 Our work builds on this use of MoEs as a general purpose neural network component. While [Eig13] uses two stacked MoEs allowing for two sets of gating decisions, our convolutional application of the MoE allows for different gating decisions at each position in the text. We also realize sparse gating and demonstrate its use as a practical way to massively increase model capacity.
+
+<span id="section-2"></span>
 
 ## 2 The Structure of the Mixture-of-Experts layer
 
@@ -62,9 +72,11 @@ $$
 y=\sum_{i=1}^{n}G(x)_{i}E_{i}(x)
 $$
 
-We save computation based on the sparsity of the output of $G(x)$. Wherever $G(x)_{i}=0$, we need not compute $E_{i}(x)$. In our experiments, we have up to thousands of experts, but only need to evaluate a handful of them for every example. If the number of experts is very large, we can reduce the branching factor by using a two-level hierarchical MoE. In a hierarchical MoE, a primary gating network chooses a sparse weighted combination of "experts", each of which is itself a secondary mixture-of-experts with its own gating network. In the following we focus on ordinary MoEs. We provide more details on hierarchical MoEs in Appendix [B](#appendix-b).
+We save computation based on the sparsity of the output of $G(x)$. Wherever $G(x)_{i}=0$, we need not compute $E_{i}(x)$. In our experiments, we have up to thousands of experts, but only need to evaluate a handful of them for every example. If the number of experts is very large, we can reduce the branching factor by using a two-level hierarchical MoE. In a hierarchical MoE, a primary gating network chooses a sparse weighted combination of "experts", each of which is itself a secondary mixture-of-experts with its own gating network. In the following we focus on ordinary MoEs. We provide more details on hierarchical MoEs in [Section 8](#section-8).
 
 Our implementation is related to other models of conditional computation. A MoE whose experts are simple weight matrices is similar to the parameterized weight matrix proposed in [Cho14]. A MoE whose experts have one hidden layer is similar to the block-wise dropout described in [Ben15], where the dropped-out layer is sandwiched between fully-activated layers.
+
+<span id="section-2-1"></span>
 
 ### 2.1 Gating Network
 
@@ -76,7 +88,7 @@ $$
 
 <span id="noisy-top-k-gating"></span>
 
-**Noisy Top-K Gating:** We add two components to the Softmax gating network: sparsity and noise. Before taking the softmax function, we add tunable Gaussian noise, then keep only the top k values, setting the rest to $-\infty$ (which causes the corresponding gate values to equal $0$). The sparsity serves to save computation, as described above. While this form of sparsity creates some theoretically scary discontinuities in the output of gating function, we have not yet observed this to be a problem in practice. The noise term helps with load balancing, as will be discussed in Appendix [A](#appendix-a). The amount of noise per component is controlled by a second trainable weight matrix $W_{\mathrm{noise}}$.
+**Noisy Top-K Gating:** We add two components to the Softmax gating network: sparsity and noise. Before taking the softmax function, we add tunable Gaussian noise, then keep only the top k values, setting the rest to $-\infty$ (which causes the corresponding gate values to equal $0$). The sparsity serves to save computation, as described above. While this form of sparsity creates some theoretically scary discontinuities in the output of gating function, we have not yet observed this to be a problem in practice. The noise term helps with load balancing, as will be discussed in [Section 7](#section-7). The amount of noise per component is controlled by a second trainable weight matrix $W_{\mathrm{noise}}$.
 
 $$
 G(x)=\mathrm{Softmax}(\mathrm{KeepTopK}(H(x),k))
@@ -99,19 +111,23 @@ $$
 
 ## 3 Addressing Performance Challenges
 
+<span id="section-3-1"></span>
+
 ### 3.1 The Shrinking Batch Problem
 
 On modern CPUs and GPUs, large batch sizes are necessary for computational efficiency, so as to amortize the overhead of parameter loads and updates. If the gating network chooses $k$ out of $n$ experts for each example, then for a batch of $b$ examples, each expert receives a much smaller batch of approximately $\frac{\mathrm{kb}}{n}\ll b$ examples. This causes a naive MoE implementation to become very inefficient as the number of experts increases. The solution to this shrinking batch problem is to make the original batch size as large as possible. However, batch size tends to be limited by the memory necessary to store activations between the forwards and backwards passes. We propose the following techniques for increasing the batch size:
 
 **Mixing Data Parallelism and Model Parallelism:** In a conventional distributed training setting, multiple copies of the model on different devices asynchronously process distinct batches of data, and parameters are synchronized through a set of parameter servers. In our technique, these different batches run synchronously so that they can be combined for the MoE layer. We distribute the standard layers of the model and the gating network according to conventional data-parallel schemes, but keep only one shared copy of each expert. Each expert in the MoE layer receives a combined batch consisting of the relevant examples from all of the data-parallel input batches. The same set of devices function as data-parallel replicas (for the standard layers and the gating networks) and as model-parallel shards (each hosting a subset of the experts). If the model is distributed over $d$ devices, and each device processes a batch of size $b$, each expert receives a batch of approximately $\frac{\mathrm{kbd}}{n}$ examples. Thus, we achieve a factor of $d$ improvement in expert batch size.
 
-In the case of a hierarchical MoE (Section [B](#appendix-b)), the primary gating network employs data parallelism, and the secondary MoEs employ model parallelism. Each secondary MoE resides on one device.
+In the case of a hierarchical MoE ([Section 8](#section-8)), the primary gating network employs data parallelism, and the secondary MoEs employ model parallelism. Each secondary MoE resides on one device.
 
 This technique allows us to increase the number of experts (and hence the number of parameters) by proportionally increasing the number of devices in the training cluster. The total batch size increases, keeping the batch size per expert constant. The memory and bandwidth requirements per device also remain constant, as do the step times, as does the amount of time necessary to process a number of training examples equal to the number of parameters in the model. It is our goal to train a trillion-parameter model on a trillion-word corpus. We have not scaled our systems this far as of the writing of this paper, but it should be possible by adding more hardware.
 
 **Taking Advantage of Convolutionality:** In our language models, we apply the same MoE to each time step of the previous layer. If we wait for the previous layer to finish, we can apply the MoE to all the time steps together as one big batch. Doing so increases the size of the input batch to the MoE layer by a factor of the number of unrolled time steps.
 
 **Increasing Batch Size for a Recurrent MoE:** We suspect that even more powerful models may involve applying a MoE recurrently. For example, the weight matrices of a LSTM or other RNN could be replaced by a MoE. Sadly, such models break the convolutional trick from the last paragraph, since the input to the MoE at one timestep depends on the output of the MoE at the previous timestep. [Gru16] describe a technique for drastically reducing the number of stored activations in an unrolled RNN, at the cost of recomputing forward activations. This would allow for a large increase in batch size.
+
+<span id="section-3-2"></span>
 
 ### 3.2 Network Bandwidth
 
@@ -133,9 +149,13 @@ $$
 L_{\mathrm{importance}}(X)=w_{\mathrm{importance}}\cdot \mathrm{CV}(\mathrm{Importance}(X))^{2}
 $$
 
-While this loss function can ensure equal importance, experts may still receive very different numbers of examples. For example, one expert may receive a few examples with large weights, and another may receive many examples with small weights. This can cause memory and performance problems on distributed hardware. To solve this problem, we introduce a second loss function, $L_{\mathrm{load}}$ , which ensures balanced loads. Appendix [A](#appendix-a) contains the definition of this function, along with experimental results.
+While this loss function can ensure equal importance, experts may still receive very different numbers of examples. For example, one expert may receive a few examples with large weights, and another may receive many examples with small weights. This can cause memory and performance problems on distributed hardware. To solve this problem, we introduce a second loss function, $L_{\mathrm{load}}$ , which ensures balanced loads. [Section 7](#section-7) contains the definition of this function, along with experimental results.
+
+<span id="section-5"></span>
 
 ## 5 Experiments
+
+<span id="section-5-1"></span>
 
 ### 5.1 1 Billion Word Language Modeling Benchmark
 
@@ -143,7 +163,7 @@ While this loss function can ensure equal importance, experts may still receive 
 
 **Previous State-of-the-Art:** The best previously published results [Joz16] use models consisting of one or more stacked Long Short-Term Memory (LSTM) layers [Hoc97, Ger00]. The number of parameters in the LSTM layers of these models vary from 2 million to 151 million. Quality increases greatly with parameter count, as do computational costs. Results for these models form the top line of [Figure 2](#figure-02)-right.
 
-**MoE Models:** Our models consist of two stacked LSTM layers with a MoE layer between them (see [Figure 1](#figure-01)). We vary the sizes of the layers and the number of experts. For full details on model architecture, training regimen, additional baselines and results, see Appendix [C](#appendix-c).
+**MoE Models:** Our models consist of two stacked LSTM layers with a MoE layer between them (see [Figure 1](#figure-01)). We vary the sizes of the layers and the number of experts. For full details on model architecture, training regimen, additional baselines and results, see [Section 9](#section-9).
 
 **Low Computation, Varied Capacity:** To investigate the effects of adding capacity, we trained a series of MoE models all with roughly equal computational costs: about 8 million multiply-and-adds per training example per timestep in the forwards pass, excluding the softmax layer. We call this metric (ops/timestep). We trained models with flat MoEs containing 4, 32, and 256 experts, and models with hierarchical MoEs containing 256, 1024, and 4096 experts. Each expert had about 1 million parameters. For all the MoE layers, 4 experts were active per input.
 
@@ -161,13 +181,15 @@ The results of these models are shown in [Figure 2](#figure-02)-left. The model 
 
 ![Original paper Table 1](../../papers/sparsely-gated-moe/table-01.png)
 
-**Table 1.** Summary of high-capacity MoE-augmented models with varying computational budgets, vs. best previously published results [Joz16]. Details in Appendix [C](#appendix-c).
+**Table 1.** Summary of high-capacity MoE-augmented models with varying computational budgets, vs. best previously published results [Joz16]. Details in [Section 9](#section-9).
 
-**Varied Computation, High Capacity:** In addition to the largest model from the previous section, we trained two more MoE models with similarly high capacity (4 billion parameters), but higher computation budgets. These models had larger LSTMs, and fewer but larger and experts. Details can be found in Appendix [C.2](#appendix-c-2). Results of these three models form the bottom line of [Figure 2](#figure-02)-right. [Table 1](#table-01) compares the results of these models to the best previously-published result on this dataset . Even the fastest of these models beats the best published result (when controlling for the number of training epochs), despite requiring only 6% of the computation.
+**Varied Computation, High Capacity:** In addition to the largest model from the previous section, we trained two more MoE models with similarly high capacity (4 billion parameters), but higher computation budgets. These models had larger LSTMs, and fewer but larger and experts. Details can be found in [Section 9.2](#section-9-2). Results of these three models form the bottom line of [Figure 2](#figure-02)-right. [Table 1](#table-01) compares the results of these models to the best previously-published result on this dataset . Even the fastest of these models beats the best published result (when controlling for the number of training epochs), despite requiring only 6% of the computation.
 
 **Computational Efficiency:** We trained our models using TensorFlow [Aba16a] on clusters containing 16-32 Tesla K40 GPUs. For each of our models, we determine computational efficiency in TFLOPS/GPU by dividing the number of floating point operations required to process one training batch by the observed step time and the number of GPUs in the cluster. The operation counts used here are higher than the ones we report in our ops/timestep numbers in that we include the backwards pass, we include the importance-sampling-based training of the softmax layer, and we count a multiply-and-add as two separate operations. For all of our MoE models, the floating point operations involved in the experts represent between 37% and 46% of the total.
 
-For our baseline models wtih no MoE, observed computational efficiency ranged from 1.07-1.29 TFLOPS/GPU. For our low-computation MoE models, computation efficiency ranged from 0.74-0.90 TFLOPS/GPU, except for the 4-expert model which did not make full use of the available parallelism. Our highest-computation MoE model was more efficient at 1.56 TFLOPS/GPU, likely due to the larger matrices. These numbers represent a significant fraction of the theoretical maximum of 4.29 TFLOPS/GPU claimed by NVIDIA. Detailed results are in Appendix [C](#appendix-c), [Table 7](#table-07).
+For our baseline models wtih no MoE, observed computational efficiency ranged from 1.07-1.29 TFLOPS/GPU. For our low-computation MoE models, computation efficiency ranged from 0.74-0.90 TFLOPS/GPU, except for the 4-expert model which did not make full use of the available parallelism. Our highest-computation MoE model was more efficient at 1.56 TFLOPS/GPU, likely due to the larger matrices. These numbers represent a significant fraction of the theoretical maximum of 4.29 TFLOPS/GPU claimed by NVIDIA. Detailed results are in [Section 9](#section-9), [Table 7](#table-07).
+
+<span id="section-5-2"></span>
 
 ### 5.2 100 Billion Word Google News Corpus
 
@@ -179,7 +201,7 @@ For our baseline models wtih no MoE, observed computational efficiency ranged fr
 
 On the 1-billion-word corpus, adding additional capacity seems to produce diminishing returns as the number of parameters in the MoE layer exceeds 1 billion, as can be seen in [Figure 2](#figure-02)-left. We hypothesized that for a larger training set, even higher capacities would produce significant quality improvements.
 
-We constructed a similar training set consisting of shuffled unique sentences from Google’s internal news corpus, totalling roughly 100 billion words. Similarly to the previous section, we tested a series of models with similar computational costs of about 8 million ops/timestep. In addition to a baseline LSTM model, we trained models augmented with MoE layers containing 32, 256, 1024, 4096, 16384, 65536, and 131072 experts. This corresponds to up to 137 billion parameters in the MoE layer. Details on architecture, training, and results are given in Appendix [D](#appendix-d).
+We constructed a similar training set consisting of shuffled unique sentences from Google’s internal news corpus, totalling roughly 100 billion words. Similarly to the previous section, we tested a series of models with similar computational costs of about 8 million ops/timestep. In addition to a baseline LSTM model, we trained models augmented with MoE layers containing 32, 256, 1024, 4096, 16384, 65536, and 131072 experts. This corresponds to up to 137 billion parameters in the MoE layer. Details on architecture, training, and results are given in [Section 10](#section-10).
 
 **Results:** [Figure 3](#figure-03) shows test perplexity as a function of capacity after training on 10 billion words (top line) and 100 billion words (bottom line). When training over the full 100 billion words, test perplexity improves significantly up to 65536 experts (68 billion parameters), dropping 39% lower than the computationally matched baseline, but degrades at 131072 experts, possibly a result of too much sparsity. The widening gap between the two lines demonstrates (unsurprisingly) that increased model capacity helps more on larger training sets.
 
@@ -189,7 +211,7 @@ Even at 65536 experts (99.994% layer sparsity), computational efficiency for the
 
 ### 5.3 Machine Translation (Single Language Pair)
 
-**Model Architecture:** Our model was a modified version of the GNMT model described in [Wu17]. To reduce computation, we decreased the number of LSTM layers in the encoder and decoder from 9 and 8 to 3 and 2 respectively. We inserted MoE layers in both the encoder (between layers 2 and 3) and the decoder (between layers 1 and 2). Each MoE layer contained up to 2048 experts each with about two million parameters, adding a total of about 8 billion parameters to the models. Further details on model architecture, testing procedure and results can be found in Appendix [E](#appendix-e).
+**Model Architecture:** Our model was a modified version of the GNMT model described in [Wu17]. To reduce computation, we decreased the number of LSTM layers in the encoder and decoder from 9 and 8 to 3 and 2 respectively. We inserted MoE layers in both the encoder (between layers 2 and 3) and the decoder (between layers 1 and 2). Each MoE layer contained up to 2048 experts each with about two million parameters, adding a total of about 8 billion parameters to the models. Further details on model architecture, testing procedure and results can be found in [Section 11](#section-11).
 
 **Datasets:** We benchmarked our method on the WMT’14 En $\rightarrow$ Fr and En $\rightarrow$ De corpora, whose training sets have 36M sentence pairs and 5M sentence pairs, respectively. The experimental protocols were also similar to those in [Wu17]: newstest2014 was used as the test set to compare against previous work [Luo15a, Zho16, Wu17], while the combination of newstest2012 and newstest2013 was used as the development set. We also tested the same model on a Google’s Production English to French data.
 
@@ -213,9 +235,11 @@ Even at 65536 experts (99.994% layer sparsity), computational efficiency for the
 
 **Results:** [Tables 2](#table-02), [3](#table-03), and  [4](#table-04) show the results of our largest models, compared with published results. Our approach achieved BLEU scores of 40.56 and 26.03 on the WMT’14 En $\rightarrow$ Fr and En $\rightarrow$ De benchmarks. As our models did not use RL refinement, these results constitute significant gains of 1.34 and 1.12 BLEU score on top of the strong baselines in [Wu17]. The perplexity scores are also better. [+2] On the Google Production dataset, our model achieved 1.01 higher test BLEU score even after training for only one sixth of the time.
 
+<span id="section-5-4"></span>
+
 ### 5.4 Multilingual Machine Translation
 
-**Dataset:** [Joh16] train a single GNMT [Wu17] model on a very large combined dataset of twelve language pairs. Results are somewhat worse than those for 12 separately trained single-pair GNMT models. This is not surprising, given that the twelve models have 12 times the capacity and twelve times the aggregate training of the one model. We repeat this experiment with a single MoE-augmented model. See Appendix [E](#appendix-e) for details on model architecture. We train our model on the same dataset as [Joh16] and process the same number of training examples (about 3 billion sentence pairs). Our training time was shorter due to the lower computational budget of our model.
+**Dataset:** [Joh16] train a single GNMT [Wu17] model on a very large combined dataset of twelve language pairs. Results are somewhat worse than those for 12 separately trained single-pair GNMT models. This is not surprising, given that the twelve models have 12 times the capacity and twelve times the aggregate training of the one model. We repeat this experiment with a single MoE-augmented model. See [Section 11](#section-11) for details on model architecture. We train our model on the same dataset as [Joh16] and process the same number of training examples (about 3 billion sentence pairs). Our training time was shorter due to the lower computational budget of our model.
 
 **Results:** Results for the single-pair GNMT models, the multilingual GNMT model and the multilingual MoE model are given in [Table 5](#table-05). The MoE model achieves 19% lower perplexity on the dev set than the multilingual GNMT model. On BLEU score, the MoE model significantly beats the multilingual GNMT model on 11 of the 12 language pairs (by as much as 5.84 points), and even beats the monolingual GNMT models on 8 of 12 language pairs. The poor performance on English $\rightarrow$ Korean seems to be a result of severe overtraining, as for the rarer language pairs a small number of real examples were highly oversampled in the training corpus.
 
@@ -225,19 +249,21 @@ Even at 65536 experts (99.994% layer sparsity), computational efficiency for the
 
 **Table 5.** Multilingual Machine Translation (bold values represent best results).
 
+<span id="section-6"></span>
+
 ## 6 Conclusion
 
 This work is the first to demonstrate major wins from conditional computation in deep networks. We carefully identified the design considerations and challenges of conditional computing and addressed them with a combination of algorithmic and engineering solutions. While we focused on text, conditional computation may help in other domains as well, provided sufficiently large training sets. We look forward to seeing many novel implementations and applications of conditional computation in the years to come.
 
-#### Acknowledgments
+## Acknowledgments
 
 We would like to thank all of the members of the Google Brain and Google Translate teams who helped us with this project, in particular Zhifeng Chen, Yonghui Wu, and Melvin Johnson. Thanks also to our anonymous ICLR reviewers for the helpful suggestions on making this paper better.
 
-<span id="appendix-a"></span>
+<span id="section-7"></span>
 
-## A Load-Balancing Loss
+## 7 Load-Balancing Loss
 
-As discussed in section [4](#section-4), for load-balancing purposes, we want to define an additional loss function to encourage experts to receive roughly equal numbers of training examples. Unfortunately, the number of examples received by an expert is a discrete quantity, so it can not be used in back-propagation. Instead, we define a smooth estimator $\mathrm{Load}(X)$ of the number of examples assigned to each expert for a batch $X$ of inputs. The smoothness allows us to back-propagate gradients through the estimator. This is the purpose of the noise term in the gating function. We define $P(x,i)$ as the probability that $G(x)_{i}$ is nonzero, given a new random choice of noise on element $i$, but keeping the already-sampled choices of noise on the other elements. To compute $P(x,i)$, we note that the $G(x)_{i}$ is nonzero if and only if $H(x)_{i}$ is greater than the $k^{\mathrm{th}}$-greatest element of $H(x)$ excluding itself. The probability works out to be:
+As discussed in [Section 4](#section-4), for load-balancing purposes, we want to define an additional loss function to encourage experts to receive roughly equal numbers of training examples. Unfortunately, the number of examples received by an expert is a discrete quantity, so it can not be used in back-propagation. Instead, we define a smooth estimator $\mathrm{Load}(X)$ of the number of examples assigned to each expert for a batch $X$ of inputs. The smoothness allows us to back-propagate gradients through the estimator. This is the purpose of the noise term in the gating function. We define $P(x,i)$ as the probability that $G(x)_{i}$ is nonzero, given a new random choice of noise on element $i$, but keeping the already-sampled choices of noise on the other elements. To compute $P(x,i)$, we note that the $G(x)_{i}$ is nonzero if and only if $H(x)_{i}$ is greater than the $k^{\mathrm{th}}$-greatest element of $H(x)$ excluding itself. The probability works out to be:
 
 $$
 \begin{aligned}
@@ -266,7 +292,7 @@ $$
 
 **Initial Load Imbalance:** To avoid out-of-memory errors, we need to initialize the network in a state of approximately equal expert load (since the soft constraints need some time to work). To accomplish this, we initialize the matrices $W_{g}$ and $W_{\mathrm{noise}}$ to all zeros, which yields no signal and some noise.
 
-**Experiments:** We trained a set of models with identical architecture (the MoE-256 model described in Appendix [C](#appendix-c)), using different values of $w_{\mathrm{importance}}$ and $w_{\mathrm{load}}$. We trained each model for 10 epochs, then measured perplexity on the test set. We also measured the coefficients of variation in $\mathrm{Importance}$ and $\mathrm{Load}$, as well as ratio of the load on the most overloaded expert to the average load. This last value is significant for load balancing purposes on distributed hardware. All of these metrics were averaged over several training batches.
+**Experiments:** We trained a set of models with identical architecture (the MoE-256 model described in [Section 9](#section-9)), using different values of $w_{\mathrm{importance}}$ and $w_{\mathrm{load}}$. We trained each model for 10 epochs, then measured perplexity on the test set. We also measured the coefficients of variation in $\mathrm{Importance}$ and $\mathrm{Load}$, as well as ratio of the load on the most overloaded expert to the average load. This last value is significant for load balancing purposes on distributed hardware. All of these metrics were averaged over several training batches.
 
 <span id="table-06"></span>
 
@@ -276,9 +302,9 @@ $$
 
 **Results:** Results are reported in [Table 6](#table-06). All the combinations containing at least one the two losses led to very similar model quality, where having no loss was much worse. Models with higher values of $w_{\mathrm{load}}$ had lower loads on the most overloaded expert.
 
-<span id="appendix-b"></span>
+<span id="section-8"></span>
 
-## B Hierachical Mixture of Experts
+## 8 Hierachical Mixture of Experts
 
 If the number of experts is very large, we can reduce the branching factor by using a two-level hierarchical MoE. In a hierarchical MoE, a primary gating network chooses a sparse weighted combination of "experts", each of which is itself a secondary mixture-of-experts with its own gating network. [+3] If the hierarchical MoE consists of $a$ groups of $b$ experts each, we denote the primary gating network by $G_{\mathrm{primary}}$, the secondary gating networks by $(G_{1},G_{2}..G_{a})$, and the expert networks by $(E_{0,0},E_{0,1}..E_{a,b})$. The output of the MoE is given by:
 
@@ -300,15 +326,17 @@ $\mathrm{Load}_{\mathrm{primary}}$ and $\mathrm{Load}_{i}$ deonte the $\mathrm{L
 
 It would seem simpler to let $\mathrm{Load}_{H}(X)_{i,j}=\mathrm{Load}_{i}(X_{i})_{j}$ , but this would not have a gradient with respect to the primary gating network, so we use the formulation above.
 
-<span id="appendix-c"></span>
+<span id="section-9"></span>
 
-## C 1 Billion Word Language Modeling Benchmark - Experimental Details
+## 9 1 Billion Word Language Modeling Benchmark - Experimental Details
 
-### C.1 8-Million-Operations-per-Timestep Models
+<span id="section-9-1"></span>
+
+### 9.1 8-Million-Operations-per-Timestep Models
 
 **Model Architecture:** Our model consists of five layers: a word embedding layer, a recurrent Long Short-Term Memory (LSTM) layer [Hoc97, Ger00], a MoE layer, a second LSTM layer, and a softmax layer. The dimensionality of the embedding layer, the number of units in each LSTM layer, and the input and output dimensionality of the MoE layer are all equal to 512. For every layer other than the softmax, we apply drouput [Zar14] to the layer output, dropping each activation with probability $\mathrm{DropProb}$, otherwise dividing by $(1-\mathrm{DropProb})$. After dropout, the output of the previous layer is added to the layer output. This residual connection encourages gradient flow [He16].
 
-**MoE Layer Architecture:** Each expert in the MoE layer is a feed forward network with one ReLU-activated hidden layer of size 1024 and an output layer of size 512. Thus, each expert contains $[512*1024]+[1024*512]=1M$ parameters. The output of the MoE layer is passed through a sigmoid function before dropout. We varied the number of experts between models, using ordinary MoE layers with 4, 32 and 256 experts and hierarchical MoE layers with 256, 1024 and 4096 experts. We call the resulting models MoE-4, MoE-32, MoE-256, MoE-256-h, MoE-1024-h and MoE-4096-h. For the hierarchical MoE layers, the first level branching factor was 16, corresponding to the number of GPUs in our cluster. We use Noisy-Top-K Gating (see Section [2.1](#noisy-top-k-gating)) with $k=4$ for the ordinary MoE layers and $k=2$ at each level of the hierarchical MoE layers. Thus, each example is processed by exactly 4 experts for a total of 4M ops/timestep. The two LSTM layers contribute 2M ops/timestep each for the desired total of 8M.
+**MoE Layer Architecture:** Each expert in the MoE layer is a feed forward network with one ReLU-activated hidden layer of size 1024 and an output layer of size 512. Thus, each expert contains $[512*1024]+[1024*512]=1M$ parameters. The output of the MoE layer is passed through a sigmoid function before dropout. We varied the number of experts between models, using ordinary MoE layers with 4, 32 and 256 experts and hierarchical MoE layers with 256, 1024 and 4096 experts. We call the resulting models MoE-4, MoE-32, MoE-256, MoE-256-h, MoE-1024-h and MoE-4096-h. For the hierarchical MoE layers, the first level branching factor was 16, corresponding to the number of GPUs in our cluster. We use Noisy-Top-K Gating (see [Section 2.1](#section-2-1)) with $k=4$ for the ordinary MoE layers and $k=2$ at each level of the hierarchical MoE layers. Thus, each example is processed by exactly 4 experts for a total of 4M ops/timestep. The two LSTM layers contribute 2M ops/timestep each for the desired total of 8M.
 
 **Computationally-Matched Baselines:** The MoE-4 model does not employ sparsity, since all 4 experts are always used. In addition, we trained four more computationally-matched baseline models with no sparsity:
 
@@ -320,9 +348,9 @@ It would seem simpler to let $\mathrm{Load}_{H}(X)_{i,j}=\mathrm{Load}_{i}(X_{i}
 
 - LSTM-2048-512: The model contains one 2048-unit LSTM layer (and no MoE). The output of the LSTM is projected down to 512 dimensions [Sak14]. The next timestep of the LSTM receives the projected output. This is identical to one of the models published in [Joz16]. We re-ran it to account for differences in training regimen, and obtained results very similar to the published ones.
 
-**Training:** The models were trained on a cluster of 16 K40 GPUs using the synchronous method described in Section [3](#section-3). Each batch consisted of a set of sentences totaling roughly 300,000 words. In the interest of time, we limited training to 10 epochs, (27,000 steps). Training took 12-16 hours for all models, except for MoE-4, which took 18 hours (since all the expert computation was performed on only 4 of 16 GPUs). We used the Adam optimizer [Kin15]. The base learning rate was increased linearly for the first 1000 training steps, and decreased after that so as to be proportional to the inverse square root of the step number. The Softmax output layer was trained efficiently using importance sampling similarly to the models in [Joz16]. For each model, we performed a hyper-parmeter search to find the best dropout probability, in increments of 0.1.
+**Training:** The models were trained on a cluster of 16 K40 GPUs using the synchronous method described in [Section 3](#section-3). Each batch consisted of a set of sentences totaling roughly 300,000 words. In the interest of time, we limited training to 10 epochs, (27,000 steps). Training took 12-16 hours for all models, except for MoE-4, which took 18 hours (since all the expert computation was performed on only 4 of 16 GPUs). We used the Adam optimizer [Kin15]. The base learning rate was increased linearly for the first 1000 training steps, and decreased after that so as to be proportional to the inverse square root of the step number. The Softmax output layer was trained efficiently using importance sampling similarly to the models in [Joz16]. For each model, we performed a hyper-parmeter search to find the best dropout probability, in increments of 0.1.
 
-To ensure balanced expert utilization we set $w_{\mathrm{importance}}=0.1$ and $w_{\mathrm{load}}=0.1$, as described in Section [4](#section-4) and Appendix [A](#appendix-a).
+To ensure balanced expert utilization we set $w_{\mathrm{importance}}=0.1$ and $w_{\mathrm{load}}=0.1$, as described in [Section 4](#section-4) and [Section 7](#section-7).
 
 **Results:** We evaluate our model using perplexity on the holdout dataset, used by [Che13, Joz16]. We follow the standard procedure and sum over all the words including the end of sentence symbol. Results are reported in [Table 7](#table-07). For each model, we report the test perplexity, the computational budget, the parameter counts, the value of $\mathrm{DropProb}$, and the computational efficiency.
 
@@ -332,17 +360,17 @@ To ensure balanced expert utilization we set $w_{\mathrm{importance}}=0.1$ and $
 
 **Table 7.** Model comparison on 1 Billion Word Language Modeling Benchmark. Models marked with \* are from [Joz16].
 
-<span id="appendix-c-2"></span>
+<span id="section-9-2"></span>
 
-### C.2 More Expensive Models
+### 9.2 More Expensive Models
 
 We ran two additional models (MoE-34M and MoE-143M) to investigate the effects of adding more computation in the presence of a large MoE layer. These models have computation budgets of 34M and 143M ops/timestep. Similar to the models above, these models use a MoE layer between two LSTM layers. The dimensionality of the embedding layer, and the input and output dimensionality of the MoE layer are set to 1024 instead of 512. For MoE-34M, the LSTM layers have 1024 units. For MoE-143M, the LSTM layers have 4096 units and an output projection of size 1024 [Sak14]. MoE-34M uses a hierarchical MoE layer with 1024 experts, each with a hidden layer of size 2048. MoE-143M uses a hierarchical MoE layer with 256 experts, each with a hidden layer of size 8192. Both models have 4B parameters in the MoE layers. We searched for the best $\mathrm{DropProb}$ for each model, and trained each model for 10 epochs.
 
 The two models achieved test perplexity of $31.3$ and $28.0$ respectively, showing that even in the presence of a large MoE, more computation is still useful. Results are reported at the bottom of [Table 7](#table-07). The larger of the two models has a similar computational budget to the best published model from the literature, and training times are similar. Comparing after 10 epochs, our model has a lower test perplexity by $18\%$.
 
-<span id="appendix-d"></span>
+<span id="section-10"></span>
 
-## D 100 Billion Word Google News Corpus - Experimental Details
+## 10 100 Billion Word Google News Corpus - Experimental Details
 
 **Model Architecture:** The models are similar in structure to the 8-million-operations-per-timestep models described in the previous section. We vary the number of experts between models, using an ordinary MoE layer with 32 experts and hierarchical MoE layers with 256, 1024, 4096, 16384, 65536 and 131072 experts. For the hierarchical MoE layers, the first level branching factors are 32, 32, 64, 128, 256 and 256, respectively.
 
@@ -360,25 +388,25 @@ The Adam optimizer [Kin15] keeps first and second moment estimates of the per-pa
 
 **Results:** We evaluate our model using perplexity on a holdout dataset. Results are reported in [Table 8](#table-08). Perplexity after 100 billion training words is 39% lower for the 68-billion-parameter MoE model than for the baseline model. It is notable that the measured computational efficiency of the largest model (0.30 TFLOPS/GPU) is very low compared to the other models. This is likely a result of the fact that, for purposes of comparison to the other models, we did not increase the training batch size proportionally to the number of GPUs. For comparison, we include results for a computationally matched baseline model consisting of 4 LSTMs, and for an unpruned 5-gram model with Kneser-Ney smoothing [Kne95]. [+4]
 
-<span id="appendix-e"></span>
+<span id="section-11"></span>
 
-## E Machine Translation - Experimental Details
+## 11 Machine Translation - Experimental Details
 
 **Model Architecture for Single Language Pair MoE Models:** Our model is a modified version of the GNMT model described in [Wu17]. To reduce computation, we decrease the number of LSTM layers in the encoder and decoder from 9 and 8 to 3 and 2 respectively. We insert MoE layers in both the encoder (between layers 2 and 3) and the decoder (between layers 1 and 2). We use an attention mechanism between the encoder and decoder, with the first decoder LSTM receiving output from and providing input for the attention [+5]. All of the layers in our model have input and output dimensionality of 512. Our LSTM layers have 2048 hidden units, with a 512-dimensional output projection. We add residual connections around all LSTM and MoE layers to encourage gradient flow [He16]. Similar to GNMT, to effectively deal with rare words, we used sub-word units (also known as "wordpieces") [Sch12] for inputs and outputs in our system.
 
 We use a shared source and target vocabulary of 32K wordpieces. We also used the same beam search technique as proposed in [Wu17].
 
-We train models with different numbers of experts in the MoE layers. In addition to a baseline model with no MoE layers, we train models with flat MoE layers containing 32 experts, and models with hierarchical MoE layers containing 512 and 2048 experts. The flat MoE layers use $k=4$ and the hierarchical MoE models use $k=2$ at each level of the gating network. Thus, each input is processed by exactly 4 experts in each MoE layer. Each expert in the MoE layer is a feed forward network with one hidden layer of size 2048 and ReLU activation. Thus, each expert contains $[512*2048]+[2048*512]=2M$ parameters. The output of the MoE layer is passed through a sigmoid function. We use the strictly-balanced gating function described in Appendix [F](#appendix-f).
+We train models with different numbers of experts in the MoE layers. In addition to a baseline model with no MoE layers, we train models with flat MoE layers containing 32 experts, and models with hierarchical MoE layers containing 512 and 2048 experts. The flat MoE layers use $k=4$ and the hierarchical MoE models use $k=2$ at each level of the gating network. Thus, each input is processed by exactly 4 experts in each MoE layer. Each expert in the MoE layer is a feed forward network with one hidden layer of size 2048 and ReLU activation. Thus, each expert contains $[512*2048]+[2048*512]=2M$ parameters. The output of the MoE layer is passed through a sigmoid function. We use the strictly-balanced gating function described in [Section 12](#section-12).
 
-**Model Architecture for Multilingual MoE Model:** We used the same model architecture as for the single-language-pair models, with the following exceptions: We used noisy-top-k gating as described in Section [2.1](#noisy-top-k-gating), not the scheme from Appendix [F](#appendix-f). The MoE layers in the encoder and decoder are non-hierarchical MoEs with $n=512$ experts, and $k=2$. Each expert has a larger hidden layer of size $8192$. This doubles the amount of computation in the MoE layers, raising the computational budget of the entire model from 85M to 102M ops/timestep.
+**Model Architecture for Multilingual MoE Model:** We used the same model architecture as for the single-language-pair models, with the following exceptions: We used noisy-top-k gating as described in [Section 2.1](#section-2-1), not the scheme from [Section 12](#section-12). The MoE layers in the encoder and decoder are non-hierarchical MoEs with $n=512$ experts, and $k=2$. Each expert has a larger hidden layer of size $8192$. This doubles the amount of computation in the MoE layers, raising the computational budget of the entire model from 85M to 102M ops/timestep.
 
-**Training:** We trained our networks using the Adam optimizer [Kin15]. The base learning rate was increased linearly for the first 2000 training steps, held constant for an additional 8000 steps, and decreased after that so as to be proportional to the inverse square root of the step number. For the single-language-pair models, similarly to [Wu17], we applied dropout [Zar14] to the output of all embedding, LSTM and MoE layers, using $\mathrm{DropProb}=0.4$. Training was done synchronously on a cluster of up to 64 GPUs as described in section [3](#section-3). Each training batch consisted of a set of sentence pairs containing roughly 16000 words per GPU.
+**Training:** We trained our networks using the Adam optimizer [Kin15]. The base learning rate was increased linearly for the first 2000 training steps, held constant for an additional 8000 steps, and decreased after that so as to be proportional to the inverse square root of the step number. For the single-language-pair models, similarly to [Wu17], we applied dropout [Zar14] to the output of all embedding, LSTM and MoE layers, using $\mathrm{DropProb}=0.4$. Training was done synchronously on a cluster of up to 64 GPUs as described in [Section 3](#section-3). Each training batch consisted of a set of sentence pairs containing roughly 16000 words per GPU.
 
-To ensure balanced expert utilization we set $w_{\mathrm{importance}}=0.01$ and $w_{\mathrm{load}}=0.01$, as described in Section [4](#section-4) and Appendix [A](#appendix-a).
+To ensure balanced expert utilization we set $w_{\mathrm{importance}}=0.01$ and $w_{\mathrm{load}}=0.01$, as described in [Section 4](#section-4) and [Section 7](#section-7).
 
 **Metrics:** We evaluated our models using the perplexity and the standard BLEU score metric. We reported tokenized BLEU score as computed by the multi-bleu.pl script, downloaded from the public implementation of Moses (on Github), which was also used in [Luo15a].
 
-**Results:** [Tables 2](#table-02), [3](#table-03) and [4](#table-04) in Section [5.3](#section-5-3) show comparisons of our results to other published methods. [Figure 4](#figure-04) shows test perplexity as a function of number of words in the (training data’s) source sentences processed for models with different numbers of experts. As can be seen from the Figure, as we increased the number of experts to approach 2048, the test perplexity of our model continued to improve.
+**Results:** [Tables 2](#table-02), [3](#table-03) and [4](#table-04) in [Section 5.3](#section-5-3) show comparisons of our results to other published methods. [Figure 4](#figure-04) shows test perplexity as a function of number of words in the (training data’s) source sentences processed for models with different numbers of experts. As can be seen from the Figure, as we increased the number of experts to approach 2048, the test perplexity of our model continued to improve.
 
 <span id="figure-04"></span>
 
@@ -396,9 +424,9 @@ We found that the experts indeed become highly specialized by syntax and/or sema
 
 **Table 9.** Contexts corresponding to a few of the 2048 experts in the MoE layer in the encoder portion of the WMT’14 En $\rightarrow$ Fr translation model. For each expert $i$, we sort the inputs in a training batch in decreasing order of $G(x)_{i}$, and show the words surrounding the corresponding positions in the input sentences.
 
-<span id="appendix-f"></span>
+<span id="section-12"></span>
 
-## F Strictly Balanced Gating
+## 12 Strictly Balanced Gating
 
 Due to some peculiarities in our infrastructure which have since been fixed, at the time we ran some of the machine translation experiments, our models ran faster if every expert received exactly the same batch size. To accommodate this, we used a different gating function which we describe below.
 
@@ -451,9 +479,9 @@ L_{\mathrm{batchwise}}(X,T,m)
 \end{aligned}
 $$
 
-<span id="appendix-g"></span>
+<span id="section-13"></span>
 
-## G Attention Function
+## 13 Attention Function
 
 The attention mechanism described in GNMT  [Wu17] involves a learned "Attention Function" $A(x_{i},y_{j})$ which takes a "source vector" $x_{i}$ and a "target vector" $y_{j}$, and must be computed for every source time step $i$ and target time step $j$. In GNMT, the attention function is implemented as a feed forward neural network with a hidden layer of size $n$. It can be expressed as:
 
@@ -479,4 +507,8 @@ With our attention function, we can simultaneously compute the attention functio
 
 [+4]: While the original size of the corpus was 130 billion words, the neural models were trained for a maximum of 100 billion words. The reported Kneser-Ney 5-gram models were trained over 13 billion and 130 billion words respectively, giving them a slight advantage over the other reported results.
 
-[+5]: For performance reasons, we use a slightly different attention function from the one described in [Wu17]—See Appendix [G](#appendix-g).
+[+5]: For performance reasons, we use a slightly different attention function from the one described in [Wu17]—See [Section 13](#section-13).
+
+[+author-equal]: Equally major contributors.
+
+[+author-residency]: Work done as a member of the Google Brain Residency program ([g.co/brainresidency](https://g.co/brainresidency)).
