@@ -281,6 +281,16 @@ pre * {
 }
 
 @media (max-width: 719px) {
+  .medusa-paper .page-title {
+    max-width: min(100%, 18rem);
+    font-size: 1.75rem;
+    line-height: 1.35;
+  }
+
+  .medusa-paper .vp-breadcrumb ol li:last-child {
+    display: none;
+  }
+
   .paper-reading .annotations-popover {
     position: fixed;
     top: 50%;

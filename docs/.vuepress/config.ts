@@ -3794,6 +3794,31 @@ const paperAbbreviations = {
   'Zha20b': 'Jingqing Zhang, Yao Zhao, Mohammad Saleh, and Peter J Liu. 2020. Pegasus: Pre-training with extracted gap-sentences for abstractive summarization. ICML.',
   'Xio20': 'Ruibin Xiong, Yunchang Yang, Di He, Kai Zheng, Shu xin Zheng, Chen Xing, Huishuai Zhang, Yanyan Lan, Li-Wei Wang, and Tie-Yan Liu. 2020. On layer normalization in the transformer architecture. arXiv preprint, abs/2002.04745.',
   'Zel19c': 'Rowan Zellers, Ari Holtzman, Hannah Rashkin, Yonatan Bisk, Ali Farhadi, Franziska Roesner, and Yejin Choi. 2019. Defending against neural fake news. In NeurIPS.',
+  'Pal23': 'Google. Palm 2 technical report, 2023. URL https://ai.google/static/documents/palm2techreport.pdf. [Link](https://ai.google/static/documents/palm2techreport.pdf)',
+  'Xia23c': 'Xia, H., Ge, T., Chen, S.-Q., Wei, F., and Sui, Z. Speculative decoding: Lossless speedup of autoregressive translation, 2023. URL https://openreview.net/forum?id=H-VlwsYvVi. [Link](https://openreview.net/forum?id=H-VlwsYvVi)',
+  'Mia23b': 'Miao, X., Oliaro, G., Zhang, Z., Cheng, X., Wang, Z., Wong, R. Y. Y., Chen, Z., Arfeen, D., Abhyankar, R., and Jia, Z. Specinfer: Accelerating generative llm serving with speculative inference and token tree verification. arXiv preprint arXiv:2305.09781, 2023.',
+  'Spe23': 'Spector, B. and Re, C. Accelerating llm inference with staged speculative decoding. arXiv preprint arXiv:2308.04623, 2023.',
+  'Elf17': 'Elfwing, S., Uchibe, E., and Doya, K. Sigmoid-weighted linear units for neural network function approximation in reinforcement learning. Neural Networks, 2017. doi: 10.1016/j.neunet.2017.12.012.',
+  'Yin21': 'Ying, C., Cai, T., Luo, S., Zheng, S., Ke, G., He, D., Shen, Y., and Liu, T.-Y. Do transformers really perform badly for graph representation? Advances in Neural Information Processing Systems, 34:28877–28888, 2021.',
+  'Kum22': 'Kumar, A., Raghunathan, A., Jones, R., Ma, T., and Liang, P. Fine-tuning can distort pretrained features and underperform out-of-distribution. International Conference on Learning Representations, 2022.',
+  'Gan23': 'Joao Gante. Assisted generation: a new direction toward low-latency text generation, 2023. URL https://huggingface.co/blog/assisted-generation. [Link](https://huggingface.co/blog/assisted-generation)',
+  'Hew22': 'Hewitt, J., Manning, C. D., and Liang, P. Truncation sampling as language model desmoothing. October 2022. doi: 10.48550/ARXIV.2210.15191.',
+  'Tun23': 'Tunstall, L., Beeching, E., Lambert, N., Rajani, N., Rasul, K., Belkada, Y., Huang, S., von Werra, L., Fourrier, C., Habib, N., Sarrazin, N., Sanseviero, O., Rush, A. M., and Wolf, T. Zephyr: Direct distillation of lm alignment, 2023.',
+  'Kim16c': 'Kim, Y. and Rush, A. M. Sequence-level knowledge distillation. EMNLP, 2016.',
+  'Din23b': 'Ding, N., Chen, Y., Xu, B., Qin, Y., Zheng, Z., Hu, S., Liu, Z., Sun, M., and Zhou, B. Enhancing chat language models by scaling high-quality instructional conversations, 2023.',
+  'Xia23d': 'Xiao, Y., Wu, L., Guo, J., Li, J., Zhang, M., Qin, T., and Liu, T.-y. A survey on non-autoregressive generation for neural machine translation and beyond. IEEE Transactions on Pattern Analysis and Machine Intelligence, 2023b.',
+  'Pil21': 'Pillutla, K., Swayamdipta, S., Zellers, R., Thickstun, J., Welleck, S., Choi, Y., and Harchaoui, Z. MAUVE: Measuring the gap between neural text and human text using divergence frontiers. In Beygelzimer, A., Dauphin, Y., Liang, P., and Vaughan, J. W. (eds.), Advances in Neural Information Processing Systems, 2021. URL https://openreview.net/forum?id=Tqx7nJp7PR. [Link](https://openreview.net/forum?id=Tqx7nJp7PR)',
+  'Hol20': 'Holtzman, A., Buys, J., Du, L., Forbes, M., and Choi, Y. The curious case of neural text degeneration. In International Conference on Learning Representations, 2020. URL https://openreview.net/forum?id=rygGQyrFvH. [Link](https://openreview.net/forum?id=rygGQyrFvH)',
+  'Fan18': 'Fan, A., Lewis, M., and Dauphin, Y. Hierarchical neural story generation. In Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers). Association for Computational Linguistics, 2018. doi: 10.18653/v1/p18-1082.',
+  'Bas21': 'Basu, S., Ramachandran, G. S., Keskar, N. S., and Varshney, L. R. {MIROSTAT}: A {neural} {text} {decoding} {algorithm} {that} {directly} {controls} {perplexity}. In International Conference on Learning Representations, 2021. URL https://openreview.net/forum?id=W1G1JZEIy5_. [Link](https://openreview.net/forum?id=W1G1JZEIy5_)',
+  'Mei22': 'Meister, C., Wiher, G., Pimentel, T., and Cotterell, R. On the probability-quality paradox in language generation. March 2022. doi: 10.48550/ARXIV.2203.17217.',
+  'Mei23': 'Meister, C., Pimentel, T., Wiher, G., and Cotterell, R. Locally typical sampling. Transactions of the Association for Computational Linguistics, 11:102–121, 2023.',
+  'Axo23': 'Axolotl. Axolotl. https://github.com/OpenAccess-AI-Collective/axolotl, 2023. [Link](https://github.com/OpenAccess-AI-Collective/axolotl)',
+  'Dub23': 'Dubois, Y., Li, X., Taori, R., Zhang, T., Gulrajani, I., Ba, J., Guestrin, C., Liang, P., and Hashimoto, T. B. Alpacafarm: A simulation framework for methods that learn from human feedback, 2023.',
+  'Zha24ab': 'Zhang, P., Zeng, G., Wang, T., and Lu, W. Tinyllama: An open-source small language model, 2024.',
+  'Pan23a': 'Pan, J. Tiny vicuna 1b. https://huggingface.co/Jiayi-Pan/Tiny-Vicuna-1B, 2023. [Link](https://huggingface.co/Jiayi-Pan/Tiny-Vicuna-1B)',
+  'Li23z': 'Li, X., Zhang, T., Dubois, Y., Taori, R., Gulrajani, I., Guestrin, C., Liang, P., and Hashimoto, T. B. Alpacaeval: An automatic evaluator of instruction-following models. https://github.com/tatsu-lab/alpaca_eval, 2023. [Link](https://github.com/tatsu-lab/alpaca_eval)',
+  'Che23g': 'Chen, L. Dissecting batching effects in gpt inference. https://le.qun.ch/en/blog/2023/05/13/transformer-batching/, 2023. Blog. [Link](https://le.qun.ch/en/blog/2023/05/13/transformer-batching/)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -4539,7 +4564,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'medusa', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'Agent 工程',
@@ -4666,7 +4691,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'medusa', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'Agent Engineering',
@@ -4903,7 +4928,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'sglang', 'distserve', 'medusa', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'エージェント工学',
