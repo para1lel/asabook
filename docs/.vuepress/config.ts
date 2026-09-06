@@ -3747,6 +3747,38 @@ const paperAbbreviations = {
   'Cha15': 'Chaurasia, G., Ragan-Kelley, J., Paris, S., Drettakis, G., and Durand, F. Compiling high performance recursive filters. In High Performance Graphics, 2015.',
   'Sap23': 'Saphra, N., Fleisig, E., Cho, K., and Lopez, A. First tragedy, then parse: History repeats itself in the new era of large language models. ArXiv, abs/2311.05020, 2023.',
   'Fu23c': 'Fu, D. Y., Arora, S., Grogan, J., Johnson, I., Eyuboglu, S., Thomas, A. W., Spector, B., Poli, M., Rudra, A., and R\'e, C. Monarch mixer: A simple sub-quadratic gemm-based architecture. ArXiv, abs/2310.12109, 2023a.',
+  'Dai15': 'Andrew M Dai and Quoc V Le. 2015. Semi-supervised sequence learning. In NeurIPS.',
+  'How18': 'Jeremy Howard and Sebastian Ruder. 2018. Universal language model fine-tuning for text classification. In ACL.',
+  'Ye19': 'Zihao Ye, Qipeng Guo, Quan Gan, Xipeng Qiu, and Zheng Zhang. 2019. BP-Transformer: Modelling long-range context via binary partitioning. arXiv preprint, abs/1911.04070.',
+  'Qiu19': 'Jiezhong Qiu, Hao Ma, Omer Levy, Scott Yih, Sinong Wang, and Jie Tang. 2019. Blockwise self-attention for long document understanding. arXiv preprint, abs/1911.02972.',
+  'Gra17': 'Scott Gray, Alec Radford, and Diederik P. Kingma. 2017. Gpu kernels for block-sparse weights.',
+  'Xie19': 'Qizhe Xie, Zihang Dai, Eduard H. Hovy, Minh-Thang Luong, and Quoc V. Le. 2019. Unsupervised data augmentation for consistency training. arXiv preprint, abs/1904.12848.',
+  'Jos19': 'Mandar Joshi, Omer Levy, Luke Zettlemoyer, and Daniel Weld. 2019. BERT for coreference resolution: Baselines and analysis. In EMNLP-IJCNLP.',
+  'Cla17': 'Christopher Clark and Matt Gardner. 2017. Simple and effective multi-paragraph reading comprehension. In ACL.',
+  'Ain20': 'Joshua Ainslie, Santiago Ontanon, Chris Alberti, Vaclav Cvicek, Zachary Fisher, Philip Pham, Anirudh Ravula, Sumit Sanghai, Qifan Wang, and Li Yang. 2020. ETC: Encoding long and structured inputs in transformers. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 268–284, Online. Association for Computational Linguistics. [Link](https://www.aclweb.org/anthology/2020.emnlp-main.19)',
+  'Gup20': 'Ankit Gupta and Jonathan Berant. 2020. Gmat: Global memory augmentation for transformers. ArXiv, abs/2006.03274.',
+  'Kov19': 'Olga V. Kovaleva, Alexey Romanov, Anna Rogers, and Anna Rumshisky. 2019. Revealing the dark secrets of bert. In EMNLP/IJCNLP.',
+  'Alr18': 'Rami Al-Rfou, Dokook Choe, Noah Constant, Mandy Guo, and Llion Jones. 2018. Character-level language modeling with deeper self-attention. In AAAI.',
+  'Cla19a': 'Kevin Clark, Urvashi Khandelwal, Omer Levy, and Christopher D. Manning. 2019. What does bert look at? an analysis of bert’s attention. arXiv preprint, abs/1906.04341.',
+  'Wel18': 'Johannes Welbl, Pontus Stenetorp, and Sebastian Riedel. 2018. Constructing datasets for multi-hop reading comprehension across documents. TACL, 6:287–302.',
+  'Fis19': 'Adam Fisch, Alon Talmor, Robin Jia, Minjoon Seo, Eunsol Choi, and Danqi Chen. 2019. MRQA 2019 shared task: Evaluating generalization in reading comprehension. In MRQA workshop at EMNLP.',
+  'Tu19': 'Ming Tu, Kevin Huang, Guangtao Wang, Jing Huang, Xiaodong He, and Bufang Zhou. 2019. Select, answer and explain: Interpretable multi-hop reading comprehension over multiple documents. arXiv preprint, abs/1911.00484.',
+  'Che19d': 'Jifan Chen, Shih-Ting Lin, and Greg Durrett. 2019. Multi-hop question answering via reasoning chains. arXiv preprint, abs/1910.02610.',
+  'Tu20': 'Ming Tu, Jinke Huang, Xiaodong He, and Bowen Zhou. 2020. Graph sequential network for reasoning over sequences. In NeurIPS Graph Representation Learning workshop.',
+  'Gro20': 'Dirk Groeneveld, Tushar Khot, Mausam, and Ashish Sabhwaral. 2020. A simple yet strong pipeline for HotpotQA. arXiv preprint, abs/2004.06753.',
+  'Pra12': 'Sameer Pradhan, Alessandro Moschitti, Nianwen Xue, Olga Uryupina, and Yuchen Zhang. 2012. CoNLL-2012 shared task: Modeling multilingual unrestricted coreference in OntoNotes. In Joint Conference on EMNLP and CoNLL - Shared Task, pages 1–40, Jeju Island, Korea. Association for Computational Linguistics. [Link](https://www.aclweb.org/anthology/W12-4501)',
+  'Lee18c': 'Kenton Lee, Luheng He, and Luke Zettlemoyer. 2018. Higher-order coreference resolution with coarse-to-fine inference. In NAACL.',
+  'Maa11': 'Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. 2011. Learning word vectors for sentiment analysis. In Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies, pages 142–150, Portland, Oregon, USA. Association for Computational Linguistics. [Link](http://www.aclweb.org/anthology/P11-1015)',
+  'Kie19': 'Johannes Kiesel, Maria Mestre, Rishabh Shukla, Emmanuel Vincent, Payam Adineh, David Corney, Benno Stein, and Martin Potthast. 2019. SemEval-2019 task 4: Hyperpartisan news detection. In Proceedings of the 13th International Workshop on Semantic Evaluation, pages 829–839, Minneapolis, Minnesota, USA. Association for Computational Linguistics. [Link](https://doi.org/10.18653/v1/S19-2145)',
+  'Fan20c': 'Yuwei Fang, Siqi Sun, Zhe Gan, Rohit Pillai, Shuohang Wang, and Jingjing Liu. 2020. Hierarchical graph network for multi-hop question answering. In Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP), pages 8823–8838, Online. Association for Computational Linguistics. [Link](https://www.aclweb.org/anthology/2020.emnlp-main.710)',
+  'Sha20a': 'Nan Shao, Yiming Cui, Ting Liu, Shijin Wang, and Guoping Hu. 2020. Is graph structure necessary for multi-hop reasoning? arXiv preprint, abs/2004.03096.',
+  'Kip17': 'Thomas N Kipf and Max Welling. 2017. Semi-supervised classification with graph convolutional networks. ICLR.',
+  'Gla19': 'Michael Glaß, Alfio Massimiliano Gliozzo, Rishav Chakravarti, Anthony Ferritto, Lin Pan, Gaudani Bhargav, Dinesh Garg, and Avirup Sil. 2019. Span selection pre-training for question answering. arXiv preprint, abs/1909.04120.',
+  'Sub20': 'Sandeep Subramanian, Raymond Li, Jonathan Pilault, and C. Pal. 2020. On extractive and abstractive neural document summarization with transformer language models. In EMNLP.',
+  'Gid20': 'Alexios Gidiotis and Grigorios Tsoumakas. 2020. A divide-and-conquer approach to the summarization of academic articles. ArXiv, abs/2004.06190.',
+  'Zha20b': 'Jingqing Zhang, Yao Zhao, Mohammad Saleh, and Peter J Liu. 2020. Pegasus: Pre-training with extracted gap-sentences for abstractive summarization. ICML.',
+  'Xio20': 'Ruibin Xiong, Yunchang Yang, Di He, Kai Zheng, Shu xin Zheng, Chen Xing, Huishuai Zhang, Yanyan Lan, Li-Wei Wang, and Tie-Yan Liu. 2020. On layer normalization in the transformer architecture. arXiv preprint, abs/2002.04745.',
+  'Zel19c': 'Rowan Zellers, Ari Holtzman, Hannah Rashkin, Yonatan Bisk, Ali Farhadi, Franziska Roesner, and Yejin Choi. 2019. Defending against neural fake news. In NeurIPS.',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -4455,7 +4487,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4582,7 +4614,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4819,7 +4851,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
