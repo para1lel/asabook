@@ -4239,6 +4239,20 @@ Object.assign(paperAbbreviations, {
   'Sch20a': 'John Schulman. "Approximating KL Divergence." 2020. [Link](http://joschu.net/blog/kl-approx.html)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Alm23b': 'Ebtesam Almazrouei et al. "Falcon-40B: An Open Large Language Model with State-of-the-Art Performance." 2023. [Link](https://huggingface.co/tiiuae/falcon-40b)',
+  'Bla21': 'Sid Black, Leo Gao, Phil Wang, Connor Leahy, and Stella Biderman. "GPT-Neo: Large Scale Autoregressive Language Modeling with Mesh-Tensorflow." Zenodo, 2021. [Link](https://doi.org/10.5281/zenodo.5297715)',
+  'Dai22a': 'Damai Dai, Li Dong, Yaru Hao, Zhifang Sui, Baobao Chang, and Furu Wei. "Knowledge Neurons in Pretrained Transformers." ACL, pp. 8493-8502, 2022. [Link](https://doi.org/10.18653/v1/2022.acl-long.581)',
+  'Dai22b': 'Damai Dai, Li Dong, Shuming Ma, Bo Zheng, Zhifang Sui, Baobao Chang, and Furu Wei. "StableMoE: Stable Routing Strategy for Mixture of Experts." ACL, pp. 7085-7095, 2022. [Link](https://doi.org/10.18653/v1/2022.acl-long.489)',
+  'Lin21a': 'Junyang Lin et al. "M6: A Chinese Multimodal Pretrainer." arXiv:2103.00823, 2021. [Link](https://arxiv.org/abs/2103.00823)',
+  'Ren23a': 'Xiaozhe Ren et al. "PanGu-Σ: Towards Trillion Parameter Language Model with Sparse Heterogeneous Computing." arXiv:2303.10845, 2023. [Link](https://doi.org/10.48550/arXiv.2303.10845)',
+  'She23a': 'Sheng Shen et al. "Flan-MoE: Scaling Instruction-Finetuned Language Models with Sparse Mixture of Experts." arXiv:2305.14705, 2023. [Link](https://doi.org/10.48550/arXiv.2305.14705)',
+  'Tog23a': 'Together AI. "RedPajama-Data: An Open Source Recipe to Reproduce LLaMA Training Dataset." 2023. [Link](https://github.com/togethercomputer/RedPajama-Data)',
+  'Wan21g': 'Ben Wang and Aran Komatsuzaki. "GPT-J-6B: A 6 Billion Parameter Autoregressive Language Model." 2021. [Link](https://github.com/kingoflolz/mesh-transformer-jax)',
+  'Xue23': 'Fuzhao Xue, Zian Zheng, Yao Fu, Jinjie Ni, Zangwei Zheng, Wangchunshu Zhou, and Yang You. "OpenMoE: Open Mixture-of-Experts Language Models." GitHub repository, 2023. [Link](https://github.com/XueFuzhao/OpenMoE)',
+  'Zop22': 'Barret Zoph. "Designing Effective Sparse Expert Models." IPDPS Workshops, 2022. [Link](https://doi.org/10.1109/IPDPSW55747.2022.00171)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4545,7 +4559,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4672,7 +4686,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4909,7 +4923,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
