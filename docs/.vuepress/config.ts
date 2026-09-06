@@ -4210,6 +4210,26 @@ Object.assign(paperAbbreviations, {
 })
 
 Object.assign(paperAbbreviations, {
+  'Cor19': 'Gonçalo M. Correia, Vlad Niculae, André F. T. Martins. "Adaptively Sparse Transformers." arXiv:1909.00015, 2019. [Link](https://arxiv.org/abs/1909.00015)',
+  'Fan21c': 'Angela Fan et al. "Beyond English-Centric Multilingual Machine Translation." Journal of Machine Learning Research, 22(107):1-48, 2021. [Link](https://www.jmlr.org/papers/v22/20-1307.html)',
+  'Fed18': 'William Fedus, Ian Goodfellow, Andrew M. Dai. "MaskGAN: Better Text Generation via Filling in the ____." arXiv:1801.07736, 2018. [Link](https://arxiv.org/abs/1801.07736)',
+  'Gal20': 'Trevor Gale, Matei Zaharia, Cliff Young, Erich Elsen. "Sparse GPU Kernels for Deep Learning." arXiv:2006.10901, 2020. [Link](https://arxiv.org/abs/2006.10901)',
+  'Guu20': 'Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, Ming-Wei Chang. "REALM: Retrieval-Augmented Language Model Pre-Training." arXiv:2002.08909, 2020. [Link](https://arxiv.org/abs/2002.08909)',
+  'Her15': 'Karl Moritz Hermann et al. "Teaching Machines to Read and Comprehend." Advances in Neural Information Processing Systems, 28:1693-1701, 2015. [Link](https://proceedings.neurips.cc/paper/2015/file/afdec7005cc9f14302cd0474fd0f3c96-Paper.pdf)',
+  'Lam19': 'Guillaume Lample, Alexandre Sablayrolles, Marc\'Aurelio Ranzato, Ludovic Denoyer, Hervé Jégou. "Large Memory Layers with Product Keys." Advances in Neural Information Processing Systems, 32, 2019. [Link](https://arxiv.org/abs/1907.05242)',
+  'Nar18': 'Shashi Narayan, Shay B. Cohen, Mirella Lapata. "Don\'t Give Me the Details, Just the Summary! Topic-Aware Convolutional Neural Networks for Extreme Summarization." arXiv:1808.08745, 2018. [Link](https://arxiv.org/abs/1808.08745)',
+  'Nie19': 'Yixin Nie et al. "Adversarial NLI: A New Benchmark for Natural Language Understanding." arXiv:1910.14599, 2019. [Link](https://arxiv.org/abs/1910.14599)',
+  'Pui20': 'Joan Puigcerver et al. "Scalable Transfer Learning with Expert Models." arXiv:2009.13239, 2020. [Link](https://arxiv.org/abs/2009.13239)',
+  'Ram18': 'Prajit Ramachandran, Quoc V. Le. "Diversity and Depth in Per-Example Routing Models." International Conference on Learning Representations, 2018. [Link](https://openreview.net/forum?id=BkxWJnC9tX)',
+  'Rob20': 'Adam Roberts, Colin Raffel, Noam Shazeer. "How Much Knowledge Can You Pack Into the Parameters of a Language Model?" arXiv:2002.08910, 2020. [Link](https://arxiv.org/abs/2002.08910)',
+  'Rob52': 'Herbert Robbins. "Some Aspects of the Sequential Design of Experiments." Bulletin of the American Mathematical Society, 58(5):527-535, 1952. [Link](https://www.ams.org/journals/bull/1952-58-05/S0002-9904-1952-09620-8/S0002-9904-1952-09620-8.pdf)',
+  'Ros17': 'Clemens Rosenbaum, Tim Klinger, Matthew Riemer. "Routing Networks: Adaptive Selection of Non-Linear Functions for Multi-Task Learning." arXiv:1711.01239, 2017. [Link](https://arxiv.org/abs/1711.01239)',
+  'Str19': 'Emma Strubell, Ananya Ganesh, Andrew McCallum. "Energy and Policy Considerations for Deep Learning in NLP." arXiv:1906.02243, 2019. [Link](https://arxiv.org/abs/1906.02243)',
+  'Sut19': 'Rich Sutton. "The Bitter Lesson." 2019. [Link](http://www.incompleteideas.net/IncIdeas/BitterLesson.html)',
+  'Tay53': 'Wilson L. Taylor. "“Cloze Procedure”: A New Tool for Measuring Readability." Journalism Quarterly, 30(4):415-433, 1953. [Link](https://doi.org/10.1177/107769905303000401)',
+  'Wan19i': 'Shibo Wang, Pankaj Kanwar. "BFloat16: The Secret to High Performance on Cloud TPUs." Google Cloud Blog, 2019. [Link](https://cloud.google.com/blog/products/ai-machine-learning/bfloat16-the-secret-to-high-performance-on-cloud-tpus)',
+  'Xue20': 'Linting Xue et al. "mT5: A Massively Multilingual Pre-Trained Text-to-Text Transformer." arXiv:2010.11934, 2020. [Link](https://arxiv.org/abs/2010.11934)',
+  'Yan20d': 'Zhilin Yang, Zihang Dai, Yiming Yang, Jaime Carbonell, Ruslan Salakhutdinov, Quoc V. Le. "XLNet: Generalized Autoregressive Pretraining for Language Understanding." arXiv:1906.08237, 2020. [Link](https://arxiv.org/abs/1906.08237)',
   'Ant25f': 'Anthropic. "Introducing Claude Sonnet 4.5." 2025. [Link](https://www.anthropic.com/news/claude-sonnet-4-5)',
   'Glm25': 'Zhipu AI et al. "GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models." arXiv:2508.06471. 2025. [Link](https://arxiv.org/abs/2508.06471)',
   'Kim25f': 'Moonshot AI. "Introducing Kimi K2 Thinking." 2025. [Link](https://moonshotai.github.io/Kimi-K2/thinking.html)',
@@ -4525,7 +4545,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4652,7 +4672,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4889,7 +4909,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',

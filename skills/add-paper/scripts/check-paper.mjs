@@ -66,8 +66,10 @@ function plainMathWords(expression) {
   const stripped = expression
     .replace(/\\mathrm\{[^{}]*\}/g, ' ')
     .replace(/\\mathit\{[^{}]*\}/g, ' ')
+    .replace(/\\text\{[^{}]*\}/g, ' ')
     .replace(/\\(?:begin|end)\{[^{}]*\}/g, ' ')
     .replace(/\\texttt\{[^{}]*\}/g, ' ')
+    .replace(/\\operatorname\*?\{[^{}]*\}/g, ' ')
     .replace(/\\[A-Za-z]+/g, ' ')
   const candidates = stripped.match(/[A-Za-z]{2,}/g) ?? []
   return [...new Set(candidates.filter((word) => (
