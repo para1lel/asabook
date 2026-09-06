@@ -4179,6 +4179,19 @@ Object.assign(paperAbbreviations, {
   'Zha23q': 'Michael Zhang, Khaled K Saab, Michael Poli, Tri Dao, Karan Goel, Christopher Ré. Effectively modeling time series with simple discrete state spaces. The international conference on learning representations (ICLR), 2023.',
   'Zhe22b': 'Lin Zheng, Chong Wang, Lingpeng Kong. Linear complexity randomized self-attention mechanism. International conference on machine learning, pp. 27011-27041, 2022.',
   'Zuo22': 'Simiao Zuo, Xiaodong Liu, Jian Jiao, Denis Charles, Eren Manavoglu, Tuo Zhao, Jianfeng Gao. Efficient long sequence modeling via state space augmented Transformer. arXiv preprint arXiv:2212.08136, 2022.',
+  'Ana23': 'Sotiris Anagnostidis, Dario Pavllo, Luca Biggio, Lorenzo Noci, Aurelien Lucchi, Thomas Hofmann. Dynamic context pruning for efficient and interpretable autoregressive Transformers. 2023.',
+  'Blo23a': 'bloc97. NTK-Aware Scaled RoPE allows LLaMA models to have extended (8k+) context size without any fine-tuning and minimal perplexity degradation. 2023. [Link](https://www.reddit.com/r/LocalLLaMA/comments/14lz7j5/ntkaware_scaled_rope_allows_llama_models_to_have/).',
+  'Bon23': 'Yelysei Bondarenko, Markus Nagel, Tijmen Blankevoort. Quantizable Transformers: Removing outliers by helping attention heads do nothing. 2023.',
+  'Che23x': 'Shouyuan Chen, Sherman Wong, Liangjian Chen, Yuandong Tian. Extending context window of large language models via positional interpolation. arXiv:2306.15595, 2023. [Link](https://arxiv.org/abs/2306.15595).',
+  'Dar23a': 'Timothée Darcet, Maxime Oquab, Julien Mairal, Piotr Bojanowski. Vision Transformers need registers. 2023.',
+  'Goy20': 'Tanya Goyal, Greg Durrett. Evaluating factuality in generation with dependency-level entailment. Findings of the Association for Computational Linguistics: EMNLP 2020, 2020. [Link](https://aclanthology.org/2020.findings-emnlp.322/).',
+  'Han23x': 'Chi Han, Qifan Wang, Wenhan Xiong, Yu Chen, Heng Ji, Sinong Wang. LM-Infinite: Simple on-the-fly length generalization for large language models. 2023.',
+  'Kai23': 'kaiokendev. Things I’m learning while training superhot. 2023. [Link](https://kaiokendev.github.io/til#extending-context-to-8k).',
+  'Kam23a': 'Ehsan Kamalloo, Nouha Dziri, Charles L. A. Clarke, Davood Rafiei. Evaluating open-domain question answering in the era of large language models. 2023.',
+  'Liu23z': 'Nelson F. Liu, Kevin Lin, John Hewitt, Ashwin Paranjape, Michele Bevilacqua, Fabio Petroni, Percy Liang. Lost in the middle: How language models use long contexts. 2023.',
+  'Mil23': 'Evan Miller. Attention is off by one. 2023. [Link](https://www.evanmiller.org/attention-is-off-by-one.html).',
+  'Tog23': 'Together. Llama-2-7B-32K-Instruct — and fine-tuning for Llama-2 models with Together API. June 2023. [Link](https://together.ai/blog/llama-2-7b-32k-instruct).',
+  'Zha23r': 'Tianyi Zhang, Faisal Ladhak, Esin Durmus, Percy Liang, Kathleen McKeown, Tatsunori B. Hashimoto. Benchmarking large language models for news summarization. 2023.',
 })
 
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
@@ -4487,7 +4500,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4614,7 +4627,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4851,7 +4864,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
