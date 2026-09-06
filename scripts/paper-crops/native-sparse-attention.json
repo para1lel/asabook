@@ -26,10 +26,10 @@
   {
     "name": "figure-04",
     "page": 10,
-    "x": 124,
-    "y": 59,
-    "width": 356,
-    "height": 291
+    "x": 121,
+    "y": 85,
+    "width": 359,
+    "height": 265
   },
   {
     "name": "table-01",
@@ -51,9 +51,9 @@
     "name": "figure-05",
     "page": 12,
     "x": 158,
-    "y": 68,
+    "y": 94,
     "width": 260,
-    "height": 215
+    "height": 183
   },
   {
     "name": "table-03",

@@ -10,6 +10,7 @@
     "paper:render": "node scripts/render-pdf.mjs",
     "paper:refresh-screenshots": "node scripts/refresh-paper-screenshots.mjs",
     "paper:check-screenshots": "node scripts/check-paper-screenshots.mjs",
+    "paper:check-whitespace": "node scripts/check-paper-whitespace.mjs",
     "paper:references": "node scripts/extract-tei-bibliography.mjs"
   },
   "devDependencies": {
