@@ -1,16 +1,10 @@
 ---
-title: DeepSeekMoE
+title: 'DeepSeekMoE'
 createTime: 2026/09/06 19:41:12
 permalink: /ja/papers/deepseek-moe/
-pageClass: paper-reading
 ---
 
-# DeepSeekMoE
-
-> **原題：** *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models*<br>
-> **著者：** [Damai Dai](https://dblp.org/pid/199/2097.html) [+internship]、[Chengqi Deng](https://dblp.org/pid/255/4939.html)、[Chenggang Zhao](https://dblp.org/pid/254/2607.html) [+internship]、[R.X. Xu](https://dblp.org/pid/267/5291.html)、[Huazuo Gao](https://dblp.org/pid/366/3356.html)、[Deli Chen](https://dblp.org/pid/50/2637.html)、[Jiashi Li](https://dblp.org/pid/241/9364.html)、[Wangding Zeng](https://dblp.org/pid/315/5319.html)、[Xingkai Yu](https://dblp.org/pid/257/4432.html) [+internship]、[Y. Wu](https://dblp.org/pid/22/0-24.html)、[Zhenda Xie](https://dblp.org/pid/239/8676.html)、[Y.K. Li](https://dblp.org/pid/16/8783.html)、[Panpan Huang](https://dblp.org/pid/19/6338.html)、[Fuli Luo](https://dblp.org/pid/220/4216.html)、[Chong Ruan](https://dblp.org/pid/159/9956.html)、[Zhifang Sui](https://dblp.org/pid/22/5834.html)、[Wenfeng Liang](https://dblp.org/pid/59/9456.html)<br>
-> **所属：** DeepSeek-AI；北京大学マルチメディア情報処理国家重点実験室；清華大学交叉情報研究院；南京大学新型ソフトウェア技術国家重点実験室<br>
-> **出典：** 2024 年 1 月 11 日に初回投稿；[arXiv v1](https://arxiv.org/abs/2401.06066v1)；<a href="/paper/deepseek-moe.pdf" target="_blank" rel="noopener noreferrer">ローカル PDF</a>；[arXiv DOI](https://doi.org/10.48550/arXiv.2401.06066)；その後 ACL 2024、1280–1297 ページに掲載（[論文](https://aclanthology.org/2024.acl-long.70/)、[DOI](https://doi.org/10.18653/v1/2024.acl-long.70)）；[TeX ソース](https://export.arxiv.org/e-print/2401.06066v1)；[コードとモデル](https://github.com/deepseek-ai/DeepSeek-MoE)
+> [Damai Dai](https://dblp.org/pid/199/2097.html) [+internship]、[Chengqi Deng](https://dblp.org/pid/255/4939.html)、[Chenggang Zhao](https://dblp.org/pid/254/2607.html) [+internship]、[R.X. Xu](https://dblp.org/pid/267/5291.html)、[Huazuo Gao](https://dblp.org/pid/366/3356.html)、[Deli Chen](https://dblp.org/pid/50/2637.html)、[Jiashi Li](https://dblp.org/pid/241/9364.html)、[Wangding Zeng](https://dblp.org/pid/315/5319.html)、[Xingkai Yu](https://dblp.org/pid/257/4432.html) [+internship]、[Y. Wu](https://dblp.org/pid/22/0-24.html)、[Zhenda Xie](https://dblp.org/pid/239/8676.html)、[Y.K. Li](https://dblp.org/pid/16/8783.html)、[Panpan Huang](https://dblp.org/pid/19/6338.html)、[Fuli Luo](https://dblp.org/pid/220/4216.html)、[Chong Ruan](https://dblp.org/pid/159/9956.html)、[Zhifang Sui](https://dblp.org/pid/22/5834.html)、[Wenfeng Liang](https://dblp.org/pid/59/9456.html)。2024 年 1 月 11 日に arXiv へ初投稿され、現在の版は v1。2024 年 8 月に *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)* の 1280–1297 ページで発表。[DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models](https://arxiv.org/abs/2401.06066v1)。<a href="/paper/deepseek-moe.pdf" target="_blank" rel="noopener noreferrer">原論文 PDF</a>。[ACL 2024](https://aclanthology.org/2024.acl-long.70/)。[DOI](https://doi.org/10.18653/v1/2024.acl-long.70)。[TeX ソース](https://export.arxiv.org/e-print/2401.06066v1)。[コードとモデル](https://github.com/deepseek-ai/DeepSeek-MoE)。正確な印刷レイアウトと参考文献については、原論文 PDF を正本とする。
 
 [+internship]: DeepSeek-AI でのインターン期間中の貢献。
 
@@ -54,19 +48,31 @@ MoE アーキテクチャには有望な可能性がある一方、既存の MoE
 
 ## 2 予備知識：Transformer の Mixture-of-Experts
 
-まず、Transformer 言語モデルで一般的に用いられる汎用的な MoE アーキテクチャを紹介する。標準的な Transformer 言語モデルは、標準 Transformer ブロックを $L$ 層積み重ねて構築され、各ブロックは次のように表せる。 $$\begin{aligned}
+まず、Transformer 言語モデルで一般的に用いられる汎用的な MoE アーキテクチャを紹介する。標準的な Transformer 言語モデルは、標準 Transformer ブロックを $L$ 層積み重ねて構築され、各ブロックは次のように表せる。
+
+$$
+\begin{aligned}
     \mathbf{u}_{1:T}^{l} &= \operatorname{Self-Att}\left( \mathbf{h}_{1:T}^{l-1} \right) + \mathbf{h}_{1:T}^{l-1}, \\
     \mathbf{h}_{t}^{l} &= \operatorname{FFN}\left( \mathbf{u}_{t}^{l} \right) + \mathbf{u}_{t}^{l},
-\end{aligned}$$ ここで、$T$ は系列長、$\operatorname{Self-Att}(\cdot)$ は自己注意モジュール、$\operatorname{FFN}(\cdot)$ は Feed-Forward Network（FFN）、$\mathbf{u}_{1:T}^{l} \in \mathbb{R}^{T \times d}$ は $l$ 番目の注意モジュール後における全トークンの隠れ状態、$\mathbf{h}_{t}^{l} \in \mathbb{R}^{d}$ は $l$ 番目の Transformer ブロック後における $t$ 番目のトークンの出力隠れ状態を表す。簡潔にするため、上式では層正規化を省略している。
+\end{aligned}
+$$
 
-MoE 言語モデルを構築する一般的な方法は、Transformer 内の FFN を一定間隔で MoE 層に置き換えることである [Fed22, Lep20, Du22, Zop22]。MoE 層は複数のエキスパートからなり、各エキスパートは標準的な FFN と同一の構造を持つ。そして、各トークンは一つ [Fed22] または二つ [Lep20] のエキスパートへ割り当てられる。$l$ 番目の FFN を MoE 層で置き換える場合、出力隠れ状態 $\mathbf{h}_{t}^{l}$ の計算は次のように表される。 $$\begin{aligned}
+ここで、$T$ は系列長、$\operatorname{Self-Att}(\cdot)$ は自己注意モジュール、$\operatorname{FFN}(\cdot)$ は Feed-Forward Network（FFN）、$\mathbf{u}_{1:T}^{l} \in \mathbb{R}^{T \times d}$ は $l$ 番目の注意モジュール後における全トークンの隠れ状態、$\mathbf{h}_{t}^{l} \in \mathbb{R}^{d}$ は $l$ 番目の Transformer ブロック後における $t$ 番目のトークンの出力隠れ状態を表す。簡潔にするため、上式では層正規化を省略している。
+
+MoE 言語モデルを構築する一般的な方法は、Transformer 内の FFN を一定間隔で MoE 層に置き換えることである [Fed22, Lep20, Du22, Zop22]。MoE 層は複数のエキスパートからなり、各エキスパートは標準的な FFN と同一の構造を持つ。そして、各トークンは一つ [Fed22] または二つ [Lep20] のエキスパートへ割り当てられる。$l$ 番目の FFN を MoE 層で置き換える場合、出力隠れ状態 $\mathbf{h}_{t}^{l}$ の計算は次のように表される。
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{N} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leqslant j \leqslant N \}, K), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right),
-\end{aligned}$$ ここで、$N$ はエキスパートの総数、$\operatorname{FFN}_{i}(\cdot)$ は $i$ 番目のエキスパート FFN、$g_{i,t}$ は $i$ 番目のエキスパートのゲート値、$s_{i,t}$ はトークンとエキスパートの親和度、$\operatorname{Topk}(\cdot, K)$ は $t$ 番目のトークンと全 $N$ エキスパートについて計算した親和度スコアのうち上位 $K$ 個からなる集合、$\mathbf{e}_{i}^{l}$ は $l$ 番目の層における $i$ 番目のエキスパートのセントロイドを表す。$g_{i,t}$ は疎であり、$N$ 個のゲート値のうち非ゼロなのは $K$ 個だけである。この疎性により、MoE 層内の計算効率が保証される。すなわち、各トークンが割り当てられて計算されるのは $K$ 個のエキスパートだけである。上式でも、簡潔にするため層正規化の演算を省略している。
+\end{aligned}
+$$
+
+ここで、$N$ はエキスパートの総数、$\operatorname{FFN}_{i}(\cdot)$ は $i$ 番目のエキスパート FFN、$g_{i,t}$ は $i$ 番目のエキスパートのゲート値、$s_{i,t}$ はトークンとエキスパートの親和度、$\operatorname{Topk}(\cdot, K)$ は $t$ 番目のトークンと全 $N$ エキスパートについて計算した親和度スコアのうち上位 $K$ 個からなる集合、$\mathbf{e}_{i}^{l}$ は $l$ 番目の層における $i$ 番目のエキスパートのセントロイドを表す。$g_{i,t}$ は疎であり、$N$ 個のゲート値のうち非ゼロなのは $K$ 個だけである。この疎性により、MoE 層内の計算効率が保証される。すなわち、各トークンが割り当てられて計算されるのは $K$ 個のエキスパートだけである。上式でも、簡潔にするため層正規化の演算を省略している。
 
 <span id="figure-02"></span>
 
@@ -86,14 +92,20 @@ s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}
 
 エキスパート数が限られる場合、特定のエキスパートへ割り当てられるトークンは、多様な種類の知識を含みやすい。その結果、そのエキスパートは大きく異なる種類の知識をパラメータ内で学習しようとするが、それらを同時に活用することは難しい。しかし、各トークンをより多くのエキスパートへルーティングできれば、多様な知識を分解し、それぞれ異なるエキスパートで学習できる可能性が生まれる。このとき、各エキスパートは高い特化度を維持でき、エキスパート間で知識をより集中的に分布させられる。
 
-この目標に向けて、エキスパートのパラメータ数と計算コストを一定に保ちながら、エキスパートをより細かな粒度へ分割する。細かなエキスパート分割により、活性化エキスパートをより柔軟かつ適応的に組み合わせられるようになる。具体的には、[図 2](#figure-02)(a) に示す典型的な MoE アーキテクチャを基礎として、FFN の中間隠れ次元を元の $\frac{1}{m}$ 倍へ縮小し、各エキスパート FFN を $m$ 個の小さなエキスパートへ分割する。各エキスパートが小さくなるため、それに応じて活性化するエキスパート数も $m$ 倍へ増やし、[図 2](#figure-02)(b) に示すように計算コストを同じに保つ。細粒度エキスパート分割を用いると、MoE 層の出力は次のように表せる。 $$\begin{aligned}
+この目標に向けて、エキスパートのパラメータ数と計算コストを一定に保ちながら、エキスパートをより細かな粒度へ分割する。細かなエキスパート分割により、活性化エキスパートをより柔軟かつ適応的に組み合わせられるようになる。具体的には、[図 2](#figure-02)(a) に示す典型的な MoE アーキテクチャを基礎として、FFN の中間隠れ次元を元の $\frac{1}{m}$ 倍へ縮小し、各エキスパート FFN を $m$ 個の小さなエキスパートへ分割する。各エキスパートが小さくなるため、それに応じて活性化するエキスパート数も $m$ 倍へ増やし、[図 2](#figure-02)(b) に示すように計算コストを同じに保つ。細粒度エキスパート分割を用いると、MoE 層の出力は次のように表せる。
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{mN} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leqslant j \leqslant mN \}, mK), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right),
-\end{aligned}$$ ここで、エキスパートの総パラメータ数は標準 FFN のパラメータ数の $N$ 倍に等しく、$mN$ は細粒度エキスパートの総数を表す。細粒度エキスパート分割戦略により、非ゼロのゲート数も $mK$ へ増加する。
+\end{aligned}
+$$
+
+ここで、エキスパートの総パラメータ数は標準 FFN のパラメータ数の $N$ 倍に等しく、$mN$ は細粒度エキスパートの総数を表す。細粒度エキスパート分割戦略により、非ゼロのゲート数も $mK$ へ増加する。
 
 組合せ論の観点から見ると、細粒度エキスパート分割戦略は、活性化エキスパートの組合せの柔軟性を大幅に高める。例として、$N=16$ の場合を考える。典型的な top-2 ルーティング戦略で得られる組合せは $\binom{16}{2}=120$ 通りである。これに対し、各エキスパートを $4$ 個の小さなエキスパートへ分割すると、細粒度ルーティング戦略で得られる組合せは $\binom{64}{8}=4,426,165,368$ 通りになる。組合せの柔軟性が飛躍的に増すことで、より正確で対象を絞った知識獲得を実現できる可能性が高まる。
 
@@ -103,14 +115,20 @@ s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}
 
 従来のルーティング戦略では、異なるエキスパートへ割り当てられたトークンが、何らかの共通知識や情報を必要とする場合がある。その結果、複数のエキスパートがそれぞれのパラメータで同じ知識を獲得する方向へ収束し、エキスパートのパラメータに冗長性が生じる。しかし、さまざまな文脈に共通する知識を捉えて集約する専用の共有エキスパートがあれば、それ以外のルーティング対象エキスパート間のパラメータ冗長性を緩和できる。この冗長性の緩和は、より特化したエキスパートを備える、パラメータ効率の高いモデルにつながる。
 
-この目的に向けて、細粒度エキスパート分割戦略に加え、さらに $K_{s}$ 個のエキスパートを共有エキスパートとして分離する。ルーターモジュールにかかわらず、各トークンは必ずこれらの共有エキスパートへ割り当てられる。計算コストを一定に保つため、[図 2](#figure-02)(c) に示すように、それ以外のルーティング対象エキスパートのうち活性化する数を $K_{s}$ だけ減らす。共有エキスパート分離戦略を統合した、完全な DeepSeekMoE アーキテクチャの MoE 層は次のように定式化される。 $$\begin{aligned}
+この目的に向けて、細粒度エキスパート分割戦略に加え、さらに $K_{s}$ 個のエキスパートを共有エキスパートとして分離する。ルーターモジュールにかかわらず、各トークンは必ずこれらの共有エキスパートへ割り当てられる。計算コストを一定に保つため、[図 2](#figure-02)(c) に示すように、それ以外のルーティング対象エキスパートのうち活性化する数を $K_{s}$ だけ減らす。共有エキスパート分離戦略を統合した、完全な DeepSeekMoE アーキテクチャの MoE 層は次のように定式化される。
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{K_{s}} {\operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} + \sum_{i=K_{s} + 1}^{mN} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | K_{s} + 1 \leqslant j \leqslant mN \}, mK - K_{s}), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right).
-\end{aligned}$$ 最終的に、DeepSeekMoE では共有エキスパート数が $K_{s}$、ルーティング対象エキスパートの総数が $mN - K_{s}$、非ゼロのゲート数が $mK - K_{s}$ となる。
+\end{aligned}
+$$
+
+最終的に、DeepSeekMoE では共有エキスパート数が $K_{s}$、ルーティング対象エキスパートの総数が $mN - K_{s}$、非ゼロのゲート数が $mK - K_{s}$ となる。
 
 なお、共有エキスパート分離の原型は [Raj22] に帰することができる。主な違いは、彼らが工学的な観点からこの戦略を導いたのに対し、我々はアルゴリズムの観点から取り組んでいる点にある。
 
@@ -120,17 +138,29 @@ s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}
 
 自動的に学習されるルーティング戦略は負荷不均衡の問題に直面する場合があり、そこには二つの顕著な欠点がある。第一に、モデルが常に少数のエキスパートだけを選択し、ほかのエキスパートが十分に訓練されなくなるルーティング崩壊 [Sha17] の危険がある。第二に、エキスパートが複数のデバイスへ分散配置されている場合、負荷不均衡が計算ボトルネックを悪化させる可能性がある。
 
-**エキスパート単位のバランス損失。** ルーティング崩壊のリスクを緩和するため、エキスパート単位のバランス損失も用いる。このバランス損失は次のように計算する。 $$\begin{aligned}
+**エキスパート単位のバランス損失。** ルーティング崩壊のリスクを緩和するため、エキスパート単位のバランス損失も用いる。このバランス損失は次のように計算する。
+
+$$
+\begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N^{\prime}}{f_i P_i}, \\
     f_i & = \frac{N^{\prime}}{K^{\prime}T} \sum_{t=1}^{T}{ \mathbb{1}( \text{Token } t \text{ selects Expert } i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
-\end{aligned}$$ ここで、$\alpha_1$ はエキスパート単位のバランス係数と呼ぶハイパーパラメータであり、簡潔に表すため $N^{\prime}$ は $(mN - K_s)$、$K^{\prime}$ は $(mK - K_s)$ に等しいものとする。$\mathbb{1}(\cdot)$ は指示関数を表す。
+\end{aligned}
+$$
 
-**デバイス単位のバランス損失。** エキスパート単位のバランス損失に加え、デバイス単位のバランス損失を導入する。計算ボトルネックの緩和を目指す場合、負荷分散に過度な制約を課すとモデル性能が損なわれるため、エキスパート単位で厳密なバランス制約を強制する必要はない。代わりに、主な目的をデバイス間で計算を均衡させることに置く。すべてのルーティング対象エキスパートを $D$ 個のグループ $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$ に分割し、各グループを一つのデバイスへ配置する場合、デバイス単位のバランス損失は次のように計算する。 $$\begin{aligned}
+ここで、$\alpha_1$ はエキスパート単位のバランス係数と呼ぶハイパーパラメータであり、簡潔に表すため $N^{\prime}$ は $(mN - K_s)$、$K^{\prime}$ は $(mK - K_s)$ に等しいものとする。$\mathbb{1}(\cdot)$ は指示関数を表す。
+
+**デバイス単位のバランス損失。** エキスパート単位のバランス損失に加え、デバイス単位のバランス損失を導入する。計算ボトルネックの緩和を目指す場合、負荷分散に過度な制約を課すとモデル性能が損なわれるため、エキスパート単位で厳密なバランス制約を強制する必要はない。代わりに、主な目的をデバイス間で計算を均衡させることに置く。すべてのルーティング対象エキスパートを $D$ 個のグループ $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$ に分割し、各グループを一つのデバイスへ配置する場合、デバイス単位のバランス損失は次のように計算する。
+
+$$
+\begin{aligned}
     \mathcal{L}_{\mathrm{DevBal}} & = \alpha_{2} \sum_{i=1}^{D}{f_i^{\prime} P_i^{\prime}}, \\
     f_i^{\prime} & = \frac{1}{|\mathcal{E}_i|} \sum_{j \in \mathcal{E}_i}{ f_j }, \\
     P_i^{\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
-\end{aligned}$$ ここで、$\alpha_{2}$ はデバイス単位のバランス係数と呼ぶハイパーパラメータである。実際には、ルーティング崩壊のリスクを緩和するため小さなエキスパート単位のバランス係数を設定し、それと同時に、デバイス間で均衡した計算を促すため、より大きなデバイス単位のバランス係数を設定する。
+\end{aligned}
+$$
+
+ここで、$\alpha_{2}$ はデバイス単位のバランス係数と呼ぶハイパーパラメータである。実際には、ルーティング崩壊のリスクを緩和するため小さなエキスパート単位のバランス係数を設定し、それと同時に、デバイス間で均衡した計算を促すため、より大きなデバイス単位のバランス係数を設定する。
 
 <span id="section-4"></span>
 

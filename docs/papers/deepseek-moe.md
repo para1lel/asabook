@@ -1,16 +1,10 @@
 ---
-title: DeepSeekMoE
+title: 'DeepSeekMoE'
 createTime: 2026/09/06 19:41:12
 permalink: /papers/deepseek-moe/
-pageClass: paper-reading
 ---
 
-# DeepSeekMoE
-
-> **原文标题：** *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models*<br>
-> **作者：** [Damai Dai](https://dblp.org/pid/199/2097.html) [+internship]、[Chengqi Deng](https://dblp.org/pid/255/4939.html)、[Chenggang Zhao](https://dblp.org/pid/254/2607.html) [+internship]、[R.X. Xu](https://dblp.org/pid/267/5291.html)、[Huazuo Gao](https://dblp.org/pid/366/3356.html)、[Deli Chen](https://dblp.org/pid/50/2637.html)、[Jiashi Li](https://dblp.org/pid/241/9364.html)、[Wangding Zeng](https://dblp.org/pid/315/5319.html)、[Xingkai Yu](https://dblp.org/pid/257/4432.html) [+internship]、[Y. Wu](https://dblp.org/pid/22/0-24.html)、[Zhenda Xie](https://dblp.org/pid/239/8676.html)、[Y.K. Li](https://dblp.org/pid/16/8783.html)、[Panpan Huang](https://dblp.org/pid/19/6338.html)、[Fuli Luo](https://dblp.org/pid/220/4216.html)、[Chong Ruan](https://dblp.org/pid/159/9956.html)、[Zhifang Sui](https://dblp.org/pid/22/5834.html)、[Wenfeng Liang](https://dblp.org/pid/59/9456.html)<br>
-> **单位：** DeepSeek-AI；北京大学多媒体信息处理全国重点实验室；清华大学交叉信息研究院；南京大学新型软件技术全国重点实验室<br>
-> **来源：** 2024 年 1 月 11 日首次提交；[arXiv v1](https://arxiv.org/abs/2401.06066v1)；<a href="/paper/deepseek-moe.pdf" target="_blank" rel="noopener noreferrer">本地 PDF</a>；[arXiv DOI](https://doi.org/10.48550/arXiv.2401.06066)；后发表于 ACL 2024，第 1280–1297 页（[论文](https://aclanthology.org/2024.acl-long.70/)，[DOI](https://doi.org/10.18653/v1/2024.acl-long.70)）；[TeX 源文件](https://export.arxiv.org/e-print/2401.06066v1)；[代码与模型](https://github.com/deepseek-ai/DeepSeek-MoE)
+> [Damai Dai](https://dblp.org/pid/199/2097.html) [+internship], [Chengqi Deng](https://dblp.org/pid/255/4939.html), [Chenggang Zhao](https://dblp.org/pid/254/2607.html) [+internship], [R.X. Xu](https://dblp.org/pid/267/5291.html), [Huazuo Gao](https://dblp.org/pid/366/3356.html), [Deli Chen](https://dblp.org/pid/50/2637.html), [Jiashi Li](https://dblp.org/pid/241/9364.html), [Wangding Zeng](https://dblp.org/pid/315/5319.html), [Xingkai Yu](https://dblp.org/pid/257/4432.html) [+internship], [Y. Wu](https://dblp.org/pid/22/0-24.html), [Zhenda Xie](https://dblp.org/pid/239/8676.html), [Y.K. Li](https://dblp.org/pid/16/8783.html), [Panpan Huang](https://dblp.org/pid/19/6338.html), [Fuli Luo](https://dblp.org/pid/220/4216.html), [Chong Ruan](https://dblp.org/pid/159/9956.html), [Zhifang Sui](https://dblp.org/pid/22/5834.html), [Wenfeng Liang](https://dblp.org/pid/59/9456.html). 2024 年 1 月 11 日首次提交至 arXiv, 当前版本为 v1. 2024 年 8 月发表于 *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, 页码 1280-1297. [DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models](https://arxiv.org/abs/2401.06066v1). <a href="/paper/deepseek-moe.pdf" target="_blank" rel="noopener noreferrer">原始 PDF</a>. [ACL 2024](https://aclanthology.org/2024.acl-long.70/). [DOI](https://doi.org/10.18653/v1/2024.acl-long.70). [TeX 源码](https://export.arxiv.org/e-print/2401.06066v1). [代码与模型](https://github.com/deepseek-ai/DeepSeek-MoE). 精确的印刷版式与参考文献以原始 PDF 为准.
 
 [+internship]: 在 DeepSeek-AI 实习期间完成的贡献。
 
@@ -54,19 +48,31 @@ pageClass: paper-reading
 
 ## 2 预备知识：用于 Transformer 的混合专家
 
-我们先介绍一种常用于 Transformer 语言模型的通用 MoE 架构。标准 Transformer 语言模型由 $L$ 层标准 Transformer 块堆叠而成，每个块可以表示为： $$\begin{aligned}
+我们先介绍一种常用于 Transformer 语言模型的通用 MoE 架构。标准 Transformer 语言模型由 $L$ 层标准 Transformer 块堆叠而成，每个块可以表示为：
+
+$$
+\begin{aligned}
     \mathbf{u}_{1:T}^{l} &= \operatorname{Self-Att}\left( \mathbf{h}_{1:T}^{l-1} \right) + \mathbf{h}_{1:T}^{l-1}, \\
     \mathbf{h}_{t}^{l} &= \operatorname{FFN}\left( \mathbf{u}_{t}^{l} \right) + \mathbf{u}_{t}^{l},
-\end{aligned}$$ 其中，$T$ 表示序列长度，$\operatorname{Self-Att}(\cdot)$ 表示自注意力模块，$\operatorname{FFN}(\cdot)$ 表示前馈网络（FFN），$\mathbf{u}_{1:T}^{l} \in \mathbb{R}^{T \times d}$ 是第 $l$ 个注意力模块之后所有词元的隐藏状态，$\mathbf{h}_{t}^{l} \in \mathbb{R}^{d}$ 是第 $l$ 个 Transformer 块之后第 $t$ 个词元的输出隐藏状态。为简洁起见，上述公式省略了层归一化。
+\end{aligned}
+$$
 
-构建 MoE 语言模型的一种典型做法，是按指定间隔用 MoE 层替换 Transformer 中的 FFN [Fed22, Lep20, Du22, Zop22]。一个 MoE 层由多个专家组成，每个专家的结构都与标准 FFN 相同。然后，每个词元会被分配给一个 [Fed22] 或两个 [Lep20] 专家。如果第 $l$ 个 FFN 被替换为 MoE 层，其输出隐藏状态 $\mathbf{h}_{t}^{l}$ 可表示为： $$\begin{aligned}
+其中，$T$ 表示序列长度，$\operatorname{Self-Att}(\cdot)$ 表示自注意力模块，$\operatorname{FFN}(\cdot)$ 表示前馈网络（FFN），$\mathbf{u}_{1:T}^{l} \in \mathbb{R}^{T \times d}$ 是第 $l$ 个注意力模块之后所有词元的隐藏状态，$\mathbf{h}_{t}^{l} \in \mathbb{R}^{d}$ 是第 $l$ 个 Transformer 块之后第 $t$ 个词元的输出隐藏状态。为简洁起见，上述公式省略了层归一化。
+
+构建 MoE 语言模型的一种典型做法，是按指定间隔用 MoE 层替换 Transformer 中的 FFN [Fed22, Lep20, Du22, Zop22]。一个 MoE 层由多个专家组成，每个专家的结构都与标准 FFN 相同。然后，每个词元会被分配给一个 [Fed22] 或两个 [Lep20] 专家。如果第 $l$ 个 FFN 被替换为 MoE 层，其输出隐藏状态 $\mathbf{h}_{t}^{l}$ 可表示为：
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{N} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leqslant j \leqslant N \}, K), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right),
-\end{aligned}$$ 其中，$N$ 表示专家总数，$\operatorname{FFN}_{i}(\cdot)$ 是第 $i$ 个专家 FFN，$g_{i,t}$ 表示第 $i$ 个专家的门控值，$s_{i,t}$ 表示词元与专家之间的亲和度，$\operatorname{Topk}(\cdot, K)$ 表示为第 $t$ 个词元计算出的全部 $N$ 个专家亲和度分数中最高的 $K$ 个所构成的集合，$\mathbf{e}_{i}^{l}$ 是第 $l$ 层中第 $i$ 个专家的中心。注意，$g_{i,t}$ 是稀疏的，即 $N$ 个门控值中仅有 $K$ 个非零。这一稀疏性质保证了 MoE 层的计算效率，也就是说，每个词元只会被分配给 $K$ 个专家，并只在这些专家中计算。此外，为简洁起见，上述公式同样省略了层归一化操作。
+\end{aligned}
+$$
+
+其中，$N$ 表示专家总数，$\operatorname{FFN}_{i}(\cdot)$ 是第 $i$ 个专家 FFN，$g_{i,t}$ 表示第 $i$ 个专家的门控值，$s_{i,t}$ 表示词元与专家之间的亲和度，$\operatorname{Topk}(\cdot, K)$ 表示为第 $t$ 个词元计算出的全部 $N$ 个专家亲和度分数中最高的 $K$ 个所构成的集合，$\mathbf{e}_{i}^{l}$ 是第 $l$ 层中第 $i$ 个专家的中心。注意，$g_{i,t}$ 是稀疏的，即 $N$ 个门控值中仅有 $K$ 个非零。这一稀疏性质保证了 MoE 层的计算效率，也就是说，每个词元只会被分配给 $K$ 个专家，并只在这些专家中计算。此外，为简洁起见，上述公式同样省略了层归一化操作。
 
 <span id="figure-02"></span>
 
@@ -86,14 +92,20 @@ s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}
 
 当专家数量有限时，分配给某个专家的词元更可能涉及多种知识。因此，该专家会试图在参数中学习差异很大的知识，而这些知识很难同时得到利用。不过，如果每个词元可以路由到更多专家，不同知识就有机会被拆开，分别由不同专家学习。在这种情况下，每个专家仍能维持较高的特化程度，使知识更集中地分布在不同专家中。
 
-为了实现这一目标，我们在保持专家参数量和计算成本不变的同时，把专家划分得更细。更细的专家划分使被激活专家的组合更灵活、更适应任务。具体来说，在[图 2](#figure-02)(a) 所示的典型 MoE 架构上，我们将 FFN 中间隐藏维度缩小到原来的 $\frac{1}{m}$，从而把每个专家 FFN 划分为 $m$ 个较小的专家。由于每个专家变小，我们也相应地把激活专家数量提高到原来的 $m$ 倍，以保持相同的计算成本，如[图 2](#figure-02)(b) 所示。采用细粒度专家划分后，一个 MoE 层的输出可表示为： $$\begin{aligned}
+为了实现这一目标，我们在保持专家参数量和计算成本不变的同时，把专家划分得更细。更细的专家划分使被激活专家的组合更灵活、更适应任务。具体来说，在[图 2](#figure-02)(a) 所示的典型 MoE 架构上，我们将 FFN 中间隐藏维度缩小到原来的 $\frac{1}{m}$，从而把每个专家 FFN 划分为 $m$ 个较小的专家。由于每个专家变小，我们也相应地把激活专家数量提高到原来的 $m$ 倍，以保持相同的计算成本，如[图 2](#figure-02)(b) 所示。采用细粒度专家划分后，一个 MoE 层的输出可表示为：
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{mN} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leqslant j \leqslant mN \}, mK), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right),
-\end{aligned}$$ 其中，专家参数总量等于标准 FFN 参数量的 $N$ 倍，$mN$ 表示细粒度专家总数。采用细粒度专家划分策略后，非零门控的数量也会增至 $mK$。
+\end{aligned}
+$$
+
+其中，专家参数总量等于标准 FFN 参数量的 $N$ 倍，$mN$ 表示细粒度专家总数。采用细粒度专家划分策略后，非零门控的数量也会增至 $mK$。
 
 从组合的角度看，细粒度专家划分策略大幅提高了被激活专家的组合灵活性。举例来说，考虑 $N=16$ 的情况。典型的 top-2 路由策略可以产生 $\binom{16}{2}=120$ 种组合。相比之下，如果把每个专家拆成 $4$ 个较小的专家，细粒度路由策略就能产生 $\binom{64}{8}=4,426,165,368$ 种可能的组合。组合灵活性的激增提高了更准确、更有针对性地获取知识的可能性。
 
@@ -103,14 +115,20 @@ s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}
 
 使用传统路由策略时，分配给不同专家的词元可能需要某些相同的知识或信息。因此，多个专家可能会在各自参数中学到相同的知识，从而造成专家参数冗余。不过，如果有专门捕获和整合不同上下文中公共知识的共享专家，其他路由专家之间的参数冗余就会减轻。冗余的减少有助于得到一个参数效率更高、专家更为特化的模型。
 
-为此，除了细粒度专家划分策略外，我们还进一步分离出 $K_{s}$ 个专家作为共享专家。无论路由器模块的输出如何，每个词元都会被确定性地分配给这些共享专家。为了保持计算成本不变，其他路由专家中的激活数量会减少 $K_{s}$ 个，如[图 2](#figure-02)(c) 所示。整合共享专家隔离策略后，完整 DeepSeekMoE 架构中的 MoE 层可表示为： $$\begin{aligned}
+为此，除了细粒度专家划分策略外，我们还进一步分离出 $K_{s}$ 个专家作为共享专家。无论路由器模块的输出如何，每个词元都会被确定性地分配给这些共享专家。为了保持计算成本不变，其他路由专家中的激活数量会减少 $K_{s}$ 个，如[图 2](#figure-02)(c) 所示。整合共享专家隔离策略后，完整 DeepSeekMoE 架构中的 MoE 层可表示为：
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{K_{s}} {\operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} + \sum_{i=K_{s} + 1}^{mN} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | K_{s} + 1 \leqslant j \leqslant mN \}, mK - K_{s}), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right).
-\end{aligned}$$ 最终，在 DeepSeekMoE 中，共享专家数量为 $K_{s}$，路由专家总数为 $mN - K_{s}$，非零门控数量为 $mK - K_{s}$。
+\end{aligned}
+$$
+
+最终，在 DeepSeekMoE 中，共享专家数量为 $K_{s}$，路由专家总数为 $mN - K_{s}$，非零门控数量为 $mK - K_{s}$。
 
 值得一提的是，共享专家隔离的原型应归功于 [Raj22]。主要区别在于，他们从工程角度推导这一策略，而我们从算法角度出发。
 
@@ -120,17 +138,29 @@ s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}
 
 自动学习的路由策略可能遇到负载不均衡问题，主要表现为两个缺陷。第一，存在路由坍缩 [Sha17] 的风险，即模型始终只选择少数几个专家，使其他专家无法得到充分训练。第二，如果专家分布在多个设备上，负载不均衡会加剧计算瓶颈。
 
-**专家级均衡损失。** 为降低路由坍缩的风险，我们也采用专家级均衡损失。均衡损失的计算方式如下： $$\begin{aligned}
+**专家级均衡损失。** 为降低路由坍缩的风险，我们也采用专家级均衡损失。均衡损失的计算方式如下：
+
+$$
+\begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N^{\prime}}{f_i P_i}, \\
     f_i & = \frac{N^{\prime}}{K^{\prime}T} \sum_{t=1}^{T}{ \mathbb{1}( \text{Token } t \text{ selects Expert } i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
-\end{aligned}$$ 其中，$\alpha_1$ 是称为专家级均衡因子的超参数；为简洁起见，$N^{\prime}$ 等于 $(mN - K_s)$，$K^{\prime}$ 等于 $(mK - K_s)$。$\mathbb{1}(\cdot)$ 表示指示函数。
+\end{aligned}
+$$
 
-**设备级均衡损失。** 除专家级均衡损失外，我们还引入设备级均衡损失。为了缓解计算瓶颈，并无必要在专家级施加严格的均衡约束，因为对负载均衡施加过度约束会损害模型性能。我们的主要目标是保证设备间计算均衡。如果把所有路由专家划分为 $D$ 个组 $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$，并将每个组部署在一台设备上，则设备级均衡损失计算如下： $$\begin{aligned}
+其中，$\alpha_1$ 是称为专家级均衡因子的超参数；为简洁起见，$N^{\prime}$ 等于 $(mN - K_s)$，$K^{\prime}$ 等于 $(mK - K_s)$。$\mathbb{1}(\cdot)$ 表示指示函数。
+
+**设备级均衡损失。** 除专家级均衡损失外，我们还引入设备级均衡损失。为了缓解计算瓶颈，并无必要在专家级施加严格的均衡约束，因为对负载均衡施加过度约束会损害模型性能。我们的主要目标是保证设备间计算均衡。如果把所有路由专家划分为 $D$ 个组 $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$，并将每个组部署在一台设备上，则设备级均衡损失计算如下：
+
+$$
+\begin{aligned}
     \mathcal{L}_{\mathrm{DevBal}} & = \alpha_{2} \sum_{i=1}^{D}{f_i^{\prime} P_i^{\prime}}, \\
     f_i^{\prime} & = \frac{1}{|\mathcal{E}_i|} \sum_{j \in \mathcal{E}_i}{ f_j }, \\
     P_i^{\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
-\end{aligned}$$ 其中，$\alpha_{2}$ 是称为设备级均衡因子的超参数。实际使用时，我们设置较小的专家级均衡因子来降低路由坍缩风险，同时设置较大的设备级均衡因子来促进设备间计算均衡。
+\end{aligned}
+$$
+
+其中，$\alpha_{2}$ 是称为设备级均衡因子的超参数。实际使用时，我们设置较小的专家级均衡因子来降低路由坍缩风险，同时设置较大的设备级均衡因子来促进设备间计算均衡。
 
 <span id="section-4"></span>
 

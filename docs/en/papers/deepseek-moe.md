@@ -1,16 +1,10 @@
 ---
-title: DeepSeekMoE
+title: 'DeepSeekMoE'
 createTime: 2026/09/06 19:41:12
 permalink: /en/papers/deepseek-moe/
-pageClass: paper-reading
 ---
 
-# DeepSeekMoE
-
-> **Original title:** *DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models*<br>
-> **Authors:** [Damai Dai](https://dblp.org/pid/199/2097.html) [+internship], [Chengqi Deng](https://dblp.org/pid/255/4939.html), [Chenggang Zhao](https://dblp.org/pid/254/2607.html) [+internship], [R.X. Xu](https://dblp.org/pid/267/5291.html), [Huazuo Gao](https://dblp.org/pid/366/3356.html), [Deli Chen](https://dblp.org/pid/50/2637.html), [Jiashi Li](https://dblp.org/pid/241/9364.html), [Wangding Zeng](https://dblp.org/pid/315/5319.html), [Xingkai Yu](https://dblp.org/pid/257/4432.html) [+internship], [Y. Wu](https://dblp.org/pid/22/0-24.html), [Zhenda Xie](https://dblp.org/pid/239/8676.html), [Y.K. Li](https://dblp.org/pid/16/8783.html), [Panpan Huang](https://dblp.org/pid/19/6338.html), [Fuli Luo](https://dblp.org/pid/220/4216.html), [Chong Ruan](https://dblp.org/pid/159/9956.html), [Zhifang Sui](https://dblp.org/pid/22/5834.html), [Wenfeng Liang](https://dblp.org/pid/59/9456.html)<br>
-> **Affiliations:** DeepSeek-AI; National Key Laboratory for Multimedia Information Processing, Peking University; Institute for Interdisciplinary Information Sciences, Tsinghua University; National Key Laboratory for Novel Software Technology, Nanjing University<br>
-> **Provenance:** First submitted on January 11, 2024; [arXiv v1](https://arxiv.org/abs/2401.06066v1); <a href="/paper/deepseek-moe.pdf" target="_blank" rel="noopener noreferrer">local PDF</a>; [arXiv DOI](https://doi.org/10.48550/arXiv.2401.06066); later published in ACL 2024, pages 1280–1297 ([paper](https://aclanthology.org/2024.acl-long.70/), [DOI](https://doi.org/10.18653/v1/2024.acl-long.70)); [TeX source](https://export.arxiv.org/e-print/2401.06066v1); [code and models](https://github.com/deepseek-ai/DeepSeek-MoE)
+> [Damai Dai](https://dblp.org/pid/199/2097.html) [+internship], [Chengqi Deng](https://dblp.org/pid/255/4939.html), [Chenggang Zhao](https://dblp.org/pid/254/2607.html) [+internship], [R.X. Xu](https://dblp.org/pid/267/5291.html), [Huazuo Gao](https://dblp.org/pid/366/3356.html), [Deli Chen](https://dblp.org/pid/50/2637.html), [Jiashi Li](https://dblp.org/pid/241/9364.html), [Wangding Zeng](https://dblp.org/pid/315/5319.html), [Xingkai Yu](https://dblp.org/pid/257/4432.html) [+internship], [Y. Wu](https://dblp.org/pid/22/0-24.html), [Zhenda Xie](https://dblp.org/pid/239/8676.html), [Y.K. Li](https://dblp.org/pid/16/8783.html), [Panpan Huang](https://dblp.org/pid/19/6338.html), [Fuli Luo](https://dblp.org/pid/220/4216.html), [Chong Ruan](https://dblp.org/pid/159/9956.html), [Zhifang Sui](https://dblp.org/pid/22/5834.html), and [Wenfeng Liang](https://dblp.org/pid/59/9456.html). First submitted to arXiv on January 11, 2024; current version v1. Later published in the *Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)*, pages 1280–1297, August 2024. [DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models](https://arxiv.org/abs/2401.06066v1). <a href="/paper/deepseek-moe.pdf" target="_blank" rel="noopener noreferrer">Original PDF</a>. [ACL 2024](https://aclanthology.org/2024.acl-long.70/). [DOI](https://doi.org/10.18653/v1/2024.acl-long.70). [TeX source](https://export.arxiv.org/e-print/2401.06066v1). [Code and models](https://github.com/deepseek-ai/DeepSeek-MoE). The original PDF remains authoritative for the exact print layout and bibliography.
 
 [+internship]: Contribution during internship at DeepSeek-AI.
 
@@ -54,19 +48,31 @@ Our contributions are summarized as follows:
 
 ## 2 Preliminaries: Mixture-of-Experts for Transformers
 
-We first introduce a generic MoE architecture commonly used in Transformer language models. A standard Transformer language model is constructed by stacking $L$ layers of standard Transformer blocks, where each block can be represented as follows: $$\begin{aligned}
+We first introduce a generic MoE architecture commonly used in Transformer language models. A standard Transformer language model is constructed by stacking $L$ layers of standard Transformer blocks, where each block can be represented as follows:
+
+$$
+\begin{aligned}
     \mathbf{u}_{1:T}^{l} &= \operatorname{Self-Att}\left( \mathbf{h}_{1:T}^{l-1} \right) + \mathbf{h}_{1:T}^{l-1}, \\
     \mathbf{h}_{t}^{l} &= \operatorname{FFN}\left( \mathbf{u}_{t}^{l} \right) + \mathbf{u}_{t}^{l},
-\end{aligned}$$ where $T$ denotes the sequence length, $\operatorname{Self-Att}(\cdot)$ denotes the self-attention module, $\operatorname{FFN}(\cdot)$ denotes the Feed-Forward Network (FFN), $\mathbf{u}_{1:T}^{l} \in \mathbb{R}^{T \times d}$ are the hidden states of all tokens after the $l$-th attention module, and $\mathbf{h}_{t}^{l} \in \mathbb{R}^{d}$ is the output hidden state of the $t$-th token after the $l$-th Transformer block. For brevity, we omit the layer normalization in the above formulations.
+\end{aligned}
+$$
 
-A typical practice to construct an MoE language model usually substitutes FFNs in a Transformer with MoE layers at specified intervals [Fed22, Lep20, Du22, Zop22]. An MoE layer is composed of multiple experts, where each expert is structurally identical to a standard FFN. Then, each token will be assigned to one [Fed22] or two [Lep20] experts. If the $l$-th FFN is substituted with an MoE layer, the computation for its output hidden state $\mathbf{h}_{t}^{l}$ is expressed as: $$\begin{aligned}
+where $T$ denotes the sequence length, $\operatorname{Self-Att}(\cdot)$ denotes the self-attention module, $\operatorname{FFN}(\cdot)$ denotes the Feed-Forward Network (FFN), $\mathbf{u}_{1:T}^{l} \in \mathbb{R}^{T \times d}$ are the hidden states of all tokens after the $l$-th attention module, and $\mathbf{h}_{t}^{l} \in \mathbb{R}^{d}$ is the output hidden state of the $t$-th token after the $l$-th Transformer block. For brevity, we omit the layer normalization in the above formulations.
+
+A typical practice to construct an MoE language model usually substitutes FFNs in a Transformer with MoE layers at specified intervals [Fed22, Lep20, Du22, Zop22]. An MoE layer is composed of multiple experts, where each expert is structurally identical to a standard FFN. Then, each token will be assigned to one [Fed22] or two [Lep20] experts. If the $l$-th FFN is substituted with an MoE layer, the computation for its output hidden state $\mathbf{h}_{t}^{l}$ is expressed as:
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{N} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leqslant j \leqslant N \}, K), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right),
-\end{aligned}$$ where $N$ denotes the total number of experts, $\operatorname{FFN}_{i}(\cdot)$ is the $i$-th expert FFN, $g_{i,t}$ denotes the gate value for the $i$-th expert, $s_{i,t}$ denotes the token-to-expert affinity, $\operatorname{Topk}(\cdot, K)$ denotes the set comprising $K$ highest affinity scores among those calculated for the $t$-th token and all $N$ experts, and $\mathbf{e}_{i}^{l}$ is the centroid of the $i$-th expert in the $l$-th layer. Note that $g_{i,t}$ is sparse, indicating that only $K$ out of $N$ gate values are nonzero. This sparsity property ensures computational efficiency within an MoE layer, i.e., each token will be assigned to and computed in only $K$ experts. Also, in the above formulations, we omit the layer normalization operation for brevity.
+\end{aligned}
+$$
+
+where $N$ denotes the total number of experts, $\operatorname{FFN}_{i}(\cdot)$ is the $i$-th expert FFN, $g_{i,t}$ denotes the gate value for the $i$-th expert, $s_{i,t}$ denotes the token-to-expert affinity, $\operatorname{Topk}(\cdot, K)$ denotes the set comprising $K$ highest affinity scores among those calculated for the $t$-th token and all $N$ experts, and $\mathbf{e}_{i}^{l}$ is the centroid of the $i$-th expert in the $l$-th layer. Note that $g_{i,t}$ is sparse, indicating that only $K$ out of $N$ gate values are nonzero. This sparsity property ensures computational efficiency within an MoE layer, i.e., each token will be assigned to and computed in only $K$ experts. Also, in the above formulations, we omit the layer normalization operation for brevity.
 
 <span id="figure-02"></span>
 
@@ -86,14 +92,20 @@ On top of the generic MoE architecture outlined in [Section 2](#section-2), we i
 
 In scenarios where the number of experts is limited, tokens assigned to a particular expert will be more likely to cover diverse types of knowledge. As a consequence, the designated expert will intend to learn vastly different types of knowledge in its parameters, and they are hard to be simultaneously utilized. However, if each token can be routed to more experts, diverse knowledge will gain the potential to be decomposed and learned in different experts respectively. In this context, each expert can still retain a high level of expert specialization, contributing to a more focused knowledge distribution across experts.
 
-In pursuit of the goal, while maintaining a consistent number of expert parameters and computational cost, we segment the experts with a finer grain. The finer expert segmentation enables a more flexible and adaptable combination of activated experts. To be specific, on top of a typical MoE architecture shown in [Figure 2](#figure-02)(a), we segment each expert FFN into $m$ smaller experts by reducing the FFN intermediate hidden dimension to $\frac{1}{m}$ times its original size. Since each expert becomes smaller, in response, we also increase the number of activated experts to $m$ times to keep the same computation cost, as illustrated in [Figure 2](#figure-02)(b). With the fine-grained expert segmentation, the output of an MoE layer can be expressed as: $$\begin{aligned}
+In pursuit of the goal, while maintaining a consistent number of expert parameters and computational cost, we segment the experts with a finer grain. The finer expert segmentation enables a more flexible and adaptable combination of activated experts. To be specific, on top of a typical MoE architecture shown in [Figure 2](#figure-02)(a), we segment each expert FFN into $m$ smaller experts by reducing the FFN intermediate hidden dimension to $\frac{1}{m}$ times its original size. Since each expert becomes smaller, in response, we also increase the number of activated experts to $m$ times to keep the same computation cost, as illustrated in [Figure 2](#figure-02)(b). With the fine-grained expert segmentation, the output of an MoE layer can be expressed as:
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{mN} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | 1 \leqslant j \leqslant mN \}, mK), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right),
-\end{aligned}$$ where the total number of expert parameters is equal to $N$ times the number of parameters in a standard FFN, and $mN$ denotes the total number of fine-grained experts. With the fine-grained expert segmentation strategy, the number of nonzero gates will also increases to $mK$.
+\end{aligned}
+$$
+
+where the total number of expert parameters is equal to $N$ times the number of parameters in a standard FFN, and $mN$ denotes the total number of fine-grained experts. With the fine-grained expert segmentation strategy, the number of nonzero gates will also increases to $mK$.
 
 From a combinatorial perspective, the fine-grained expert segmentation strategy substantially enhances the combinatorial flexibility of activated experts. As an illustrative example, we consider the case where $N=16$. A typical top-2 routing strategy can yield $\binom{16}{2}=120$ possible combinations. By contrast, if each expert is split into $4$ smaller experts, the fine-grained routing strategy can yield $\binom{64}{8}=4,426,165,368$ potential combinations. The surge in combinatorial flexibility enhances the potential for achieving more accurate and targeted knowledge acquisition.
 
@@ -103,14 +115,20 @@ From a combinatorial perspective, the fine-grained expert segmentation strategy 
 
 With a conventional routing strategy, tokens assigned to different experts may necessitate some common knowledge or information. As a result, multiple experts may converge in acquiring shared knowledge in their respective parameters, thereby resulting in redundancy in expert parameters. However, if there are shared experts dedicated to capturing and consolidating common knowledge across varying contexts, the parameter redundancy among other routed experts will be alleviated. This alleviation of redundancy will contribute to a more parameter-efficient model with more specialized experts.
 
-Towards this objective, in addition to the fine-grained expert segmentation strategy, we further isolate $K_{s}$ experts to serve as shared experts. Regardless of the router module, each token will be deterministically assigned to these shared experts. In order to maintain a constant computational cost, the number of activated experts among the other routed experts will be decreased by $K_{s}$, as depicted in [Figure 2](#figure-02)(c). With the shared expert isolation strategy integrated, an MoE layer in the complete DeepSeekMoE architecture is formulated as follows: $$\begin{aligned}
+Towards this objective, in addition to the fine-grained expert segmentation strategy, we further isolate $K_{s}$ experts to serve as shared experts. Regardless of the router module, each token will be deterministically assigned to these shared experts. In order to maintain a constant computational cost, the number of activated experts among the other routed experts will be decreased by $K_{s}$, as depicted in [Figure 2](#figure-02)(c). With the shared expert isolation strategy integrated, an MoE layer in the complete DeepSeekMoE architecture is formulated as follows:
+
+$$
+\begin{aligned}
 \mathbf{h}_{t}^{l} & = \sum_{i=1}^{K_{s}} {\operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} + \sum_{i=K_{s} + 1}^{mN} \left( {g_{i,t} \operatorname{FFN}_{i}\left( \mathbf{u}_{t}^{l} \right)} \right) + \mathbf{u}_{t}^{l}, \\
 g_{i,t} & = \begin{cases}
 s_{i,t}, & s_{i,t} \in \operatorname{Topk} (\{ s_{j, t} | K_{s} + 1 \leqslant j \leqslant mN \}, mK - K_{s}), \\
 0, & \text{otherwise},
 \end{cases} \\
 s_{i,t} & = \operatorname{Softmax}_i \left( {\mathbf{u}_{t}^{l}}^\top \mathbf{e}_{i}^{l} \right).
-\end{aligned}$$ Finally, in DeepSeekMoE, the number of shared expert is $K_{s}$, the total number of routed experts is $mN - K_{s}$, and the number of nonzero gates is $mK - K_{s}$.
+\end{aligned}
+$$
+
+Finally, in DeepSeekMoE, the number of shared expert is $K_{s}$, the total number of routed experts is $mN - K_{s}$, and the number of nonzero gates is $mK - K_{s}$.
 
 It is worth noting that the prototype of shared expert isolation can be credited to [Raj22]. The key distinction lies in the fact that they derive this strategy from an engineering perspective, while we approach it from an algorithmic standpoint.
 
@@ -120,17 +138,29 @@ It is worth noting that the prototype of shared expert isolation can be credited
 
 Automatically learned routing strategies may encounter the issue of load imbalance, which manifests two notable defects. Firstly, there is a risk of routing collapse [Sha17], i.e., the model always selects only a few experts, preventing other experts from sufficient training. Secondly, if experts are distributed across multiple devices, load imbalance can exacerbate computation bottlenecks.
 
-**Expert-Level Balance Loss.** In order to mitigate the risk of routing collapse, we also employ an expert-level balance loss. The computation of the balance loss is as follows: $$\begin{aligned}
+**Expert-Level Balance Loss.** In order to mitigate the risk of routing collapse, we also employ an expert-level balance loss. The computation of the balance loss is as follows:
+
+$$
+\begin{aligned}
     \mathcal{L}_{\mathrm{ExpBal}} & = \alpha_1 \sum_{i=1}^{N^{\prime}}{f_i P_i}, \\
     f_i & = \frac{N^{\prime}}{K^{\prime}T} \sum_{t=1}^{T}{ \mathbb{1}( \text{Token } t \text{ selects Expert } i )}, \\
     P_i & = \frac{1}{T} \sum_{t=1}^{T}{s_{i,t}},
-\end{aligned}$$ where $\alpha_1$ is a hyper-parameter called expert-level balance factor, $N^{\prime}$ is equal to $(mN - K_s)$ and $K^{\prime}$ is equal to $(mK - K_s)$ for brevity. $\mathbb{1}(\cdot)$ denotes the indicator function.
+\end{aligned}
+$$
 
-**Device-Level Balance Loss.** In addition to the expert-level balance loss, we introduce a device-level balance loss. When aiming to alleviate computation bottlenecks, it becomes unnecessary to enforce strict balance constraints at the expert level, because excessive constraints on load balance will compromise model performance. Instead, our primary objective is to ensure balanced computation across the devices. If we partition all routed experts into $D$ groups $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$, and deploy each group on a single device, the device-level balance loss is computed as follows: $$\begin{aligned}
+where $\alpha_1$ is a hyper-parameter called expert-level balance factor, $N^{\prime}$ is equal to $(mN - K_s)$ and $K^{\prime}$ is equal to $(mK - K_s)$ for brevity. $\mathbb{1}(\cdot)$ denotes the indicator function.
+
+**Device-Level Balance Loss.** In addition to the expert-level balance loss, we introduce a device-level balance loss. When aiming to alleviate computation bottlenecks, it becomes unnecessary to enforce strict balance constraints at the expert level, because excessive constraints on load balance will compromise model performance. Instead, our primary objective is to ensure balanced computation across the devices. If we partition all routed experts into $D$ groups $\{\mathcal{E}_1, \mathcal{E}_2, ..., \mathcal{E}_D \}$, and deploy each group on a single device, the device-level balance loss is computed as follows:
+
+$$
+\begin{aligned}
     \mathcal{L}_{\mathrm{DevBal}} & = \alpha_{2} \sum_{i=1}^{D}{f_i^{\prime} P_i^{\prime}}, \\
     f_i^{\prime} & = \frac{1}{|\mathcal{E}_i|} \sum_{j \in \mathcal{E}_i}{ f_j }, \\
     P_i^{\prime} & = \sum_{j \in \mathcal{E}_i}{ P_j },
-\end{aligned}$$ where $\alpha_{2}$ is a hyper-parameter called device-level balance factor. In practice, we set a small expert-level balance factor to mitigate the risk of routing collapse, and meanwhile set a larger device-level balance factor to promote balanced computation across the devices.
+\end{aligned}
+$$
+
+where $\alpha_{2}$ is a hyper-parameter called device-level balance factor. In practice, we set a small expert-level balance factor to mitigate the risk of routing collapse, and meanwhile set a larger device-level balance factor to promote balanced computation across the devices.
 
 <span id="section-4"></span>
 
