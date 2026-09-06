@@ -2753,6 +2753,21 @@ const paperAbbreviations = {
   'Xie25d': 'Zhiqiang Xie. "SGLang HiCache: Fast Hierarchical KV Caching with Your Favorite Storage Backends." LMSYS Blog. 2025. [Link](https://lmsys.org/blog/2025-09-10-sglang-hicache/)',
   'Xie26a': 'Zhiqiang Xie, Zhangheng Huang, and Tingwei Huang. "HiSparse: Turbocharging Sparse Attention with Hierarchical Memory." LMSYS Blog. 2026. [Link](https://www.lmsys.org/blog/2026-04-10-sglang-hisparse/)',
   'Yua25e': 'Jingyang Yuan, Huazuo Gao, Damai Dai, Junyu Luo, Liang Zhao, Zhengyan Zhang, Zhenda Xie, Yuxing Wei, Lean Wang, Zhiping Xiao, Yuqing Wang, Chong Ruan, Ming Zhang, Wenfeng Liang, and Wangding Zeng. "Native Sparse Attention: Hardware-Aligned and Natively Trainable Sparse Attention." ACL 2025. [Link](https://aclanthology.org/2025.acl-long.1126/)',
+  'Che24z': 'Guangyao Chen, Han Shi, Jiawei Li, Yihang Gao, Xiaozhe Ren, Yimeng Chen, Xin Jiang, Zhenguo Li, Weiyang Liu, and Chuang Huang. "SepLLM: Accelerate Large Language Models by Compressing One Segment into One Separator." 2024. [Link](https://arxiv.org/abs/2412.12094)',
+  'Des24z': 'Abhimanyu Desai, Saurabh Yang, Aleksandar Cuadron, Ana Klimovic, Matei Zaharia, Joseph E. Gonzalez, and Ion Stoica. "HashAttention: Semantic Sparsity for Faster Inference." 2024. [Link](https://arxiv.org/abs/2412.14468)',
+  'Fu24z': 'Tianyu Fu, Haofeng Huang, Xuefei Ning, Genghan Zhang, Boju Chen, Tianqi Wu, Hongyi Wang, Zixiao Huang, Shiyao Li, Shengen Yan, et al. "MoA: Mixture of Sparse Attention for Automatic Large Language Model Compression." 2024. [Link](https://arxiv.org/abs/2406.14909)',
+  'Fu24za': 'Yichao Fu, Zefan Cai, Abedelkadir Asi, Wayne Xiong, Yue Dong, and Wen Xiao. "Not All Heads Matter: A Head-Level KV Cache Compression Method with Integrated Retrieval and Reasoning." 2024. [Link](https://arxiv.org/abs/2410.19258)',
+  'Gao24z': 'Yizhao Gao, Zhichen Zeng, Dayou Du, Shijie Cao, Hayden Kwok-Hay So, Ting Cao, Fan Yang, and Mao Yang. "SeerAttention: Learning Intrinsic Sparse Attention in Your LLMs." 2024. [Link](https://arxiv.org/abs/2410.13276)',
+  'Jia23z': 'Huiqiang Jiang, Qianhui Wu, Chin-Yew Lin, Yuqing Yang, and Lili Qiu. "LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models." 2023. [Link](https://arxiv.org/abs/2310.05736)',
+  'Kam23z': 'Greg Kamradt. "LLMTest NeedleInAHaystack." GitHub repository. 2023. [Link](https://github.com/gkamradt/LLMTest_NeedleInAHaystack)',
+  'Liu24zz': 'Guangda Liu, Chengwei Li, Jieru Zhao, Chen Zhang, and Minyi Guo. "ClusterKV: Manipulating LLM KV Cache in Semantic Space for Recallable Compression." 2024. [Link](https://arxiv.org/abs/2412.03213)',
+  'Wei22z': 'Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V. Le, Denny Zhou, et al. "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models." NeurIPS 2022. [Link](https://proceedings.neurips.cc/paper_files/paper/2022/hash/9d5609613524ecf4f15af0f7b31abca4-Abstract-Conference.html)',
+  'Wu24z': 'Wenhao Wu, Zhiqiang Pan, Chao Wang, Lin Chen, Yushi Bai, Ke Fu, Zhensheng Wang, and Haoyi Xiong. "TokenSelect: Efficient Long-Context Inference and Length Extrapolation for LLMs via Dynamic Token-Level KV Cache Selection." 2024. [Link](https://arxiv.org/abs/2411.02886)',
+  'Xia24z': 'Chaojun Xiao, Peng Zhang, Xu Han, Guangxuan Xiao, Yankai Lin, Zhengyan Zhang, Zhiyuan Liu, and Maosong Sun. "InfLLM: Training-Free Long-Context Extrapolation for LLMs with an Efficient Context Memory." NeurIPS 2024. [Link](https://proceedings.neurips.cc/paper_files/paper/2024/hash/26bc1c94c6795a44be90b0d710e0e7c3-Abstract-Conference.html)',
+  'Zha23z': 'Fengji Zhang, Bei Chen, Yue Zhang, Jacky Keung, Jin Liu, Daoguang Zan, Yi Mao, Jian-Guang Lou, and Weizhu Chen. "RepoCoder: Repository-Level Code Completion Through Iterative Retrieval and Generation." EMNLP 2023. [Link](https://aclanthology.org/2023.emnlp-main.151/)',
+  'Zha24zz': 'Kechi Zhang, Jia Li, Ge Li, Xianjie Shi, and Zhi Jin. "CodeAgent: Enhancing Code Generation with Tool-Integrated Agent Systems for Real-World Repo-Level Coding Challenges." ACL 2024. [Link](https://aclanthology.org/2024.acl-long.737/)',
+  'Zha24za': 'Jiajia Zhao, Zhenyao Fang, Shenggui Li, Shiqi Yang, and Yichao He. "BUZZ: Beehive-Structured Sparse KV Cache with Segmented Heavy Hitters for Efficient LLM Inference." 2024. [Link](https://arxiv.org/abs/2410.23079)',
+  'Zho24z': 'Zhenyu Zhou, Chao Li, Xianfu Chen, Shuai Wang, Yuan Chao, Zhaoyang Li, Haoran Wang, Ran An, Qiyu Shi, Zhen Tan, et al. "LLM × MapReduce: Simplified Long-Sequence Processing Using Large Language Models." 2024. [Link](https://arxiv.org/abs/2410.09342)',
   'Exp25': 'Exploding Topics. "Best 44 Large Language Models (LLMs) in 2025." 2025. [Link](https://explodingtopics.com/blog/list-of-llms)',
   'Vll25': 'vLLM Project. "vLLM Production Stack: Reference System for K8S-native Cluster-wide Deployment with Community-driven Performance Optimization." 2025. [Link](https://github.com/vllm-project/production-stack)',
   'Dyn25': 'NVIDIA Corporation. "NVIDIA Dynamo: A Datacenter-Scale Distributed Inference Serving Framework." 2025. [Link](https://github.com/ai-dynamo/dynamo)',
@@ -4500,7 +4515,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4627,7 +4642,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -4864,7 +4879,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
