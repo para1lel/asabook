@@ -4424,6 +4424,28 @@ Object.assign(paperAbbreviations, {
   'Vas18c': 'Ashish Vaswani, Samy Bengio, Eugene Brevdo, François Chollet, Aidan N. Gomez, Stephan Gouws, Llion Jones, Łukasz Kaiser, Nal Kalchbrenner, Niki Parmar, Ryan Sepassi, Noam Shazeer, and Jakob Uszkoreit. "Tensor2Tensor for Neural Machine Translation." CoRR abs/1803.07416, 2018. [Link](https://arxiv.org/abs/1803.07416)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Ndm23': 'Microsoft Azure. "NDm A100 v4-Series." 2023. [Link](https://learn.microsoft.com/en-us/azure/virtual-machines/ndm-a100-v4-series)',
+  'Bru97': 'Jehoshua Bruck, Ching-Tien Ho, Shlomo Kipnis, Eli Upfal, and Derrick Weathersby. "Efficient Algorithms for All-to-All Communications in Multiport Message-Passing Systems." IEEE Transactions on Parallel and Distributed Systems, 8(11):1143–1156, 1997. [Link](https://doi.org/10.1109/71.642949)',
+  'Cla22': 'Aidan Clark et al. "Unified Scaling Laws for Routed Language Models." ICML, 2022. [Link](https://proceedings.mlr.press/v162/clark22a.html)',
+  'Cow23': 'Meghan Cowan, Saeed Maleki, Madan Musuvathi, Olli Saarikivi, and Yifan Xiong. "MSCCLang: Microsoft Collective Communication Language." ASPLOS, 2023. [Link](https://doi.org/10.1145/3575693.3575724)',
+  'Kim08': 'John Kim, William J. Dally, Steve Scott, and Dennis Abts. "Technology-Driven, Highly-Scalable Dragonfly Topology." ISCA, 2008. [Link](https://doi.org/10.1109/ISCA.2008.19)',
+  'Lin14a': 'Tsung-Yi Lin et al. "Microsoft COCO: Common Objects in Context." ECCV, 2014. [Link](https://doi.org/10.1007/978-3-319-10602-1_48)',
+  'Liu21e': 'Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and Baining Guo. "Swin Transformer: Hierarchical Vision Transformer Using Shifted Windows." ICCV, 2021. [Link](https://doi.org/10.1109/ICCV48922.2021.00986)',
+  'Liu22b': 'Ze Liu et al. "Swin Transformer V2: Scaling Up Capacity and Resolution." CVPR, 2022. [Link](https://doi.org/10.1109/CVPR52688.2022.01170)',
+  'Rdm23': 'Mellanox. "RDMA and SHARP Plugins for NCCL Library." 2023. [Link](https://github.com/Mellanox/nccl-rdma-sharp-plugins)',
+  'Dee23': 'Microsoft. "DeepSpeed." 2023. [Link](https://www.deepspeed.ai/)',
+  'Ll20': 'NVIDIA. "What Is LL128 Protocol?" 2020. [Link](https://github.com/NVIDIA/nccl/issues/281)',
+  'Ncc23a': 'NVIDIA. "Point-to-Point Communication — NCCL 2.10.3 Documentation." 2023. [Link](https://docs.nvidia.com/deeplearning/nccl/archives/nccl_2103/user-guide/docs/usage/p2p.html)',
+  'Ncc23b': 'NVIDIA. "NCCL Tests." 2023. [Link](https://github.com/NVIDIA/nccl-tests)',
+  'Pje07': 'Jelena Pjesivac-Grbovic. "Towards Automatic and Adaptive Optimizations of MPI Collective Operations." 2007.',
+  'Sha20b': 'Or Sharir, Barak Peleg, and Yoav Shoham. "The Cost of Training NLP Models: A Concise Overview." CoRR abs/2004.08900, 2020. [Link](https://arxiv.org/abs/2004.08900)',
+  'Sni98': 'Marc Snir, William Gropp, Steve Otto, Steven Huss-Lederman, Jack Dongarra, and David Walker. "MPI—The Complete Reference: The MPI Core." Volume 1, MIT Press, 1998.',
+  'Tha94': 'Rajeev Thakur and Alok Choudhary. "All-to-All Communication on Meshes with Wormhole Routing." International Parallel Processing Symposium, pp. 561–565, 1994. [Link](https://doi.org/10.1109/IPPS.1994.288305)',
+  'Wik23': 'Wikipedia. "Ternary Search." 2023. [Link](https://en.wikipedia.org/wiki/Ternary_search)',
+  'Yan21c': 'An Yang et al. "Exploring Sparse Expert Models and Beyond." CoRR abs/2105.15082, 2021. [Link](https://arxiv.org/abs/2105.15082)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4725,7 +4747,7 @@ export default defineUserConfig({
               {
                 text: '分布式训练',
                 collapsed: true,
-                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
+                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'tutel', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
@@ -4852,7 +4874,7 @@ export default defineUserConfig({
               {
                 text: 'Distributed Training',
                 collapsed: true,
-                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
+                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'tutel', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
@@ -5089,7 +5111,7 @@ export default defineUserConfig({
               {
                 text: '分散学習',
                 collapsed: true,
-                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
+                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'tutel', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',

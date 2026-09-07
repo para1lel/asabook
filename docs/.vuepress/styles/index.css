@@ -322,6 +322,14 @@ pre * {
     vertical-align: text-bottom;
   }
 
+  .paper-reading .vp-doc p:has(> #algorithm-01) + p + ul,
+  .paper-reading .vp-doc p:has(> #algorithm-02) + p + ul {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+  }
+
   .tilesight-paper .katex-display {
     font-size: 0.7em;
   }
