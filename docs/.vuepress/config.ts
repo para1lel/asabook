@@ -3819,6 +3819,17 @@ const paperAbbreviations = {
   'Pan23a': 'Pan, J. Tiny vicuna 1b. https://huggingface.co/Jiayi-Pan/Tiny-Vicuna-1B, 2023. [Link](https://huggingface.co/Jiayi-Pan/Tiny-Vicuna-1B)',
   'Li23z': 'Li, X., Zhang, T., Dubois, Y., Taori, R., Gulrajani, I., Guestrin, C., Liang, P., and Hashimoto, T. B. Alpacaeval: An automatic evaluator of instruction-following models. https://github.com/tatsu-lab/alpaca_eval, 2023. [Link](https://github.com/tatsu-lab/alpaca_eval)',
   'Che23g': 'Chen, L. Dissecting batching effects in gpt inference. https://le.qun.ch/en/blog/2023/05/13/transformer-batching/, 2023. Blog. [Link](https://le.qun.ch/en/blog/2023/05/13/transformer-batching/)',
+  'Nvi16a': 'NVIDIA. NVIDIA DGX Platform. 2016. [Link](https://www.nvidia.com/en-us/data-center/dgx-platform/)',
+  'Yi23': '01.AI. Yi Series of Large Language Models Trained from Scratch by Developers at 01.AI. 2023. [Link](https://huggingface.co/01-ai/Yi-34B-200K)',
+  'Aga19': 'Abien Fred Agarap. Deep Learning using Rectified Linear Units (ReLU). 2019. [Link](https://arxiv.org/abs/1803.08375)',
+  'Hen23': 'Dan Hendrycks and Kevin Gimpel. Gaussian Error Linear Units (GELUs). 2023. [Link](https://arxiv.org/abs/1606.08415)',
+  'Zhe23c': 'Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Tianle Li, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zhuohan Li, Zi Lin, Eric P. Xing, Joseph E. Gonzalez, Ion Stoica, and Hao Zhang. LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset. 2023. [Link](https://arxiv.org/abs/2309.11998)',
+  'Tri20': 'NVIDIA. NVIDIA Triton Dynamic Batching. 2020. [Link](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_configuration.html#dynamic-batcher)',
+  'Lig23c': 'ModelTC. LightLLM: A Light and Fast Inference Service for LLM. 2023. [Link](https://github.com/ModelTC/lightllm)',
+  'Wan23m': 'Guan Wang, Sijie Cheng, Xianyuan Zhan, Xiangang Li, Sen Song, and Yang Liu. OpenChat: Advancing Open-source Language Models with Mixed-Quality Data. 2023. [Link](https://arxiv.org/abs/2309.11235)',
+  'Arx91': 'Cornell University. arXiv.org e-Print Archive. 1991. [Link](https://arxiv.org/)',
+  'Cop23': 'Microsoft. Microsoft Copilot. 2023. [Link](https://www.microsoft.com/en-us/microsoft-copilot)',
+  'Due23': 'Google. Google Duet AI. 2023. [Link](https://workspace.google.com/solutions/ai/)',
 }
 
 function normalizePaperAbbreviation(value: string) {
@@ -4693,7 +4704,7 @@ export default defineUserConfig({
               {
                 text: '推理框架',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'splitwise', 'sglang', 'distserve', 'medusa', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'splitwise', 'sglang', 'distserve', 'medusa', 'sarathi-serve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'Agent 工程',
@@ -4820,7 +4831,7 @@ export default defineUserConfig({
               {
                 text: 'Inference Frameworks',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'splitwise', 'sglang', 'distserve', 'medusa', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'splitwise', 'sglang', 'distserve', 'medusa', 'sarathi-serve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'Agent Engineering',
@@ -5057,7 +5068,7 @@ export default defineUserConfig({
               {
                 text: '推論フレームワーク',
                 collapsed: true,
-                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'splitwise', 'sglang', 'distserve', 'medusa', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
+                items: ['orca', 'speculative-decoding', 'sarathi', 'vllm', 'splitwise', 'sglang', 'distserve', 'medusa', 'sarathi-serve', 'mooncake', 'lmcache', 'mimo-v2-5-inference', 'hisparse'],
               },
               {
                 text: 'エージェント工学',
