@@ -4418,6 +4418,12 @@ Object.assign(paperAbbreviations, {
   'Zhu00': 'Wenzhong Zhu. "Analysis of JSQ Policy on Soft Real-Time Scheduling in Cluster." HPC Asia, 2000.',
 })
 
+Object.assign(paperAbbreviations, {
+  'Jea17': 'Sylvain Jeaugey. "NCCL 2.0." GPU Technology Conference, 2017. [Link](https://on-demand.gputechconf.com/gtc/2017/presentation/s7155-jeaugey-nccl.pdf)',
+  'Rau19': 'David Rau. "Sparsely-Gated Mixture-of-Experts PyTorch Implementation." 2019. [Link](https://github.com/davidmrau/mixture-of-experts)',
+  'Vas18c': 'Ashish Vaswani, Samy Bengio, Eugene Brevdo, François Chollet, Aidan N. Gomez, Stephan Gouws, Llion Jones, Łukasz Kaiser, Nal Kalchbrenner, Niki Parmar, Ryan Sepassi, Noam Shazeer, and Jakob Uszkoreit. "Tensor2Tensor for Neural Machine Translation." CoRR abs/1803.07416, 2018. [Link](https://arxiv.org/abs/1803.07416)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4719,7 +4725,7 @@ export default defineUserConfig({
               {
                 text: '分布式训练',
                 collapsed: true,
-                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
+                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
@@ -4846,7 +4852,7 @@ export default defineUserConfig({
               {
                 text: 'Distributed Training',
                 collapsed: true,
-                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
+                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
@@ -5083,7 +5089,7 @@ export default defineUserConfig({
               {
                 text: '分散学習',
                 collapsed: true,
-                items: ['gpipe', 'zero', 'megatron-lm', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
+                items: ['gpipe', 'megatron-lm', 'zero', 'fastmoe', 'alpa', 'deepspeed-ulysses', 'ring-attention', 'megascale-moe'],
               },
               {
                 text: 'LLM',
