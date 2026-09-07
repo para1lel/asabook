@@ -4280,15 +4280,21 @@ Object.assign(paperAbbreviations, {
 
 Object.assign(paperAbbreviations, {
   'Ali17': 'Dan Alistarh, Demjan Grubic, Jerry Li, Ryota Tomioka, and Milan Vojnovic. "QSGD: Randomized Quantization for Communication-Efficient Stochastic Gradient Descent." NeurIPS, 2017. [Link](https://arxiv.org/abs/1610.02132)',
+  'And21': 'Michael J. Anderson et al. "First-Generation Inference Accelerator Deployment at Facebook." arXiv:2107.04140, 2021. [Link](https://arxiv.org/abs/2107.04140)',
   'Ben21': 'Emily M. Bender, Timnit Gebru, Angelina McMillan-Major, and Shmargaret Shmitchell. "On the Dangers of Stochastic Parrots: Can Language Models Be Too Big?" FAccT, 2021. [Link](https://doi.org/10.1145/3442188.3445922)',
   'Bor18': 'Michael Boratko et al. "A Systematic Classification of Knowledge, Reasoning, and Context within the ARC Dataset." arXiv:1806.00358, 2018. [Link](https://arxiv.org/abs/1806.00358)',
+  'Bur19': 'Neil Burgess, Jelena Milanovic, Nigel Stephens, Konstantinos Monachopoulos, and David Mansell. "Bfloat16 Processing for Neural Networks." IEEE Symposium on Computer Arithmetic, 2019. [Link](https://doi.org/10.1109/ARITH.2019.00022)',
   'Fra21': 'Elias Frantar, Eldar Kurtic, and Dan Alistarh. "M-FAC: Efficient Matrix-Free Approximations of Second-Order Information." NeurIPS, 2021. [Link](https://arxiv.org/abs/2107.03356)',
   'Hub21': 'Itay Hubara, Yury Nahshan, Yair Hanani, Ron Banner, and Daniel Soudry. "Accurate Post Training Quantization with Small Calibration Sets." ICML, 2021. [Link](https://proceedings.mlr.press/v139/hubara21a.html)',
   'Lau22': 'Hugo Laurençon et al. "The BigScience ROOTS Corpus: A 1.6TB Composite Multilingual Dataset." NeurIPS Datasets and Benchmarks, 2022. [Link](https://arxiv.org/abs/2303.03915)',
   'Mar94': 'Mitch Marcus, Grace Kim, Mary Ann Marcinkiewicz, Robert MacIntyre, Ann Bies, Mark Ferguson, Karen Katz, and Britta Schasberger. "The Penn Treebank: Annotating Predicate Argument Structure." HLT, 1994. [Link](https://aclanthology.org/H94-1020/)',
+  'Mic18': 'Paulius Micikevicius. "Mixed Precision Training: Theory and Practice." NVIDIA GTC, 2018. [Link](https://on-demand.gputechconf.com/gtc/2018/presentation/s8923-training-neural-networks-with-mixed-precision-theory-and-practice.pdf)',
   'Nah21': 'Yury Nahshan, Brian Chmiel, Chaim Baskin, Evgenii Zheltonozhskii, Ron Banner, Alex M. Bronstein, and Avi Mendelson. "Loss Aware Post-Training Quantization." Machine Learning 110(11): 3245-3262, 2021. [Link](https://doi.org/10.1007/s10994-021-06053-z)',
+  'Nou22': 'Badreddine Noune, Philip Jones, Daniel Justus, Dominic Masters, and Carlo Luschi. "8-bit Numerical Formats for Deep Neural Networks." arXiv:2206.02915, 2022. [Link](https://arxiv.org/abs/2206.02915)',
   'Sin20': 'Sidak Pal Singh and Dan Alistarh. "WoodFisher: Efficient Second-Order Approximation for Neural Network Compression." NeurIPS, 2020. [Link](https://arxiv.org/abs/2004.14340)',
+  'Sto21': 'Dusan Stosic and Paulius Micikevicius. "Accelerating AI Training with NVIDIA TF32 Tensor Cores." NVIDIA Technical Blog, 2021. [Link](https://developer.nvidia.com/blog/accelerating-ai-training-with-tf32-tensor-cores/)',
   'Tat03': 'Sandeep Tata and Jignesh M. Patel. "PiQA: An Algebra for Querying Protein Data Sets." SSDBM, 2003. [Link](https://doi.org/10.1109/SSDM.2003.1214960)',
+  'Tou21': 'Hugo Touvron, Matthieu Cord, Matthijs Douze, Francisco Massa, Alexandre Sablayrolles, and Hervé Jégou. "Training Data-Efficient Image Transformers & Distillation Through Attention." ICML, 2021. [Link](https://proceedings.mlr.press/v139/touvron21a.html)',
   'Wan20g': 'Peisong Wang, Qiang Chen, Xiangyu He, and Jian Cheng. "Towards Accurate Post-Training Network Quantization via Bit-Split and Stitching." ICML, 2020. [Link](https://proceedings.mlr.press/v119/wang20c.html)',
   'Wu22b': 'Xiaoxia Wu, Zhewei Yao, Minjia Zhang, Conglong Li, and Yuxiong He. "Extreme Compression for Pre-Trained Transformers Made Simple and Efficient." arXiv:2206.01859, 2022. [Link](https://arxiv.org/abs/2206.01859)',
 })
@@ -4574,7 +4580,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推理框架',
@@ -4701,7 +4707,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: 'Inference Frameworks',
@@ -4938,7 +4944,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推論フレームワーク',
