@@ -4462,6 +4462,12 @@ Object.assign(paperAbbreviations, {
   'Yan21c': 'An Yang et al. "Exploring Sparse Expert Models and Beyond." CoRR abs/2105.15082, 2021. [Link](https://arxiv.org/abs/2105.15082)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Tow23': 'Jonathan Tow, Marco Bellagente, Dakota Mahan, and Carlos Riquelme. "StableLM 3B 4E1T." Technical report, 2023. [Link](https://github.com/Stability-AI/StableLM#stablelm-3b-4e1t)',
+  'Yad19': 'Vikas Yadav, Steven Bethard, and Mihai Surdeanu. "Quick and (not so) Dirty: Unsupervised Selection of Justification Sentences for Multi-hop Question Answering." EMNLP-IJCNLP, 2019. [Link](https://aclanthology.org/D19-1260/)',
+  'Zha22g': 'Yichi Zhang, Zhiru Zhang, and Lukasz Lew. "PokeBNN: A Binary Pursuit of Lightweight Accuracy." CVPR, 2022. [Link](https://openaccess.thecvf.com/content/CVPR2022/html/Zhang_PokeBNN_A_Binary_Pursuit_of_Lightweight_Accuracy_CVPR_2022_paper.html)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4743,7 +4749,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推理框架',
@@ -4870,7 +4876,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: 'Inference Frameworks',
@@ -5107,7 +5113,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推論フレームワーク',
