@@ -4477,6 +4477,23 @@ Object.assign(paperAbbreviations, {
   'Zha23s': 'Yichi Zhang, Ankush Garg, Yuan Cao, Lukasz Lew, Behrooz Ghorbani, Zhiru Zhang, and Orhan Firat. "Binarized Neural Machine Translation." arXiv:2302.04907, 2023. [Link](https://arxiv.org/abs/2302.04907)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Xu24h': 'Yuzhuang Xu, Xu Han, Zonghan Yang, Shuo Wang, Qingfu Zhu, Zhiyuan Liu, Weidong Liu, and Wanxiang Che. "OneBit: Towards Extremely Low-bit Large Language Models." NeurIPS, 2024. [Link](https://arxiv.org/abs/2402.11295)',
+  'Tea24b': 'Falcon-LLM Team. "The Falcon 3 Family of Open Models." 2024. [Link](https://huggingface.co/blog/falcon3)',
+  'Wan24af': 'Hongyu Wang, Shuming Ma, and Furu Wei. "BitNet a4.8: 4-bit Activations for 1-bit LLMs." arXiv:2411.04965, 2024. [Link](https://arxiv.org/abs/2411.04965)',
+  'Wan24ag': 'Hongyu Wang, Shuming Ma, Ruiping Wang, and Furu Wei. "Q-Sparse: All Large Language Models Can Be Fully Sparsely-Activated." arXiv:2407.10969, 2024. [Link](https://arxiv.org/abs/2407.10969)',
+  'Zha24ac': 'Wenting Zhao, Xiang Ren, Jack Hessel, Claire Cardie, Yejin Choi, and Yuntian Deng. "WildChat: 1M ChatGPT Interaction Logs in the Wild." ICLR, 2024. [Link](https://arxiv.org/abs/2405.01470)',
+  'Xu24i': 'Can Xu, Qingfeng Sun, Kai Zheng, Xiubo Geng, Pu Zhao, Jiazhan Feng, Chongyang Tao, Qingwei Lin, and Daxin Jiang. "WizardLM: Empowering Large Pre-Trained Language Models to Follow Complex Instructions." ICLR, 2024. [Link](https://openreview.net/forum?id=qgyhSyZVCA)',
+  'Lia23': 'Wing Lian, Guan Wang, Bleys Goodson, Eugene Pentland, Austin Cook, Chanvichet Vong, and Teknium. "SlimOrca: An Open Dataset of GPT-4 Augmented FLAN Reasoning Traces, with Verification." Hugging Face, 2023. [Link](https://huggingface.co/datasets/Open-Orca/SlimOrca)',
+  'Li24u': 'Haoran Li et al. "Synthetic Data (Almost) from Scratch: Generalized Instruction Tuning for Language Models." arXiv:2402.13064, 2024. [Link](https://arxiv.org/abs/2402.13064)',
+  'Tan24c': 'Zhengyang Tang, Xingxing Zhang, Benyou Wang, and Furu Wei. "MathScale: Scaling Instruction Tuning for Mathematical Reasoning." ICML, 2024. [Link](https://arxiv.org/abs/2403.02884)',
+  'Cui24a': 'Ganqu Cui et al. "UltraFeedback: Boosting Language Models with Scaled AI Feedback." ICML, 2024. [Link](https://proceedings.mlr.press/v235/cui24f.html)',
+  'Xu24j': 'Zhangchen Xu, Fengqing Jiang, Luyao Niu, Yuntian Deng, Radha Poovendran, Yejin Choi, and Bill Yuchen Lin. "Magpie: Alignment Data Synthesis from Scratch by Prompting Aligned LLMs with Nothing." arXiv:2406.08464, 2024. [Link](https://arxiv.org/abs/2406.08464)',
+  'Hsu24a': 'Pin-Lun Hsu et al. "Liger Kernel: Efficient Triton Kernels for LLM Training." arXiv:2410.10989, 2024. [Link](https://arxiv.org/abs/2410.10989)',
+  'All25': 'Loubna Ben Allal et al. "SmolLM2: When Smol Goes Big — Data-Centric Training of a Small Language Model." arXiv:2502.02737, 2025. [Link](https://arxiv.org/abs/2502.02737)',
+  'Wan25ao': 'Jinheng Wang, Hansong Zhou, Ting Song, Shijie Cao, Yan Xia, Ting Cao, Jianyu Wei, Shuming Ma, Hongyu Wang, and Furu Wei. "Bitnet.cpp: Efficient Edge Inference for Ternary LLMs." ACL, 2025. [Link](https://aclanthology.org/2025.acl-long.457/)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4758,7 +4775,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: '推理框架',
@@ -4885,7 +4902,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: 'Inference Frameworks',
@@ -5122,7 +5139,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: '推論フレームワーク',

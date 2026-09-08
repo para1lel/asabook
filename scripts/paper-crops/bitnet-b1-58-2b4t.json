@@ -1,0 +1,47 @@
+[
+  {
+    "name": "figure-01",
+    "page": 1,
+    "x": 137,
+    "y": 447,
+    "width": 337,
+    "height": 207,
+    "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 6,
+    "x": 109,
+    "y": 70,
+    "width": 389,
+    "height": 449,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 7,
+    "x": 123,
+    "y": 70,
+    "width": 365,
+    "height": 158,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 7,
+    "x": 116,
+    "y": 280,
+    "width": 379,
+    "height": 287,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 14,
+    "x": 222,
+    "y": 70,
+    "width": 169,
+    "height": 48,
+    "preserveSource": false
+  }
+]
