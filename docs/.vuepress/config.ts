@@ -4539,6 +4539,33 @@ Object.assign(paperAbbreviations, {
   'Zha17b': 'Hengshuang Zhao, Jianping Shi, Xiaojuan Qi, Xiaogang Wang, and Jiaya Jia. "Pyramid Scene Parsing Network." CVPR, 2017. [Link](https://doi.org/10.1109/CVPR.2017.660)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Bay18': 'Atilim Gunes Baydin, Barak A. Pearlmutter, Alexey Andreyevich Radul, and Jeffrey Mark Siskind. "Automatic Differentiation in Machine Learning: A Survey." Journal of Machine Learning Research 18(153):1-43, 2018. [Link](https://jmlr.org/papers/v18/17-468.html)',
+  'Ber10': 'James Bergstra, Olivier Breuleux, Frédéric Bastien, Pascal Lamblin, Razvan Pascanu, Guillaume Desjardins, Joseph Turian, David Warde-Farley, and Yoshua Bengio. "Theano: A CPU and GPU Math Compiler in Python." Proceedings of the 9th Python in Science Conference, pp. 3-10, 2010. [Link](https://conference.scipy.org/proceedings/scipy2010/bergstra.html)',
+  'Bol09': 'Carl Friedrich Bolz, Antonio Cuni, Maciej Fijalkowski, and Armin Rigo. "Tracing the Meta-Level: PyPy\'s Tracing JIT Compiler." ICOOOLPS, pp. 18-25, 2009. [DOI](https://doi.org/10.1145/1569955.1569961)',
+  'Dev13': 'Zachary DeVito, James Hegarty, Alex Aiken, Pat Hanrahan, and Jan Vitek. "Terra: A Multi-Stage Language for High-Performance Computing." PLDI, pp. 105-116, 2013. [DOI](https://doi.org/10.1145/2491956.2462166)',
+  'Hud96': 'Paul Hudak. "Building Domain-Specific Embedded Languages." ACM Computing Surveys 28(4es), 1996. [DOI](https://doi.org/10.1145/242224.242477)',
+  'Inn18': 'Michael Innes. "Flux: Elegant Machine Learning with Julia." Journal of Open Source Software 3(25):602, 2018. [DOI](https://doi.org/10.21105/joss.00602)',
+  'Inn18a': 'Michael Innes, Stefan Karpinski, Viral B. Shah, David Barber, Philip Stenetorp, Tim Besard, James Bradbury, Valentin Churavy, Simon Danisch, Alan Edelman, Zachary Malmaud, Jarrett Revels, and Deniz Yuret. "On Machine Learning and Programming Languages." SysML, 2018. [Link](https://arxiv.org/abs/1803.10201)',
+  'Inn19': 'Michael Innes. "Don\'t Unroll Adjoint: Differentiating SSA-Form Programs." SysML, 2019. [Link](https://arxiv.org/abs/1810.07951)',
+  'Jon93': 'Neil D. Jones, Carsten K. Gomard, and Peter Sestoft. "Partial Evaluation and Automatic Program Generation." Prentice Hall, 1993. [Link](https://www.itu.dk/~sestoft/pebook/)',
+  'Jor86': 'Ulrik Jørring and William L. Scherlis. "Compilers and Staging Transformations." POPL, pp. 86-96, 1986. [DOI](https://doi.org/10.1145/512644.512652)',
+  'Kon15': 'Lingpeng Kong, Chris Dyer, and Noah A. Smith. "Segmental Recurrent Neural Networks." arXiv:1511.06018, 2015. [Link](https://arxiv.org/abs/1511.06018)',
+  'Lam15': 'Siu Kwan Lam, Antoine Pitrou, and Stanley Seibert. "Numba: A LLVM-Based Python JIT Compiler." LLVM-HPC, pp. 7:1-7:6, 2015. [DOI](https://doi.org/10.1145/2833157.2833162)',
+  'Lat18': 'Chris Lattner and the Swift for TensorFlow Team. "Swift for TensorFlow." 2018. [Link](https://github.com/tensorflow/swift)',
+  'Lev18': 'Daniel Levy, Matthew D. Hoffman, and Jascha Sohl-Dickstein. "Generalizing Hamiltonian Monte Carlo with Neural Networks." ICLR, 2018. [Link](https://arxiv.org/abs/1711.09268)',
+  'Mac15': 'Dougal Maclaurin, David Duvenaud, and Ryan P. Adams. "Autograd: Effortless Gradients in NumPy." AutoML Workshop at ICML, 2015. [Link](https://github.com/HIPS/autograd)',
+  'Mol19': 'Dan Moldovan, James M. Decker, Fei Wang, Andrew A. Johnson, Brian K. Lee, Zachary Nado, D. Sculley, Tiark Rompf, and Alexander B. Wiltschko. "AutoGraph: Imperative-Style Coding with Graph-Based Performance." SysML, 2019. [Link](https://arxiv.org/abs/1810.08061)',
+  'Neu17': 'Graham Neubig et al. "DyNet: The Dynamic Neural Network Toolkit." arXiv:1701.03980, 2017. [Link](https://arxiv.org/abs/1701.03980)',
+  'Oli15': 'Travis E. Oliphant. "Guide to NumPy." 2nd edition, CreateSpace Independent Publishing Platform, 2015.',
+  'Rom10': 'Tiark Rompf and Martin Odersky. "Lightweight Modular Staging: A Pragmatic Approach to Runtime Code Generation and Compiled DSLs." GPCE, pp. 127-136, 2010. [DOI](https://doi.org/10.1145/1868294.1868314)',
+  'Sat17': 'Kaz Sato, Cliff Young, and David Patterson. "An In-Depth Look at Google\'s First Tensor Processing Unit (TPU)." 2017. [Link](https://cloud.google.com/blog/products/gcp/an-in-depth-look-at-googles-first-tensor-processing-unit-tpu)',
+  'Soc11': 'Richard Socher, Cliff C. Lin, Christopher Manning, and Andrew Y. Ng. "Parsing Natural Scenes and Natural Language with Recursive Neural Networks." ICML, pp. 129-136, 2011. [Link](https://icml.cc/2011/papers/125_icmlpaper.pdf)',
+  'Str00': 'Christopher Strachey. "Fundamental Concepts in Programming Languages." Higher-Order and Symbolic Computation 13:11-49, 2000. [DOI](https://doi.org/10.1023/A:1010000313106)',
+  'Tah04': 'Walid Taha. "A Gentle Introduction to Multi-Stage Programming." Domain-Specific Program Generation, pp. 30-50, 2004. [DOI](https://doi.org/10.1007/978-3-540-25935-0_3)',
+  'Tok15': 'Seiya Tokui, Kenta Oono, and Shohei Hido. "Chainer: A Next-Generation Open Source Framework for Deep Learning." LearningSys Workshop at NeurIPS, 2015. [Link](https://arxiv.org/abs/1509.02971)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4815,7 +4842,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -4942,7 +4969,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5179,7 +5206,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
