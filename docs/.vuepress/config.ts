@@ -1168,7 +1168,7 @@ const paperAbbreviations = {
   'Che24b': 'Jerry Chee, Yaohui Cai, Volodymyr Kuleshov, Christopher M De Sa. "Quip: 2-bit quantization of large language models with guarantees." Advances in Neural Information Processing Systems. 2024.',
   'Tse24': 'Albert Tseng, Jerry Chee, Qingyao Sun, Volodymyr Kuleshov, Christopher De Sa. "Quip\\#: Even better LLM quantization with hadamard incoherence and lattice codebooks." arXiv preprint arXiv:2402.04396. 2024. [Link](https://arxiv.org/abs/2402.04396)',
   'Liu24b': 'Zechun Liu, Changsheng Zhao, Igor Fedorov, Bilge Soran, Dhruv Choudhary, Raghuraman Krishnamoorthi, Vikas Chandra, Yuandong Tian, Tijmen Blankevoort. "SpinQuant–LLM quantization with learned rotations." arXiv preprint arXiv:2405.16406. 2024. [Link](https://arxiv.org/abs/2405.16406)',
-  'Lin24b': 'Haokun Lin, Haobo Xu, Yichen Wu, Jingzhi Cui, Yingtao Zhang, Linzhan Mou, Linqi Song, Zhenan Sun, Ying Wei. "Rotation and Permutation for Advanced Outlier Management and Efficient Quantization of LLMs." arXiv preprint arXiv:2406.01721. 2024. [Link](https://arxiv.org/abs/2406.01721)',
+  'Lin24b': 'Haokun Lin, Haobo Xu, Yichen Wu, Jingzhi Cui, Yingtao Zhang, Linzhan Mou, Linqi Song, Zhenan Sun, and Ying Wei. "DuQuant: Distributing Outliers via Dual Transformation Makes Stronger Quantized LLMs." arXiv:2406.01721, 2024. [Link](https://arxiv.org/abs/2406.01721)',
   'Che24c': 'Mengzhao Chen, Yi Liu, Jiahao Wang, Yi Bin, Wenqi Shao, Ping Luo. "Prefixquant: Static quantization beats dynamic through prefixed outliers in llms." arXiv preprint arXiv:2410.05265. 2024. [Link](https://arxiv.org/abs/2410.05265)',
   'Lec89': 'Yann LeCun, John Denker, Sara Solla. "Optimal brain damage." Advances in neural information processing systems. 1989.',
   'Has93': 'Babak Hassibi, David G Stork, Gregory J Wolff. "Optimal brain surgeon and general network pruning." IEEE international conference on neural networks. 1993.',
@@ -1443,7 +1443,7 @@ const paperAbbreviations = {
   'Yan23': 'Ling Yang, Zhilong Zhang, Yang Song, Shenda Hong, Runsheng Xu, Yue Zhao, Wentao Zhang, Bin Cui, Ming-Hsuan Yang. "Diffusion Models: A Comprehensive Survey of Methods and Applications." ACM Computing Surveys 56(4). 2023. [DOI](https://doi.org/10.1145/3626235)',
   'Zhu22': 'Hongyu Zhu, Ruofan Wu, Yijia Diao, Shanbin Ke, Haoyu Li, Chen Zhang, Jilong Xue, Lingxiao Ma, Yuqing Xia, Wei Cui, Fan Yang, Mao Yang, Lidong Zhou, Asaf Cidon, Gennady Pekhimenko. "ROLLER: Fast and Efficient Tensor Compilation for Deep Learning." 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI 22). 2022. [Link](https://www.usenix.org/conference/osdi22/presentation/zhu)',
   'Yu19': 'Zhou Yu, Dejing Xu, Jun Yu, Ting Yu, Zhou Zhao, Yueting Zhuang, and Dacheng Tao. Activitynet-qa: A dataset for understanding complex web videos via question answering. In AAAI, 2019.',
-  'Bis20': 'Yonatan Bisk, Rowan Zellers, Jianfeng Gao, Yejin Choi, et al. Piqa: Reasoning about physical commonsense in natural language. In Proceedings of the AAAI conference on artificial intelligence, volume 34, pages 7432--7439, 2020.',
+  'Bis20': 'Yonatan Bisk, Rowan Zellers, Ronan Le Bras, Jianfeng Gao, and Yejin Choi. "PIQA: Reasoning about Physical Commonsense in Natural Language." AAAI, pp. 7432-7439, 2020. [Link](https://ojs.aaai.org/index.php/AAAI/article/view/6239)',
   'Aba16a': 'Abadi et al. (2016) Martín Abadi, Ashish Agarwal, Paul Barham, Eugene Brevdo, Zhifeng Chen, Craig Citro, Gregory S. Corrado, Andy Davis, Jeffrey Dean, Matthieu Devin, Sanjay Ghemawat, Ian J. Goodfellow, Andrew Harp, Geoffrey Irving, Michael Isard, Yangqing Jia, Rafal Józefowicz, Lukasz Kaiser, Manjunath Kudlur, Josh Levenberg, Dan Mané, Rajat Monga, Sherry Moore, Derek Gordon Murray, Chris Olah, Mike Schuster, Jonathon Shlens, Benoit Steiner, Ilya Sutskever, Kunal Talwar, Paul A. Tucker, Vincent Vanhoucke, Vijay Vasudevan, Fernanda B. Viégas, Oriol Vinyals, Pete Warden, Martin Wattenberg, Martin Wicke, Yuan Yu, and Xiaoqiang Zheng. Tensorflow: Large-scale machine learning on heterogeneous distributed systems. CoRR, abs/1603.04467, 2016. URL http://arxiv.org/abs/1603.04467.',
   'Liu23d': 'Liu and Abbeel [2023b] Hao Liu and Pieter Abbeel. Blockwise parallel transformer for large context models. Advances in neural information processing systems, 2023b.',
   'Liu23e': 'Liu and Abbeel [2023a] Hao Liu and Pieter Abbeel. Emergent agentic transformer from chain of hindsight experience. International Conference on Machine Learning, 2023a.',
@@ -4478,10 +4478,14 @@ Object.assign(paperAbbreviations, {
 })
 
 Object.assign(paperAbbreviations, {
+  'Gao24h': 'Leo Gao, Jonathan Tow, Baber Abbasi, Stella Biderman, Sid Black, Anthony DiPofi, Charles Foster, Laurence Golding, Jeffrey Hsu, Alain Le Noac\'h, Haonan Li, Kyle McDonell, Niklas Muennighoff, Chris Ociepa, Jason Phang, Laria Reynolds, Hailey Schoelkopf, Aviya Skowron, Lintang Sutawika, Eric Tang, Anish Thite, Ben Wang, Kevin Wang, and Andy Zou. "A Framework for Few-Shot Language Model Evaluation." Zenodo, 2024. [Link](https://doi.org/10.5281/zenodo.12608602)',
+  'Liu24aa': 'James Liu, Pragaash Ponnusamy, Tianle Cai, Han Guo, Yoon Kim, and Ben Athiwaratkun. "Training-Free Activation Sparsity in Large Language Models." arXiv:2408.14690, 2024. [Link](https://arxiv.org/abs/2408.14690)',
+  'Son24c': 'Yixin Song, Haotong Xie, Zhengyan Zhang, Bo Wen, Li Ma, Zeyu Mi, and Haibo Chen. "Turbo Sparse: Achieving LLM SOTA Performance with Minimal Activated Parameters." arXiv:2406.05955, 2024. [Link](https://arxiv.org/abs/2406.05955)',
   'Xu24h': 'Yuzhuang Xu, Xu Han, Zonghan Yang, Shuo Wang, Qingfu Zhu, Zhiyuan Liu, Weidong Liu, and Wanxiang Che. "OneBit: Towards Extremely Low-bit Large Language Models." NeurIPS, 2024. [Link](https://arxiv.org/abs/2402.11295)',
   'Tea24b': 'Falcon-LLM Team. "The Falcon 3 Family of Open Models." 2024. [Link](https://huggingface.co/blog/falcon3)',
   'Wan24af': 'Hongyu Wang, Shuming Ma, and Furu Wei. "BitNet a4.8: 4-bit Activations for 1-bit LLMs." arXiv:2411.04965, 2024. [Link](https://arxiv.org/abs/2411.04965)',
   'Wan24ag': 'Hongyu Wang, Shuming Ma, Ruiping Wang, and Furu Wei. "Q-Sparse: All Large Language Models Can Be Fully Sparsely-Activated." arXiv:2407.10969, 2024. [Link](https://arxiv.org/abs/2407.10969)',
+  'Xi23': 'Haocheng Xi, Changhao Li, Jianfei Chen, and Jun Zhu. "Training Transformers with 4-bit Integers." NeurIPS, 2023. [Link](https://proceedings.neurips.cc/paper_files/paper/2023/hash/99fc8bc48b917c301a80cb74d91c0c06-Abstract-Conference.html)',
   'Zha24ac': 'Wenting Zhao, Xiang Ren, Jack Hessel, Claire Cardie, Yejin Choi, and Yuntian Deng. "WildChat: 1M ChatGPT Interaction Logs in the Wild." ICLR, 2024. [Link](https://arxiv.org/abs/2405.01470)',
   'Xu24i': 'Can Xu, Qingfeng Sun, Kai Zheng, Xiubo Geng, Pu Zhao, Jiazhan Feng, Chongyang Tao, Qingwei Lin, and Daxin Jiang. "WizardLM: Empowering Large Pre-Trained Language Models to Follow Complex Instructions." ICLR, 2024. [Link](https://openreview.net/forum?id=qgyhSyZVCA)',
   'Lia23': 'Wing Lian, Guan Wang, Bleys Goodson, Eugene Pentland, Austin Cook, Chanvichet Vong, and Teknium. "SlimOrca: An Open Dataset of GPT-4 Augmented FLAN Reasoning Traces, with Verification." Hugging Face, 2023. [Link](https://huggingface.co/datasets/Open-Orca/SlimOrca)',
@@ -4775,7 +4779,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding', 'bitnet-b1-58-2b4t'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: '推理框架',
@@ -4902,7 +4906,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding', 'bitnet-b1-58-2b4t'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: 'Inference Frameworks',
@@ -5139,7 +5143,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding', 'bitnet-b1-58-2b4t'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: '推論フレームワーク',
