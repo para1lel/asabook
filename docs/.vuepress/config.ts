@@ -4468,6 +4468,15 @@ Object.assign(paperAbbreviations, {
   'Zha22g': 'Yichi Zhang, Zhiru Zhang, and Lukasz Lew. "PokeBNN: A Binary Pursuit of Lightweight Accuracy." CVPR, 2022. [Link](https://openaccess.thecvf.com/content/CVPR2022/html/Zhang_PokeBNN_A_Binary_Pursuit_of_Lightweight_Accuracy_CVPR_2022_paper.html)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Ani23': 'Rohan Anil et al. "PaLM 2 Technical Report." arXiv:2305.10403, 2023. [Link](https://arxiv.org/abs/2305.10403)',
+  'Liu21f': 'Zechun Liu, Zhiqiang Shen, Shichao Li, Koen Helwegen, Dong Huang, and Kwang-Ting Cheng. "How Do Adam and Training Strategies Help BNNs Optimization?" ICML, pp. 6936-6946, 2021. [Link](https://proceedings.mlr.press/v139/liu21t.html)',
+  'Mos16': 'Nasrin Mostafazadeh, Nathanael Chambers, Xiaodong He, Devi Parikh, Dhruv Batra, Lucy Vanderwende, Pushmeet Kohli, and James F. Allen. "A Corpus and Evaluation Framework for Deeper Understanding of Commonsense Stories." arXiv:1604.01696, 2016. [Link](https://arxiv.org/abs/1604.01696)',
+  'Sak20': 'Keisuke Sakaguchi, Ronan Le Bras, Chandra Bhagavatula, and Yejin Choi. "WinoGrande: An Adversarial Winograd Schema Challenge at Scale." AAAI, pp. 8732-8740, 2020. [Link](https://ojs.aaai.org/index.php/AAAI/article/view/6399)',
+  'Wu20a': 'Yuxin Wu and Kaiming He. "Group Normalization." International Journal of Computer Vision 128(3):742-755, 2020. [Link](https://doi.org/10.1007/s11263-019-01198-w)',
+  'Zha23s': 'Yichi Zhang, Ankush Garg, Yuan Cao, Lukasz Lew, Behrooz Ghorbani, Zhiru Zhang, and Orhan Firat. "Binarized Neural Machine Translation." arXiv:2302.04907, 2023. [Link](https://arxiv.org/abs/2302.04907)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4749,7 +4758,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推理框架',
@@ -4876,7 +4885,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: 'Inference Frameworks',
@@ -5113,7 +5122,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitdecoding'],
               },
               {
                 text: '推論フレームワーク',
