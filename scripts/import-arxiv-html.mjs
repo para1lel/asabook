@@ -7,7 +7,9 @@ const updateConfig = args.includes('--update-config')
 const bblIndex = args.indexOf('--bbl')
 const bblPath = bblIndex === -1 ? undefined : args[bblIndex + 1]
 const positional = args.filter((value, index) => (
-  value !== '--update-config' && value !== '--bbl' && index !== bblIndex + 1
+  value !== '--update-config'
+  && value !== '--bbl'
+  && (bblIndex === -1 || index !== bblIndex + 1)
 ))
 const [input, output, configPath = 'docs/.vuepress/config.ts'] = positional
 if (!input || !output) {

@@ -4498,6 +4498,47 @@ Object.assign(paperAbbreviations, {
   'Wan25ao': 'Jinheng Wang, Hansong Zhou, Ting Song, Shijie Cao, Yan Xia, Ting Cao, Jianyu Wei, Shuming Ma, Hongyu Wang, and Furu Wei. "Bitnet.cpp: Efficient Edge Inference for Ternary LLMs." ACL, 2025. [Link](https://aclanthology.org/2025.acl-long.457/)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Bad17': 'Vijay Badrinarayanan, Alex Kendall, and Roberto Cipolla. "SegNet: A Deep Convolutional Encoder-Decoder Architecture for Image Segmentation." IEEE TPAMI, 2017. [Link](https://doi.org/10.1109/TPAMI.2016.2644615)',
+  'Cod17': 'Valeriu Codreanu, Damian Podareanu, and Vikram Saletore. "Achieving Deep Learning Training in Less Than 40 Minutes on ImageNet-1K." 2017. [Link](https://blog.surf.nl/en/imagenet-1k-training-on-intel-xeon-phi-in-less-than-40-minutes/)',
+  'Col08': 'Ronan Collobert. "Torch." NIPS Workshop on Machine Learning Open Source Software, 2008.',
+  'Dea04': 'Jeffrey Dean and Sanjay Ghemawat. "MapReduce: Simplified Data Processing on Large Clusters." OSDI, pp. 137–150, 2004. [Link](https://www.usenix.org/conference/osdi-04/mapreduce-simplified-data-processing-large-clusters)',
+  'Den09a': 'Jia Deng, Wei Dong, Richard Socher, Li-Jia Li, Kai Li, and Li Fei-Fei. "ImageNet: A Large-Scale Hierarchical Image Database." CVPR, 2009. [Link](https://doi.org/10.1109/CVPR.2009.5206848)',
+  'Eve10': 'Mark Everingham, Luc Van Gool, Christopher K. I. Williams, John Winn, and Andrew Zisserman. "The Pascal Visual Object Classes (VOC) Challenge." IJCV 88(2):303–338, 2010. [Link](https://doi.org/10.1007/s11263-009-0275-4)',
+  'Glu17': 'Apache MXNet. "Gluon." 2017. [Link](https://mxnet.apache.org/versions/1.9.1/api/python/docs/tutorials/packages/gluon/index.html)',
+  'Glu18': 'GluonCV. "GluonCV: A Deep Learning Toolkit for Computer Vision." 2018. [Link](https://github.com/dmlc/gluon-cv)',
+  'Goo13': 'Ian J. Goodfellow, David Warde-Farley, Pascal Lamblin, Vincent Dumoulin, Mehdi Mirza, Razvan Pascanu, James Bergstra, Frédéric Bastien, and Yoshua Bengio. "Pylearn2: A Machine Learning Research Library." CoRR abs/1308.4214, 2013. [Link](https://arxiv.org/abs/1308.4214)',
+  'Har11': 'Bharath Hariharan, Pablo Arbeláez, Lubomir Bourdev, Subhransu Maji, and Jitendra Malik. "Semantic Contours from Inverse Detectors." ICCV, 2011. [Link](https://doi.org/10.1109/ICCV.2011.6126343)',
+  'He16d': 'Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. "Deep Residual Learning for Image Recognition." CVPR, pp. 770–778, 2016. [Link](https://doi.org/10.1109/CVPR.2016.90)',
+  'Hon17': 'Matthew Honnibal and Ines Montani. "spaCy 2: Natural Language Understanding with Bloom Embeddings, Convolutional Neural Networks and Incremental Parsing." 2017. [Link](https://spacy.io/)',
+  'Jia13': 'Yangqing Jia. "Caffe: An Open Source Convolutional Architecture for Fast Feature Embedding." 2013. [Link](https://github.com/BVLC/caffe)',
+  'Jon01': 'Eric Jones, Travis Oliphant, Pearu Peterson, et al. "SciPy: Open Source Scientific Tools for Python." 2001. [Link](https://scipy.org/)',
+  'Kin14': 'Diederik P. Kingma and Max Welling. "Auto-Encoding Variational Bayes." ICLR, 2014. [Link](https://arxiv.org/abs/1312.6114)',
+  'Klc12': 'Andreas Klöckner, Nicolas Pinto, Yunsup Lee, Bryan Catanzaro, Paul Ivanov, and Ahmed Fasih. "PyCUDA and PyOpenCL: A Scripting-Based Approach to GPU Run-Time Code Generation." Parallel Computing 38(3):157–174, 2012. [Link](https://doi.org/10.1016/j.parco.2011.09.001)',
+  'Lec15a': 'Yann LeCun, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521:436–444, 2015. [Link](https://doi.org/10.1038/nature14539)',
+  'Li17b': 'Yi Li, Haozhi Qi, Jifeng Dai, Xiangyang Ji, and Yichen Wei. "Fully Convolutional Instance-Aware Semantic Segmentation." CVPR, 2017. [Link](https://doi.org/10.1109/CVPR.2017.472)',
+  'Lin14b': 'Tsung-Yi Lin et al. "Microsoft COCO: Common Objects in Context." ECCV, pp. 740–755, 2014. [Link](https://doi.org/10.1007/978-3-319-10602-1_48)',
+  'Lin17c': 'Tsung-Yi Lin, Piotr Dollár, Ross Girshick, Kaiming He, Bharath Hariharan, and Serge Belongie. "Feature Pyramid Networks for Object Detection." CVPR, 2017. [Link](https://doi.org/10.1109/CVPR.2017.106)',
+  'Liu16a': 'Wei Liu et al. "SSD: Single Shot MultiBox Detector." ECCV, 2016. [Link](https://doi.org/10.1007/978-3-319-46448-0_2)',
+  'Mac14': 'Dougal Maclaurin et al. "Autograd." 2014. [Link](https://github.com/HIPS/autograd)',
+  'Mik10': 'Tomáš Mikolov, Martin Karafiát, Lukáš Burget, Jan Černocký, and Sanjeev Khudanpur. "Recurrent Neural Network Based Language Model." INTERSPEECH, pp. 1045–1048, 2010.',
+  'Mik13a': 'Tomas Mikolov, Ilya Sutskever, Kai Chen, Greg Corrado, and Jeff Dean. "Distributed Representations of Words and Phrases and Their Compositionality." NeurIPS, pp. 3111–3119, 2013. [Link](https://proceedings.neurips.cc/paper/2013/hash/9aa42b31882ec039965f3c4923ce901b-Abstract.html)',
+  'Oli06': 'Travis E. Oliphant. "A Guide to NumPy." Trelgol Publishing, 2006. [Link](https://web.mit.edu/dvp/Public/numpybook.pdf)',
+  'Oro16': 'David Oro, Carles Fernández, Javier Rodríguez-Saeta, Xavier Martorell, and Javier Hernando. "Work-Efficient Parallel Non-Maximum Suppression for Embedded GPU Architectures." ICASSP, 2016. [Link](https://doi.org/10.1109/ICASSP.2016.7471975)',
+  'Pad16': 'PaddlePaddle. "PaddlePaddle." 2016. [Link](https://github.com/PaddlePaddle/Paddle)',
+  'Pan17': 'Xinghao Pan, Jianmin Chen, Rajat Monga, Samy Bengio, and Rafal Jozefowicz. "Revisiting Distributed Synchronous SGD." ICLR Workshop Track, 2017. [Link](https://openreview.net/forum?id=B1Yy1BxCZ)',
+  'Pas16': 'Adam Paszke, Sam Gross, Soumith Chintala, and Gregory Chanan. "PyTorch." 2016. [Link](https://github.com/pytorch/pytorch)',
+  'Pyt16': 'PyTorch. "torchvision." 2016. [Link](https://github.com/pytorch/vision)',
+  'Red16': 'Joseph Redmon and Ali Farhadi. "YOLO9000: Better, Faster, Stronger." 2016. [Link](https://arxiv.org/abs/1612.08242)',
+  'Red18': 'Joseph Redmon and Ali Farhadi. "YOLOv3: An Incremental Improvement." 2018. [Link](https://arxiv.org/abs/1804.02767)',
+  'Ren15': 'Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun. "Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks." NeurIPS, pp. 91–99, 2015. [Link](https://proceedings.neurips.cc/paper/2015/hash/14bfa6bb14875e45bba028a21ed38046-Abstract.html)',
+  'Sch17b': 'Jacob Schreiber. "Pomegranate: Fast and Flexible Probabilistic Modeling in Python." CoRR abs/1711.00137, 2017. [Link](https://arxiv.org/abs/1711.00137)',
+  'Sha18e': 'Noam Shazeer et al. "Mesh-TensorFlow: Deep Learning for Supercomputers." NeurIPS, 2018. [Link](https://proceedings.neurips.cc/paper/2018/hash/3a37abdeefe1dab1b30f7c5c7e581b93-Abstract.html)',
+  'Tos14': 'Alexander Toshev and Christian Szegedy. "DeepPose: Human Pose Estimation via Deep Neural Networks." CVPR, pp. 1653–1660, 2014. [Link](https://doi.org/10.1109/CVPR.2014.214)',
+  'Vin15a': 'Oriol Vinyals and Quoc V. Le. "A Neural Conversational Model." CoRR abs/1506.05869, 2015. [Link](https://arxiv.org/abs/1506.05869)',
+  'Zha17b': 'Hengshuang Zhao, Jianping Shi, Xiaojuan Qi, Xiaogang Wang, and Jiaya Jia. "Pyramid Scene Parsing Network." CVPR, 2017. [Link](https://doi.org/10.1109/CVPR.2017.660)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4772,6 +4813,11 @@ export default defineUserConfig({
             linkPrefix: '/papers/',
             sidebar: [
               {
+                text: '深度学习框架',
+                collapsed: true,
+                items: ['chainer'],
+              },
+              {
                 text: '编译技术',
                 collapsed: true,
                 items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
@@ -4898,6 +4944,11 @@ export default defineUserConfig({
             dir: 'papers',
             linkPrefix: '/papers/',
             sidebar: [
+              {
+                text: 'Deep Learning Frameworks',
+                collapsed: true,
+                items: ['chainer'],
+              },
               {
                 text: 'Compiler Technology',
                 collapsed: true,
@@ -5135,6 +5186,11 @@ export default defineUserConfig({
             dir: 'papers',
             linkPrefix: '/papers/',
             sidebar: [
+              {
+                text: '深層学習フレームワーク',
+                collapsed: true,
+                items: ['chainer'],
+              },
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
