@@ -26,6 +26,10 @@ Run `npm run docs:build` before submitting changes.
 
 When a task requires a missing package, library, CLI, runtime, browser, or other software, you are authorized to install it without requesting additional permission. Prefer the narrowest practical installation scope and project-local dependencies when available; use a system-wide installation when the tool genuinely requires it. Use official or otherwise verified sources, avoid unrelated upgrades, and preserve any required manifest and lockfile changes.
 
+## Translation Workflow
+
+Do not use local machine-translation models for paper editions or other repository translations. Translate the source directly or delegate translation to sub-agents. Preserve the source sentence order and all protected Markdown structures, citations, links, math, code blocks, anchors, and identifiers.
+
 ## Coding Style & Naming Conventions
 
 Use two-space indentation in TypeScript, JSON, CSS, and YAML frontmatter. Keep TypeScript imports at the top and prefer single quotes without semicolons, matching `config.ts`. Use lowercase kebab-case Markdown filenames, such as `tst26-p18.md`. Keep collection names displayed as `vndb` and `csdiy`, and preserve the site name `ASa Book`.

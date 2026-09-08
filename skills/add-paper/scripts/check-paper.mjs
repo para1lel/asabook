@@ -105,9 +105,9 @@ function extractImageBasenames(markdown, pagePath, label) {
 
 function validateSectionHeadings(markdown, locale, label) {
   const apparatus = {
-    en: /^(?:Abstract|Acknowledgements?|Acknowledgments?)$/i,
-    zh: /^(?:摘要|致谢)$/u,
-    ja: /^(?:概要|要旨|謝辞)$/u,
+    en: /^(?:Abstract|Acknowledgements?|Acknowledgments?|Acknowledgements and Disclosure of Funding)$/i,
+    zh: /^(?:摘要|致谢|致谢与资助披露)$/u,
+    ja: /^(?:概要|要旨|謝辞|謝辞および資金提供の開示)$/u,
   }[locale]
   const headings = []
   const counters = []

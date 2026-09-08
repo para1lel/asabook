@@ -6,6 +6,22 @@ import { lowMemoryCompiler } from './low-memory-compiler.js'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Bai18a': 'Shaojie Bai, J. Zico Kolter, and Vladlen Koltun. "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling." 2018. [Link](https://arxiv.org/abs/1803.01271)',
+  'Bec19': 'Philipp Becker, Harit Pandya, Gregor Gebhardt, Cheng Zhao, C. James Taylor, and Gerhard Neumann. "Recurrent Kalman Networks: Factorized Inference in High-Dimensional Deep Feature Spaces." ICML 2019. [Link](https://proceedings.mlr.press/v97/becker19a.html)',
+  'Eri21': 'N. Benjamin Erichson, Omri Azencot, Alejandro Queiruga, Liam Hodgkinson, and Michael W. Mahoney. "Lipschitz Recurrent Neural Networks." ICLR 2021. [Link](https://openreview.net/forum?id=-N7PBXqOUJZ)',
+  'Ise09': 'Arieh Iserles. "A First Course in the Numerical Analysis of Differential Equations." Cambridge University Press. 2009. [Link](https://doi.org/10.1017/CBO9780511995569)',
+  'Isl22': 'Md Mohaiminul Islam and Gedas Bertasius. "Long Movie Clip Classification with State-Space Video Models." ECCV 2022. [Link](https://doi.org/10.1007/978-3-031-20059-5_6)',
+  'Kri09': 'Alex Krizhevsky. "Learning Multiple Layers of Features from Tiny Images." University of Toronto. 2009. [Link](https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf)',
+  'Lad80': 'Richard E. Ladner and Michael J. Fischer. "Parallel Prefix Computation." Journal of the ACM, 27(4):831-838. 1980. [Link](https://doi.org/10.1145/322217.322232)',
+  'Lak94': 'Sivaramakrishnan Lakshmivarahan and Sudarshan K. Dhall. "Parallel Computing Using the Prefix Problem." Oxford University Press. 1994.',
+  'Lin18a': 'Drew Linsley, Junkyung Kim, Vijay Veerabadran, Charles Windolf, and Thomas Serre. "Learning Long-Range Spatial Dependencies with Horizontal Gated Recurrent Units." NeurIPS 2018. [Link](https://proceedings.neurips.cc/paper/2018/hash/ec8956637a99787bd197eacd77acce5e-Abstract.html)',
+  'Nan18': 'Nikita Nangia and Samuel R. Bowman. "ListOps: A Diagnostic Dataset for Latent Tree Learning." NAACL 2018. [Link](https://aclanthology.org/W18-0209/)',
+  'Rad09': 'Dragomir R. Radev, Pradeep Muthukrishnan, and Vahed Qazvinian. "The ACL Anthology Network Corpus." ACL-IJCNLP 2009. [Link](https://aclanthology.org/P09-2008/)',
+  'Rus21': 'T. Konstantin Rusch and Siddhartha Mishra. "UnICORNN: A Recurrent Model for Learning Very Long Time Dependencies." ICML 2021. [Link](https://proceedings.mlr.press/v139/rusch21a.html)',
+  'Rus22': 'Sasha Rush and Sidd Karamcheti. "The Annotated S4." ICLR Blog Track 2022. [Link](https://srush.github.io/annotated-s4/)',
+  'Sar20': 'Simo Särkkä and Ángel F. García-Fernández. "Temporal Parallelization of Bayesian Smoothers." IEEE Transactions on Automatic Control, 66(1):299-306. 2020. [Link](https://doi.org/10.1109/TAC.2020.2976316)',
+  'Sch22a': 'Mona Schirmer, Mazin Eltayeb, Stefan Lessmann, and Maja Rudolph. "Modeling Irregular Time Series with Continuous Recurrent Units." ICML 2022. [Link](https://proceedings.mlr.press/v162/schirmer22a.html)',
+  'Tan20': 'Masayuki Tanaka. "Weighted Sigmoid Gate Unit for an Activation Function of Deep Neural Network." Pattern Recognition Letters, 135:354-359. 2020. [Link](https://doi.org/10.1016/j.patrec.2020.05.005)',
   'Goo23': 'Google. "Introducing Gemini: our largest and most capable AI model." 2023. [Link](https://blog.google/technology/ai/google-gemini-ai/)',
   'Cui19': 'Yiming Cui, Ting Liu, Wanxiang Che, Li Xiao, Zhipeng Chen, Wentao Ma, Shijin Wang, and Guoping Hu. "A Span-Extraction Dataset for Chinese Machine Reading Comprehension." EMNLP-IJCNLP 2019. [Link](https://aclanthology.org/D19-1600)',
   'Hig23': 'High-Flyer. "HAI-LLM: 高效且轻量的大模型训练工具." 2023. [Link](https://www.high-flyer.cn/en/blog/hai-llm)',
@@ -4752,7 +4768,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: '处理器架构',
@@ -4879,7 +4895,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'Processor Architecture',
@@ -5116,7 +5132,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
               },
               {
                 text: 'プロセッサアーキテクチャ',
