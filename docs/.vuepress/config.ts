@@ -4813,14 +4813,9 @@ export default defineUserConfig({
             linkPrefix: '/papers/',
             sidebar: [
               {
-                text: '深度学习框架',
-                collapsed: true,
-                items: ['chainer'],
-              },
-              {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -4945,14 +4940,9 @@ export default defineUserConfig({
             linkPrefix: '/papers/',
             sidebar: [
               {
-                text: 'Deep Learning Frameworks',
-                collapsed: true,
-                items: ['chainer'],
-              },
-              {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5187,14 +5177,9 @@ export default defineUserConfig({
             linkPrefix: '/papers/',
             sidebar: [
               {
-                text: '深層学習フレームワーク',
-                collapsed: true,
-                items: ['chainer'],
-              },
-              {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'taso', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
