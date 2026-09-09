@@ -1,0 +1,146 @@
+[
+  {
+    "name": "figure-01",
+    "page": 2,
+    "x": 317,
+    "y": 68,
+    "width": 237.5,
+    "height": 90
+  },
+  {
+    "name": "figure-02",
+    "page": 4,
+    "x": 50,
+    "y": 70,
+    "width": 248,
+    "height": 143
+  },
+  {
+    "name": "figure-03",
+    "page": 5,
+    "x": 57.75,
+    "y": 70.5,
+    "width": 226.25,
+    "height": 202
+  },
+  {
+    "name": "figure-04",
+    "page": 6,
+    "x": 321,
+    "y": 72,
+    "width": 233.75,
+    "height": 82
+  },
+  {
+    "name": "figure-05",
+    "page": 7,
+    "x": 49,
+    "y": 69,
+    "width": 248,
+    "height": 111
+  },
+  {
+    "name": "table-01",
+    "page": 7,
+    "x": 317,
+    "y": 71,
+    "width": 246,
+    "height": 46
+  },
+  {
+    "name": "table-02",
+    "page": 8,
+    "x": 317,
+    "y": 71,
+    "width": 246,
+    "height": 59
+  },
+  {
+    "name": "figure-06",
+    "page": 9,
+    "x": 49,
+    "y": 72,
+    "width": 514,
+    "height": 313
+  },
+  {
+    "name": "figure-07",
+    "page": 11,
+    "x": 49,
+    "y": 72,
+    "width": 514,
+    "height": 146
+  },
+  {
+    "name": "figure-08",
+    "page": 11,
+    "x": 57,
+    "y": 275,
+    "width": 231.75,
+    "height": 182.75
+  },
+  {
+    "name": "figure-09",
+    "page": 11,
+    "x": 52,
+    "y": 516,
+    "width": 244,
+    "height": 130
+  },
+  {
+    "name": "figure-10",
+    "page": 11,
+    "x": 315,
+    "y": 270,
+    "width": 248,
+    "height": 110.5
+  },
+  {
+    "name": "table-03",
+    "page": 12,
+    "x": 52,
+    "y": 71,
+    "width": 240,
+    "height": 61.5
+  },
+  {
+    "name": "table-04",
+    "page": 12,
+    "x": 53,
+    "y": 177,
+    "width": 241,
+    "height": 62
+  },
+  {
+    "name": "figure-11",
+    "page": 12,
+    "x": 319,
+    "y": 72,
+    "width": 244,
+    "height": 79
+  },
+  {
+    "name": "table-05",
+    "page": 12,
+    "x": 339,
+    "y": 201,
+    "width": 197,
+    "height": 65
+  },
+  {
+    "name": "table-06",
+    "page": 12,
+    "x": 318,
+    "y": 301,
+    "width": 246,
+    "height": 80
+  },
+  {
+    "name": "table-07",
+    "page": 13,
+    "x": 86,
+    "y": 71,
+    "width": 440,
+    "height": 107.5
+  }
+]

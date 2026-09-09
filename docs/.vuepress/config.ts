@@ -4625,6 +4625,23 @@ Object.assign(paperAbbreviations, {
   'Zol21': 'Mikhail Zolotukhin. "NNC Walkthrough: How PyTorch Ops Get Fused." 2021. [Link](https://dev-discuss.pytorch.org/t/nnc-walkthrough-how-pytorch-ops-get-fused/125)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Bit24a': 'Microsoft. "BitBLAS." 2024. [Link](https://github.com/microsoft/BitBLAS)',
+  'Bla21a': 'Davis Blalock and John Guttag. "Multiplying Matrices Without Multiplying." ICML, pp. 992–1004, 2021. [Link](https://proceedings.mlr.press/v139/blalock21a.html)',
+  'Cop24': 'Microsoft. "Introducing Copilot+ PCs." 2024. [Link](https://blogs.microsoft.com/blog/2024/05/20/introducing-copilot-pcs/)',
+  'Dlp17': 'DLPack Contributors. "DLPack." 2017. [Link](https://github.com/dmlc/dlpack)',
+  'Gan23a': 'Darshan C. Ganji et al. "DeepGEMM: Accelerated Ultra Low-Precision Inference on CPU Architectures Using Lookup Tables." CVPR Workshops, pp. 4656–4664, 2023. [Link](https://openaccess.thecvf.com/content/CVPR2023W/ECV/html/Ganji_DeepGEMM_Accelerated_Ultra_Low-Precision_Inference_on_CPU_Architectures_Using_Lookup_CVPRW_2023_paper.html)',
+  'Gop20': 'Dibakar Gope, Jesse Beu, and Matthew Mattina. "High Throughput Matrix-Matrix Multiplication between Asymmetric Bit-Width Operands." arXiv:2008.00638, 2020. [Link](https://arxiv.org/abs/2008.00638)',
+  'Int18': 'Intel. "Intel Neural Compressor." 2018. [Link](https://github.com/intel/neural-compressor)',
+  'Lla23a': 'llama.cpp Contributors. "llama.cpp." 2023. [Link](https://github.com/ggml-org/llama.cpp)',
+  'Lla23b': 'TheBloke. "Llama-2-7B GGUF Models." 2023. [Link](https://huggingface.co/TheBloke/Llama-2-7B-GGUF)',
+  'Lla23c': 'llama.cpp Contributors. "llama.cpp Perplexity." 2023. [Link](https://github.com/ggml-org/llama.cpp/tree/master/examples/perplexity)',
+  'Mal23': 'Saeed Maleki. "Look-up MAI GEMM: Increasing AI GEMMs Performance by Nearly 2.5x via MSGEMM." arXiv:2310.06178, 2023. [Link](https://arxiv.org/abs/2310.06178)',
+  'Par23b': 'Gunho Park et al. "LUT-GEMM: Quantized Matrix Multiplication Based on LUTs for Efficient Inference in Large-Scale Generative Language Models." arXiv:2206.09557, 2023. [Link](https://arxiv.org/abs/2206.09557)',
+  'Qua24': 'Qualcomm. "Qualcomm AI Hub." 2024. [Link](https://aihub.qualcomm.com/)',
+  'Tan23a': 'Xiaohu Tang et al. "LUT-NN: Empower Efficient Neural Network Inference with Centroid Learning and Table Lookup." MobiCom, 2023. [DOI](https://doi.org/10.1145/3570361.3613285)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4906,7 +4923,7 @@ export default defineUserConfig({
               {
                 text: '量化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 't-mac', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: '推理框架',
@@ -5033,7 +5050,7 @@ export default defineUserConfig({
               {
                 text: 'Quantization',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 't-mac', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: 'Inference Frameworks',
@@ -5270,7 +5287,7 @@ export default defineUserConfig({
               {
                 text: '量子化',
                 collapsed: true,
-                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
+                items: ['quantization-methods-survey', 'llm-int8', 'fp8-formats', 'gptq', 'smoothquant', 'awq', 'bitnet', 'bitnet-b1-58', 't-mac', 'low-bit-llms', 'bitnet-a4-8', 'bitdecoding', 'bitnet-b1-58-2b4t'],
               },
               {
                 text: '推論フレームワーク',
