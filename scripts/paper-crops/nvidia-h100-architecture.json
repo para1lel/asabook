@@ -1,0 +1,453 @@
+[
+  {
+    "name": "figure-01",
+    "page": 7,
+    "x": 77.25,
+    "y": 119.34,
+    "width": 455.25,
+    "height": 239.25,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 8,
+    "x": 70.5,
+    "y": 302.96,
+    "width": 448.25,
+    "height": 209.9,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 9,
+    "x": 74.75,
+    "y": 104.98,
+    "width": 462.89,
+    "height": 199.45,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-04",
+    "page": 10,
+    "x": 70.5,
+    "y": 70.5,
+    "width": 455.75,
+    "height": 250.05,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-05",
+    "page": 13,
+    "x": 79.5,
+    "y": 83.25,
+    "width": 451.5,
+    "height": 390.35,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-06",
+    "page": 19,
+    "x": 70.25,
+    "y": 70,
+    "width": 471.5,
+    "height": 213,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 20,
+    "x": 70,
+    "y": 95,
+    "width": 472,
+    "height": 237.25,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-07",
+    "page": 21,
+    "x": 75,
+    "y": 72.5,
+    "width": 425.2,
+    "height": 594.35,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-08",
+    "page": 23,
+    "x": 82.5,
+    "y": 84.25,
+    "width": 440.93,
+    "height": 235.4,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-09",
+    "page": 24,
+    "x": 78.25,
+    "y": 77,
+    "width": 457.5,
+    "height": 246,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-10",
+    "page": 24,
+    "x": 77.75,
+    "y": 388.79,
+    "width": 448.35,
+    "height": 261.83,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-11",
+    "page": 25,
+    "x": 72.5,
+    "y": 73.25,
+    "width": 474.75,
+    "height": 266,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 26,
+    "x": 70,
+    "y": 120,
+    "width": 463,
+    "height": 454,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-12",
+    "page": 27,
+    "x": 76.75,
+    "y": 368.5,
+    "width": 463.5,
+    "height": 171.5,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-13",
+    "page": 28,
+    "x": 75.75,
+    "y": 268.73,
+    "width": 459.75,
+    "height": 221,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-14",
+    "page": 30,
+    "x": 76.75,
+    "y": 75.5,
+    "width": 458.75,
+    "height": 132.75,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-15",
+    "page": 30,
+    "x": 74.75,
+    "y": 432.39,
+    "width": 477.73,
+    "height": 99.35,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-16",
+    "page": 31,
+    "x": 64.5,
+    "y": 132.14,
+    "width": 373.85,
+    "height": 291.59,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-17",
+    "page": 32,
+    "x": 74.25,
+    "y": 74,
+    "width": 505,
+    "height": 206.1,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-18",
+    "page": 33,
+    "x": 79,
+    "y": 76.25,
+    "width": 455.75,
+    "height": 169.5,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-19",
+    "page": 34,
+    "x": 81.75,
+    "y": 80.5,
+    "width": 451.75,
+    "height": 194,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-20",
+    "page": 35,
+    "x": 74,
+    "y": 163.78,
+    "width": 485.25,
+    "height": 163.6,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-21",
+    "page": 37,
+    "x": 79,
+    "y": 73.5,
+    "width": 341.85,
+    "height": 256.3,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "padding": 2,
+    "parts": [
+      {
+        "page": 39,
+        "x": 82,
+        "y": 95,
+        "width": 448,
+        "height": 612
+      },
+      {
+        "page": 40,
+        "x": 82,
+        "y": 70,
+        "width": 448,
+        "height": 335
+      }
+    ],
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 41,
+    "x": 70,
+    "y": 170,
+    "width": 444.75,
+    "height": 313.5,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-22",
+    "page": 42,
+    "x": 79,
+    "y": 310.14,
+    "width": 455.25,
+    "height": 317.75,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-23",
+    "page": 44,
+    "x": 76.75,
+    "y": 80.25,
+    "width": 459.75,
+    "height": 270,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-24",
+    "page": 45,
+    "x": 72.5,
+    "y": 73,
+    "width": 498.25,
+    "height": 206.24,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-25",
+    "page": 46,
+    "x": 82,
+    "y": 74.5,
+    "width": 419.25,
+    "height": 353.83,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-26",
+    "page": 49,
+    "x": 74.5,
+    "y": 75.75,
+    "width": 497.54,
+    "height": 257.95,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-27",
+    "page": 52,
+    "x": 80.5,
+    "y": 323.45,
+    "width": 422.7,
+    "height": 333.4,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-28",
+    "page": 54,
+    "x": 74.75,
+    "y": 75.75,
+    "width": 461.75,
+    "height": 219.45,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-29",
+    "page": 55,
+    "x": 83.25,
+    "y": 76.75,
+    "width": 399.76,
+    "height": 322.5,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-30",
+    "page": 56,
+    "x": 83.5,
+    "y": 223.79,
+    "width": 443.5,
+    "height": 342.45,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 58,
+    "x": 70,
+    "y": 309,
+    "width": 388,
+    "height": 118,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 58,
+    "x": 70,
+    "y": 521,
+    "width": 412,
+    "height": 146,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 59,
+    "x": 70,
+    "y": 386,
+    "width": 472,
+    "height": 144,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-08",
+    "page": 62,
+    "x": 70,
+    "y": 122,
+    "width": 434.75,
+    "height": 557,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-31",
+    "page": 64,
+    "x": 70,
+    "y": 70,
+    "width": 472,
+    "height": 346,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-32",
+    "page": 65,
+    "x": 73,
+    "y": 444.65,
+    "width": 463,
+    "height": 162.25,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-33",
+    "page": 66,
+    "x": 70,
+    "y": 296.45,
+    "width": 472,
+    "height": 232.75,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-34",
+    "page": 67,
+    "x": 73.5,
+    "y": 77.25,
+    "width": 423,
+    "height": 136.75,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-35",
+    "page": 69,
+    "x": 86.5,
+    "y": 106,
+    "width": 453,
+    "height": 122,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-36",
+    "page": 70,
+    "x": 70,
+    "y": 70,
+    "width": 463.5,
+    "height": 176,
+    "padding": 2,
+    "preserveSource": false
+  }
+]
