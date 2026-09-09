@@ -40,11 +40,24 @@ Turn one arXiv record, DOI, publisher page, or supplied paper PDF into a source-
 
 1. Create `docs/en/papers/<slug>.md` first. Treat it as a transcription of the current paper and as the structural source for the two localized pages.
 2. Add YAML frontmatter with the chosen concise title, current local `createTime`, and `/en/papers/<slug>/` permalink.
-3. Start with a blockquote containing the complete linked author list in paper order, the applicable verified source date, venue details, canonical paper or DOI link, and local original PDF. Include the first arXiv date, current arXiv version, and TeX source only when they exist; explicitly state that no arXiv or TeX source is available when that absence affects provenance.
+3. Start with a blockquote containing the complete linked author list in paper order, the applicable verified source date, venue details, canonical paper or DOI link, and local original PDF. Link the local PDF with the raw HTML form specified below. Include the first arXiv date, current arXiv version, and TeX source only when they exist; explicitly state that no arXiv or TeX source is available when that absence affects provenance.
 4. Reproduce the complete substantive paper in source order, including the abstract, every substantive section and subsection, captions, table text, algorithms, annotation content, acknowledgements, and appendices. Omit the standalone reference list and layout-only headings such as an empty `Appendix` heading immediately followed by `Appendix A`; retain the actual appendix sections.
 5. Copy the English prose word for word and sentence for sentence from the current paper. Preserve spelling, capitalization, punctuation, sentence and paragraph order, qualifications, and repetition. Do not paraphrase, summarize, polish, merge, split, reorder, expand, silently correct, or otherwise rewrite the source.
 6. Make only representation changes required to render the source in Markdown and KaTeX: remove source-format-only layout commands, join extraction or source-code line wraps without changing the rendered sentence, expand textual macros to the words visible in the PDF, convert supported structure and math delimiters, map citations to repository citation tokens without changing their placement or referents, and normalize visible hyphens and dashes according to the style guide. Use TeX as the textual authority when available; otherwise use the published PDF and treat extracted text or XML only as a transcription aid.
 7. Register every inline citation in `paperAbbreviations`, but do not reproduce a standalone reference section in the page. State that the original PDF remains authoritative for the exact print layout and bibliography.
+
+## Link the Local PDF Without Dead-Link Warnings
+
+1. Files under `docs/.vuepress/public/paper/` are served from the site-root URL `/paper/`. Link `docs/.vuepress/public/paper/<slug>.pdf` as `/paper/<slug>.pdf`.
+2. Do not use Markdown link syntax such as `[Original PDF](/paper/<slug>.pdf)` for this local public asset. VuePress development mode can treat that URL as an internal page route and emit a false `[VuePress Dead Link]` warning even though the PDF exists and is served correctly.
+3. Use a raw HTML anchor so VuePress does not send the PDF URL through its page-route dead-link checker:
+
+   ```html
+   <a href="/paper/<slug>.pdf" target="_blank" rel="noopener noreferrer">Original PDF</a>
+   ```
+
+4. Localize only the anchor text, for example `Original PDF`, `原始 PDF`, or `原 PDF`. Keep `href`, `target="_blank"`, and `rel="noopener noreferrer"` identical across the three pages.
+5. During browser validation, open the PDF link from each locale and confirm that the browser PDF viewer loads the expected document. Also inspect development-server and browser-console output for `[VuePress Dead Link]` messages referring to the paper PDF; the production build alone may not expose this development-mode warning.
 
 ## Convert Footnotes to Content Annotations
 
@@ -154,7 +167,7 @@ Turn one arXiv record, DOI, publisher page, or supplied paper PDF into a source-
 6. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
 7. Run `git diff --check`.
 8. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.
-9. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, formal statements, proof containers, or navigation changed. Confirm that equations render without visible number tags, equation-reference links jump to the intended formulas, annotations open correctly, theorem-like labels are bold and share a paragraph with their statements, proof details are closed by default and open correctly without horizontal overflow, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, and citation abbreviations show their explanations.
+9. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, formal statements, proof containers, or navigation changed. Confirm that equations render without visible number tags, equation-reference links jump to the intended formulas, annotations open correctly, theorem-like labels are bold and share a paragraph with their statements, proof details are closed by default and open correctly without horizontal overflow, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, citation abbreviations show their explanations, and the local PDF link opens without a VuePress dead-link warning.
 10. Stop every development or preview server started for validation.
 
 ## Commit the Repository State
