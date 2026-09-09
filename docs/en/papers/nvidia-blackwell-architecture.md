@@ -4,9 +4,7 @@ createTime: 2026/09/09 12:00:00
 permalink: /en/papers/nvidia-blackwell-architecture/
 ---
 
-> [Nick Stam](https://developer.nvidia.com/blog/author/nstam/). NVIDIA Blackwell Architecture Technical Brief, V2.1, published October 1, 2025. [NVIDIA resource page](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-architecture-technical-brief). <a href="/paper/nvidia-blackwell-architecture.pdf" target="_blank" rel="noopener noreferrer">Original PDF</a>. No arXiv record or TeX source is available; the published PDF is authoritative for the exact wording, print layout, and bibliography.
->
-> Built for the Age of AI Reasoning. Updated to include the Blackwell Ultra GB300 Superchip, Blackwell Ultra GB300 NVL72 Rack-scale System, and HGX B300 Server System.
+> [Nick Stam](https://developer.nvidia.com/blog/author/nstam/). NVIDIA Blackwell Architecture Technical Brief, V2.1, published October 1, 2025. [NVIDIA resource page](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-architecture-technical-brief). <a href="/paper/nvidia-blackwell-architecture.pdf" target="_blank" rel="noopener noreferrer">Original PDF</a>. No arXiv record or TeX source is available; the published PDF is authoritative for the exact wording, print layout, and bibliography. Built for the Age of AI Reasoning. Updated to include the Blackwell Ultra GB300 Superchip, Blackwell Ultra GB300 NVL72 Rack-scale System, and HGX B300 Server System.
 
 <span id="section-1"></span>
 

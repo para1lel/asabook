@@ -4,9 +4,7 @@ createTime: 2026/09/09 12:00:00
 permalink: /ja/papers/nvidia-blackwell-architecture/
 ---
 
-> [Nick Stam](https://developer.nvidia.com/blog/author/nstam/)。NVIDIA Blackwell Architecture Technical Brief、V2.1、2025-10-01 公開。[NVIDIA リソースページ](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-architecture-technical-brief)。<a href="/paper/nvidia-blackwell-architecture.pdf" target="_blank" rel="noopener noreferrer">原 PDF</a>。arXiv レコードおよび TeX ソースは存在しない。正確な文言、印刷レイアウト、参考文献については公開 PDF を正本とする。
->
-> AI 推論時代のために構築。Blackwell Ultra GB300 Superchip、Blackwell Ultra GB300 NVL72 Rack-scale System、HGX B300 Server System を追加するよう更新済み。
+> [Nick Stam](https://developer.nvidia.com/blog/author/nstam/)。NVIDIA Blackwell Architecture Technical Brief、V2.1、2025-10-01 公開。[NVIDIA リソースページ](https://resources.nvidia.com/en-us-blackwell-architecture/blackwell-architecture-technical-brief)。<a href="/paper/nvidia-blackwell-architecture.pdf" target="_blank" rel="noopener noreferrer">原 PDF</a>。arXiv レコードおよび TeX ソースは存在しない。正確な文言、印刷レイアウト、参考文献については公開 PDF を正本とする。AI 推論時代のために構築。Blackwell Ultra GB300 Superchip、Blackwell Ultra GB300 NVL72 Rack-scale System、HGX B300 Server System を追加するよう更新済み。
 
 <span id="section-1"></span>
 
