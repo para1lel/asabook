@@ -4584,6 +4584,47 @@ Object.assign(paperAbbreviations, {
   'Yan16a': 'Jean Yang, Travis Hance, Thomas H. Austin, Armando Solar-Lezama, Cormac Flanagan, and Stephen Chong. "Precise, Dynamic Information Flow for Database-Backed Applications." PLDI, pp. 631–647, 2016. [DOI](https://doi.org/10.1145/2908080.2908098)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Abb20': 'Hameer Abbasi, Edward Z. Yang, and Ralf Gommers. "Improving Subclassing Tensor by Propagating Subclass Instances." PyTorch RFC 0001, 2020. [Link](https://github.com/pytorch/rfcs/blob/master/RFC-0001-torch-function-for-methods.md)',
+  'Agr19': 'Akshay Agrawal et al. "TensorFlow Eager: A Multi-Stage, Python-Embedded DSL for Machine Learning." arXiv:1903.01855, 2019. [Link](https://arxiv.org/abs/1903.01855)',
+  'Cao22': 'Jack Cao. "PyTorch/XLA 2022 Q4 Dev Update." 2022. [Link](https://dev-discuss.pytorch.org/t/pytorch-xla-2022-q4-dev-update/961)',
+  'Con20': 'Will Constable et al. "TorchBench: A Collection of Open Source Benchmarks for PyTorch Performance and Usability Evaluation." 2020. [Link](https://github.com/pytorch/benchmark)',
+  'Dag98': 'Leonardo Dagum and Ramesh Menon. "OpenMP: An Industry Standard API for Shared-Memory Programming." IEEE Computational Science & Engineering 5(1):46–55, 1998.',
+  'Dev18a': 'Zachary DeVito. "TorchScript." PyTorch documentation, 2018. [Link](https://pytorch.org/docs/1.9.0/jit.html)',
+  'Din23c': 'Yaoyao Ding, Cody Hao Yu, Bojian Zheng, Yizhi Liu, Yida Wang, and Gennady Pekhimenko. "Hidet: Task-Mapping Programming Paradigm for Deep Learning Tensor Programs." ASPLOS, 2023. [DOI](https://doi.org/10.1145/3575693.3575702)',
+  'Gra19': 'Alan Gray. "Getting Started with CUDA Graphs." NVIDIA Technical Blog, 2019. [Link](https://developer.nvidia.com/blog/cuda-graphs/)',
+  'Har20b': 'Charles R. Harris et al. "Array Programming with NumPy." Nature 585:357–362, 2020. [DOI](https://doi.org/10.1038/s41586-020-2649-2)',
+  'He19a': 'Horace He. "The State of Machine Learning Frameworks in 2019." The Gradient, 2019. [Link](https://thegradient.pub/state-of-ml-frameworks-2019-pytorch-dominates-research-tensorflow-dominates-industry/)',
+  'Inn17': 'Mike Innes. "On Machine Learning and Programming Languages." Julia Blog, 2017. [Link](https://julialang.org/blog/2017/12/ml-pl/)',
+  'Ire19': 'The IREE Authors. "IREE." 2019. [Link](https://github.com/openxla/iree)',
+  'Meu17': 'Aaron Meurer et al. "SymPy: Symbolic Computing in Python." PeerJ Computer Science 3:e103, 2017. [DOI](https://doi.org/10.7717/peerj-cs.103)',
+  'Mon23a': 'Armin Ronacher, David Lord, Adrian Mönnich, and contributors. "Jinja." 2023. [Link](https://github.com/pallets/jinja)',
+  'Nvi23g': 'NVIDIA, Peter Vingelmann, and Frank H. P. Fitzek. "CUDA, Release 12.1.0." 2023. [Link](https://developer.nvidia.com/cuda-toolkit)',
+  'Onn21': 'ONNX Runtime Developers. "ONNX Runtime." 2021. [Link](https://www.onnxruntime.ai/)',
+  'Onn23': 'ONNX Contributors. "ONNX." 2023. [Link](https://onnx.ai/)',
+  'Pro98': 'ISO/IEC. "ISO/IEC 14882:1998 Programming Languages - C++." 1998. [Link](https://www.iso.org/standard/25845.html)',
+  'Pyt23a': 'PyTorch/XLA Team. "PyTorch/XLA." 2023. [Link](https://github.com/pytorch/xla)',
+  'Sar21': 'Elvis Saravia. "Papers with Code 2021: A Year in Review." 2021. [Link](https://medium.com/paperswithcode/papers-with-code-2021-a-year-in-review-de75d5a77b8b)',
+  'Sar22': 'Christian Sarofeen et al. "Introducing nvFuser, a Deep Learning Compiler for PyTorch." PyTorch Blog, 2022. [Link](https://pytorch.org/blog/introducing-nvfuser-a-deep-learning-compiler-for-pytorch/)',
+  'Sei16': 'Frank Seide and Amit Agarwal. "CNTK: Microsoft\'s Open-Source Deep-Learning Toolkit." KDD, 2016. [DOI](https://doi.org/10.1145/2939672.2945397)',
+  'Sha22b': 'Junru Shao et al. "Tensor Program Optimization with Probabilistic Programs." arXiv:2205.13603, 2022. [Link](https://arxiv.org/abs/2205.13603)',
+  'Suh21': 'Alex Suhan et al. "LazyTensor: Combining Eager Execution with Domain-Specific Compilers." arXiv:2102.13267, 2021. [Link](https://arxiv.org/abs/2102.13267)',
+  'Cut23': 'Vijay Thakkar et al. "CUTLASS." Version 3.0.0, 2023. [Link](https://github.com/NVIDIA/cutlass/tree/v3.0.0)',
+  'Tok19': 'Seiya Tokui et al. "Chainer: A Deep Learning Framework for Accelerating the Research Cycle." arXiv:1908.00213, 2019. [Link](https://arxiv.org/abs/1908.00213)',
+  'Tor23': 'PyTorch Team. "TorchDynamo Benchmarking Code." 2023. [Link](https://github.com/pytorch/pytorch/tree/main/benchmarks/dynamo)',
+  'Tor23a': 'PyTorch Team. "TorchInductor Performance Dashboard." 2023. [Link](https://hud.pytorch.org/benchmark/compilers)',
+  'Vie16': 'Dino Viehland and Brett Cannon. "PEP 523 - Adding a Frame Evaluation API to CPython." 2016. [Link](https://peps.python.org/pep-0523/)',
+  'Wel62': 'B. P. Welford. "Note on a Method for Calculating Corrected Sums of Squares and Products." Technometrics 4(3):419–420, 1962. [DOI](https://doi.org/10.1080/00401706.1962.10490022)',
+  'Wen21': 'Jian Weng, Animesh Jain, Jie Wang, Leyuan Wang, Yida Wang, and Tony Nowatzki. "UNIT: Unifying Tensorized Instruction Compilation." CGO, 2021. [DOI](https://doi.org/10.1109/CGO51591.2021.9370330)',
+  'Wig19': 'Ross Wightman. "PyTorch Image Models." 2019. [DOI](https://doi.org/10.5281/zenodo.4414861)',
+  'Xin22': 'Jiarong Xing, Leyuan Wang, Shang Zhang, Jack Chen, Ang Chen, and Yibo Zhu. "Bolt: Bridging the Gap Between Auto-Tuners and Hardware-Native Performance." MLSys, 2022. [Link](https://proceedings.mlsys.org/paper_files/paper/2022/file/38b3eff8baf56627478ec76a704e9b52-Paper.pdf)',
+  'Xla17a': 'The XLA Team. "XLA - TensorFlow, Compiled." Google Developers Blog, 2017. [Link](https://developers.googleblog.com/2017/03/xla-tensorflow-compiled.html)',
+  'Yu23b': 'Shangdi Yu and Horace He. "Transcending Runtime-Memory Tradeoffs in Checkpointing by Being Fusion Aware." MLSys, 2023. [Link](https://proceedings.mlsys.org/paper_files/paper/2023/hash/da1e1004948d14d6048effd8b7a3040e-Abstract-mlsys2023.html)',
+  'Zhe22c': 'Bojian Zheng et al. "DietCode: Automatic Optimization for Dynamic Tensor Programs." MLSys, 2022. [Link](https://proceedings.mlsys.org/paper_files/paper/2022/file/fa7cdfad1a5aaf8370ebeda47a1ff1c3-Paper.pdf)',
+  'Zhe22d': 'Size Zheng et al. "AMOS: Enabling Automatic Mapping for Tensor Computations on Spatial Accelerators with Hardware Abstraction." ISCA, 2022. [DOI](https://doi.org/10.1145/3470496.3527440)',
+  'Zol21': 'Mikhail Zolotukhin. "NNC Walkthrough: How PyTorch Ops Get Fused." 2021. [Link](https://dev-discuss.pytorch.org/t/nnc-walkthrough-how-pytorch-ops-get-fused/125)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4860,7 +4901,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -4987,7 +5028,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5224,7 +5265,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',

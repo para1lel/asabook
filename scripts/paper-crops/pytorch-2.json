@@ -1,0 +1,70 @@
+[
+  {
+    "name": "figure-01",
+    "page": 4,
+    "x": 314,
+    "y": 67,
+    "width": 248,
+    "height": 167,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 9,
+    "x": 50,
+    "y": 70,
+    "width": 248,
+    "height": 142,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 10,
+    "x": 314,
+    "y": 70,
+    "width": 248,
+    "height": 117,
+    "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 13,
+    "x": 50,
+    "y": 66,
+    "width": 248,
+    "height": 107
+  },
+  {
+    "name": "table-02",
+    "page": 13,
+    "x": 50,
+    "y": 216,
+    "width": 248,
+    "height": 56
+  },
+  {
+    "name": "table-03",
+    "page": 14,
+    "x": 50,
+    "y": 66,
+    "width": 512,
+    "height": 213
+  },
+  {
+    "name": "figure-04",
+    "page": 14,
+    "x": 50,
+    "y": 355,
+    "width": 512,
+    "height": 312,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 15,
+    "x": 50,
+    "y": 66,
+    "width": 248,
+    "height": 124
+  }
+]
