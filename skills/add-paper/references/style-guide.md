@@ -1,6 +1,6 @@
 # ASa Book Paper Style Guide
 
-Apply these rules to English, Simplified Chinese, and Japanese paper pages. Treat the paper's TeX source and PDF as authoritative when an example does not cover a case.
+Apply these rules to English, Simplified Chinese, and Japanese paper pages. Treat the paper's current TeX source plus published PDF as authoritative when TeX exists; otherwise treat the published PDF as the textual, structural, mathematical, and bibliographic authority.
 
 ## Contents
 
@@ -167,7 +167,7 @@ Example:
 
 - Copy the paper's rendered English word for word and sentence for sentence in source order.
 - Preserve the source's spelling, capitalization, punctuation, paragraph boundaries, qualifications, repetition, and awkward wording. Never polish or silently correct it.
-- Join TeX source line wraps and remove layout-only commands only when doing so preserves the exact rendered wording shown in the PDF.
+- Join source or extraction line wraps and remove layout-only commands only when doing so preserves the exact rendered wording shown in the PDF.
 - Keep established product, model, dataset, and method names unchanged.
 - Preserve qualifications such as “may,” “typically,” and “under this setting” exactly; do not weaken or strengthen claims.
 
@@ -202,7 +202,7 @@ Example:
 ## Final Consistency Pass
 
 - Compare the three Arabic decimal heading-number sequences, and confirm every substantive heading is numbered while only the abstract and acknowledgements remain unnumbered.
-- Compare the English page against the TeX source and PDF sentence by sentence for exact wording and complete coverage.
+- Compare the English page against the authoritative source and PDF sentence by sentence for exact wording and complete coverage.
 - Compare each Chinese and Japanese sentence against the same source for additions, omissions, and semantic drift.
 - Confirm every run-in paragraph heading remains bold at the start of its paragraph and that no blank line splits it from the following prose.
 - Compare the canonical kind-and-number sequence of every formal statement across all three languages. Confirm every label is bold and shares its paragraph with the statement.
@@ -213,5 +213,5 @@ Example:
 - Confirm every title is at most 50 characters and every matrix transpose uses `^\top`.
 - Confirm that internal section references use the localized label and the same target number without a `§` or `\S` prefix.
 - Confirm that Chinese linked formula references have one space before following Han text, and that every fenced code block starts at column zero and uses two spaces per nested level.
-- Confirm that the concise title, authors, author URLs, arXiv version, DOI, and publication facts match across languages, and that the provenance link preserves the full source title.
-- Confirm sidebar placement uses the first arXiv submission date and is identical in all locales.
+- Confirm that the concise title, authors, author URLs, available source-version facts, DOI, and publication facts match across languages, and that the provenance link preserves the full source title. Never invent an arXiv version or TeX-source link.
+- Confirm sidebar placement uses the first arXiv submission date when available, otherwise the verified formal publication date, and is identical in all locales.

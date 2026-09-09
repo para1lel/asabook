@@ -4936,7 +4936,7 @@ export default defineUserConfig({
               {
                 text: '处理器架构',
                 collapsed: true,
-                items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca'],
+                items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
               },
             ],
           },
@@ -5063,7 +5063,7 @@ export default defineUserConfig({
               {
                 text: 'Processor Architecture',
                 collapsed: true,
-                items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca'],
+                items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
               },
             ],
           },
@@ -5300,7 +5300,7 @@ export default defineUserConfig({
               {
                 text: 'プロセッサアーキテクチャ',
                 collapsed: true,
-                items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca'],
+                items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
               },
             ],
           },
