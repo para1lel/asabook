@@ -6,6 +6,16 @@ import { lowMemoryCompiler } from './low-memory-compiler.js'
 import { pseudocodeLanguage } from './pseudocode.js'
 
 const paperAbbreviations = {
+  'Aut23': 'Neural Magic. "AutoFP8." 2023. [Link](https://github.com/neuralmagic/AutoFP8)',
+  'Din22': 'Shaojin Ding, Phoenix Meadowlark, Yanzhang He, Lukasz Lew, Shivani Agrawal, and Oleg Rybakov. "4-bit Conformer with Native Quantization Aware Training for Speech Recognition." 2022. [Link](https://arxiv.org/abs/2203.15952)',
+  'Hua19d': 'Kun Huang, Bingbing Ni, and Xiaokang Yang. "Efficient Quantization for Neural Networks with Binary Weights and Low Bitwidth Activations." AAAI 2019. [Link](https://doi.org/10.1609/aaai.v33i01.33013854)',
+  'Li22c': 'Yanjing Li, Sheng Xu, Baochang Zhang, Xianbin Cao, Peng Gao, and Guodong Guo. "Q-ViT: Accurate and Fully Quantized Low-bit Vision Transformer." NeurIPS 2022. [Link](https://arxiv.org/abs/2210.06707)',
+  'Lin24i': 'Zhiqi Lin et al. "nnScaler: Constraint-Guided Parallelization Plan Generation for Deep Learning Training." USENIX OSDI 2024. [Link](https://www.usenix.org/conference/osdi24/presentation/lin-zhiqi)',
+  'Roc16': 'AMD. "ROCm Platform." 2016. [Link](https://github.com/ROCm/ROCm)',
+  'She23f': 'Haihao Shen, Naveen Mellempudi, Xin He, Qun Gao, Chang Wang, and Mengni Wang. "Efficient Post-training Quantization with FP8 Formats." 2023. [Link](https://arxiv.org/abs/2309.14592)',
+  'Zha23aa': 'Yijia Zhang, Sicheng Zhang, Shijie Cao, Dayou Du, Jianyu Wei, Ting Cao, and Ningyi Xu. "AFPQ: Asymmetric Floating Point Quantization for LLMs." 2023. [Link](https://arxiv.org/abs/2311.01792)',
+  'Zhe22e': 'Ningxin Zheng et al. "SparTA: Deep-Learning Model Sparsity via Tensor-with-Sparsity-Attribute." USENIX OSDI 2022. [Link](https://www.usenix.org/conference/osdi22/presentation/zheng-ningxin)',
+  'Zhe23d': 'Ningxin Zheng et al. "PIT: Optimization of Dynamic Sparse Deep Learning Models via Permutation Invariant Transformation." ACM SOSP 2023. [Link](https://doi.org/10.1145/3600006.3613160)',
   'Bai18a': 'Shaojie Bai, J. Zico Kolter, and Vladlen Koltun. "An Empirical Evaluation of Generic Convolutional and Recurrent Networks for Sequence Modeling." 2018. [Link](https://arxiv.org/abs/1803.01271)',
   'Bec19': 'Philipp Becker, Harit Pandya, Gregor Gebhardt, Cheng Zhao, C. James Taylor, and Gerhard Neumann. "Recurrent Kalman Networks: Factorized Inference in High-Dimensional Deep Feature Spaces." ICML 2019. [Link](https://proceedings.mlr.press/v97/becker19a.html)',
   'Eri21': 'N. Benjamin Erichson, Omri Azencot, Alejandro Queiruga, Liam Hodgkinson, and Michael W. Mahoney. "Lipschitz Recurrent Neural Networks." ICLR 2021. [Link](https://openreview.net/forum?id=-N7PBXqOUJZ)',
@@ -4918,7 +4928,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -5045,7 +5055,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5282,7 +5292,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
