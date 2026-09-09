@@ -108,13 +108,14 @@ if (options.crops) {
       x: Math.round(part.x * options.scale),
       y: Math.round(part.y * options.scale),
     }))
-    const width = Math.max(...renderedParts.map((part) => part.width))
-    const height = renderedParts.reduce((sum, part) => sum + part.height, 0)
+    const padding = Math.round((crop.padding ?? 0) * options.scale)
+    const width = Math.max(...renderedParts.map((part) => part.width)) + padding * 2
+    const height = renderedParts.reduce((sum, part) => sum + part.height, 0) + padding * 2
     const canvas = createCanvas(width, height)
     const context = canvas.getContext('2d')
     context.fillStyle = '#fff'
     context.fillRect(0, 0, width, height)
-    let offsetY = 0
+    let offsetY = padding
     for (const part of renderedParts) {
       const offsetX = Math.floor((width - part.width) / 2)
       context.drawImage(

@@ -1,0 +1,95 @@
+[
+  {
+    "name": "table-01",
+    "page": 8,
+    "x": 305,
+    "y": 355,
+    "width": 237,
+    "height": 49,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 9,
+    "x": 60,
+    "y": 151,
+    "width": 224,
+    "height": 72,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 9,
+    "x": 306,
+    "y": 85.75,
+    "width": 236,
+    "height": 45.5,
+    "padding": 2,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "padding": 2,
+    "parts": [
+      {
+        "page": 16,
+        "x": 88,
+        "y": 55,
+        "width": 627,
+        "height": 349
+      },
+      {
+        "page": 16,
+        "x": 73,
+        "y": 424,
+        "width": 655,
+        "height": 109
+      }
+    ],
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "padding": 2,
+    "parts": [
+      {
+        "page": 17,
+        "x": 87,
+        "y": 72,
+        "width": 629,
+        "height": 366
+      },
+      {
+        "page": 17,
+        "x": 73,
+        "y": 459,
+        "width": 600,
+        "height": 58
+      }
+    ],
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "padding": 2,
+    "parts": [
+      {
+        "page": 18,
+        "x": 102,
+        "y": 79,
+        "width": 598,
+        "height": 301
+      },
+      {
+        "page": 18,
+        "x": 73,
+        "y": 402,
+        "width": 634,
+        "height": 112
+      }
+    ],
+    "preserveSource": false
+  }
+]

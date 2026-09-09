@@ -4566,6 +4566,24 @@ Object.assign(paperAbbreviations, {
   'Tok15': 'Seiya Tokui, Kenta Oono, and Shohei Hido. "Chainer: A Next-Generation Open Source Framework for Deep Learning." LearningSys Workshop at NeurIPS, 2015. [Link](https://arxiv.org/abs/1509.02971)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Bez12': 'Jeff Bezanson, Stefan Karpinski, Viral B. Shah, and Alan Edelman. "Julia: A Fast Dynamic Language for Technical Computing." arXiv:1209.5145, 2012. [Link](https://arxiv.org/abs/1209.5145)',
+  'Dec19': 'James M. Decker, Dan Moldovan, Guanzhou Wei, Vamsi Bhardwaj, Grégory M. Essertel, Fei Wang, Alexander B. Wiltschko, and Tiark Rompf. "The 800 Pound Python in the Machine Learning Room." 2019. [Link](https://www.cs.purdue.edu/homes/rompf/papers/decker-preprint201811.pdf)',
+  'Fin17a': 'Chelsea Finn, Pieter Abbeel, and Sergey Levine. "Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks." ICML, pp. 1126–1135, 2017. [Link](https://proceedings.mlr.press/v70/finn17a.html)',
+  'Hal18': 'Jeff Hale. "Deep Learning Framework Power Scores 2018." 2018. [Link](https://towardsdatascience.com/deep-learning-framework-power-scores-2018-23607ddf297a)',
+  'Hao13': 'Li Haoyi, James Holmgren, and Alberto Berti. "MacroPy." 2013. [Link](https://github.com/lihaoyi/macropy)',
+  'Hy18': 'Hy Contributors. "Hylang." 2018. [Link](https://github.com/hylang/hy)',
+  'Jeo19': 'Eunji Jeong, Sungwoo Cho, Gyeong-In Yu, Joo Seong Jeong, Dong-Jin Shin, and Byung-Gon Chun. "JANUS: Fast and Flexible Deep Learning via Symbolic Graph Execution of Imperative Programs." NSDI, pp. 453–468, 2019. [Link](https://www.usenix.org/conference/nsdi19/presentation/jeong)',
+  'Mer17a': 'Bart van Merriënboer, Alexander B. Wiltschko, and Dan Moldovan. "Tangent: Automatic Differentiation Using Source Code Transformation in Python." arXiv:1711.02712, 2017. [Link](https://arxiv.org/abs/1711.02712)',
+  'Mer18': 'Bart van Merrienboer, Olivier Breuleux, Arnaud Bergeron, and Pascal Lamblin. "Automatic Differentiation in ML: Where We Are and Where We Should Be Going." NeurIPS, 2018. [Link](https://arxiv.org/abs/1810.11530)',
+  'Onn18': 'ONNX Contributors. "Open Neural Network Exchange." 2018. [Link](https://github.com/onnx/onnx)',
+  'Pol13': 'Joe Gibbs Politz, Alejandro Martinez, Matthew Milano, Sumner Warren, Daniel Patterson, Junsong Li, Anand Chitipothu, and Shriram Krishnamurthi. "Python: The Full Monty." OOPSLA, pp. 217–232, 2013. [DOI](https://doi.org/10.1145/2509136.2509536)',
+  'Tor18': 'Torch Autograd Contributors. "torch-autograd." 2018. [Link](https://github.com/twitter-archive/torch-autograd)',
+  'Wan18e': 'Fei Wang and Tiark Rompf. "A Language and Compiler View on Differentiable Programming." ICLR Workshop, 2018. [Link](https://openreview.net/forum?id=SJxJtYkPG)',
+  'Wan18f': 'Fei Wang, Xilun Wu, Grégory M. Essertel, James M. Decker, and Tiark Rompf. "Demystifying Differentiable Programming: Shift/Reset the Penultimate Backpropagator." arXiv:1803.10228, 2018. [Link](https://arxiv.org/abs/1803.10228)',
+  'Yan16a': 'Jean Yang, Travis Hance, Thomas H. Austin, Armando Solar-Lezama, Cormac Flanagan, and Stephen Chong. "Precise, Dynamic Information Flow for Database-Backed Applications." PLDI, pp. 631–647, 2016. [DOI](https://doi.org/10.1145/2908080.2908098)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4842,7 +4860,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -4969,7 +4987,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5206,7 +5224,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
