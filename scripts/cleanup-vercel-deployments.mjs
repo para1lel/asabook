@@ -23,7 +23,11 @@ async function production() {
   const project = await api(`/v9/projects/${projectId}`)
   const current = project.targets?.production
   if (project.id !== projectId || current?.readyState !== 'READY' || !current.id || !current.createdAt) {
-    throw new Error('Cannot identify a healthy production deployment; nothing deleted')
+    throw new Error(`Cannot identify a healthy production deployment; nothing deleted: ${JSON.stringify({
+      projectId: project.id, targetKeys: Object.keys(project.targets ?? {}),
+      productionId: current?.id, state: current?.readyState, createdAt: current?.createdAt,
+      productionKeys: Object.keys(current ?? {}),
+    })}`)
   }
   return current
 }
