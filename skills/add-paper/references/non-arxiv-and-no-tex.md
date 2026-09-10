@@ -85,5 +85,5 @@ In addition to the normal checker, screenshot checker, build, and browser valida
 1. Compare the English heading, paragraph, list, code-block, figure, table, acknowledgement, and appendix sequence with the PDF.
 2. Compare citation tokens with the printed inline citations and bibliography, then inspect generated HTML to ensure no token remains unrendered.
 3. Confirm the three locales have identical anchor targets, link targets, citation sets, image order, code-block order and content, and substantive heading numbers.
-4. Open the local PDF link in the browser, and inspect all three paper routes at desktop and mobile widths. Confirm every image loads, dense tables remain within the article layout, and no paper asset introduces document-level horizontal overflow.
+4. Using the Codex built-in browser (`iab`) required by the main validation workflow, open the local PDF link and inspect all three paper routes at desktop and mobile widths. Confirm every image loads, dense tables remain within the article layout, and no paper asset introduces document-level horizontal overflow. If the built-in browser is unavailable, report the validation limitation as directed by the main skill.
 5. Run the production build after the last source, citation, crop, or configuration change. Resolve every build warning and error rather than relying on an earlier successful build.

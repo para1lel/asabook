@@ -57,7 +57,7 @@ Turn one arXiv record, DOI, publisher page, or supplied paper PDF into a source-
    ```
 
 4. Localize only the anchor text, for example `Original PDF`, `原始 PDF`, or `原 PDF`. Keep `href`, `target="_blank"`, and `rel="noopener noreferrer"` identical across the three pages.
-5. During browser validation, open the PDF link from each locale and confirm that the browser PDF viewer loads the expected document. Also inspect development-server and browser-console output for `[VuePress Dead Link]` messages referring to the paper PDF; the production build alone may not expose this development-mode warning.
+5. During validation in the Codex built-in browser (`iab`), open the PDF link from each locale and confirm that its PDF viewer loads the expected document. Also inspect development-server and browser-console output for `[VuePress Dead Link]` messages referring to the paper PDF; the production build alone may not expose this development-mode warning.
 
 ## Convert Footnotes to Content Annotations
 
@@ -167,7 +167,7 @@ Turn one arXiv record, DOI, publisher page, or supplied paper PDF into a source-
 6. Confirm every title is at most 50 characters, every matrix transpose uses `^\top`, and every annotation marker has a matching definition in all three languages.
 7. Run `git diff --check`.
 8. Run `npm run docs:build`. If VuePress cache behavior is suspicious, run `npm run docs:build -- --clean-cache --clean-temp`.
-9. Inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, formal statements, proof containers, or navigation changed. Confirm that equations render without visible number tags, equation-reference links jump to the intended formulas, annotations open correctly, theorem-like labels are bold and share a paragraph with their statements, proof details are closed by default and open correctly without horizontal overflow, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, citation abbreviations show their explanations, and the local PDF link opens without a VuePress dead-link warning.
+9. Use the Codex built-in browser (`iab`) in a visible tab to inspect the three target routes at desktop and mobile widths when figures, tables, formulas, annotations, formal statements, proof containers, or navigation changed. Do not substitute a connected Chrome or Edge instance, a system-installed browser, Playwright, or headless browser automation. If the Codex built-in browser is unavailable, report the validation limitation instead of silently switching browsers. Confirm that equations render without visible number tags, equation-reference links jump to the intended formulas, annotations open correctly, theorem-like labels are bold and share a paragraph with their statements, proof details are closed by default and open correctly without horizontal overflow, images are legible and tightly framed at 100% zoom on a high-density display, captions do not overflow, figure and table links jump to the intended objects, citation abbreviations show their explanations, and the local PDF link opens without a VuePress dead-link warning.
 10. Stop every development or preview server started for validation.
 
 ## Commit the Repository State
