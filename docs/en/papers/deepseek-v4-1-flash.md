@@ -269,11 +269,11 @@ Given the Nesterov momentum update $\hat{G}_t$, Sinkhorn balancing finds diagona
 <span id="equation-07"></span>
 
 $$
-\begin{aligned}
-\Delta_t &= \sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\\
-\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &\approx 1,\\
-\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &\approx 1,
-\end{aligned}
+\begin{alignedat}{2}
+\Delta_t &= \sqrt{n}U^{(K)} &&= \sqrt{n}D_r\hat{G}_tD_c,\\
+\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &&&\approx 1,\\
+\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &&&\approx 1,
+\end{alignedat}
 $$
 
 Thus, the procedure approximately equalizes the row-wise and column-wise RMS of the update matrix. Here, one row corresponds to one token index or n-gram identity; and one column encodes one hidden feature. Sinkhorn balancing exploits this token-feature structure by normalizing along both rows and columns. For numerical stability, rows satisfying $\rho_i\leq\tau\bar{\rho}$ are masked. The factor $\sqrt{n}$ converts unit row $\ell_2$ norm into unit row-wise RMS. Separately, we adjust the effective learning rate as $\tilde{\eta}_t=\gamma\eta_t$ to match the update magnitude of Adam. We set $\gamma=0.18$, which is close to the factor 0.2 used in Moonlight [Liu25].
@@ -296,9 +296,8 @@ More broadly, Sinkhorn balancing is closely related to optimizers that exploit m
 
 $$
 \begin{aligned}
-\mathrm{Forward}(V)
-&\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
-&\to\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+&\mathrm{Forward}(V)\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
+&\mathord{\to}\;\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
 \end{aligned}
 $$
 

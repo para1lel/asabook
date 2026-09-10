@@ -269,11 +269,11 @@ Nesterov momentum update $\hat{G}_t$ が与えられたとき、Sinkhorn balanci
 <span id="equation-07"></span>
 
 $$
-\begin{aligned}
-\Delta_t &= \sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\\
-\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &\approx 1,\\
-\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &\approx 1,
-\end{aligned}
+\begin{alignedat}{2}
+\Delta_t &= \sqrt{n}U^{(K)} &&= \sqrt{n}D_r\hat{G}_tD_c,\\
+\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &&&\approx 1,\\
+\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &&&\approx 1,
+\end{alignedat}
 $$
 
 したがって、この手順は update matrix の row-wise RMS と column-wise RMS を近似的に等しくする。ここで 1 row は 1 token index または n-gram identity に対応し、1 column は 1 hidden feature を符号化する。Sinkhorn balancing は row と column の両方で正規化し、この token-feature 構造を活用する。数値安定性のため、$\rho_i\leq\tau\bar{\rho}$ を満たす row は mask する。係数 $\sqrt{n}$ は unit row $\ell_2$ norm を unit row-wise RMS へ変換する。別途、Adam の update magnitude に合わせるため effective learning rate を $\tilde{\eta}_t=\gamma\eta_t$ と調整する。$\gamma=0.18$ とし、Moonlight [Liu25] で用いた係数 0.2 に近い。
@@ -296,9 +296,8 @@ $$
 
 $$
 \begin{aligned}
-\mathrm{Forward}(V)
-&\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
-&\to\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+&\mathrm{Forward}(V)\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
+&\mathord{\to}\;\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
 \end{aligned}
 $$
 
