@@ -266,11 +266,11 @@ DeepSeek-V4 已对 FP4 索引器的查询和键采用量化感知训练 (QAT) [J
 <span id="equation-07"></span>
 
 $$
-\begin{alignedat}{2}
-\Delta_t &= \sqrt{n}U^{(K)} &&= \sqrt{n}D_r\hat{G}_tD_c,\\
-\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &&&\approx 1,\\
-\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &&&\approx 1,
-\end{alignedat}
+\begin{aligned}
+\Delta_t = \sqrt{n}U^{(K)} &= \sqrt{n}D_r\hat{G}_tD_c,\\
+\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &\approx 1,\\
+\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &\approx 1,
+\end{aligned}
 $$
 
 因此, 该流程会近似拉齐更新矩阵逐行与逐列的 RMS. 一行对应一个 Token 索引或 n-gram 标识, 一列编码一个隐藏特征. Sinkhorn 均衡沿行列两个方向归一化, 利用了这种 Token-特征结构. 为保证数值稳定, 满足 $\rho_i\leq\tau\bar{\rho}$ 的行会被遮蔽. 因子 $\sqrt{n}$ 把单位行 $\ell_2$ 范数转换为单位逐行 RMS. 我们还把有效学习率调整为 $\tilde{\eta}_t=\gamma\eta_t$, 以匹配 Adam 的更新幅度. $\gamma$ 取 0.18, 接近 Moonlight [Liu25] 使用的 0.2.
