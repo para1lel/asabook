@@ -4673,6 +4673,21 @@ Object.assign(paperAbbreviations, {
   'Zha21k': 'Jie Zhao et al. "AKG: Automatic Kernel Generation for Neural Processing Units Using Polyhedral Transformations." PLDI, pp. 1233–1248, 2021. [DOI](https://doi.org/10.1145/3453483.3454106)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Abd16': 'Ahmad Abdelfattah, Azzam Haidar, Stanimire Tomov, and Jack Dongarra. "Performance, Design, and Autotuning of Batched GEMM for GPUs." pp. 21–38, 2016. [DOI](https://doi.org/10.1007/978-3-319-41321-1_2)',
+  'Bik24': 'Ganesh Bikshandi and Jay Shah. "Delivering 1 PFLOP/s of Performance with FP8 FlashAttention-2." 2024. [Link](https://research.colfax-intl.com/adding-fp8-to-flashattention/)',
+  'Cut24': 'Colfax Research. "Tutorial: Matrix Transpose in CUTLASS." 2024. [Link](https://research.colfax-intl.com/tutorial-matrix-transpose-in-cutlass/)',
+  'Gol24': 'Alicia Golden et al. "Is Flash Attention Stable?" arXiv:2405.02803, 2024. [Link](https://arxiv.org/abs/2405.02803)',
+  'Jam24': 'AI21. "Introducing Jamba: AI21’s Groundbreaking SSM-Transformer Model." 2024. [Link](https://www.ai21.com/blog/announcing-jamba/)',
+  'Ma24e': 'Xuezhe Ma et al. "Megalodon: Efficient LLM Pretraining and Inference with Unlimited Context Length." arXiv:2404.08801, 2024. [Link](https://arxiv.org/abs/2404.08801)',
+  'Nvi24g': 'NVIDIA. "Accelerating Transformers with NVIDIA cuDNN 9." 2024. [Link](https://developer.nvidia.com/blog/accelerating-transformers-with-nvidia-cudnn-9/)',
+  'Ptx24': 'NVIDIA. "Parallel Thread Execution ISA Version 8.4." 2024. [Link](https://docs.nvidia.com/cuda/pdf/ptx_isa_8.4.pdf)',
+  'San24a': 'Rya Sanovar, Srikant Bharadwaj, Renee St. Amant, Victor Rühle, and Saravan Rajmohan. "Lean Attention: Hardware-Aware Scalable Attention Mechanism for the Decode-Phase of Transformers." arXiv:2405.10480, 2024. [Link](https://arxiv.org/abs/2405.10480)',
+  'Sun19d': 'Fei Sun, Jun Liu, Jian Wu, Changhua Pei, Xiao Lin, Wenwu Ou, and Peng Jiang. "BERT4Rec: Sequential Recommendation with Bidirectional Encoder Representations from Transformer." CIKM, pp. 1441–1450, 2019. [DOI](https://doi.org/10.1145/3357384.3357895)',
+  'Sun24c': 'Mingjie Sun, Xinlei Chen, J. Zico Kolter, and Zhuang Liu. "Massive Activations in Large Language Models." arXiv:2402.17762, 2024. [Link](https://arxiv.org/abs/2402.17762)',
+  'Zam24': 'Zyphra. "Zyphra Unveils Zamba: A Compact 7B SSM Hybrid Model." 2024. [Link](https://www.zyphra.com/our-work/zamba)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4949,7 +4964,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -5076,7 +5091,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5313,7 +5328,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',

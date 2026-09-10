@@ -79,7 +79,8 @@ function plainMathWords(expression) {
 
 function extractCitations(markdown) {
   const citations = new Set()
-  for (const match of markdown.matchAll(/\[([^\]\n]+)\]/g)) {
+  const prose = markdown.replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\s*$/gm, '')
+  for (const match of prose.matchAll(/\[([^\]\n]+)\]/g)) {
     const keys = match[1].split(/,\s*/)
     if (keys.every((key) => /^[A-Z][A-Za-z]{1,5}\d{2}[a-z]*$/.test(key))) {
       keys.forEach((key) => citations.add(key))
