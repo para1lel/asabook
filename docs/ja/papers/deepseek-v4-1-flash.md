@@ -226,7 +226,7 @@ drafter は sliding attention window 128 token の Transformer block 3 層から
 
 DeepSeek-V4 はすでに FP4 の indexer query と key に量子化認識学習（QAT） [Jac18] を用い、index 計算を高速化して indexer cache size を減らしている。実験では別形式の方が高精度だったが、可能な限り多くの hardware platform に対応するため、OCP 標準の MXFP4 形式 [Dar23] を採用した。今回 QAT を main KV キャッシュへ拡張する。ここでは FP4 は行列積の高速化ではなく保存量削減に使う。attention 前に cached value を dequantize すれば、その形式に対する native matrix-multiplication support を要求せずに、より高精度な形式を使えるため、hardware platform 間の互換性を維持できる。
 
-評価した約 4-bit の形式から、NVFP4 [Alv25] に従い、16 channel ごとに 1 個の E4M3 scale を持つ E2M1 を選ぶ。ただし精度と単純さの均衡を取るため、第 2 段の global scale は省く。これを省いても main KV キャッシュには十分な dynamic range が残る。この形式は最大 448 × 6 = 2688 の大きさを表せ、キャッシュの magnitude bound をはるかに上回る。DeepSeek-V4.1-Flash で学習済み RMSNorm weight の最大 magnitude は約 1 である。RMS normalization 後、512-channel KV latent の L2 norm は最大でも約 √512 である。RoPE はこの norm を保つため、回転後の channel 間最大 absolute value も約 √512 ≈ 22.6 以下となる。また、学習中に観測した最大 magnitude は約 10 だった。したがって global scale を省いても測定可能な精度低下はなく、cache layout を単純化できる。
+評価した約 4-bit の形式から、NVFP4 [Alv25] に従い、16 channel ごとに 1 個の E4M3 scale を持つ E2M1 を選ぶ。ただし精度と単純さの均衡を取るため、第 2 段の global scale は省く。これを省いても main KV キャッシュには十分な dynamic range が残る。この形式は最大 $448\times6=2688$ の大きさを表せ、キャッシュの magnitude bound をはるかに上回る。DeepSeek-V4.1-Flash で学習済み RMSNorm weight の最大 magnitude は約 1 である。RMS normalization 後、512-channel KV latent の L2 norm は最大でも約 $\sqrt{512}$ である。RoPE はこの norm を保つため、回転後の channel 間最大 absolute value も約 $\sqrt{512}\approx22.6$ 以下となる。また、学習中に観測した最大 magnitude は約 10 だった。したがって global scale を省いても測定可能な精度低下はなく、cache layout を単純化できる。
 
 DeepSeek-V4.1-Flash で FP4 main KV cache storage を使えるよう、事後学習に QAT を導入する。non-RoPE component と RoPE component は同じ量子化形式を使う。cache は RoPE 後に量子化する。RoPE 前の量子化は実験でごくわずかな精度向上しか得られず、decode 時に追加 overhead が生じるためである。SWA KV キャッシュは量子化に敏感なので FP8 を維持する。DeepSeek-V4 の FP8 main KV キャッシュと比べ、この形式は HBM 上でも SSD へ offload した場合でも保存量をほぼ半減させる。
 
@@ -264,15 +264,19 @@ DeepSeek-V4 で用いた最適化構成を基に、アーキテクチャ設計�
 - $W_{t+1}\leftarrow W_t-\tilde{\eta}_t\Delta_t$.
 
 
-Nesterov momentum update $G_t$ が与えられたとき、Sinkhorn balancing は次を満たす対角 scaling matrix $D_r$ と $D_c$ を求める。
+Nesterov momentum update $\hat{G}_t$ が与えられたとき、Sinkhorn balancing は次を満たす対角 scaling matrix $D_r$ と $D_c$ を求める。
 
 <span id="equation-07"></span>
 
 $$
-\Delta_t=\sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\qquad \frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2}\approx1,\qquad \frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2}\approx1,
+\begin{aligned}
+\Delta_t &= \sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\\
+\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &\approx 1,\\
+\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &\approx 1,
+\end{aligned}
 $$
 
-したがって、この手順は update matrix の row-wise RMS と column-wise RMS を近似的に等しくする。ここで 1 row は 1 token index または n-gram identity に対応し、1 column は 1 hidden feature を符号化する。Sinkhorn balancing は row と column の両方で正規化し、この token-feature 構造を活用する。数値安定性のため、$\rho_i\le\tau_\rho$ を満たす row は mask する。係数 $\sqrt{n}$ は unit row $\ell_2$ norm を unit row-wise RMS へ変換する。別途、Adam の update magnitude に合わせるため effective learning rate を $\eta'_t=\gamma\eta_t$ と調整する。$\gamma=0.18$ とし、Moonlight [Liu25] で用いた係数 0.2 に近い。
+したがって、この手順は update matrix の row-wise RMS と column-wise RMS を近似的に等しくする。ここで 1 row は 1 token index または n-gram identity に対応し、1 column は 1 hidden feature を符号化する。Sinkhorn balancing は row と column の両方で正規化し、この token-feature 構造を活用する。数値安定性のため、$\rho_i\leq\tau\bar{\rho}$ を満たす row は mask する。係数 $\sqrt{n}$ は unit row $\ell_2$ norm を unit row-wise RMS へ変換する。別途、Adam の update magnitude に合わせるため effective learning rate を $\tilde{\eta}_t=\gamma\eta_t$ と調整する。$\gamma=0.18$ とし、Moonlight [Liu25] で用いた係数 0.2 に近い。
 
 より広く見ると、Sinkhorn balancing は matrix または tensor の axis structure を利用する optimizer [Sha18, Zha25ay, Wen25b, Gle25, Den26, Yua26a, Xu26a] と密接に関係する。たとえば Adafactor [Sha18] は別の方法で row-wise・column-wise normalization を行い、Adam-mini [Zha25ay] は embedding table と prediction head に別方式の row-wise normalization を使う。これらの normalization strategy は optimization performance と communication overhead が異なり得る。詳細な検討は今後の課題とする。
 
@@ -291,10 +295,14 @@ $$
 **対照学習における通信と計算のオーバーラップ。** vision encoder は、生成的な next-token prediction loss で fine-tune する前に、まず contrastive objective で最適化する。contrastive phase では text-vision pair の full batch に対して loss を計算するため、両 modality の feature を data-parallel rank 全体で all-gather する必要があり、通信量が大きい。text feature の gradient は集約済み visual feature のみに依存し、対称的に visual feature の gradient は集約済み text feature のみに依存するため、各 all-gather は pipeline を停止させず、forward または backward pass と重ねられる。
 
 $$
-\mathrm{Forward}(V)\to\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\to\nabla_{\mathrm{Text}}\to\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+\begin{aligned}
+\mathrm{Forward}(V)
+&\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
+&\to\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+\end{aligned}
 $$
 
-ここで $V$ と $T$ は visual feature と text feature、（$A\parallel C$）は計算 $A$ と通信 $C$ のオーバーラップ、$\nabla$ は勾配計算を表す。この schedule では text forward pass 中に visual feature を集約し、text backward pass 中に text feature を集約するため、両方の all-gather を有用な計算の背後へ完全に隠せる。
+ここで $V$ と $T$ は visual feature と text feature、$(A\parallel C)$ は計算 $A$ と通信 $C$ のオーバーラップ、$\nabla$ は勾配計算を表す。この schedule では text forward pass 中に visual feature を集約し、text backward pass 中に text feature を集約するため、両方の all-gather を有用な計算の背後へ完全に隠せる。
 
 **End-to-End Parallelism。** vision encoder と LLM の model・data heterogeneity [Zha25ax] を扱うため、近年の学習 system [Lon25, Kim26b] で用いられる disaggregated encoder 設計を採用する。vision encoder を LLM parameter tree の外に複製し、各 training step を vision encoder forward、LLM forward/backward、vision encoder backward の 3 段階に分ける。この分離により vision encoder と LLM の計算が干渉しない。load-balanced vision processing は最初と最後の段階だけで行い、LLM phase には vision computation を含めず text-only training の parallel strategy を保つ。
 
@@ -303,7 +311,7 @@ $$
 - **均衡画像シャーディング。** 事前学習時、画像密度の高い単一の超長系列が読み込み中に 1 host の I/O、CPU、メモリを使い切る可能性がある。そのため各系列の画像を load balancing しながら CP rank 間で shard し、各画像をちょうど 1 回だけ読み込む。画像を一度だけ読む場合、次が成り立てば読み込みは常に計算の背後に隠れる。
 
 $$
-N\times\rho B_{\mathrm{IO}}<N\times C B_{\mathrm{GPU}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}C},
+\frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
 $$
 
 ここで $N$ は token count、$\rho$ は token 当たりの raw byte、$C$ は token 当たりの compute、$B_{\mathrm{IO}}$ と $B_{\mathrm{GPU}}$ は file system と GPU の bandwidth である。$N$ は相殺されるため、条件は token 当たりの量（$\rho$ と $C$）だけに依存し、系列長や cluster size には依存しない。$\rho$ は resolution cap や spatial downsample など vision module configuration で決まる。したがって storage throughput がボトルネックになるのは、ablation のように token 当たり compute が少ない小規模モデルだけであり、本番規模のモデルは compute-bound のままである。
@@ -358,7 +366,7 @@ SWA KV の永続保存はコストが高いうえ効果も薄い。その access
 
 #### 3.2.2 SWA Bounded Replay
 
-SWA の依存関係は層をまたいで蓄積するため、$L$ 層の SWA KV を厳密に再構築するには $L\times n_{\mathrm{win}}$ token の replay が必要になる。SWA Bounded Replay は代わりに直近の $n_{\mathrm{win}}$ token だけを replay し、SWA を replay segment に切り詰めて近似 state を受け入れる。position $s$ から replay を始める場合、position $i$ の query は $\max(s,i-W+1)$ から $i$ までの SWA key に attend する。
+SWA の依存関係は層をまたいで蓄積するため、$L$ 層の SWA KV を厳密に再構築するには $L\times n_{\mathrm{win}}$ token の replay が必要になる。SWA Bounded Replay は代わりに直近の $n_{\mathrm{win}}$ token だけを replay し、SWA を replay segment に切り詰めて近似 state を受け入れる。position $s$ から replay を始める場合、position $i$ の query は $[\max(s,i-W+1),i]$ の SWA key に attend する。
 
 **Encoder SWA Bounded Replay。** Encoder SWA Bounded Replay は prefix caching を global KV のみに依存させ、永続 KV キャッシュから SWA KV を除けるようにする。
 
@@ -400,7 +408,7 @@ Transformer layer 数を 40、hidden dimension $d$ を 5120 とする。Causal E
 
 #### 4.2.2 学習設定
 
-linear transformation の parameter には Muon optimizer [Kel24, Liu25]、全 RMSNorm module の weight とその他の non-matrix parameter には AdamW optimizer [Los17]、全 embedding と prediction head には Sinkhorn-balanced update を使う。AdamW の hyper-parameter は $\beta_1=0.9$、$\beta_2=0.95$、$\varepsilon=10^{-20}$、weight_decay = 0.1 とする。Muon は momentum 0.95、weight decay 0.1 とし、AdamW learning rate を再利用できるよう各 update matrix の RMS を 0.18 に rescale する。Sinkhorn-balanced update は Muon と同じ momentum coefficient と learning-rate correction factor を使い、$K=11$、$\tau=10^{-3}$、$\varepsilon=10^{-20}$ とする。 [Che26b] に従い、Engram learning rate は 5 倍する。DeepSeek-V4.1-Flash を 45T token の multimodal data で不安定化なく学習した。batch size は学習全体で 100.6M token に固定する。learning rate は最初の 2,000 step で線形 warm-up し、28T token まで $2.6\times10^{-4}$ を保つ。28T から 40T token では cosine schedule で $2.6\times10^{-5}$ まで decay し、40T から 45T token はこの値を保つ。sequence length 64K の sparse attention で scratch から学習し、34T token 時点で 1M へ拡張する。auxiliary-loss-free load balancing は画像・テキスト token とも bias update speed 0.001 とし、単一 sequence 内の極端な不均衡を避けるため、loss weight 0.0001 の小さな sequence-level balance loss も残す。DeepSeek-V4 と同じく、事前学習では sample-level attention masking を使う。
+linear transformation の parameter には Muon optimizer [Kel24, Liu25]、全 RMSNorm module の weight とその他の non-matrix parameter には AdamW optimizer [Los17]、全 embedding と prediction head には Sinkhorn-balanced update を使う。AdamW の hyper-parameter は $\beta_1=0.9$、$\beta_2=0.95$、$\varepsilon=10^{-20}$、$\mathrm{weight\_decay}=0.1$ とする。Muon は momentum 0.95、weight decay 0.1 とし、AdamW learning rate を再利用できるよう各 update matrix の RMS を 0.18 に rescale する。Sinkhorn-balanced update は Muon と同じ momentum coefficient と learning-rate correction factor を使い、$K=11$、$\tau=10^{-3}$、$\varepsilon=10^{-20}$ とする。 [Che26b] に従い、Engram learning rate は 5 倍する。DeepSeek-V4.1-Flash を 45T token の multimodal data で不安定化なく学習した。batch size は学習全体で 100.6M token に固定する。learning rate は最初の 2,000 step で線形 warm-up し、28T token まで $2.6\times10^{-4}$ を保つ。28T から 40T token では cosine schedule で $2.6\times10^{-5}$ まで decay し、40T から 45T token はこの値を保つ。sequence length 64K の sparse attention で scratch から学習し、34T token 時点で 1M へ拡張する。auxiliary-loss-free load balancing は画像・テキスト token とも bias update speed 0.001 とし、単一 sequence 内の極端な不均衡を避けるため、loss weight 0.0001 の小さな sequence-level balance loss も残す。DeepSeek-V4 と同じく、事前学習では sample-level attention masking を使う。
 
 **Vision encoder の学習。** DeepSeek-ViT は言語バックボーンへ統合する前に独立した学習段階を経る。pipeline は contrastive pre-training と autoregressive fine-tuning の 2 段階からなる。contrastive pre-training では、alt-text data 由来の約 47B image-text pair に対し、SigLIP [Zha23t] が導入した sigmoid contrastive loss でモデルを最適化する。この巨大 dataset から visual representation を効率よく学ぶため、縦横比を保って大きな画像を縮小し、最大入力解像度を 224 × 224 pixel に制限する。この段階で高解像度を使うと顕著な改善は得られるが、実験上、最終モデルへの寄与は小さい。後続の autoregressive stage が高解像度への外挿を専用に扱うため、contrastive pre-training 中の高解像度化は全体改善が小さい割に計算 overhead を大きく増やす。autoregressive fine-tuning stage では vision encoder を 4B MoE LLM へ接続し、image caption、alt text、chart、OCR を含む dataset の 236B token に対して next-token prediction objective で学習する。この段階は encoder の fine-grained visual feature model 能力を高めることを目的とする。そのため範囲外の画像を比例 scaling し、入力解像度を 544 × 544 から 1344 × 1344 pixel に制限する。この段階の後は LLM を破棄し、最適化済み vision encoder だけを後続の事前学習 pipeline に残す。同じ input-resolution policy を維持する。
 
@@ -760,7 +768,7 @@ effort level $b$ で $\ell$ 個の reasoning token を生成した trajectory �
 <span id="equation-11"></span>
 
 $$
-r^{\mathrm{len}}(\ell,b)=-\min\left\{{C_{\max}},\ k(b)\frac{\ell}{L_{\mathrm{norm}}}\right\},
+r^{\mathrm{len}}(\ell,b)=-\min\left\{C_{\max},\,k(b)\frac{\ell}{L_{\mathrm{norm}}}\right\},
 $$
 
 ここで $L_{\mathrm{norm}}$ は reference length、$C_{\max}$ は deduction の上限である。effort-dependent token-penalty coefficient は次式で表される。

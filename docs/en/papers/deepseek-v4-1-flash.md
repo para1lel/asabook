@@ -226,7 +226,7 @@ Long-context agent workloads require large per-request KV caches, increasing ser
 
 DeepSeek-V4 already uses quantization-aware training (QAT) [Jac18] for FP4 indexer queries and keys, accelerating index computation and reducing the indexer cache size. We adopt the OCP-standard MXFP4 format [Dar23] to support as many hardware platforms as possible, despite the higher accuracy of alternative formats in our experiments. We now extend QAT to the main KV cache, where FP4 reduces storage rather than accelerates matrix multiplication. Dequantizing cached values before attention allows us to use a more accurate format without requiring native matrix-multiplication support for that format, preserving compatibility across hardware platforms.
 
-Among the approximately four-bit formats evaluated, we select E2M1 with one E4M3 scale per 16 channels, following NVFP4 [Alv25] but omitting its second-level global scale to balance accuracy and simplicity. Omitting this scale leaves ample dynamic range for the main KV cache: the format supports magnitudes up to 448 × 6 = 2688, far above the cache's magnitude bound. In DeepSeek-V4.1-Flash, the largest trained RMSNorm weight magnitude is approximately 1. After RMS normalization, the L2 norm of the 512-channel KV latent is at most approximately √ 512. RoPE preserves this norm, so the maximum absolute value across channels after rotation is also bounded by approximately √ 512 ≈ 22.6. Besides, the maximum magnitude observed during training is around 10. Therefore, omitting the global scale causes no measurable decrease in accuracy and simplifies the cache layout.
+Among the approximately four-bit formats evaluated, we select E2M1 with one E4M3 scale per 16 channels, following NVFP4 [Alv25] but omitting its second-level global scale to balance accuracy and simplicity. Omitting this scale leaves ample dynamic range for the main KV cache: the format supports magnitudes up to $448\times6=2688$, far above the cache's magnitude bound. In DeepSeek-V4.1-Flash, the largest trained RMSNorm weight magnitude is approximately 1. After RMS normalization, the L2 norm of the 512-channel KV latent is at most approximately $\sqrt{512}$. RoPE preserves this norm, so the maximum absolute value across channels after rotation is also bounded by approximately $\sqrt{512}\approx22.6$. Besides, the maximum magnitude observed during training is around 10. Therefore, omitting the global scale causes no measurable decrease in accuracy and simplifies the cache layout.
 
 To enable FP4 main KV cache storage in DeepSeek-V4.1-Flash, we introduce QAT during post-training. The non-RoPE and RoPE components use the same quantization format. We quantize the cache after RoPE: quantizing before RoPE yields only a marginal accuracy improvement in our experiments and would introduce additional overhead during decoding. We retain FP8 for the SWA KV cache due to its sensitivity to quantization. Compared with the FP8 main KV cache in DeepSeek-V4, this format nearly halves the storage footprint, both in HBM and when offloaded to SSD.
 
@@ -264,15 +264,19 @@ Second, applying Adam to the newly introduced Engram parameters substantially in
 - $W_{t+1}\leftarrow W_t-\tilde{\eta}_t\Delta_t$.
 
 
-Given the Nesterov momentum update $G_t$, Sinkhorn balancing finds diagonal scaling matrices $D_r$ and $D_c$ such that
+Given the Nesterov momentum update $\hat{G}_t$, Sinkhorn balancing finds diagonal scaling matrices $D_r$ and $D_c$ such that
 
 <span id="equation-07"></span>
 
 $$
-\Delta_t=\sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\qquad \frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2}\approx1,\qquad \frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2}\approx1,
+\begin{aligned}
+\Delta_t &= \sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\\
+\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &\approx 1,\\
+\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &\approx 1,
+\end{aligned}
 $$
 
-Thus, the procedure approximately equalizes the row-wise and column-wise RMS of the update matrix. Here, one row corresponds to one token index or n-gram identity; and one column encodes one hidden feature. Sinkhorn balancing exploits this token-feature structure by normalizing along both rows and columns. For numerical stability, rows satisfying $\rho_i\le\tau_\rho$ are masked. The factor $\sqrt{n}$ converts unit row $\ell_2$ norm into unit row-wise RMS. Separately, we adjust the effective learning rate as $\eta'_t=\gamma\eta_t$ to match the update magnitude of Adam. We set $\gamma=0.18$, which is close to the factor 0.2 used in Moonlight [Liu25].
+Thus, the procedure approximately equalizes the row-wise and column-wise RMS of the update matrix. Here, one row corresponds to one token index or n-gram identity; and one column encodes one hidden feature. Sinkhorn balancing exploits this token-feature structure by normalizing along both rows and columns. For numerical stability, rows satisfying $\rho_i\leq\tau\bar{\rho}$ are masked. The factor $\sqrt{n}$ converts unit row $\ell_2$ norm into unit row-wise RMS. Separately, we adjust the effective learning rate as $\tilde{\eta}_t=\gamma\eta_t$ to match the update magnitude of Adam. We set $\gamma=0.18$, which is close to the factor 0.2 used in Moonlight [Liu25].
 
 More broadly, Sinkhorn balancing is closely related to optimizers that exploit matrix or tensor axis structure [Sha18, Zha25ay, Wen25b, Gle25, Den26, Yua26a, Xu26a]. For example, Adafactor [Sha18] conducts row- and column-wise normalization in a different manner, and Adam-mini [Zha25ay] uses an alternative row-wise normalization for embedding tables and prediction head. These normalization strategies may differ in optimization performance and communication overhead. We leave more detailed investigation as a future direction.
 
@@ -291,7 +295,11 @@ More broadly, Sinkhorn balancing is closely related to optimizers that exploit m
 **Communication-Computation Overlap in Contrastive Learning.** The vision encoder is first optimized with a contrastive objective before being fine-tuned with a generative next-token prediction loss. In the contrastive phase, the loss is computed over a full batch of text and vision pairs, so the features of both modalities must be all-gathered across data-parallel ranks, incurring substantial communication. Because the gradient of the text features depends only on the gathered visual features—and, symmetrically, the gradient of the visual features depends only on the gathered text features—each all-gather can be overlapped with the forward or backward pass instead of stalling the pipeline:
 
 $$
-\mathrm{Forward}(V)\to\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\to\nabla_{\mathrm{Text}}\to\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+\begin{aligned}
+\mathrm{Forward}(V)
+&\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
+&\to\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+\end{aligned}
 $$
 
 where $V$ and $T$ denote the visual and text features, $(A\parallel C)$ denotes the overlap of computation $A$ with communication $C$, and $\nabla$ denotes the gradient computation. In this schedule, the visual features are gathered during the text forward pass and the text features during the text backward pass, so that both all-gathers are hidden entirely behind useful computation.
@@ -303,7 +311,7 @@ where $V$ and $T$ denote the visual and text features, $(A\parallel C)$ denotes 
 - Balanced image sharding. During pre-training, a single ultra-long, image-dense sequence can exhaust one host's I/O, CPU, and memory during loading, so the images of each sequence are sharded across the CP ranks with load balancing, and each image is loaded exactly once. With images read once, loading stays hidden behind compute whenever
 
 $$
-N\times\rho B_{\mathrm{IO}}<N\times C B_{\mathrm{GPU}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}C},
+\frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
 $$
 
 where $N$ is the token count, $\rho$ the raw bytes per token, $C$ the per-token compute, and $B_{\mathrm{IO}}$, $B_{\mathrm{GPU}}$ the file-system and GPU bandwidths. Since $N$ cancels, the criterion involves only per-token quantities ($\rho$ and $C$), independent of sequence length and cluster size; $\rho$ is set by the vision-module configuration (e.g., the resolution cap or the spatial downsample). Storage throughput therefore becomes a bottleneck only for small models with low per-token compute, as in ablations, while production-scale models remain compute-bound.
@@ -368,7 +376,7 @@ By design, the replayed prefix state is approximate, so the global KV and SWA KV
 
 **Decoder SWA Bounded Replay.** Decoder SWA Bounded Replay bounds the decoder forward pass to $n_{\mathrm{win}}$ tokens, nearly halving total prefill computation.
 
-Under CED, decoder global KV is projected from the final encoder hidden states. The only obstacle to ending prefill at the encoder is decoder SWA KV, which is generated from each decoder layer's own hidden states and is needed by the first decode steps. Since we never cache decoder SWA KV, exactly reconstructing it requires running the $L/2$ decoder layers over the last $L/2$ × $n_{\mathrm{win}}$ prompt tokens, which is expensive when a short uncached suffix follows a long cached prefix. Therefore, we also apply the bounded replay strategy to this scenario: at every prefill, we replay the last $n_{\mathrm{win}}$ tokens of the prompt, feed their encoder outputs through the decoder layers under the same SWA truncation, and use the resulting decoder SWA KV only for decoding, not for prefix caching.
+Under CED, decoder global KV is projected from the final encoder hidden states. The only obstacle to ending prefill at the encoder is decoder SWA KV, which is generated from each decoder layer's own hidden states and is needed by the first decode steps. Since we never cache decoder SWA KV, exactly reconstructing it requires running the $L/2$ decoder layers over the last $L/2\times n_{\mathrm{win}}$ prompt tokens, which is expensive when a short uncached suffix follows a long cached prefix. Therefore, we also apply the bounded replay strategy to this scenario: at every prefill, we replay the last $n_{\mathrm{win}}$ tokens of the prompt, feed their encoder outputs through the decoder layers under the same SWA truncation, and use the resulting decoder SWA KV only for decoding, not for prefix caching.
 
 By design, the reconstructed decoder SWA KV is not mathematically equivalent to that from a full decoder forward pass. Also, we find that this strategy has only a negligible impact on response quality. For added safety, we additionally simulate the same replay during post-training for train-aware adaptation.
 
@@ -760,7 +768,7 @@ For a trajectory with $\ell$ reasoning tokens generated at effort level $b$, the
 <span id="equation-11"></span>
 
 $$
-r^{\mathrm{len}}(\ell,b)=-\min\left\{{C_{\max}},\ k(b)\frac{\ell}{L_{\mathrm{norm}}}\right\},
+r^{\mathrm{len}}(\ell,b)=-\min\left\{C_{\max},\,k(b)\frac{\ell}{L_{\mathrm{norm}}}\right\},
 $$
 
 where $L_{\mathrm{norm}}$ is a reference length and $C_{\max}$ caps the deduction. The effort-dependent token-penalty coefficient is

@@ -266,7 +266,11 @@ DeepSeek-V4 已对 FP4 索引器的查询和键采用量化感知训练 (QAT) [J
 <span id="equation-07"></span>
 
 $$
-\Delta_t=\sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\qquad \frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2}\approx1,\qquad \frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2}\approx1,
+\begin{aligned}
+\Delta_t &= \sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\\
+\frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2} &\approx 1,\\
+\frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2} &\approx 1,
+\end{aligned}
 $$
 
 因此, 该流程会近似拉齐更新矩阵逐行与逐列的 RMS. 一行对应一个 Token 索引或 n-gram 标识, 一列编码一个隐藏特征. Sinkhorn 均衡沿行列两个方向归一化, 利用了这种 Token-特征结构. 为保证数值稳定, 满足 $\rho_i\leq\tau\bar{\rho}$ 的行会被遮蔽. 因子 $\sqrt{n}$ 把单位行 $\ell_2$ 范数转换为单位逐行 RMS. 我们还把有效学习率调整为 $\tilde{\eta}_t=\gamma\eta_t$, 以匹配 Adam 的更新幅度. $\gamma$ 取 0.18, 接近 Moonlight [Liu25] 使用的 0.2.
@@ -288,7 +292,11 @@ $$
 **对比学习中的通信-计算重叠.** 视觉编码器先以对比目标优化, 再用生成式下一 Token 预测损失微调. 在对比学习阶段, 损失基于完整一批文本-视觉对计算, 因而两种模态的特征都必须在数据并行 rank 之间执行 all-gather, 通信量很大. 文本特征的梯度只取决于汇集后的视觉特征; 对称地, 视觉特征的梯度也只取决于汇集后的文本特征. 因此, 两次 all-gather 都可与前向或反向传播重叠, 无须停顿流水线:
 
 $$
-\mathrm{Forward}(V)\to\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\to\nabla_{\mathrm{Text}}\to\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+\begin{aligned}
+\mathrm{Forward}(V)
+&\to\left(\mathrm{Forward}(T)\parallel\mathrm{AllGather}(V)\right)\to\nabla_{\mathrm{Text}}\\
+&\to\left(\mathrm{Backward}(T)\parallel\mathrm{AllGather}(T)\right)\to\nabla_{\mathrm{Vision}}\to\mathrm{Backward}(V),
+\end{aligned}
 $$
 
 其中, $V$ 和 $T$ 分别表示视觉与文本特征, $(A\parallel C)$ 表示计算 $A$ 与通信 $C$ 重叠, $\nabla$ 表示梯度计算. 按照这一调度, 视觉特征在文本前向传播期间汇集, 文本特征在文本反向传播期间汇集, 两次 all-gather 都完全隐藏在有效计算之后.
@@ -300,7 +308,7 @@ $$
 - 均衡图像分片. 预训练期间, 单条图像密集的超长序列在加载时便可能耗尽一台主机的 I/O, CPU 和内存. 因此, 每条序列的图像会以负载均衡方式分片到各个 CP rank, 每张图像恰好只加载一次. 图像仅读取一次时, 只要满足
 
 $$
-N\times\rho B_{\mathrm{IO}}<N\times C B_{\mathrm{GPU}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}C},
+\frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
 $$
 
 加载过程就始终隐藏在计算之后. 这里, $N$ 是 Token 数, $\rho$ 是每 Token 的原始字节数, $C$ 是每 Token 的计算量, $B_{\mathrm{IO}}$ 和 $B_{\mathrm{GPU}}$ 分别是文件系统与 GPU 带宽. 因为 $N$ 可约去, 这一条件只涉及每 Token 的量 ($\rho$ 与 $C$), 与序列长度和集群规模无关; $\rho$ 由视觉模块配置决定, 如分辨率上限或空间下采样. 因此, 只有消融实验中每 Token 计算量较低的小模型会受存储吞吐量限制, 生产规模模型仍受计算约束.
@@ -397,7 +405,7 @@ Transformer 层数设为 40, 隐藏维度 $d$ 设为 5120. 我们采用因果编
 
 #### 4.2.2 训练设置
 
-线性变换参数使用 Muon 优化器 [Kel24, Liu25], 所有 RMSNorm 模块的权重与其他非矩阵参数使用 AdamW 优化器 [Los17], 所有嵌入和预测头则使用 Sinkhorn 均衡更新. AdamW 的超参数设为 $\beta_1=0.9$, $\beta_2=0.95$, $\varepsilon=10^{-20}$, $\texttt{weight\_decay}=0.1$. Muon 的动量设为 0.95, 权重衰减设为 0.1, 并把每个更新矩阵的 RMS 重新缩放至 0.18, 以复用 AdamW 学习率. Sinkhorn 均衡更新采用与 Muon 相同的动量系数和学习率修正因子, 并设 $K=11$, $\tau=10^{-3}$, $\varepsilon=10^{-20}$. 按照 Cheng et al. (2026b), Engram 的学习率放大 5 倍. 我们用 45T 个多模态数据 Token 训练 DeepSeek-V4.1-Flash, 全程未出现不稳定. 批大小始终固定为 1.006 亿 Token. 学习率在最初 2000 步线性预热, 随后保持 $2.6\times10^{-4}$ 直至处理 28T 个 Token. 从 28T 到 40T 个 Token, 按余弦调度将学习率降至 $2.6\times10^{-5}$. 40T 到 45T 个 Token 期间保持此值. 模型从 64K 序列长度起使用稀疏注意力从头训练, 处理到 34T 个 Token 时把序列长度扩展至 1M. 对无辅助损失负载均衡, 图像和文本 Token 的偏置更新速度均设为 0.001, 同时保留一个较小的序列级均衡损失, 权重为 0.0001, 以免单条序列内出现极端不平衡. 与 DeepSeek-V4 类似, 预训练时采用样本级注意力掩码.
+线性变换参数使用 Muon 优化器 [Kel24, Liu25], 所有 RMSNorm 模块的权重与其他非矩阵参数使用 AdamW 优化器 [Los17], 所有嵌入和预测头则使用 Sinkhorn 均衡更新. AdamW 的超参数设为 $\beta_1=0.9$, $\beta_2=0.95$, $\varepsilon=10^{-20}$, $\mathrm{weight\_decay}=0.1$. Muon 的动量设为 0.95, 权重衰减设为 0.1, 并把每个更新矩阵的 RMS 重新缩放至 0.18, 以复用 AdamW 学习率. Sinkhorn 均衡更新采用与 Muon 相同的动量系数和学习率修正因子, 并设 $K=11$, $\tau=10^{-3}$, $\varepsilon=10^{-20}$. 按照 [Che26b], Engram 的学习率放大 5 倍. 我们用 45T 个多模态数据 Token 训练 DeepSeek-V4.1-Flash, 全程未出现不稳定. 批大小始终固定为 1.006 亿 Token. 学习率在最初 2000 步线性预热, 随后保持 $2.6\times10^{-4}$ 直至处理 28T 个 Token. 从 28T 到 40T 个 Token, 按余弦调度将学习率降至 $2.6\times10^{-5}$. 40T 到 45T 个 Token 期间保持此值. 模型从 64K 序列长度起使用稀疏注意力从头训练, 处理到 34T 个 Token 时把序列长度扩展至 1M. 对无辅助损失负载均衡, 图像和文本 Token 的偏置更新速度均设为 0.001, 同时保留一个较小的序列级均衡损失, 权重为 0.0001, 以免单条序列内出现极端不平衡. 与 DeepSeek-V4 类似, 预训练时采用样本级注意力掩码.
 
 **视觉编码器训练.** DeepSeek-ViT 在接入语言主干前会单独训练. 流水线分为两个阶段: 对比预训练与自回归微调. 对比预训练期间, 使用 SigLIP 提出的 sigmoid 对比损失 [Zha23t], 在约 47B 个取自 alt 文本数据的图文对上优化模型. 为从如此庞大的数据集中高效学习视觉表示, 我们把输入分辨率上限设为 $224\times224$ 像素, 较大图像保持宽高比缩小. 在这一阶段使用更高分辨率虽能带来明显增益, 实验却表明这些收益对最终模型帮助不大. 后续自回归阶段专门处理高分辨率外推, 因而在对比预训练中提高分辨率只会大幅增加计算开销, 整体改善很小. 自回归微调阶段, 我们将视觉编码器连接到一个 4B MoE LLM, 用下一 Token 预测目标, 在图像描述, alt 文本, 图表和 OCR 等数据集的 236B 个 Token 上训练. 此阶段旨在增强编码器为细粒度视觉特征建模的能力. 因此, 输入分辨率限制在 $544\times544$ 到 $1344\times1344$ 像素之间, 超出范围的图像按比例缩放. 完成后, 丢弃 LLM, 只保留优化后的视觉编码器供后续预训练流水线使用, 并沿用相同的输入分辨率策略.
 
@@ -757,7 +765,7 @@ DeepSeek-V4.1-Flash 相较 DeepSeek-V4-Flash 大幅简化了数个架构组件, 
 <span id="equation-11"></span>
 
 $$
-r^{\mathrm{len}}(\ell,b)=-\min\left\{{C_{\max}},\ k(b)\frac{\ell}{L_{\mathrm{norm}}}\right\},
+r^{\mathrm{len}}(\ell,b)=-\min\left\{C_{\max},\,k(b)\frac{\ell}{L_{\mathrm{norm}}}\right\},
 $$
 
 其中, $L_{\mathrm{norm}}$ 是参考长度, $C_{\max}$ 限制扣分上限. 随强度变化的 Token 惩罚系数为
