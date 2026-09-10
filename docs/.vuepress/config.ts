@@ -1438,6 +1438,7 @@ const paperAbbreviations = {
   'Amd20': 'Advanced Micro Devices, Inc. "AMD CDNA Architecture." 2020. [Link](https://www.amd.com/en/technologies/cdna)',
   'Amd21': 'Advanced Micro Devices, Inc. "AMD Composable Kernel." 2021. [Link](https://github.com/ROCm/composable_kernel)',
   'Dao22': 'Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, Christopher Ré. "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness." Advances in Neural Information Processing Systems. 2022. [Link](https://arxiv.org/abs/2205.14135)',
+  'Lef22': 'Benjamin Lefaudeux, Francisco Massa, Diana Liskovich, Wenhan Xiong, Vittorio Caggiano, Sean Naren, Min Xu, Jieru Hu, Marta Tintore, Susan Zhang, Patrick Labatut, Daniel Haziza. "xFormers: A Modular and Hackable Transformer Modelling Library." 2022. [Link](https://github.com/facebookresearch/xformers)',
   'Goo24': 'Google. "Google Assistant with Bard: Generative AI." 2024. [Link](https://blog.google/products/assistant/google-assistant-bard-generative-ai/)',
   'Hag23': 'Bastian Hagedorn, Bin Fan, Hanfeng Chen, Cris Cecka, Michael Garland, Vinod Grover. "Graphene: An IR for Optimized Tensor Computations on GPUs." Proceedings of the 28th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 3. 2023. [DOI](https://doi.org/10.1145/3582016.3582048)',
   'Mic24': 'Microsoft. "The New Bing." 2024. [Link](https://www.microsoft.com/en-us/edge/features/the-new-bing?form=MT00D8)',
@@ -4948,7 +4949,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -5075,7 +5076,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5312,7 +5313,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
