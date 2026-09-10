@@ -4811,6 +4811,34 @@ Object.assign(paperAbbreviations, {
   'Zam24': 'Zyphra. "Zyphra Unveils Zamba: A Compact 7B SSM Hybrid Model." 2024. [Link](https://www.zyphra.com/our-work/zamba)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Bla23': 'Alibaba. "BladeDISC." Version 0.3.0, 2023. [Link](https://github.com/alibaba/BladeDISC)',
+  'Ipu23': 'Graphcore. "IPU Programmer\'s Guide." 2023. [Link](https://docs.graphcore.ai/projects/ipu-programmers-guide/en/latest/)',
+  'Cud23': 'NVIDIA. "NVIDIA cuDNN." 2023. [Link](https://developer.nvidia.com/cudnn)',
+  'Onn20': 'Microsoft. "onnxconverter-common." 2020. [Link](https://github.com/microsoft/onnxconverter-common)',
+  'Ten20': 'Feng Xie et al. "TensorIR: An Abstraction for Automatic Tensorized Program Optimization." TVM RFC 24, 2020. [Link](https://github.com/apache/tvm-rfcs/blob/main/rfcs/0024-tensorir.md)',
+  'Che22c': 'Liangyu Chen, Xiaojie Chu, Xiangyu Zhang, and Jian Sun. "Simple Baselines for Image Restoration." ECCV, 2022. [Link](https://arxiv.org/abs/2204.04676)',
+  'Gar72': 'Michael R. Garey, Ronald L. Graham, and Jeffrey D. Ullman. "Worst-Case Analysis of Memory Allocation Algorithms." STOC, 1972.',
+  'Jun21': 'Wookeun Jung, Thanh Tuan Dao, and Jaejin Lee. "DeepCuts: A Deep Learning Optimization Framework for Versatile GPU Workloads." PLDI, 2021.',
+  'Li22e': 'Ao Li, Bojian Zheng, Gennady Pekhimenko, and Fan Long. "Automatic Horizontal Fusion for GPU Kernels." CGO, 2022.',
+  'Li22f': 'Zheyuan Li, Yingqi Liu, Xiangyu Chen, Haoming Cai, Jinjin Gu, Yu Qiao, and Chao Dong. "Blueprint Separable Residual Network for Efficient Image Super-Resolution." CVPR Workshops, 2022.',
+  'Meh21': 'Sachin Mehta and Mohammad Rastegari. "MobileViT: Light-Weight, General-Purpose, and Mobile-Friendly Vision Transformer." arXiv:2110.02178, 2021. [Link](https://arxiv.org/abs/2110.02178)',
+  'Mil21': 'Ben Mildenhall et al. "NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis." Communications of the ACM 65(1), 2021.',
+  'Mul21': 'Thomas Müller. "tiny-cuda-nn." 2021. [Link](https://github.com/NVlabs/tiny-cuda-nn)',
+  'Mul21a': 'Thomas Müller, Fabrice Rousselle, Jan Novák, and Alexander Keller. "Real-Time Neural Radiance Caching for Path Tracing." arXiv:2106.12372, 2021. [Link](https://arxiv.org/abs/2106.12372)',
+  'Niu21': 'Wei Niu, Jiexiong Guan, Yanzhi Wang, Gagan Agrawal, and Bin Ren. "DNNFusion: Accelerating Deep Neural Networks Execution with Advanced Operator Fusion." PLDI, 2021.',
+  'Pen20': 'Xuan Peng, Xuanhua Shi, Hulin Dai, Hai Jin, Weiliang Ma, Qian Xiong, Fan Yang, and Xuehai Qian. "Capuchin: Tensor-Based GPU Memory Management for Deep Learning." ASPLOS, 2020.',
+  'Qia18': 'Bo Qiao, Oliver Reiche, Frank Hannig, and Jürgen Teich. "Automatic Kernel Fusion for Image Processing DSLs." SCOPES, 2018.',
+  'Qia19': 'Bo Qiao, Oliver Reiche, Frank Hannig, and Jürgen Teich. "From Loop Fusion to Kernel Fusion: A Domain-Specific Approach to Locality Optimization." CGO, 2019.',
+  'Sid21': 'Nahian Siddique, Sidike Paheding, Colin P. Elkin, and Vijay Devabhaktuni. "U-Net and Its Variants for Medical Image Segmentation: A Review of Theory and Applications." IEEE Access 9, 2021.',
+  'Sim14a': 'Karen Simonyan and Andrew Zisserman. "Very Deep Convolutional Networks for Large-Scale Image Recognition." arXiv:1409.1556, 2014. [Link](https://arxiv.org/abs/1409.1556)',
+  'Wah14': 'Mohamed Wahib and Naoya Maruyama. "Scalable Kernel Fusion for Memory-Bound GPU Applications." SC, 2014.',
+  'Wan20h': 'Xueying Wang, Guangli Li, Xiao Dong, Jiansong Li, Lei Liu, and Xiaobing Feng. "Accelerating Deep Learning Inference with Cross-Layer Data Reuse on GPUs." Euro-Par, 2020.',
+  'Zam22': 'Syed Waqas Zamir et al. "Restormer: Efficient Transformer for High-Resolution Image Restoration." CVPR, 2022.',
+  'Zha22h': 'Jie Zhao et al. "Apollo: Automatic Partition-Based Operator Fusion Through Layer by Layer Optimization." MLSys, 2022.',
+  'Zhe22f': 'Zhen Zheng et al. "AStitch: Enabling a New Multi-Dimensional Optimization Space for Memory-Intensive ML Training and Inference on Modern SIMT Architectures." ASPLOS, 2022.',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -5087,7 +5115,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'welder', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -5214,7 +5242,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'welder', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5451,7 +5479,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'welder', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
