@@ -25,6 +25,7 @@ jobs:
         with:
           ref: main
           persist-credentials: false
+          sparse-checkout: scripts
       - uses: actions/setup-node@v4
         with:
           node-version: '24'

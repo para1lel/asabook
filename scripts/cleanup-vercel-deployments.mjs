@@ -20,14 +20,17 @@ async function api(path, method = 'GET') {
 }
 
 async function production() {
-  const project = await api(`/v9/projects/${projectId}`)
-  const current = project.targets?.production
-  if (project.id !== projectId || current?.readyState !== 'READY' || !current.id || !current.createdAt) {
-    throw new Error(`Cannot identify a healthy production deployment; nothing deleted: ${JSON.stringify({
-      projectId: project.id, targetKeys: Object.keys(project.targets ?? {}),
-      productionId: current?.id, state: current?.readyState, createdAt: current?.createdAt,
-      productionKeys: Object.keys(current ?? {}),
-    })}`)
+  // Project targets can point at a queued build. Resolve the domains actually serving traffic.
+  const aliases = await Promise.all(['www.asabook.cc', 'asabook.cc', 'asabook.vercel.app']
+    .map(domain => api(`/v4/aliases/${domain}`)))
+  const id = aliases[0].deploymentId
+  if (!id || aliases.some(alias => alias.projectId !== projectId || alias.deploymentId !== id)) {
+    throw new Error('Production domains do not agree on a deployment; nothing deleted')
+  }
+  const current = await api(`/v13/deployments/${id}`)
+  if (current.projectId !== projectId || current.id !== id
+    || current.readyState !== 'READY' || current.target !== 'production' || !current.createdAt) {
+    throw new Error('Cannot identify a healthy production deployment; nothing deleted')
   }
   return current
 }
