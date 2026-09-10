@@ -1,0 +1,121 @@
+[
+  {
+    "name": "figure-01",
+    "preserveSource": true,
+    "sourceHeight": 1604,
+    "sourceWidth": 3072
+  },
+  {
+    "name": "figure-02",
+    "preserveSource": true,
+    "sourceHeight": 1044,
+    "sourceWidth": 2432
+  },
+  {
+    "name": "figure-03",
+    "preserveSource": true,
+    "sourceHeight": 1736,
+    "sourceWidth": 3112
+  },
+  {
+    "name": "figure-04",
+    "page": 4,
+    "x": 52.5,
+    "y": 82.5,
+    "width": 243,
+    "height": 228,
+    "matchScore": 0.714,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-05",
+    "page": 4,
+    "x": 316,
+    "y": 81,
+    "width": 245,
+    "height": 245,
+    "matchScore": 0.773,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-06",
+    "page": 5,
+    "x": 346,
+    "y": 82,
+    "width": 184,
+    "height": 265,
+    "matchScore": 0.915,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-07",
+    "page": 5,
+    "x": 346.5,
+    "y": 393,
+    "width": 183.5,
+    "height": 136,
+    "matchScore": 0.905,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-08",
+    "preserveSource": true,
+    "sourceHeight": 1396,
+    "sourceWidth": 2684
+  },
+  {
+    "name": "figure-09",
+    "page": 8,
+    "x": 53.5,
+    "y": 83.5,
+    "width": 505,
+    "height": 156.5,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-10",
+    "preserveSource": true,
+    "sourceHeight": 1152,
+    "sourceWidth": 1728
+  },
+  {
+    "name": "figure-11",
+    "preserveSource": true,
+    "sourceHeight": 1152,
+    "sourceWidth": 1728
+  },
+  {
+    "name": "figure-12",
+    "preserveSource": true,
+    "sourceHeight": 1152,
+    "sourceWidth": 1728
+  },
+  {
+    "name": "table-01",
+    "page": 11,
+    "x": 336,
+    "y": 510,
+    "width": 205,
+    "height": 70
+  },
+  {
+    "name": "figure-13",
+    "page": 11,
+    "x": 315,
+    "y": 333,
+    "width": 246,
+    "height": 101,
+    "matchScore": 0.91,
+    "preserveSource": true
+  },
+  {
+    "name": "figure-14",
+    "page": 12,
+    "x": 51,
+    "y": 81,
+    "width": 246,
+    "height": 125,
+    "matchScore": 0.932,
+    "preserveSource": true
+  }
+]

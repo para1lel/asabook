@@ -4652,6 +4652,26 @@ Object.assign(paperAbbreviations, {
   'Tan23a': 'Xiaohu Tang et al. "LUT-NN: Empower Efficient Neural Network Inference with Centroid Learning and Table Lookup." MobiCom, 2023. [DOI](https://doi.org/10.1145/3570361.3613285)',
 })
 
+Object.assign(paperAbbreviations, {
+  'Arm17': 'Arm. "Arm Compute Library." 2017. [Link](https://github.com/ARM-software/ComputeLibrary/)',
+  'Arm17a': 'Arm. "Exploring the Arm Dot Product Instructions." 2017. [Link](https://community.arm.com/arm-community-blogs/b/tools-software-ides-blog/posts/exploring-the-arm-dot-product-instructions)',
+  'Bha20a': 'Somashekaracharya G. Bhaskaracharya, Julien Demouth, and Vinod Grover. "Automatic Kernel Generation for Volta Tensor Cores." arXiv:2006.12645, 2020. [Link](https://arxiv.org/abs/2006.12645)',
+  'Duk18': 'Marat Dukhan, Yiming Wu, and Hao Lu. "QNNPACK: Open Source Library for Optimized Mobile Deep Learning." 2018. [Link](https://engineering.fb.com/2018/10/29/ml-applications/qnnpack/)',
+  'Feg21': 'Pratik Fegade, Tianqi Chen, Phil Gibbons, and Todd Mowry. "Cortex: A Compiler for Recursive Deep Learning Models." MLSys, 2021. [Link](https://proceedings.mlsys.org/paper/2021/hash/7f100b7b36092fb9b06dfb4fac360931-Abstract.html)',
+  'Fra04': 'Basilio B. Fraguela et al. "The Hierarchically Tiled Arrays Programming Approach." LCR, pp. 1–12, 2004. [DOI](https://doi.org/10.1145/1066650.1066657)',
+  'Hag20': 'Bastian Hagedorn, Archibald Samuel Elliott, Henrik Barthels, Rastislav Bodik, and Vinod Grover. "Fireiron: A Data-Movement-Aware Scheduling Language for GPUs." PACT, pp. 71–82, 2020. [DOI](https://doi.org/10.1145/3410463.3414632)',
+  'Int19': 'Intel. "Introduction to Intel Deep Learning Boost on Second Generation Intel Xeon Scalable Processors." 2019. [Link](https://www.intel.com/content/www/us/en/developer/articles/technical/introduction-to-intel-deep-learning-boost-on-second-generation-intel-xeon-scalable-processors.html)',
+  'Ker22': 'Andrew Kerr et al. "CUTLASS." 2022. [Link](https://github.com/NVIDIA/cutlass)',
+  'Kon13': 'Martin Kong et al. "When Polyhedral Transformations Meet SIMD Code Generation." PLDI, pp. 127–138, 2013. [DOI](https://doi.org/10.1145/2491956.2462187)',
+  'Lil15': 'Timothy P. Lillicrap et al. "Continuous Control with Deep Reinforcement Learning." arXiv:1509.02971, 2015. [Link](https://arxiv.org/abs/1509.02971)',
+  'Mor18a': 'Thierry Moreau et al. "VTA: An Open Hardware-Software Stack for Deep Learning." arXiv:1807.04188, 2018. [Link](https://arxiv.org/abs/1807.04188)',
+  'Ros07': 'Ira Rosen, Dorit Nuzman, and Ayal Zaks. "Loop-Aware SLP in GCC." GCC Developers Summit, 2007. [Link](https://gcc.gnu.org/pub/gcc/summit/2007/Loop-Aware-SLP.pdf)',
+  'Sen20a': 'Ryan Senanayake et al. "A Sparse Iteration Space Transformation Framework for Sparse Tensor Algebra." Proceedings of the ACM on Programming Languages 4(OOPSLA), Article 158, 2020. [DOI](https://doi.org/10.1145/3428226)',
+  'Vas06': 'Nicolas Vasilache, Cédric Bastoul, and Albert Cohen. "Polyhedral Code Generation in the Real World." CC, pp. 185–201, 2006. [DOI](https://doi.org/10.1007/11688839_15)',
+  'Zer19': 'Tim Zerrell and Jeremy Bruestle. "Stripe: Tensor Compilation via the Nested Polyhedral Model." arXiv:1903.06498, 2019. [Link](https://arxiv.org/abs/1903.06498)',
+  'Zha21k': 'Jie Zhao et al. "AKG: Automatic Kernel Generation for Neural Processing Units Using Polyhedral Transformations." PLDI, pp. 1233–1248, 2021. [DOI](https://doi.org/10.1145/3453483.3454106)',
+})
+
 const normalizedEntries = Object.entries(paperAbbreviations).map(([key, value]) => [
   key,
   normalizePaperAbbreviation(value),
@@ -4928,7 +4948,7 @@ export default defineUserConfig({
               {
                 text: '编译技术',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量化',
@@ -5055,7 +5075,7 @@ export default defineUserConfig({
               {
                 text: 'Compiler Technology',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: 'Quantization',
@@ -5292,7 +5312,7 @@ export default defineUserConfig({
               {
                 text: 'コンパイラ技術',
                 collapsed: true,
-                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
+                items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'ladder', 'tilelang', 'pipethreader', 'streamtensor', 'flashattention-4', 'tilesight'],
               },
               {
                 text: '量子化',
