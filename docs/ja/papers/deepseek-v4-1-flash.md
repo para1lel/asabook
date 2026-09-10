@@ -20,15 +20,15 @@ permalink: /ja/papers/deepseek-v4-1-flash/
 
 ## 1 はじめに
 
-近年、長期ホライズンのエージェント利用が急速に広がり、超長文脈処理はますます重要なモデルワークロードとなっている。このようなワークロードを支えるには、長い系列を効率よく処理するだけでなく、大規模な KV キャッシュを永続化し、再利用し、転送する必要もある。したがって KV キャッシュ管理はモデルデプロイの基盤機能となった一方、計算、保存、通信の各面に大きな課題をもたらした。スパースアテンションに関する従来の進展（DeepSeek-AI, 2025, 2026b）によって長系列処理の計算コストは大幅に低下し、その分、永続化とデータ移動がより顕著なボトルネックとなっている。
+近年、長期ホライズンのエージェント利用が急速に広がり、超長文脈処理はますます重要なモデルワークロードとなっている。このようなワークロードを支えるには、長い系列を効率よく処理するだけでなく、大規模な KV キャッシュを永続化し、再利用し、転送する必要もある。したがって KV キャッシュ管理はモデルデプロイの基盤機能となった一方、計算、保存、通信の各面に大きな課題をもたらした。スパースアテンションに関する従来の進展 [Dee25a, Dee26] によって長系列処理の計算コストは大幅に低下し、その分、永続化とデータ移動がより顕著なボトルネックとなっている。
 
-具体的には、DeepSeek-V4（DeepSeek-AI, 2026b）は、文脈全体を対象とするグローバルアテンション分岐とローカルな Sliding-Window Attention（SWA）を組み合わせる。グローバル分岐は main KV と indexer K からなる global KV を保持し、SWA はローカル KV 状態を保持する。ウィンドウサイズが固定なら、SWA KV の保存量は系列長に依存せず上限がある。したがって系列が十分長い場合、実行時 KV の大部分は global KV となり、その容量は HBM に制約される。また、接頭辞再利用のために一部の KV を永続 KV キャッシュとして保存するが、こちらは SSD とホストメモリ容量に制約される。I/O と相互接続帯域も、キャッシュの移動と読み込みを制限する。これらの制約は総じてサービングのスループットを抑え、デプロイコストを増やし、より長いタスクホライズンとより幅広い応用場面へのエージェント展開・普及を妨げる。
+具体的には、DeepSeek-V4 [Dee26] は、文脈全体を対象とするグローバルアテンション分岐とローカルな Sliding-Window Attention（SWA）を組み合わせる。グローバル分岐は main KV と indexer K からなる global KV を保持し、SWA はローカル KV 状態を保持する。ウィンドウサイズが固定なら、SWA KV の保存量は系列長に依存せず上限がある。したがって系列が十分長い場合、実行時 KV の大部分は global KV となり、その容量は HBM に制約される。また、接頭辞再利用のために一部の KV を永続 KV キャッシュとして保存するが、こちらは SSD とホストメモリ容量に制約される。I/O と相互接続帯域も、キャッシュの移動と読み込みを制限する。これらの制約は総じてサービングのスループットを抑え、デプロイコストを増やし、より長いタスクホライズンとより幅広い応用場面へのエージェント展開・普及を妨げる。
 
 したがって、KV キャッシュの占有量をさらに減らすことは、保存・通信のボトルネックを緩和し、長文脈サービングのコストを下げるうえで不可欠である。そこで、より大胆な KV キャッシュ圧縮を目指したマルチモーダル Mixture-of-Experts（MoE）モデル DeepSeek-V4.1-Flash を開発した。DeepSeek-V4.1-Flash は 552B のバックボーンパラメータを持ち、マルチモーダル入力をネイティブに扱い、最大 100 万トークンの文脈に対応する。Causal Encoder-Decoder（CED）アーキテクチャを採用し、デコーダの global KV をエンコーダ最終隠れ状態から射影する。この設計により、トークン当たりの活性化パラメータはプリフィル時 8B、デコード時 16B となり、入力偏重のエージェント場面で特に費用効率が高い。DeepSeek-V4-Flash よりかなり大きいにもかかわらず、同じ系列長では実行時 KV キャッシュの保存量が約 4 分の 1、永続 KV キャッシュが約 8 分の 1 で済む。しかも総合性能は DeepSeek-V4-Flash を上回る。この圧縮率は、モデルアーキテクチャ、キャッシュ精度、デプロイ戦略を共同で最適化して達成した。概念的には、DeepSeek-V4 は SWA ベースのローカル処理バックボーンに、圧縮したグローバル文脈を付加したものと捉えられる。この見方から、ローカルアテンション設計をほぼ維持しつつ、グローバル分岐の簡素化に注力した。アーキテクチャ面では Compressed Sparse Attention 2（CSA2）を設計し、main KV と indexer K を含む global KV、および Top-K インデックスをレイヤー間で再利用して、KV キャッシュ保存量を大きく減らす。CSA2 には静的に割り当てる Full、Reindex、Reuse の 3 モードがある。Full Mode は global KV を生成してインデックス付けを行う。Reindex Mode は前段レイヤーの global KV を再利用し、自身の indexer Q で共有 indexer K を再スコアリングして新しい Top-K インデックスを選ぶ。Reuse Mode は前段レイヤーの global KV と Top-K インデックスの両方を再利用し、そのままスパースアテンションを実行する。どのモードでも、各レイヤーは固有の global Q と SWA KV を持つ。global KV と indexer K の共有により重複保存を減らせる。また、CSA と Heavily Compressed Attention（HCA）の混成アーキテクチャを使う DeepSeek-V4 と異なり、DeepSeek-V4.1-Flash は純粋な CSA2 を用いる。キャッシュ精度については、学習中に FP4 global KV キャッシュを使いながら、性能低下をわずかに抑えた。CSA2 と FP4 KV キャッシュを合わせることで、[図 1（b）](#figure-01)に示すように、global KV キャッシュ保存量は DeepSeek-V4-Flash の約 4 分の 1 になる。デプロイ面では DeepSeek-V4 と同じく、全レイヤーで Sliding-Window Attention（SWA）を使う。DeepSeek-V4 では、SWA KV キャッシュ永続化の保存コストと、厳密な再構築に要する計算との均衡を取る混成戦略を用いた。厳密な再構築には、直近の $L\times n_{\mathrm{win}}$ トークンを再生する必要がある。ここで $L$ はレイヤー数、$n_{\mathrm{win}}$ は SWA のウィンドウサイズである。DeepSeek-V4.1-Flash では SWA Bounded Replay を導入し、直近の $n_{\mathrm{win}}$ トークンだけを再生して必要な SWA KV 状態を近似的に再構築する。
 
 実験では、これによる性能低下は無視できるほど小さかった。この結果から新たな保存量と計算量のトレードオフが得られ、少量のプリフィル再計算と引き換えに、SWA KV キャッシュを SSD に永続化せずに済む。SWA Bounded Replay によって、永続 KV キャッシュの占有量は DeepSeek-V4-Flash の約 8 分の 1 までさらに減る。これらの最適化により HBM と SSD の容量圧力を大幅に緩和し、デプロイコストを下げ、より大規模な展開への道を開く。
 
-CED と CSA2 に加えて、元の DeepSeek-V4 アーキテクチャもさらに簡素化した。また、従来の mHC（Xie et al., 2026）を Single-Pass mHC に更新し、付随するデプロイ用 Mega-mHC カーネルにより、従来の 4 カーネル実装と比べて活性化メモリトラフィックを半減させた。さらに、条件付きメモリモジュール Engram（Cheng et al., 2026b）を組み込み、モデル能力を強化した。半自己回帰的なドラフト生成と、信頼度に応じた検証スケジュールを組み合わせる投機的デコードアーキテクチャ DSpark（Cheng et al., 2026a）も導入した。これらすべての改善を組み合わせても、DeepSeek-V4.1-Flash の 1 トークン当たり Decode FLOPs は文脈長によらずほぼ一定である。[図 2](#figure-02)に示すように、文脈長を 4K から 1M へ 256 倍に伸ばしても Decode FLOPs の増加は 4 分の 1 にすぎず、DeepSeek-V4-Flash の増加幅を大きく下回る。
+CED と CSA2 に加えて、元の DeepSeek-V4 アーキテクチャもさらに簡素化した。また、従来の mHC [Xie26] を Single-Pass mHC に更新し、付随するデプロイ用 Mega-mHC カーネルにより、従来の 4 カーネル実装と比べて活性化メモリトラフィックを半減させた。さらに、条件付きメモリモジュール Engram [Che26b] を組み込み、モデル能力を強化した。半自己回帰的なドラフト生成と、信頼度に応じた検証スケジュールを組み合わせる投機的デコードアーキテクチャ DSpark [Che26c] も導入した。これらすべての改善を組み合わせても、DeepSeek-V4.1-Flash の 1 トークン当たり Decode FLOPs は文脈長によらずほぼ一定である。[図 2](#figure-02)に示すように、文脈長を 4K から 1M へ 256 倍に伸ばしても Decode FLOPs の増加は 4 分の 1 にすぎず、DeepSeek-V4-Flash の増加幅を大きく下回る。
 
 <span id="figure-02"></span>
 
@@ -40,11 +40,11 @@ CED と CSA2 に加えて、元の DeepSeek-V4 アーキテクチャもさらに
 
 事前学習では、45T トークンからなる大規模マルチモーダルコーパスで DeepSeek-V4.1-Flash を学習した。密アテンションのウォームアップ段階を設けず、系列長 64K でスパースアテンションを最初から学習する。事前学習後のモデルはマルチモーダル能力をネイティブに持ち、最大 100 万トークンの文脈に対応する。評価では、DeepSeek-V4.1-Flash-Base は DeepSeek-V4-Pro-Base に匹敵する世界知識、推論、コーディング能力を示し、総パラメータは 3 分の 1、活性化パラメータは 4 分の 1 にとどまりながら、留保評価では 5%-10% 向上した。これらの結果は高いパラメータ効率を示すとともに、実運用に向けた学習データ品質の改善を反映している。
 
-このベースモデルを基に、推論能力とエージェント能力を引き出す事後学習を行った。前述のアーキテクチャ上の革新とは対照的に、事後学習にはアルゴリズム上の新規性はない。レシピは教師ありファインチューニング（SFT）の後に強化学習（RL）とオンポリシー蒸留（OPD）を行う標準形に従い、DeepSeek-V4 の開発で使った確立済みの手法（DeepSeek-AI, 2026b）以外に変更を加えていない。本質的な変更はすべてデータパイプラインにある。データ合成と環境構築の大規模な自動化パイプラインを開発し、RL に用いるデータ、タスク、ロールアウトを段階的に拡大することで、テキスト、マルチモーダル、エージェントの各領域へモデル能力を広げた。[図 1（a）](#figure-01)は、主要なエージェントベンチマークにおける DeepSeek-V4.1-Flash の性能をまとめたものである。評価から、コンパクトな規模でありながら、DeepSeek-V4.1-Flash は次のような特徴的な能力構成を示した。
+このベースモデルを基に、推論能力とエージェント能力を引き出す事後学習を行った。前述のアーキテクチャ上の革新とは対照的に、事後学習にはアルゴリズム上の新規性はない。レシピは教師ありファインチューニング（SFT）の後に強化学習（RL）とオンポリシー蒸留（OPD）を行う標準形に従い、DeepSeek-V4 の開発で使った確立済みの手法 [Dee26] 以外に変更を加えていない。本質的な変更はすべてデータパイプラインにある。データ合成と環境構築の大規模な自動化パイプラインを開発し、RL に用いるデータ、タスク、ロールアウトを段階的に拡大することで、テキスト、マルチモーダル、エージェントの各領域へモデル能力を広げた。[図 1（a）](#figure-01)は、主要なエージェントベンチマークにおける DeepSeek-V4.1-Flash の性能をまとめたものである。評価から、コンパクトな規模でありながら、DeepSeek-V4.1-Flash は次のような特徴的な能力構成を示した。
 
-- **推論。** 数学や競技プログラミングなど推論負荷の高いベンチマークで高精度を維持し、Kimi-K3（Team et al., 2026a）や DeepSeek-V4-Pro といった最上位のオープンソースモデルに匹敵する性能を示す。
+- **推論。** 数学や競技プログラミングなど推論負荷の高いベンチマークで高精度を維持し、Kimi-K3 [Kim26c] や DeepSeek-V4-Pro といった最上位のオープンソースモデルに匹敵する性能を示す。
 
-- **エージェント。** Terminal-Bench 2.1（Merrill et al., 2026）、DeepSWE v1.1（DataCurve, 2026）、AutomationBench（Shepard and Salimans, 2026）など標準的なエージェントベンチマークで、クローズドソースの最先端モデルと同等の性能を達成した。日常のコーディングタスクとホワイトカラー業務フローを十分にこなせる。ただし、専門家水準の領域知識を要する Terminal-Bench 4.0（Marten et al., 2026a）のような科学系エージェントタスクでは、巨大モデルとの差が残る。
+- **エージェント。** Terminal-Bench 2.1 [Mer26]、DeepSWE v1.1 [Dee26c]、AutomationBench [She26] など標準的なエージェントベンチマークで、クローズドソースの最先端モデルと同等の性能を達成した。日常のコーディングタスクとホワイトカラー業務フローを十分にこなせる。ただし、専門家水準の領域知識を要する Terminal-Bench 4.0 [Mar26] のような科学系エージェントタスクでは、巨大モデルとの差が残る。
 
 - **マルチモーダル。** マルチモーダル領域では、視覚推論と専門的な図表の解釈を測るベンチマークにおいて、Kimi-K3 など最上位のオープンソース競合を上回る。正式な指標に加え、フロントエンド開発やオフィス自動化など現実の視覚エージェント業務でも、レンダリングした画面キャプチャを利用して目視検査と自己修正を行う実用性を示した。それでも、巨大なクローズドソースシステムとの比較では総合性能に明確な差が残ることを認める。
 
@@ -68,7 +68,7 @@ DeepSeek-V4.1-Flash は、画像とテキストを入力としてテキストを
 
 Causal Encoder-Decoder（CED）と Compressed Sparse Attention 2（CSA2）は、長文脈推論における相補的なコストに対処する。CED は encoder 出力から decoder の global key-value（KV）キャッシュを構築し、各層固有の sliding-window attention を保ちながら、プロンプトの大半のトークンが decoder の全計算を通らずに済むようにする。これによりプリフィル計算はほぼ半減し、文脈が伸びるエージェントワークロードで新規または未キャッシュ入力を処理するコストが下がる。CSA2 は global KV を層間共有してキャッシュ保存量を減らし、スパース選択を再利用してインデックス処理を減らす。decoder では Hierarchical Sparse Indexer が、後段の indexer の探索対象を前段 indexer が選んだ候補プールに限定し、クエリ当たりのスコアリング項目数をさらに減らす。
 
-DeepSeekMoE（Dai et al., 2024）の共有 expert と細粒度 routed expert を維持し、画像トークンとテキストトークンにモダリティ別 load balancing（Wang et al., 2024a）を導入する。Single-Pass mHC（Xie et al., 2026）は residual stream の混合を見直して効率的なカーネル融合を可能にし、Engram（Cheng et al., 2026b）はスパースアクセスされる条件付きメモリを加える。バックボーンの事前学習では MTP モジュールを省き、投機的デコードには DSpark（Cheng et al., 2026a）を使う。DSpark はバックボーン事前学習の後に別途学習する。さらに main KV キャッシュを FP4 に圧縮し、保存オーバーヘッドをいっそう減らす。以下では、これらの構成要素と対応する最適化変更を説明する。
+DeepSeekMoE [Dai24] の共有 expert と細粒度 routed expert を維持し、画像トークンとテキストトークンにモダリティ別 load balancing [Wan24d] を導入する。Single-Pass mHC [Xie26] は residual stream の混合を見直して効率的なカーネル融合を可能にし、Engram [Che26b] はスパースアクセスされる条件付きメモリを加える。バックボーンの事前学習では MTP モジュールを省き、投機的デコードには DSpark [Che26c] を使う。DSpark はバックボーン事前学習の後に別途学習する。さらに main KV キャッシュを FP4 に圧縮し、保存オーバーヘッドをいっそう減らす。以下では、これらの構成要素と対応する最適化変更を説明する。
 
 <span id="section-2-1-1"></span>
 
@@ -76,15 +76,15 @@ DeepSeekMoE（Dai et al., 2024）の共有 expert と細粒度 routed expert を
 
 マルチモーダル入力経路は vision encoder と MLP projector からなる。各入力画像について、vision encoder は空間的な visual feature グリッドを生成する。続いて 3 × 3 の pixel-unshuffle が各局所近傍をチャネル次元に沿って並べ替え、空間解像度を下げてから、MLP projector が feature を言語バックボーンの hidden dimension に写像する。最後に、得られた visual embedding を入力 embedding 系列内の対応する image-token 位置へ挿入し、言語バックボーンで text embedding と共同処理する。
 
-**DeepSeek-ViT。** 可変解像度の画像をネイティブに処理する vision encoder DeepSeek-ViT をゼロから学習する。DeepSeek-ViT は Vision Transformer（Dosovitskiy et al., 2021）を基に、いくつかの変更を加えて構築した。任意解像度の入力に対応するため、標準の absolute positional embedding を 2D-RoPE に置き換える。ViT を LLM の設計原則へ近づけるため、patch embedding 層の畳み込みを線形射影に置き換え、Muon optimizer との互換性を確保する。正規化には RMSNorm（Zhang and Sennrich, 2019）、活性化関数には SwiGLU（Shazeer, 2020）を採用する。visual feature を LLM に渡す前に、3 × 3 ダウンサンプリングの pixel-unshuffle を適用して visual token 数を 9 分の 1 に減らし、最大約 1344 × 1344 ピクセルの入力解像度を実質的に扱えるようにする。
+**DeepSeek-ViT。** 可変解像度の画像をネイティブに処理する vision encoder DeepSeek-ViT をゼロから学習する。DeepSeek-ViT は Vision Transformer [Dos20] を基に、いくつかの変更を加えて構築した。任意解像度の入力に対応するため、標準の absolute positional embedding を 2D-RoPE に置き換える。ViT を LLM の設計原則へ近づけるため、patch embedding 層の畳み込みを線形射影に置き換え、Muon optimizer との互換性を確保する。正規化には RMSNorm [Zha19]、活性化関数には SwiGLU [Sha20] を採用する。visual feature を LLM に渡す前に、3 × 3 ダウンサンプリングの pixel-unshuffle を適用して visual token 数を 9 分の 1 に減らし、最大約 1344 × 1344 ピクセルの入力解像度を実質的に扱えるようにする。
 
-**MoE のマルチモーダル補助損失なし負荷分散。** 画像トークンとテキストトークンでは表現分布が異なり、MoE の expert routing に対する選好も異なる可能性がある。両者をまとめて負荷分散すると、モダリティ固有の不均衡が見えにくくなり得る。そこで、補助損失なし負荷分散（Wang et al., 2024a）を拡張し、テキストトークンと画像トークンで expert ごとの補正バイアスを別々に保持する。routing 時には各トークンが自身のモダリティに対応する補正バイアスで expert を選択し、選ばれた expert 出力の重み付けには元の routing score を使う。各学習ステップ後、2 組のバイアスをそれぞれの expert load に従って独立に更新する。この設計はモダリティごとの expert 利用を均衡させ、安定かつ効率的なマルチモーダル学習に寄与する。
+**MoE のマルチモーダル補助損失なし負荷分散。** 画像トークンとテキストトークンでは表現分布が異なり、MoE の expert routing に対する選好も異なる可能性がある。両者をまとめて負荷分散すると、モダリティ固有の不均衡が見えにくくなり得る。そこで、補助損失なし負荷分散 [Wan24d] を拡張し、テキストトークンと画像トークンで expert ごとの補正バイアスを別々に保持する。routing 時には各トークンが自身のモダリティに対応する補正バイアスで expert を選択し、選ばれた expert 出力の重み付けには元の routing score を使う。各学習ステップ後、2 組のバイアスをそれぞれの expert load に従って独立に更新する。この設計はモダリティごとの expert 利用を均衡させ、安定かつ効率的なマルチモーダル学習に寄与する。
 
 <span id="section-2-2"></span>
 
 ### 2.2 Causal Encoder-Decoder（CED）
 
-エージェント型ワークフローでは頻繁なツール呼び出しによって大量のプリフィル要求が生じ、KV キャッシュミス時の計算負荷が深刻になる。このボトルネックを緩和するため、YoCo（Sun et al., 2024）に着想を得た Causal Encoder-Decoder（CED）を提案する。YoCo は上半分の層が下半分の層で生成した KV キャッシュを直接共有することで、プリフィル計算を減らす。この考えを発展させ、CED は KV キャッシュ全体の容量と KV 生成の計算深度をともに高める一連の構造改善を導入する。その結果、ベースラインと同等の性能を保ちながら、プリフィル計算をほぼ半減できる。
+エージェント型ワークフローでは頻繁なツール呼び出しによって大量のプリフィル要求が生じ、KV キャッシュミス時の計算負荷が深刻になる。このボトルネックを緩和するため、YoCo [Sun24b] に着想を得た Causal Encoder-Decoder（CED）を提案する。YoCo は上半分の層が下半分の層で生成した KV キャッシュを直接共有することで、プリフィル計算を減らす。この考えを発展させ、CED は KV キャッシュ全体の容量と KV 生成の計算深度をともに高める一連の構造改善を導入する。その結果、ベースラインと同等の性能を保ちながら、プリフィル計算をほぼ半減できる。
 
 global attention では、CED は Transformer の下側 $L/2$ 層を causal encoder とみなす。上半分の層、すなわち decoder（$l>L/2$）では、KV entry を各層の hidden state $H_l$ から導出しない。代わりに、層ごとの射影重み（$W_l^{\mathrm{KV}}$ と $W_l^Z$）を使い、$L/2$ 番目の層の hidden state $H_{L/2}$ から直接射影する。
 
@@ -97,7 +97,7 @@ $$
 
 ここで $C$ と $Z$ は、それぞれ KV entry と対応する圧縮重みを表す。この設計により、CED はプリフィル段階で前半の層だけを計算し、最小限の計算コストで上層の global KV キャッシュを取得できる。
 
-sliding window attention（SWA）については、CED は全層で従来どおりの層ごとの計算を維持する。具体的に、任意の層 $l$ の local key と value は、その層の hidden state $H_l$ から直接導出する。この設計により local KV 生成の計算深度は実質的に増える。ただし、層ごとの計算を維持するには SWA replay が必要になる。プリフィル段階で decoder の SWA KV キャッシュを計算するには、追加で $n_{\mathrm{win}}\times L/2$ トークンを処理する必要がある。ここで $n_{\mathrm{win}}$ はウィンドウサイズを表す。1 ターン当たりのプロンプトが短いマルチターン対話では、decoder のこの計算負荷は無視できない。幸い、従来研究（Chen et al., 2025）から、SWA の実効 receptive field は理論上の $n_{\mathrm{win}}\times L/2$ よりはるかに小さいことが分かっている。この観察に基づき、SWA 計算ではプロンプト末尾の $n_{\mathrm{win}}$ トークンだけをプリフィルする Decoder SWA Bounded Replay を導入し、計算コストを大きく減らす。詳細は[第 3.2.2 節](#section-3-2-2)で述べる。
+sliding window attention（SWA）については、CED は全層で従来どおりの層ごとの計算を維持する。具体的に、任意の層 $l$ の local key と value は、その層の hidden state $H_l$ から直接導出する。この設計により local KV 生成の計算深度は実質的に増える。ただし、層ごとの計算を維持するには SWA replay が必要になる。プリフィル段階で decoder の SWA KV キャッシュを計算するには、追加で $n_{\mathrm{win}}\times L/2$ トークンを処理する必要がある。ここで $n_{\mathrm{win}}$ はウィンドウサイズを表す。1 ターン当たりのプロンプトが短いマルチターン対話では、decoder のこの計算負荷は無視できない。幸い、従来研究 [Che25ad] から、SWA の実効 receptive field は理論上の $n_{\mathrm{win}}\times L/2$ よりはるかに小さいことが分かっている。この観察に基づき、SWA 計算ではプロンプト末尾の $n_{\mathrm{win}}$ トークンだけをプリフィルする Decoder SWA Bounded Replay を導入し、計算コストを大きく減らす。詳細は[第 3.2.2 節](#section-3-2-2)で述べる。
 
 全体として、系列長 $N\gg n_{\mathrm{win}}$ に対し、CED はプリフィル計算量を $O(N\,L)$ から $O(N\,L/2+n_{\mathrm{win}}\times L/2)\approx O(N\,L/2)$へ減らし、総計算量を実質的に半減させる。
 
@@ -105,7 +105,7 @@ sliding window attention（SWA）については、CED は全層で従来どお�
 
 ### 2.3 Compressed Sparse Attention 2（CSA2）
 
-長文脈をサービングするには、KV キャッシュ保存量とアテンション計算量の両方を抑える必要がある。これらのコストは、乗算的に効く 3 つの次元で削減できる。entry size の次元では、GQA（Ainslie et al., 2023）が KV head 数を減らし、MLA（DeepSeek-AI, 2024）が head 間で小さな latent を共有する。sequence の次元では、DeepSeek-V4（DeepSeek-AI, 2026b）の CSA や HCA のように、$m$ トークンごとに 1 entry へ圧縮する。layer の次元では、一部の層が自身のキャッシュを保持せず他層のキャッシュ（Brandon et al., 2024）や選択結果を再利用するか、層自体をより効率的なものへ置き換える。従来研究は layer 次元での圧縮が有効だと示している。IndexCache（Bai et al., 2026）は Top-K インデックスを層間で再利用して indexer 計算を減らし、YOIO（Sun et al., 2026b）はスパース routing を一度だけ計算して全層で共有し、HySparse（Gao et al., 2026）は sparse layer が dense layer の KV キャッシュを再利用する。しかし、インデックス再利用だけでは main KV の保存量は減らず、ネットワーク全体での routing 共有は性能を制限し、混成設計にも full attention layer が残る。さらに重要なのは、いずれも 3 つの乗算的次元すべてを対象としていないことである。
+長文脈をサービングするには、KV キャッシュ保存量とアテンション計算量の両方を抑える必要がある。これらのコストは、乗算的に効く 3 つの次元で削減できる。entry size の次元では、GQA [Ain23] が KV head 数を減らし、MLA [Dee24] が head 間で小さな latent を共有する。sequence の次元では、DeepSeek-V4 [Dee26] の CSA や HCA のように、$m$ トークンごとに 1 entry へ圧縮する。layer の次元では、一部の層が自身のキャッシュを保持せず他層のキャッシュ [Bra24] や選択結果を再利用するか、層自体をより効率的なものへ置き換える。従来研究は layer 次元での圧縮が有効だと示している。IndexCache [Bai26] は Top-K インデックスを層間で再利用して indexer 計算を減らし、YOIO [Sun26b] はスパース routing を一度だけ計算して全層で共有し、HySparse [Gao26] は sparse layer が dense layer の KV キャッシュを再利用する。しかし、インデックス再利用だけでは main KV の保存量は減らず、ネットワーク全体での routing 共有は性能を制限し、混成設計にも full attention layer が残る。さらに重要なのは、いずれも 3 つの乗算的次元すべてを対象としていないことである。
 
 CSA2 は 3 次元を同時に活用する。main KV と indexer K を層間共有し、Top-K インデックスを層間再利用できるようにする一方、キャッシュ共有とインデックス再利用は分離する。これらの再利用戦略を、単純化した compressor、および decoder の後段 indexing layer の探索範囲を狭める Hierarchical Sparse Indexer と組み合わせる。CSA と同様、CSA2 には indexer Q と indexer K で main KV entry をスコアリングし、各 query に対する Top-K entry を選ぶ軽量 indexer がある。各 Q は、選択した entry と層固有の sliding-window KV（SWA KV）をまとめて attend する。CSA2 は圧縮率 1 の非圧縮 main KV も特殊ケースとして含む。同時に、compressor と indexer の両方を簡素化する。CSA では、圧縮率 $m$ のとき $2m$ 個の元 KV cache entry から各 main KV entry を生成し、隣接する圧縮 entry どうしで元 entry が重複する。また、圧縮時に $2m$ entry の位置を符号化する absolute positional embedding を含む。CSA2 はこの重複と absolute positional embedding を除く。さらに CSA2 は main KV entry を射影して indexer K を得るため、hidden state からの独立した圧縮経路を持つ CSA を置き換える。どちらの設計変更も実装を単純にし、学習効率を高める。[第 2.3.1 節](#section-2-3-1)と[第 2.3.2 節](#section-2-3-2)で、層間再利用戦略と Hierarchical Sparse Indexer をそれぞれ説明する。
 
@@ -133,7 +133,7 @@ main KV と indexer K の共有はキャッシュ保存量を減らし、Top-K �
 
 #### 2.3.2 Hierarchical Sparse Indexer
 
-層間のインデックス再利用は indexer の評価回数を減らすが、残る indexer はなお因果的に可視な文脈全体をスコアリングする。文脈が極端に長い場合、このコストは依然として大きな計算ボトルネックとなる。従来研究では、token-level indexing の前に pooled block representation をスコアリングして枝刈りすることで indexer sparsity を導入した（Xu et al., 2026b）。decoder では、浅い indexer の情報を使って、追加状態なしに深い indexer が検討する候補を自然に制限できることが分かった。そこで CED の decoder のみで使う Hierarchical Sparse Indexer を導入し、decode 時の反復スコアリングを減らす。各 query に対して、Full Mode を割り当てた最初の層が候補プールを構築し、後続の re-indexing layer はそれを探索範囲として使う。候補プールサイズを固定すると、深い indexer の query 当たりコストは文脈長に対する線形から定数へ変わる。この仕組みは学習を考慮して事後学習時に導入する。候補制限を学習と推論で同じように適用するため、深い indexer は推論時と同じ探索範囲のもとで最適化される。[図 5](#figure-05)にこの処理を示す。最初の Full Mode 層は、因果的に可視な全 main KV position をスコアリングし、自身のアテンション用 Top-K インデックスを生成する。同時に blockwise candidate selection も行う。各 block には内部 position の最大 index score を割り当て、score が最も高い block を選ぶ。次に選択 block が覆う position を、最終 Top-K より大きな候補プールへ集める。たとえば 8 position の block を 2,048 個選ぶと、16,384 個の候補 position が得られる。このプールが後続 indexer の探索範囲を定め、最終 Top-K 選択が各層の読み込む main KV entry を決める。
+層間のインデックス再利用は indexer の評価回数を減らすが、残る indexer はなお因果的に可視な文脈全体をスコアリングする。文脈が極端に長い場合、このコストは依然として大きな計算ボトルネックとなる。従来研究では、token-level indexing の前に pooled block representation をスコアリングして枝刈りすることで indexer sparsity を導入した [Xu26]。decoder では、浅い indexer の情報を使って、追加状態なしに深い indexer が検討する候補を自然に制限できることが分かった。そこで CED の decoder のみで使う Hierarchical Sparse Indexer を導入し、decode 時の反復スコアリングを減らす。各 query に対して、Full Mode を割り当てた最初の層が候補プールを構築し、後続の re-indexing layer はそれを探索範囲として使う。候補プールサイズを固定すると、深い indexer の query 当たりコストは文脈長に対する線形から定数へ変わる。この仕組みは学習を考慮して事後学習時に導入する。候補制限を学習と推論で同じように適用するため、深い indexer は推論時と同じ探索範囲のもとで最適化される。[図 5](#figure-05)にこの処理を示す。最初の Full Mode 層は、因果的に可視な全 main KV position をスコアリングし、自身のアテンション用 Top-K インデックスを生成する。同時に blockwise candidate selection も行う。各 block には内部 position の最大 index score を割り当て、score が最も高い block を選ぶ。次に選択 block が覆う position を、最終 Top-K より大きな候補プールへ集める。たとえば 8 position の block を 2,048 個選ぶと、16,384 個の候補 position が得られる。このプールが後続 indexer の探索範囲を定め、最終 Top-K 選択が各層の読み込む main KV entry を決める。
 
 <span id="figure-05"></span>
 
@@ -153,7 +153,7 @@ main KV と indexer K の共有はキャッシュ保存量を減らし、Top-K �
 
 #### 2.4.1 Single-Pass mHC
 
-DeepSeek-V4 では、隣接する Transformer block 間に $n$ 本の residual stream を保持する mHC（Xie et al., 2026）を導入した。各 token についてこれらを $X_l\in\mathbb{R}^{n\times d}$ と表す。$l$ は block index、$d$ は hidden dimension である。stream は次のように更新する。
+DeepSeek-V4 では、隣接する Transformer block 間に $n$ 本の residual stream を保持する mHC [Xie26] を導入した。各 token についてこれらを $X_l\in\mathbb{R}^{n\times d}$ と表す。$l$ は block index、$d$ は hidden dimension である。stream は次のように更新する。
 
 <span id="equation-02"></span>
 
@@ -204,7 +204,7 @@ input mixing は $A_l$ ではなく $A_{l-1}$ を使うため、$X_l$ から計�
 
 #### 2.4.2 Engram
 
-記憶と計算を分離するため以前の研究で導入した条件付きメモリモジュール Engram（Cheng et al., 2026c）を DeepSeek-V4.1-Flash に追加する。tokenizer compression、multi-head hashing、context-aware gating、multi-branch integration という元の Engram 設計に従いつつ、2 点を変更する。第 1 に、性能向上が推論スタックの複雑化に見合わないため、短い causal convolution を省く。第 2 に、[第 2.5 節](#section-2-5)で述べるように、momentum-based update の後に Sinkhorn balancing を行い、Engram embedding を最適化する。
+記憶と計算を分離するため以前の研究で導入した条件付きメモリモジュール Engram [Che26b] を DeepSeek-V4.1-Flash に追加する。tokenizer compression、multi-head hashing、context-aware gating、multi-branch integration という元の Engram 設計に従いつつ、2 点を変更する。第 1 に、性能向上が推論スタックの複雑化に見合わないため、短い causal convolution を省く。第 2 に、[第 2.5 節](#section-2-5)で述べるように、momentum-based update の後に Sinkhorn balancing を行い、Engram embedding を最適化する。
 
 196B の Engram パラメータを 2 モジュールへ均等に割り当てる。各モジュールは $N$-gram order {2, 3, 4} を用い、hash head は 8 個、order 当たりの総 embedding dimension は 2048 である。各 head は約 16M entry のテーブルを索引し、テーブルサイズには互いに異なる素数を選ぶ。embedding table と key/value projection はともに FP8 精度を使う。学習 pipeline stage 間のメモリ使用量を均衡させるため、モジュールは layer 1 と 14（0 始まり）に置く。推論時には deterministic addressing により、バックグラウンド RDMA 転送でホストメモリから embedding を先読みできる。第 1 モジュールの先読みは、最初の Transformer block の計算と重ねる。Engram の学習・推論実装の詳細は[第 3.1.3 節](#section-3-1-3)で述べる。
 
@@ -212,11 +212,11 @@ input mixing は $A_l$ ではなく $A_{l-1}$ を使うため、$X_l$ から計�
 
 #### 2.4.3 DSpark
 
-DeepSeek-V4.1-Flash に、semi-autoregressive drafting と confidence-scheduled verification を組み合わせた投機的デコードモジュール DSpark（Cheng et al., 2026a）を搭載する。
+DeepSeek-V4.1-Flash に、semi-autoregressive drafting と confidence-scheduled verification を組み合わせた投機的デコードモジュール DSpark [Che26c] を搭載する。
 
 drafter は sliding attention window 128 token の Transformer block 3 層からなる。これらを 1 回 forward すると、5 個の draft position の base logit を並列計算し、軽量 Markov head が draft token 間の依存をモデル化する。confidence head は position ごとの条件付き accept probability を予測し、それを使って prefix survival probability を推定する。scheduler はこの推定値と事前計測した engine throughput curve を組み合わせ、現在の system load のもとで期待 system-wide token throughput を最大化するよう、request ごとの verification length を動的に選ぶ。
 
-事前学習を通じてバックボーンと共同学習する DeepSeek-V3（DeepSeek-AI, 2024）の MTP モジュールとは異なり、DSpark は事前学習後の専用段階で導入する。この段階ではバックボーンを凍結し、DSpark だけを学習する。事後学習中は DSpark 目的関数の勾配をバックボーンへ伝播させず、バックボーンと並行して DSpark の学習を続ける。これにより DSpark を変化する policy と揃え、online serving と RL・OPD の rollout generation の両方を高速化できる。
+事前学習を通じてバックボーンと共同学習する DeepSeek-V3 [Dee24a] の MTP モジュールとは異なり、DSpark は事前学習後の専用段階で導入する。この段階ではバックボーンを凍結し、DSpark だけを学習する。事後学習中は DSpark 目的関数の勾配をバックボーンへ伝播させず、バックボーンと並行して DSpark の学習を続ける。これにより DSpark を変化する policy と揃え、online serving と RL・OPD の rollout generation の両方を高速化できる。
 
 <span id="section-2-4-4"></span>
 
@@ -224,9 +224,9 @@ drafter は sliding attention window 128 token の Transformer block 3 層から
 
 長文脈のエージェントワークロードでは request ごとに大規模な KV キャッシュが必要となり、サービングコストが増える。
 
-DeepSeek-V4 はすでに FP4 の indexer query と key に量子化認識学習（QAT）（Jacob et al., 2018）を用い、index 計算を高速化して indexer cache size を減らしている。実験では別形式の方が高精度だったが、可能な限り多くの hardware platform に対応するため、OCP 標準の MXFP4 形式（Rouhani et al., 2023）を採用した。今回 QAT を main KV キャッシュへ拡張する。ここでは FP4 は行列積の高速化ではなく保存量削減に使う。attention 前に cached value を dequantize すれば、その形式に対する native matrix-multiplication support を要求せずに、より高精度な形式を使えるため、hardware platform 間の互換性を維持できる。
+DeepSeek-V4 はすでに FP4 の indexer query と key に量子化認識学習（QAT） [Jac18] を用い、index 計算を高速化して indexer cache size を減らしている。実験では別形式の方が高精度だったが、可能な限り多くの hardware platform に対応するため、OCP 標準の MXFP4 形式 [Dar23] を採用した。今回 QAT を main KV キャッシュへ拡張する。ここでは FP4 は行列積の高速化ではなく保存量削減に使う。attention 前に cached value を dequantize すれば、その形式に対する native matrix-multiplication support を要求せずに、より高精度な形式を使えるため、hardware platform 間の互換性を維持できる。
 
-評価した約 4-bit の形式から、NVFP4（Alvarez et al., 2025）に従い、16 channel ごとに 1 個の E4M3 scale を持つ E2M1 を選ぶ。ただし精度と単純さの均衡を取るため、第 2 段の global scale は省く。これを省いても main KV キャッシュには十分な dynamic range が残る。この形式は最大 448 × 6 = 2688 の大きさを表せ、キャッシュの magnitude bound をはるかに上回る。DeepSeek-V4.1-Flash で学習済み RMSNorm weight の最大 magnitude は約 1 である。RMS normalization 後、512-channel KV latent の L2 norm は最大でも約 √512 である。RoPE はこの norm を保つため、回転後の channel 間最大 absolute value も約 √512 ≈ 22.6 以下となる。また、学習中に観測した最大 magnitude は約 10 だった。したがって global scale を省いても測定可能な精度低下はなく、cache layout を単純化できる。
+評価した約 4-bit の形式から、NVFP4 [Alv25] に従い、16 channel ごとに 1 個の E4M3 scale を持つ E2M1 を選ぶ。ただし精度と単純さの均衡を取るため、第 2 段の global scale は省く。これを省いても main KV キャッシュには十分な dynamic range が残る。この形式は最大 448 × 6 = 2688 の大きさを表せ、キャッシュの magnitude bound をはるかに上回る。DeepSeek-V4.1-Flash で学習済み RMSNorm weight の最大 magnitude は約 1 である。RMS normalization 後、512-channel KV latent の L2 norm は最大でも約 √512 である。RoPE はこの norm を保つため、回転後の channel 間最大 absolute value も約 √512 ≈ 22.6 以下となる。また、学習中に観測した最大 magnitude は約 10 だった。したがって global scale を省いても測定可能な精度低下はなく、cache layout を単純化できる。
 
 DeepSeek-V4.1-Flash で FP4 main KV cache storage を使えるよう、事後学習に QAT を導入する。non-RoPE component と RoPE component は同じ量子化形式を使う。cache は RoPE 後に量子化する。RoPE 前の量子化は実験でごくわずかな精度向上しか得られず、decode 時に追加 overhead が生じるためである。SWA KV キャッシュは量子化に敏感なので FP8 を維持する。DeepSeek-V4 の FP8 main KV キャッシュと比べ、この形式は HBM 上でも SSD へ offload した場合でも保存量をほぼ半減させる。
 
@@ -236,11 +236,13 @@ DeepSeek-V4.1-Flash で FP4 main KV cache storage を使えるよう、事後学
 
 DeepSeek-V4 で用いた最適化構成を基に、アーキテクチャ設計へより適合させるため、新たな変更をいくつか加えた。
 
-第 1 に head-wise Muon を用い、Muon update の前に Query weight を head ごとに分割する。この設計の動機を簡単に説明する。Muon を preconditioned gradient descent とみなすと、vanilla Muon は全 head に 1 つの preconditioner を使う一方、head-wise Muon は head ごとに異なる preconditioner を与える。この設計は attention head 間の異質性をより適切に扱える（Zhang et al., 2024; Zhang, 2026, [第 3 節](#section-3)）。その結果、head-wise Muon が vanilla Muon を上回ることを確認した。この実証的な優位性は GLM 5（Zeng et al., 2026）と Kimi-K3（Team et al., 2026a）でも検証されている。
+第 1 に head-wise Muon を用い、Muon update の前に Query weight を head ごとに分割する。この設計の動機を簡単に説明する。Muon を preconditioned gradient descent とみなすと、vanilla Muon は全 head に 1 つの preconditioner を使う一方、head-wise Muon は head ごとに異なる preconditioner を与える。この設計は attention head 間の異質性をより適切に扱える [Zha24ad, Zha26b] [+zha26b-section-3]。その結果、head-wise Muon が vanilla Muon を上回ることを確認した。この実証的な優位性は GLM 5 [Zen26] と Kimi-K3 [Kim26c] でも検証されている。
 
-第 2 に、新たに導入した Engram parameter へ Adam を適用すると optimizer-state のメモリ占有量が大幅に増える。学習時のメモリ使用量を抑えるため、代わりに momentum-based update の後に Sinkhorn balancing を行い、Engram embedding table、token embedding、prediction head を最適化する。Sinkhorn balancing は以前、SinkGD（Scetbon et al., 2025）で linear-layer weight matrix に適用された。ここではこれを大規模 parameter matrix へ拡張する。Muon と同様に momentum buffer だけを必要とし、実験では Adam を上回った。
+[+zha26b-section-3]: [Zha26b] の三つ目の節。
 
-**基本構成。** normalization-layer weight と、bias や scaling factor を含むその他の non-matrix parameter には AdamW（Loshchilov and Hutter, 2019）を維持する。language-model backbone の linear transformation、Engram projection layer、vision-language projector の weight matrix には Muon（Jordan et al., 2024）を使う。Query と Key の weight には head-wise Muon を使う。Muon には decoupled weight decay と Nesterov momentum（Nesterov, 1983; Liu et al., 2025）を適用する。normalization-layer weight にも weight decay を適用するが、bias と scaling factor には適用しない。Sinkhorn-balanced update も Nesterov momentum を使うが weight decay は適用しない。事前学習では learning-rate decay 段階まで vision encoder を凍結する一方、最終 normalization layer と vision-language projector は学習可能に保つ。learning-rate decay の開始時に vision encoder の凍結を解除し、より小さい learning rate で LLM と共同最適化する。
+第 2 に、新たに導入した Engram parameter へ Adam を適用すると optimizer-state のメモリ占有量が大幅に増える。学習時のメモリ使用量を抑えるため、代わりに momentum-based update の後に Sinkhorn balancing を行い、Engram embedding table、token embedding、prediction head を最適化する。Sinkhorn balancing は以前、SinkGD [Sce25] で linear-layer weight matrix に適用された。ここではこれを大規模 parameter matrix へ拡張する。Muon と同様に momentum buffer だけを必要とし、実験では Adam を上回った。
+
+**基本構成。** normalization-layer weight と、bias や scaling factor を含むその他の non-matrix parameter には AdamW [Los17] を維持する。language-model backbone の linear transformation、Engram projection layer、vision-language projector の weight matrix には Muon [Kel24] を使う。Query と Key の weight には head-wise Muon を使う。Muon には decoupled weight decay と Nesterov momentum [Nes83, Liu25] を適用する。normalization-layer weight にも weight decay を適用するが、bias と scaling factor には適用しない。Sinkhorn-balanced update も Nesterov momentum を使うが weight decay は適用しない。事前学習では learning-rate decay 段階まで vision encoder を凍結する一方、最終 normalization layer と vision-language projector は学習可能に保つ。learning-rate decay の開始時に vision encoder の凍結を解除し、より小さい learning rate で LLM と共同最適化する。
 
 **Engram／Embedding／Prediction Head の Sinkhorn-balanced update。** 手順全体を Algorithm 1 に示す。概略は Muon と同じ流れで、Newton-Schulz orthogonalization を Sinkhorn balancing に置き換える。大きい方の matrix dimension を $m$ とし、embedding table と prediction head では vocabulary size に対応する。hidden dimension を $n$ とする。
 
@@ -270,9 +272,9 @@ $$
 \Delta_t=\sqrt{n}U^{(K)}=\sqrt{n}D_r\hat{G}_tD_c,\qquad \frac{1}{n}\sum_{j=1}^{n}(\Delta_t)_{ij}^{2}\approx1,\qquad \frac{1}{m}\sum_{i=1}^{m}(\Delta_t)_{ij}^{2}\approx1,
 $$
 
-したがって、この手順は update matrix の row-wise RMS と column-wise RMS を近似的に等しくする。ここで 1 row は 1 token index または n-gram identity に対応し、1 column は 1 hidden feature を符号化する。Sinkhorn balancing は row と column の両方で正規化し、この token-feature 構造を活用する。数値安定性のため、$\rho_i\le\tau_\rho$ を満たす row は mask する。係数 $\sqrt{n}$ は unit row $\ell_2$ norm を unit row-wise RMS へ変換する。別途、Adam の update magnitude に合わせるため effective learning rate を $\eta'_t=\gamma\eta_t$ と調整する。$\gamma=0.18$ とし、Moonlight（Liu et al., 2025）で用いた係数 0.2 に近い。
+したがって、この手順は update matrix の row-wise RMS と column-wise RMS を近似的に等しくする。ここで 1 row は 1 token index または n-gram identity に対応し、1 column は 1 hidden feature を符号化する。Sinkhorn balancing は row と column の両方で正規化し、この token-feature 構造を活用する。数値安定性のため、$\rho_i\le\tau_\rho$ を満たす row は mask する。係数 $\sqrt{n}$ は unit row $\ell_2$ norm を unit row-wise RMS へ変換する。別途、Adam の update magnitude に合わせるため effective learning rate を $\eta'_t=\gamma\eta_t$ と調整する。$\gamma=0.18$ とし、Moonlight [Liu25] で用いた係数 0.2 に近い。
 
-より広く見ると、Sinkhorn balancing は matrix または tensor の axis structure を利用する optimizer（Shazeer and Stern, 2018; Zhang et al., 2025a; Wen et al., 2025; Glentis et al., 2025; Deng et al., 2026; Yuan et al., 2026; Xu et al., 2026a）と密接に関係する。たとえば Adafactor（Shazeer and Stern, 2018）は別の方法で row-wise・column-wise normalization を行い、Adam-mini（Zhang et al., 2025a）は embedding table と prediction head に別方式の row-wise normalization を使う。これらの normalization strategy は optimization performance と communication overhead が異なり得る。詳細な検討は今後の課題とする。
+より広く見ると、Sinkhorn balancing は matrix または tensor の axis structure を利用する optimizer [Sha18, Zha25ay, Wen25b, Gle25, Den26, Yua26a, Xu26a] と密接に関係する。たとえば Adafactor [Sha18] は別の方法で row-wise・column-wise normalization を行い、Adam-mini [Zha25ay] は embedding table と prediction head に別方式の row-wise normalization を使う。これらの normalization strategy は optimization performance と communication overhead が異なり得る。詳細な検討は今後の課題とする。
 
 <span id="section-3"></span>
 
@@ -294,7 +296,7 @@ $$
 
 ここで $V$ と $T$ は visual feature と text feature、（$A\parallel C$）は計算 $A$ と通信 $C$ のオーバーラップ、$\nabla$ は勾配計算を表す。この schedule では text forward pass 中に visual feature を集約し、text backward pass 中に text feature を集約するため、両方の all-gather を有用な計算の背後へ完全に隠せる。
 
-**End-to-End Parallelism。** vision encoder と LLM の model・data heterogeneity（Zhang et al., 2025b）を扱うため、近年の学習 system（Team et al., 2025, 2026b）で用いられる disaggregated encoder 設計を採用する。vision encoder を LLM parameter tree の外に複製し、各 training step を vision encoder forward、LLM forward/backward、vision encoder backward の 3 段階に分ける。この分離により vision encoder と LLM の計算が干渉しない。load-balanced vision processing は最初と最後の段階だけで行い、LLM phase には vision computation を含めず text-only training の parallel strategy を保つ。
+**End-to-End Parallelism。** vision encoder と LLM の model・data heterogeneity [Zha25ax] を扱うため、近年の学習 system [Lon25, Kim26b] で用いられる disaggregated encoder 設計を採用する。vision encoder を LLM parameter tree の外に複製し、各 training step を vision encoder forward、LLM forward/backward、vision encoder backward の 3 段階に分ける。この分離により vision encoder と LLM の計算が干渉しない。load-balanced vision processing は最初と最後の段階だけで行い、LLM phase には vision computation を含めず text-only training の parallel strategy を保つ。
 
 **長系列マルチモーダル学習の最適化。** DeepSeek-V4.1-Flash は最大 100 万トークンの系列で学習し、事前学習と事後学習の両方で相当部分を超長系列が占める。この系列長では、マルチモーダルサンプルが I/O、CPU、メモリに大きなボトルネックを生む。
 
@@ -332,7 +334,7 @@ Engram embedding table は、engram parallel size 専用 process group 間で ro
 
 ### 3.2 推論システム
 
-DeepSeek-V4.1-Flash は推論効率を第一級の要件として設計した。アーキテクチャは概念上複雑だが、得られる inference kernel flow は驚くほど簡潔である。適切な kernel fusion により複雑な演算を包み込み、少数の fused kernel 内で hardware resource を完全に pipeline 化する。これには FlashMLA（Li and Liu, 2025）の fused-RoPE-attention-RoPE-cast kernel、DeepGEMM（Zhao et al., 2025）の Mega-Gate、Mega-mHC、Mega-MoE kernel、TileKernels（Wang et al., 2026a）の kernel、DeepSelect（Qian et al., 2026）の TopK kernel が含まれる。その結果、大多数の Transformer layer、すなわち CSA2 が Reuse Mode で動く層は、プリフィル時 15 kernel、decode 時 11 kernel だけで実行され、高 throughput と低 latency を両立する。
+DeepSeek-V4.1-Flash は推論効率を第一級の要件として設計した。アーキテクチャは概念上複雑だが、得られる inference kernel flow は驚くほど簡潔である。適切な kernel fusion により複雑な演算を包み込み、少数の fused kernel 内で hardware resource を完全に pipeline 化する。これには FlashMLA [Fla25] の fused-RoPE-attention-RoPE-cast kernel、DeepGEMM [Zha25f] の Mega-Gate、Mega-mHC、Mega-MoE kernel、TileKernels [Wan26a] の kernel、DeepSelect [Qia26] の TopK kernel が含まれる。その結果、大多数の Transformer layer、すなわち CSA2 が Reuse Mode で動く層は、プリフィル時 15 kernel、decode 時 11 kernel だけで実行され、高 throughput と低 latency を両立する。
 
 デプロイレベルでは Encoder-Prefill-Decode（EPD）分離を採用し、vision encoding、prefill、decoding を独立に scale させ、実行を overlap できるようにする。
 
@@ -380,7 +382,7 @@ CED では decoder global KV を encoder 最終 hidden state から射影する�
 
 **テキストデータのキュレーション。** より高い知能を目指し、小規模データ実験で測れるサンプル単位の一般的品質にとどまらず、固有の情報利得を持つ多様なコーパス間の全体的相互作用を重視する。より体系的で標準化したデータ構築 pipeline を採用し、データ品質を高めて混合比を最適化する。具体的には、より包括的な評価に基づき model parameter と training data の scaling ladder を綿密に設計し、大規模 training run を導く。能力の低いモデルの出力や低品質な機械翻訳文など、情報利得の小さい model-generated content を除外する。この種の content は既存情報をほぼ言い換えただけで、長い training horizon では害になり得るため、暗黙の重複とみなす。将来の大規模 synthetic data に向けた基盤として、model-in-the-loop の data iteration も探究する。さらに領域専門家を増やし、細粒度の data quality evaluation dimension を構築する。前版と比べ、新コーパスは新たに公開された open-source repository、commit、library、emerging framework から新しい code を多く取り込み、より幅広い programming language を覆い、現在の実世界 software engineering scenario をよく反映する。
 
-**マルチモーダルデータのキュレーション。** マルチモーダル事前学習 dataset は主に image-text pair、interleaved image-text data、domain-specific data の 3 種類からなる。生の Web data はもともと豊富な multimodal knowledge を持つという前提に立ち、大規模 data synthesis は行わず、データを本来の形のまま clean して活用することを優先し、事前学習中に最も直接的かつ scalable な visual knowledge compression を実現した。初期収集では crawler が text-centric web content に偏りすぎていると分かり、Common Crawl から再 bootstrap して multimodal source の coverage を改善した。image-text data では Web page から画像と関連 alt text を取り出し、image-text relevance threshold で filter し、image semantics に基づいて deduplicate する。interleaved data は主に Web page と PDF から構築する。大規模 multimodal corpus の処理は通常、text-only corpus より CPU と disk storage のコストが高いため、interleaved-data construction をコストが段階的に上がる複数 stage に分けた。画像取得前に heuristic・statistical filtering、deduplication、quality model を適用して高価値 document を選ぶ。残った document を interleaved image-text sequence に組み立て、image-aware な filtering と deduplication を再度行う。最後に SmolVLM（Marafioti et al., 2025）で image-text content を厳格に品質評価し、高品質 interleaved data を抽出する。過程で除外した document の一部は、screening と recombination により追加の image-text pair として再利用する。Web 収集 data の固有の限界を補うため、fine-grained visual perception（visual grounding や pointing など）、optical character recognition（OCR）、long-tail knowledge acquisition の能力を高める domain-specific dataset も取り入れる。さらに multimodal agentic understanding を向上させるため、大量の image-code pair と computer-use trajectory を収集する。
+**マルチモーダルデータのキュレーション。** マルチモーダル事前学習 dataset は主に image-text pair、interleaved image-text data、domain-specific data の 3 種類からなる。生の Web data はもともと豊富な multimodal knowledge を持つという前提に立ち、大規模 data synthesis は行わず、データを本来の形のまま clean して活用することを優先し、事前学習中に最も直接的かつ scalable な visual knowledge compression を実現した。初期収集では crawler が text-centric web content に偏りすぎていると分かり、Common Crawl から再 bootstrap して multimodal source の coverage を改善した。image-text data では Web page から画像と関連 alt text を取り出し、image-text relevance threshold で filter し、image semantics に基づいて deduplicate する。interleaved data は主に Web page と PDF から構築する。大規模 multimodal corpus の処理は通常、text-only corpus より CPU と disk storage のコストが高いため、interleaved-data construction をコストが段階的に上がる複数 stage に分けた。画像取得前に heuristic・statistical filtering、deduplication、quality model を適用して高価値 document を選ぶ。残った document を interleaved image-text sequence に組み立て、image-aware な filtering と deduplication を再度行う。最後に SmolVLM [Mar25] で image-text content を厳格に品質評価し、高品質 interleaved data を抽出する。過程で除外した document の一部は、screening と recombination により追加の image-text pair として再利用する。Web 収集 data の固有の限界を補うため、fine-grained visual perception（visual grounding や pointing など）、optical character recognition（OCR）、long-tail knowledge acquisition の能力を高める domain-specific dataset も取り入れる。さらに multimodal agentic understanding を向上させるため、大量の image-code pair と computer-use trajectory を収集する。
 
 **データ統合と重複排除。** text-only data と multimodal data は別 pipeline で処理したため、両 source の和集合を最終 training corpus とした。重複 sample は text-only version を multimodal counterpart に置き換え、2 つの設定のうち epoch count が大きい方を使う。置換後の corpus は text-only と multimodal data の token ratio が 7:1 となる。sample を共同で prefetch・assign することで、事前学習と context extension 中の sample overlap を最小化する。超長 document は混合前に deterministically pre-split し、data shard と training step 間で training token を均等に分布させる。best-fit packing algorithm も改善し、padding rate を最大 $10^{-4}$ に抑えた。
 
@@ -392,15 +394,15 @@ CED では decoder global KV を encoder 最終 hidden state から射影する�
 
 #### 4.2.1 モデル設定
 
-Transformer layer 数を 40、hidden dimension $d$ を 5120 とする。Causal Encoder-Decoder を採用し、encoder 20 層、decoder 20 層で構成する。最初の 2 層には pure sliding window attention を使う。残る encoder 18 層は圧縮率 $m=2$ の CSA2 を使い、同一設定の 6 層 group 3 個に分ける。各 group の先頭層は Full Mode、残り 5 層は Reuse Mode で動作する。decoder 20 層は圧縮率 $m=1$ の CSA2 を使い、4 層 group 5 個に分ける。第 1 group の先頭層は Full Mode、残り 3 層は Reuse Mode である。残る 4 group は同じ構成で、先頭層が Reindex Mode、残り 3 層が Reuse Mode となる。全 CSA2 layer で indexer query head 数を 32、indexer head dimension を 128、sparse attention が選択する KV entry 数、すなわち attention top-k を 512 とする。query head 数は 64、head dimension は 512、query compression dimension は 1280 とする。Hierarchical Sparse Indexer では 8 position の block を最大 2,048 個選び、候補 position は合計最大 16,384 個となる。output projection group 数は 8、各 intermediate attention output dimension は 1024 とする。追加の sliding window attention branch は window size $n_{\mathrm{win}}$ = 128 とする。全 Transformer block に MoE layer を用い、threshold 10 で clamp する SwiGLU activation function（OpenAI, 2025）を使う。各 MoE layer は 1 shared expert と 384 routed expert からなり、各 expert の intermediate hidden dimension は 2304 である。routed expert のうち token ごとに 6 expert を活性化する。mHC の expansion factor は 4、Sinkhorn-Knopp iteration 数は 20 とする。vision encoder は 32 層、hidden dimension 1024、attention head 16、image patch size 14 とする。vision MLP projector は 2 層で hidden dimension 5120 である。この構成で DeepSeek-V4.1-Flash は 552B backbone parameter を持ち、token 当たりの活性化量は prefill 時 8B、decode 時 16B となる。
+Transformer layer 数を 40、hidden dimension $d$ を 5120 とする。Causal Encoder-Decoder を採用し、encoder 20 層、decoder 20 層で構成する。最初の 2 層には pure sliding window attention を使う。残る encoder 18 層は圧縮率 $m=2$ の CSA2 を使い、同一設定の 6 層 group 3 個に分ける。各 group の先頭層は Full Mode、残り 5 層は Reuse Mode で動作する。decoder 20 層は圧縮率 $m=1$ の CSA2 を使い、4 層 group 5 個に分ける。第 1 group の先頭層は Full Mode、残り 3 層は Reuse Mode である。残る 4 group は同じ構成で、先頭層が Reindex Mode、残り 3 層が Reuse Mode となる。全 CSA2 layer で indexer query head 数を 32、indexer head dimension を 128、sparse attention が選択する KV entry 数、すなわち attention top-k を 512 とする。query head 数は 64、head dimension は 512、query compression dimension は 1280 とする。Hierarchical Sparse Indexer では 8 position の block を最大 2,048 個選び、候補 position は合計最大 16,384 個となる。output projection group 数は 8、各 intermediate attention output dimension は 1024 とする。追加の sliding window attention branch は window size $n_{\mathrm{win}}$ = 128 とする。全 Transformer block に MoE layer を用い、threshold 10 で clamp する SwiGLU activation function [Ope25c] を使う。各 MoE layer は 1 shared expert と 384 routed expert からなり、各 expert の intermediate hidden dimension は 2304 である。routed expert のうち token ごとに 6 expert を活性化する。mHC の expansion factor は 4、Sinkhorn-Knopp iteration 数は 20 とする。vision encoder は 32 層、hidden dimension 1024、attention head 16、image patch size 14 とする。vision MLP projector は 2 層で hidden dimension 5120 である。この構成で DeepSeek-V4.1-Flash は 552B backbone parameter を持ち、token 当たりの活性化量は prefill 時 8B、decode 時 16B となる。
 
 <span id="section-4-2-2"></span>
 
 #### 4.2.2 学習設定
 
-linear transformation の parameter には Muon optimizer（Jordan et al., 2024; Liu et al., 2025）、全 RMSNorm module の weight とその他の non-matrix parameter には AdamW optimizer（Loshchilov and Hutter, 2019）、全 embedding と prediction head には Sinkhorn-balanced update を使う。AdamW の hyper-parameter は $\beta_1=0.9$、$\beta_2=0.95$、$\varepsilon=10^{-20}$、weight_decay = 0.1 とする。Muon は momentum 0.95、weight decay 0.1 とし、AdamW learning rate を再利用できるよう各 update matrix の RMS を 0.18 に rescale する。Sinkhorn-balanced update は Muon と同じ momentum coefficient と learning-rate correction factor を使い、$K=11$、$\tau=10^{-3}$、$\varepsilon=10^{-20}$ とする。（Cheng et al., 2026b）に従い、Engram learning rate は 5 倍する。DeepSeek-V4.1-Flash を 45T token の multimodal data で不安定化なく学習した。batch size は学習全体で 100.6M token に固定する。learning rate は最初の 2,000 step で線形 warm-up し、28T token まで $2.6\times10^{-4}$ を保つ。28T から 40T token では cosine schedule で $2.6\times10^{-5}$ まで decay し、40T から 45T token はこの値を保つ。sequence length 64K の sparse attention で scratch から学習し、34T token 時点で 1M へ拡張する。auxiliary-loss-free load balancing は画像・テキスト token とも bias update speed 0.001 とし、単一 sequence 内の極端な不均衡を避けるため、loss weight 0.0001 の小さな sequence-level balance loss も残す。DeepSeek-V4 と同じく、事前学習では sample-level attention masking を使う。
+linear transformation の parameter には Muon optimizer [Kel24, Liu25]、全 RMSNorm module の weight とその他の non-matrix parameter には AdamW optimizer [Los17]、全 embedding と prediction head には Sinkhorn-balanced update を使う。AdamW の hyper-parameter は $\beta_1=0.9$、$\beta_2=0.95$、$\varepsilon=10^{-20}$、weight_decay = 0.1 とする。Muon は momentum 0.95、weight decay 0.1 とし、AdamW learning rate を再利用できるよう各 update matrix の RMS を 0.18 に rescale する。Sinkhorn-balanced update は Muon と同じ momentum coefficient と learning-rate correction factor を使い、$K=11$、$\tau=10^{-3}$、$\varepsilon=10^{-20}$ とする。 [Che26b] に従い、Engram learning rate は 5 倍する。DeepSeek-V4.1-Flash を 45T token の multimodal data で不安定化なく学習した。batch size は学習全体で 100.6M token に固定する。learning rate は最初の 2,000 step で線形 warm-up し、28T token まで $2.6\times10^{-4}$ を保つ。28T から 40T token では cosine schedule で $2.6\times10^{-5}$ まで decay し、40T から 45T token はこの値を保つ。sequence length 64K の sparse attention で scratch から学習し、34T token 時点で 1M へ拡張する。auxiliary-loss-free load balancing は画像・テキスト token とも bias update speed 0.001 とし、単一 sequence 内の極端な不均衡を避けるため、loss weight 0.0001 の小さな sequence-level balance loss も残す。DeepSeek-V4 と同じく、事前学習では sample-level attention masking を使う。
 
-**Vision encoder の学習。** DeepSeek-ViT は言語バックボーンへ統合する前に独立した学習段階を経る。pipeline は contrastive pre-training と autoregressive fine-tuning の 2 段階からなる。contrastive pre-training では、alt-text data 由来の約 47B image-text pair に対し、SigLIP（Zhai et al., 2023）が導入した sigmoid contrastive loss でモデルを最適化する。この巨大 dataset から visual representation を効率よく学ぶため、縦横比を保って大きな画像を縮小し、最大入力解像度を 224 × 224 pixel に制限する。この段階で高解像度を使うと顕著な改善は得られるが、実験上、最終モデルへの寄与は小さい。後続の autoregressive stage が高解像度への外挿を専用に扱うため、contrastive pre-training 中の高解像度化は全体改善が小さい割に計算 overhead を大きく増やす。autoregressive fine-tuning stage では vision encoder を 4B MoE LLM へ接続し、image caption、alt text、chart、OCR を含む dataset の 236B token に対して next-token prediction objective で学習する。この段階は encoder の fine-grained visual feature model 能力を高めることを目的とする。そのため範囲外の画像を比例 scaling し、入力解像度を 544 × 544 から 1344 × 1344 pixel に制限する。この段階の後は LLM を破棄し、最適化済み vision encoder だけを後続の事前学習 pipeline に残す。同じ input-resolution policy を維持する。
+**Vision encoder の学習。** DeepSeek-ViT は言語バックボーンへ統合する前に独立した学習段階を経る。pipeline は contrastive pre-training と autoregressive fine-tuning の 2 段階からなる。contrastive pre-training では、alt-text data 由来の約 47B image-text pair に対し、SigLIP [Zha23t] が導入した sigmoid contrastive loss でモデルを最適化する。この巨大 dataset から visual representation を効率よく学ぶため、縦横比を保って大きな画像を縮小し、最大入力解像度を 224 × 224 pixel に制限する。この段階で高解像度を使うと顕著な改善は得られるが、実験上、最終モデルへの寄与は小さい。後続の autoregressive stage が高解像度への外挿を専用に扱うため、contrastive pre-training 中の高解像度化は全体改善が小さい割に計算 overhead を大きく増やす。autoregressive fine-tuning stage では vision encoder を 4B MoE LLM へ接続し、image caption、alt text、chart、OCR を含む dataset の 236B token に対して next-token prediction objective で学習する。この段階は encoder の fine-grained visual feature model 能力を高めることを目的とする。そのため範囲外の画像を比例 scaling し、入力解像度を 544 × 544 から 1344 × 1344 pixel に制限する。この段階の後は LLM を破棄し、最適化済み vision encoder だけを後続の事前学習 pipeline に残す。同じ input-resolution policy を維持する。
 
 <span id="section-4-3"></span>
 
@@ -412,9 +414,9 @@ linear transformation の parameter には Muon optimizer（Jordan et al., 2024;
 
 DeepSeek-V4.1-Flash-Base を、その前身 DeepSeek-V4-Flash-Base、DeepSeek-V4-Pro-Base と比較する。世界知識、言語理解と推論、コーディングと数学、長文脈、マルチモーダル能力という 5 つの主要次元にわたるベンチマークを報告する。
 
-世界知識ベンチマークには AGIEval（Zhong et al., 2023）、MMLU-Pro（Wang et al., 2024b）、C-Eval（Huang et al., 2023）、MultiLoKo（Hupkes and Bogoychev, 2025）、SimpleQA-Verified（Haas et al., 2025）、SuperGPQA（Du et al., 2025）を含む。言語理解・推論には BigBench Hard（BBH）（Suzgun et al., 2022）、BigBench Extra Hard（BBEH）（Kazemi et al., 2025）、DROP（Dua et al., 2019）、HellaSwag（Zellers et al., 2019）、コーディング・数学には BigCodeBench（Zhuo et al., 2025）、HumanEval（Chen et al., 2021）、GSM8K（Cobbe et al., 2021）、MATH（Hendrycks et al., 2021）、MGSM（Shi et al., 2023）、長文脈には LongBench-V2（Bai et al., 2025）を用いる。
+世界知識ベンチマークには AGIEval [Zho23]、MMLU-Pro [Wan24c]、C-Eval [Hua23]、MultiLoKo [Hup25]、SimpleQA-Verified [Haa25]、SuperGPQA [Du25a] を含む。言語理解・推論には BigBench Hard（BBH） [Suz22]、BigBench Extra Hard（BBEH） [Kaz25]、DROP [Dua19]、HellaSwag [Zel19]、コーディング・数学には BigCodeBench [Zhu25a]、HumanEval [Che21]、GSM8K [Cob21]、MATH [Hen21]、MGSM [Shi23]、長文脈には LongBench-V2 [Bai25] を用いる。
 
-マルチモーダルベンチマークには MMMU-Pro（Yue et al., 2025）、DocVQA（Mathew et al., 2021）、CVBench（Tong et al., 2024）、RefCOCO／RefCOCO+／RefCOCO-g（Kazemzadeh et al., 2014; Nagaraja et al., 2016; Mao et al., 2016; Yu et al., 2016）を含む。
+マルチモーダルベンチマークには MMMU-Pro [Yue24]、DocVQA [Mat21]、CVBench [Ton24]、RefCOCO／RefCOCO+／RefCOCO-g [Kaz14, Nag16a, Mao16, Yu16] を含む。
 
 <span id="section-4-3-2"></span>
 
@@ -442,7 +444,7 @@ DeepSeek-V4.1-Flash-Base を、その前身 DeepSeek-V4-Flash-Base、DeepSeek-V4
 
 ### 5.1 事後学習パイプライン
 
-今回の release では、新しい事後学習 algorithm を導入しない。全体の recipe は教師あり fine-tuning（SFT）に続いて reinforcement learning（RL）と on-policy distillation（OPD; Gu et al., 2024; Lu and Lab, 2025）を行う標準 paradigm に従い、確立済みの手法を越える algorithmic modification はない。代わりに、最適化方法ではなく学習対象へほぼすべての労力を集中し、data synthesis と environment construction の大規模自動 pipeline に投資する。具体的には、（i）多様で検証可能な training task とその reference solution・reward signal を合成し、（ii）trajectory を低コストで収集・評価できる interactive agent environment を手続き的に構築・scale し、（iii）厳格な filtering、deduplication、difficulty calibration により data quality と curriculum balance を確保する。平凡で固定的な optimization procedure のもとでは、合成 data と environment の規模、多様性、検証可能性を体系的に改善したことが、観測された向上のほぼすべてを説明する。この観察は、現段階では data・environment pipeline の engineering から得られる限界収益が、事後学習 algorithm の新規性を大きく上回るという、より一般的な教訓と一致する。
+今回の release では、新しい事後学習 algorithm を導入しない。全体の recipe は教師あり fine-tuning（SFT）に続いて reinforcement learning（RL）と on-policy distillation（OPD; [Gu25, Lu25]）を行う標準 paradigm に従い、確立済みの手法を越える algorithmic modification はない。代わりに、最適化方法ではなく学習対象へほぼすべての労力を集中し、data synthesis と environment construction の大規模自動 pipeline に投資する。具体的には、（i）多様で検証可能な training task とその reference solution・reward signal を合成し、（ii）trajectory を低コストで収集・評価できる interactive agent environment を手続き的に構築・scale し、（iii）厳格な filtering、deduplication、difficulty calibration により data quality と curriculum balance を確保する。平凡で固定的な optimization procedure のもとでは、合成 data と environment の規模、多様性、検証可能性を体系的に改善したことが、観測された向上のほぼすべてを説明する。この観察は、現段階では data・environment pipeline の engineering から得られる限界収益が、事後学習 algorithm の新規性を大きく上回るという、より一般的な教訓と一致する。
 
 <span id="section-5-1-1"></span>
 
@@ -546,7 +548,7 @@ $$
 
 **表 2。** public API の reasoning-effort tier と基礎となる scalar effort value $b$ の対応。
 
-LLM の RL rollout phase における long-tail problem は、学習効率を妨げる主要な bottleneck であり続けている。これに対処するため、事後学習基盤を拡張して sample を asynchronous generation（Zeng et al., 2026; Team et al., 2026b）できるようにし、十分に高い concurrency を維持することで rollout phase の long-tail issue を大幅に緩和する。現在はほぼすべての RL・OPD task で asynchronous training が有効になり、rollout efficiency は大きく改善した。
+LLM の RL rollout phase における long-tail problem は、学習効率を妨げる主要な bottleneck であり続けている。これに対処するため、事後学習基盤を拡張して sample を asynchronous generation [Zen26, Kim26b] できるようにし、十分に高い concurrency を維持することで rollout phase の long-tail issue を大幅に緩和する。現在はほぼすべての RL・OPD task で asynchronous training が有効になり、rollout efficiency は大きく改善した。
 
 <span id="section-5-2"></span>
 
@@ -588,7 +590,7 @@ checkpoint switch をまたいで rollout progress を保つため、KV cache �
 
 #### 5.2.4 大規模オンポリシー蒸留
 
-事後学習の最終段階では、40 を超える teacher model を使い、全 domain の dataset で final full-vocabulary OPD task を学習する。rollout efficiency を高めるため、ここでも asynchronous generation を採用する。domain ごとに training procedure が異なるため、最良の teacher は model development の異なる stage に由来し得る。また teacher model 同士や student とで architecture が異なる場合もある。事後学習基盤はこの設定に容易に対応し、実質無制限の architecturally heterogeneous teacher による full-vocabulary OPD と、無視できるコストでの効率的な切り替えを支える（DeepSeek-AI, 2026b）。
+事後学習の最終段階では、40 を超える teacher model を使い、全 domain の dataset で final full-vocabulary OPD task を学習する。rollout efficiency を高めるため、ここでも asynchronous generation を採用する。domain ごとに training procedure が異なるため、最良の teacher は model development の異なる stage に由来し得る。また teacher model 同士や student とで architecture が異なる場合もある。事後学習基盤はこの設定に容易に対応し、実質無制限の architecturally heterogeneous teacher による full-vocabulary OPD と、無視できるコストでの効率的な切り替えを支える [Dee26]。
 
 OPD stage は training 中の dynamic reconfiguration も必要とする。model capability を継続的に追跡し、dataset mixture、dataset ごとの concurrency limit、active teacher など training recipe を調整する場合がある。rollout batch が明確な configuration boundary となる synchronous training では変更は容易である。一方 asynchronous setting では、異なる configuration で生成した sample が in flight で共存し得る。本基盤は rollout も training も妨げず、configuration 間の一貫した移行を支える。
 
@@ -602,15 +604,15 @@ OPD stage は training 中の dynamic reconfiguration も必要とする。model
 
 事後学習の評価は主に reasoning と agentic capability に焦点を当てる。knowledge-intensive performance はほぼ事前学習で決まり、[表 1](#table-01)に報告した。
 
-reasoning は GPQA Diamond（Rein et al., 2023）、Humanity's Last Exam（Phan et al., 2025）、Codeforces（internal benchmark）、MathArena Apex（Dekoninck et al., 2025）で評価し、temperature と top-$p$ は 1.0 とする。agentic capability は次の 4 category で評価する。
+reasoning は GPQA Diamond [Rei23]、Humanity's Last Exam [Pha25]、Codeforces（internal benchmark）、MathArena Apex [Dek25] で評価し、temperature と top-$p$ は 1.0 とする。agentic capability は次の 4 category で評価する。
 
-- **Code agent：** Terminal-Bench 2.1（Merrill et al., 2026）、Terminal-Bench 3.0（Marten et al., 2026b）、Terminal-Bench 4.0（Marten et al., 2026a）、DeepSWE v1.1（DataCurve, 2026）、ProgramBench（Yang et al., 2026）、NL2Repo-Bench（Ding et al., 2025）。
+- **Code agent：** Terminal-Bench 2.1 [Mer26]、Terminal-Bench 3.0 [Mar26a]、Terminal-Bench 4.0 [Mar26]、DeepSWE v1.1 [Dee26c]、ProgramBench [Yan26a]、NL2Repo-Bench [Din25]。
 
-- **Cyber security：** SEC-Bench Pro version 260505（Lee et al., 2026）、CyberGym（Wang et al., 2026c）、ExploitGym（Wang et al., 2026b）。
+- **Cyber security：** SEC-Bench Pro version 260505 [Lee26]、CyberGym [Wan25c]、ExploitGym [Wan26b]。
 
-- **General agent：** AutomationBench v1.0.6 の public evaluation set（Shepard and Salimans, 2026）、Agents' Last Exam（Sun et al., 2026a）（ALE-CLI）。
+- **General agent：** AutomationBench v1.0.6 の public evaluation set [She26]、Agents' Last Exam [Sun26a]（ALE-CLI）。
 
-- **Visual agent：** Chartography（Garre et al., 2026）、BabyVision（Chen et al., 2026）、ZeroBench の main set（Roberts et al., 2025）。
+- **Visual agent：** Chartography [Gar26]、BabyVision [Che26]、ZeroBench の main set [Rob25]。
 
 code agent では、DeepSeek Harness の Minimal mode、1M-token context window、temperature 1.0、top-p 0.95 で DeepSeek-V4.1-Flash を評価する。公式設定へ合わせ、DeepSWE v1.1 には mini-SWE harness を使う。SEC-Bench Pro には session compact 設計を持つ Claude Code harness を専用に使う。visual agent task は Claude Code harness、512k-token context window、temperature 1.0、top-p 0.95 で評価する。Agents' Last Exam と AutomationBench は公式 scaffold で評価する。ほかの coding scaffold における性能は[表 4](#table-04)に示す。
 
@@ -644,7 +646,7 @@ peak performance に加え、DeepSeek-V4.1-Flash は reasoning-effort setting �
 
 #### 5.3.4 エージェントスキャフォールド間の性能
 
-実際には model が単一の固定 agent framework へ展開されることは少ない。scaffold ごとに system prompt、tool definition、context management strategy、interaction protocol が異なり、特定 harness に overfit した model は別環境で大きく劣化し得る。この違いに対する頑健性を評価するため、Claude Code（Anthropic, 2026）、Codex（OpenAI, 2026）、OpenCode（Anomaly, 2026）、Pi（Zechner, 2026）、mini-SWE（Yang et al., 2024）、DeepSeek Harness（DSH）（DeepSeek-AI, 2026a）の Minimal・Standard・PTC mode という 6 scaffold family、8 configuration を比較する。各 scaffold で model checkpoint、decoding configuration、task set は同一に保ち、native system prompt、tool schema、turn-taking logic を含む周辺 harness だけを変える。[表 4](#table-04)は Max reasoning effort（100）における DeepSWE v1.1 と Terminal-Bench v2.1 の性能を示す。model の agentic capability は、特定 harness 固有の慣習に依存せず、prompt・tool interface の異なる scaffold family 間へよく転移する。周辺 interaction protocol と tool abstraction が変わっても性能は堅牢で、agentic behavior が単一 scaffold design と強く結び付いていないことを示す。この頑健性は、agent scaffold 間の generalization を促すよう設計した合成 training data（[第 5 節](#section-5)）の environment、tool schema、interaction format の多様性と整合する。
+実際には model が単一の固定 agent framework へ展開されることは少ない。scaffold ごとに system prompt、tool definition、context management strategy、interaction protocol が異なり、特定 harness に overfit した model は別環境で大きく劣化し得る。この違いに対する頑健性を評価するため、Claude Code [Cod26]、Codex [Cod26a]、OpenCode [Ope26b]、Pi [Zec26]、mini-SWE [Yan24l]、DeepSeek Harness（DSH） [Dee26d] の Minimal・Standard・PTC mode という 6 scaffold family、8 configuration を比較する。各 scaffold で model checkpoint、decoding configuration、task set は同一に保ち、native system prompt、tool schema、turn-taking logic を含む周辺 harness だけを変える。[表 4](#table-04)は Max reasoning effort（100）における DeepSWE v1.1 と Terminal-Bench v2.1 の性能を示す。model の agentic capability は、特定 harness 固有の慣習に依存せず、prompt・tool interface の異なる scaffold family 間へよく転移する。周辺 interaction protocol と tool abstraction が変わっても性能は堅牢で、agentic behavior が単一 scaffold design と強く結び付いていないことを示す。この頑健性は、agent scaffold 間の generalization を促すよう設計した合成 training data（[第 5 節](#section-5)）の environment、tool schema、interaction format の多様性と整合する。
 
 <span id="table-04"></span>
 
@@ -666,7 +668,7 @@ agent 間の通信には durable peer mailbox を使う。send_message で送っ
 
 **学習。** task performance、delegation と inter-agent communication を促す collaboration bonus、効率的な coordination を促す derived latency penalty を組み合わせた RL reward で Agent Team mode を学習する。derived latency は execution event と collaboration dependency を directed acyclic graph（DAG）として表し、固定 prefill／decode rate における token count と実測 tool-execution time から cost を割り当て、critical path length を取って計算する。これにより、serving-side batching・queuing delay への感度を抑えつつ、有用な parallelism を促して不要な sequential work と synchronization に罰を与える。
 
-**性能。** ProgramBench（Yang et al., 2026）から、reference solution が hidden test suite で少なくとも 95% の pass rate を達成する task だけを残し、high-confidence subset を構築する。この filtering により 172 個の「golden」task が残る。さらに大幅に改善した方法論を使う FrontierSWE の大規模で難しい後継 FrontierSWE v2（Kondra et al., 2026）でも評価する。現在公開中の task から GPU access が必要なものを除き、no-GPU subset を作る。両 benchmark で明示的な rollout ごとの wall-clock deadline のもと single-agent と multi-agent configuration を評価する。ここで報告する結果は予備的で、観測した最強の multi-agent configuration と利用可能な最強の single-agent baseline を比較する。ProgramBench は task 当たり最大 3 rollout、configuration 当たり計画上 516 rollout を実行する。個々の rollout で score 0.95 以上となる割合 Almost@1 を報告する。FrontierSWE v2 では Mean@5 を報告する。ProgramBench の deadline は 1-12 時間、FrontierSWE v2 は 1-20 時間で評価する。各 deadline では、その時点で得られている output から metric を計算する。
+**性能。** ProgramBench [Yan26a] から、reference solution が hidden test suite で少なくとも 95% の pass rate を達成する task だけを残し、high-confidence subset を構築する。この filtering により 172 個の「golden」task が残る。さらに大幅に改善した方法論を使う FrontierSWE の大規模で難しい後継 FrontierSWE v2 [Fro26] でも評価する。現在公開中の task から GPU access が必要なものを除き、no-GPU subset を作る。両 benchmark で明示的な rollout ごとの wall-clock deadline のもと single-agent と multi-agent configuration を評価する。ここで報告する結果は予備的で、観測した最強の multi-agent configuration と利用可能な最強の single-agent baseline を比較する。ProgramBench は task 当たり最大 3 rollout、configuration 当たり計画上 516 rollout を実行する。個々の rollout で score 0.95 以上となる割合 Almost@1 を報告する。FrontierSWE v2 では Mean@5 を報告する。ProgramBench の deadline は 1-12 時間、FrontierSWE v2 は 1-20 時間で評価する。各 deadline では、その時点で得られている output から metric を計算する。
 
 [図 10](#figure-10)に示すように、両 benchmark のすべての deadline で multi-agent configuration が single-agent を上回る。ProgramBench では multi-agent configuration の Almost@1 が 1 時間の 13.59% から 8 時間で最高 30.04% へ上がるのに対し、single-agent は 12.79% と 20.39% である。FrontierSWE v2 では multi-agent の Mean@5 が 1 時間の 13.50% から 20 時間の 32.90% へ上がり、single-agent は 10.50% から 28.20% へ上がる。
 
@@ -818,5 +820,3 @@ $$
 したがって $k_0$ は主として短い reasoning を促す全体圧力を制御し、$\tau$ は effort に対する予測感度を制御する。
 
 この導出は local reward-level approximation であり、測定した average length が線形または pointwise monotonic でなければならないという主張ではない。effort instruction が reasoning strategy を直接変え得ること、generation が stochastic であること、agent trajectory ごとに turn 数が異なること、subgroup reward normalization により optimization strength が変わることから、実現 behavior は外れ得る。また、分析は penalty cap が active でない interior solution を仮定する。cap に達すると marginal token penalty は 0 になり、capped region を別に考える必要がある。
-
-> 本閲覧版では独立した参考文献一覧を省略した。完全な参考文献は原 PDF を参照されたい。
