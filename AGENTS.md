@@ -17,7 +17,6 @@ Generated output and caches live under `docs/.vuepress/dist`, `.cache`, and `.te
 
 - `npm install` installs the versions recorded in `package-lock.json`.
 - `npm run docs:dev` starts the local documentation server with hot reload.
-- `npm run docs:clean-dev` clears VuePress caches before starting; use this after configuration or dependency changes.
 - `npm run docs:build` produces the static site and validates Markdown, routes, imports, and theme configuration.
 
 Run `npm run docs:build` before submitting changes.
