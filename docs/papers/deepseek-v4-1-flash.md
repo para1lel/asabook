@@ -98,7 +98,7 @@ $$
 
 对于滑动窗口注意力 (SWA), CED 在所有层中保留传统的逐层计算. 具体而言, 任意一层 $l$ 的局部键和值都直接来自该层当前的隐藏状态 $H_l$. 这实际上增加了局部 KV 生成的计算深度, 但若要保留这种逐层计算, 就必须进行 SWA 重放. 在预填充阶段, 为解码器计算 SWA KV 缓存还需额外处理 $n_{\mathrm{win}}\times L/2$ 个 Token, 其中 $n_{\mathrm{win}}$ 表示窗口大小. 若多轮交互中每轮提示较短, 解码器的这部分计算开销便不可忽略. 所幸, 以往研究 [Che25ad] 已表明, SWA 的实际有效感受野远小于理论上的 $n_{\mathrm{win}}\times L/2$. 据此, 我们提出解码器 SWA 有界重放, 在 SWA 计算中只预填充提示末尾的 $n_{\mathrm{win}}$ 个 Token, 大幅降低计算成本. 详见[第 3.2.2 节](#section-3-2-2).
 
-总的来说, 对于长度满足 $N\gg n_{\mathrm{win}}$ 的序列, CED 把预填充复杂度从 $O(N\,L)$ 降到 $O(N\,L/2+n_{\mathrm{win}}\times L/2)\approx O(N\,L/2)$, 整体计算量约减半.
+总的来说, 对于长度满足 $N\gg n_{\mathrm{win}}$ 的序列, CED 把预填充复杂度从 $O(NL)$ 降到 $O(NL/2+n_{\mathrm{win}}\times L/2)\approx O(NL/2)$, 整体计算量约减半.
 
 <span id="section-2-3"></span>
 
@@ -165,21 +165,15 @@ $$
 理想情况下, 两个块之间的残差变换是从 $(X_{l-1},Y_{l-1})$ 到 $(X_l,\hat{X}_l)$ 的单次映射, 其中 $\hat{X}_l=A_lX_l$ 是当前块输入, $Y_{l-1}=\mathcal{F}_{l-1}(\hat{X}_{l-1})$ 是前一块输出. 这种映射需要读取 $(n+1)d$ 次, 写入 $(n+1)d$ 次, 因而激活内存流量的下界为 $(2n+2)d$. 实际上, DeepSeek-V4 对[公式 2](#equation-02) 采用多遍实现; 由于数据依赖, 三个内核依次执行:
 
 <span id="equation-03"></span>
-
-$$
-X_l=B_{l-1}X_{l-1}+C_{l-1}Y_{l-1}
-$$
-
 <span id="equation-04"></span>
-
-$$
-(A_l,B_l,C_l)=\mathcal{H}(X_l)
-$$
-
 <span id="equation-05"></span>
 
 $$
-\hat{X}_l=A_lX_l
+\begin{aligned}
+X_l &= B_{l-1}X_{l-1}+C_{l-1}Y_{l-1}\\
+(A_l,B_l,C_l) &= \mathcal{H}(X_l)\\
+\hat{X}_l &= A_lX_l
+\end{aligned}
 $$
 
 三个内核分别读取 $(n+1)d$, $nd$ 和 $nd$ 个值, 总共写入 $(n+1)d$ 个值. 若计入 $\mathcal{F}_l$ 中的预归一化, 激活内存总流量为 $(4n+4)d$, 是下界的两倍.
@@ -306,11 +300,11 @@ $$
 
 - 均衡图像分片. 预训练期间, 单条图像密集的超长序列在加载时便可能耗尽一台主机的 I/O, CPU 和内存. 因此, 每条序列的图像会以负载均衡方式分片到各个 CP rank, 每张图像恰好只加载一次. 图像仅读取一次时, 只要满足
 
-$$
-\frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
-$$
+  $$
+  \frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
+  $$
 
-加载过程就始终隐藏在计算之后. 这里, $N$ 是 Token 数, $\rho$ 是每 Token 的原始字节数, $C$ 是每 Token 的计算量, $B_{\mathrm{IO}}$ 和 $B_{\mathrm{GPU}}$ 分别是文件系统与 GPU 带宽. 因为 $N$ 可约去, 这一条件只涉及每 Token 的量 ($\rho$ 与 $C$), 与序列长度和集群规模无关; $\rho$ 由视觉模块配置决定, 如分辨率上限或空间下采样. 因此, 只有消融实验中每 Token 计算量较低的小模型会受存储吞吐量限制, 生产规模模型仍受计算约束.
+  加载过程就始终隐藏在计算之后. 这里, $N$ 是 Token 数, $\rho$ 是每 Token 的原始字节数, $C$ 是每 Token 的计算量, $B_{\mathrm{IO}}$ 和 $B_{\mathrm{GPU}}$ 分别是文件系统与 GPU 带宽. 因为 $N$ 可约去, 这一条件只涉及每 Token 的量 ($\rho$ 与 $C$), 与序列长度和集群规模无关; $\rho$ 由视觉模块配置决定, 如分辨率上限或空间下采样. 因此, 只有消融实验中每 Token 计算量较低的小模型会受存储吞吐量限制, 生产规模模型仍受计算约束.
 
 - 增量图像传输. 除上述均衡分片外, 强化学习 rollout 只会增量地把图像传给推理引擎, 并把引擎在 CPU 侧的解码与预处理结果缓存在分布式文件系统中, 供后续 rollout 和训练复用.
 

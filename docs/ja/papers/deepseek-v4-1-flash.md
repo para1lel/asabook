@@ -99,7 +99,7 @@ $$
 
 sliding window attention（SWA）については、CED は全層で従来どおりの層ごとの計算を維持する。具体的に、任意の層 $l$ の local key と value は、その層の hidden state $H_l$ から直接導出する。この設計により local KV 生成の計算深度は実質的に増える。ただし、層ごとの計算を維持するには SWA replay が必要になる。プリフィル段階で decoder の SWA KV キャッシュを計算するには、追加で $n_{\mathrm{win}}\times L/2$ トークンを処理する必要がある。ここで $n_{\mathrm{win}}$ はウィンドウサイズを表す。1 ターン当たりのプロンプトが短いマルチターン対話では、decoder のこの計算負荷は無視できない。幸い、従来研究 [Che25ad] から、SWA の実効 receptive field は理論上の $n_{\mathrm{win}}\times L/2$ よりはるかに小さいことが分かっている。この観察に基づき、SWA 計算ではプロンプト末尾の $n_{\mathrm{win}}$ トークンだけをプリフィルする Decoder SWA Bounded Replay を導入し、計算コストを大きく減らす。詳細は[第 3.2.2 節](#section-3-2-2)で述べる。
 
-全体として、系列長 $N\gg n_{\mathrm{win}}$ に対し、CED はプリフィル計算量を $O(N\,L)$ から $O(N\,L/2+n_{\mathrm{win}}\times L/2)\approx O(N\,L/2)$へ減らし、総計算量を実質的に半減させる。
+全体として、系列長 $N\gg n_{\mathrm{win}}$ に対し、CED はプリフィル計算量を $O(NL)$ から $O(NL/2+n_{\mathrm{win}}\times L/2)\approx O(NL/2)$へ減らし、総計算量を実質的に半減させる。
 
 <span id="section-2-3"></span>
 
@@ -166,21 +166,15 @@ $$
 理想的には、2 つの block 間の residual transformation は$(X_{l-1},Y_{l-1})$ から $(X_l,\hat{X}_l)$ への単一 map となる。ここで $\hat{X}_l=A_lX_l$ は現在 block の入力、$Y_{l-1}=\mathcal{F}_{l-1}(\hat{X}_{l-1})$は前 block の出力である。この map には$(n+1)d$ 回の read と$(n+1)d$ 回の write が必要で、activation memory traffic の下限は$(2n+2)d$ となる。実際の DeepSeek-V4 は、データ依存により順次実行される 3 kernel を使い、式（2）を multi-pass で実装する。
 
 <span id="equation-03"></span>
-
-$$
-X_l=B_{l-1}X_{l-1}+C_{l-1}Y_{l-1}\qquad\text{Residual update, contraction over }n
-$$
-
 <span id="equation-04"></span>
-
-$$
-(A_l,B_l,C_l)=\mathcal{H}(X_l)\qquad\text{Coefficients, contraction over }nd
-$$
-
 <span id="equation-05"></span>
 
 $$
-\hat{X}_l=A_lX_l\qquad\text{Input mixing, contraction over }n
+\begin{aligned}
+X_l &= B_{l-1}X_{l-1}+C_{l-1}Y_{l-1}\qquad\text{Residual update, contraction over }n\\
+(A_l,B_l,C_l) &= \mathcal{H}(X_l)\qquad\text{Coefficients, contraction over }nd\\
+\hat{X}_l &= A_lX_l\qquad\text{Input mixing, contraction over }n
+\end{aligned}
 $$
 
 
@@ -309,11 +303,11 @@ $$
 
 - **均衡画像シャーディング。** 事前学習時、画像密度の高い単一の超長系列が読み込み中に 1 host の I/O、CPU、メモリを使い切る可能性がある。そのため各系列の画像を load balancing しながら CP rank 間で shard し、各画像をちょうど 1 回だけ読み込む。画像を一度だけ読む場合、次が成り立てば読み込みは常に計算の背後に隠れる。
 
-$$
-\frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
-$$
+  $$
+  \frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
+  $$
 
-ここで $N$ は token count、$\rho$ は token 当たりの raw byte、$C$ は token 当たりの compute、$B_{\mathrm{IO}}$ と $B_{\mathrm{GPU}}$ は file system と GPU の bandwidth である。$N$ は相殺されるため、条件は token 当たりの量（$\rho$ と $C$）だけに依存し、系列長や cluster size には依存しない。$\rho$ は resolution cap や spatial downsample など vision module configuration で決まる。したがって storage throughput がボトルネックになるのは、ablation のように token 当たり compute が少ない小規模モデルだけであり、本番規模のモデルは compute-bound のままである。
+  ここで $N$ は token count、$\rho$ は token 当たりの raw byte、$C$ は token 当たりの compute、$B_{\mathrm{IO}}$ と $B_{\mathrm{GPU}}$ は file system と GPU の bandwidth である。$N$ は相殺されるため、条件は token 当たりの量（$\rho$ と $C$）だけに依存し、系列長や cluster size には依存しない。$\rho$ は resolution cap や spatial downsample など vision module configuration で決まる。したがって storage throughput がボトルネックになるのは、ablation のように token 当たり compute が少ない小規模モデルだけであり、本番規模のモデルは compute-bound のままである。
 
 - **増分画像転送。** 上記の均衡シャーディングに加え、reinforcement-learning rollout では画像を inference engine へ増分的にのみ転送し、engine の CPU-side decoding・preprocessing output を distributed file system に cache して、rollout と後続学習で再利用する。
 

@@ -99,7 +99,7 @@ where $C$ and $Z$ represent the KV entries and their corresponding compression w
 
 For sliding window attention (SWA), CED maintains the conventional layer-wise computation across all layers. Specifically, for any layer $l$, the local keys and values are derived directly from the current layer's hidden state $H_l$. This design effectively increases the computational depth of local KV generation. However, maintaining this layer-wise computation necessitates an SWA replay process. During the prefill phase, computing the SWA KV cache for the decoder requires processing an additional $n_{\mathrm{win}}\times L/2$ tokens (where $n_{\mathrm{win}}$ denotes the window size). For multi-turn interactions with short prompts per turn, this computational overhead in the decoder becomes non-negligible. Fortunately, prior work [Che25ad] has shown that the actual effective receptive field of SWA is much smaller than the theoretical $n_{\mathrm{win}}\times L/2$. Motivated by this observation, we introduce Decoder SWA Bounded Replay, which only prefills the last $n_{\mathrm{win}}$ tokens of the prompt for the SWA computation, thereby significantly reducing the computational cost. Further details are provided in [Section 3.2.2](#section-3-2-2).
 
-Overall, for a sequence length $N\gg n_{\mathrm{win}}$, CED reduces the prefill complexity from $O(N\,L)$ to $O(N\,L/2+n_{\mathrm{win}}\times L/2)\approx O(N\,L/2)$, effectively halving the overall computation.
+Overall, for a sequence length $N\gg n_{\mathrm{win}}$, CED reduces the prefill complexity from $O(NL)$ to $O(NL/2+n_{\mathrm{win}}\times L/2)\approx O(NL/2)$, effectively halving the overall computation.
 
 <span id="section-2-3"></span>
 
@@ -166,21 +166,15 @@ where $A_l\in\mathbb{R}^{1\times n}$, $C_l\in\mathbb{R}^{n\times1}$ and $B_l\in\
 Ideally, the residual transformation between two blocks is a single map from $(X_{l-1},Y_{l-1})$ to $(X_l,\hat{X}_l)$, where $\hat{X}_l=A_lX_l$ is the current block input and $Y_{l-1}=\mathcal{F}_{l-1}(\hat{X}_{l-1})$ is the previous block output. Such a map requires $(n+1)d$ reads and $(n+1)d$ writes, giving a lower bound of $(2n+2)d$ on activation memory traffic. In practice, DeepSeek-V4 uses a multi-pass implementation of (2), with three kernels that execute sequentially due to data dependencies:
 
 <span id="equation-03"></span>
-
-$$
-X_l=B_{l-1}X_{l-1}+C_{l-1}Y_{l-1}\qquad\text{Residual update, contraction over }n
-$$
-
 <span id="equation-04"></span>
-
-$$
-(A_l,B_l,C_l)=\mathcal{H}(X_l)\qquad\text{Coefficients, contraction over }nd
-$$
-
 <span id="equation-05"></span>
 
 $$
-\hat{X}_l=A_lX_l\qquad\text{Input mixing, contraction over }n
+\begin{aligned}
+X_l &= B_{l-1}X_{l-1}+C_{l-1}Y_{l-1}\qquad\text{Residual update, contraction over }n\\
+(A_l,B_l,C_l) &= \mathcal{H}(X_l)\qquad\text{Coefficients, contraction over }nd\\
+\hat{X}_l &= A_lX_l\qquad\text{Input mixing, contraction over }n
+\end{aligned}
 $$
 
 
@@ -309,11 +303,11 @@ where $V$ and $T$ denote the visual and text features, $(A\parallel C)$ denotes 
 
 - Balanced image sharding. During pre-training, a single ultra-long, image-dense sequence can exhaust one host's I/O, CPU, and memory during loading, so the images of each sequence are sharded across the CP ranks with load balancing, and each image is loaded exactly once. With images read once, loading stays hidden behind compute whenever
 
-$$
-\frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
-$$
+  $$
+  \frac{N\times\rho}{B_{\mathrm{IO}}}<\frac{N\times C}{B_{\mathrm{GPU}}}\Longleftrightarrow\rho<\frac{B_{\mathrm{IO}}}{B_{\mathrm{GPU}}}C,
+  $$
 
-where $N$ is the token count, $\rho$ the raw bytes per token, $C$ the per-token compute, and $B_{\mathrm{IO}}$, $B_{\mathrm{GPU}}$ the file-system and GPU bandwidths. Since $N$ cancels, the criterion involves only per-token quantities ($\rho$ and $C$), independent of sequence length and cluster size; $\rho$ is set by the vision-module configuration (e.g., the resolution cap or the spatial downsample). Storage throughput therefore becomes a bottleneck only for small models with low per-token compute, as in ablations, while production-scale models remain compute-bound.
+  where $N$ is the token count, $\rho$ the raw bytes per token, $C$ the per-token compute, and $B_{\mathrm{IO}}$, $B_{\mathrm{GPU}}$ the file-system and GPU bandwidths. Since $N$ cancels, the criterion involves only per-token quantities ($\rho$ and $C$), independent of sequence length and cluster size; $\rho$ is set by the vision-module configuration (e.g., the resolution cap or the spatial downsample). Storage throughput therefore becomes a bottleneck only for small models with low per-token compute, as in ablations, while production-scale models remain compute-bound.
 
 - Incremental image transfer. Besides the balanced sharding above, the reinforcement-learning rollout transfers images to the inference engine only incrementally, and caches the engine's CPU-side decoding and preprocessing outputs on a distributed file system for reuse across rollouts and subsequent training.
 
