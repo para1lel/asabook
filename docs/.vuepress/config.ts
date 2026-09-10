@@ -4994,7 +4994,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3', 'deepseek-v4-1-flash'],
               },
               {
                 text: '处理器架构',
@@ -5121,7 +5121,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3', 'deepseek-v4-1-flash'],
               },
               {
                 text: 'Processor Architecture',
@@ -5358,7 +5358,7 @@ export default defineUserConfig({
               {
                 text: 'LLM',
                 collapsed: true,
-                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3'],
+                items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3', 'deepseek-v4-1-flash'],
               },
               {
                 text: 'プロセッサアーキテクチャ',

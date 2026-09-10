@@ -44,6 +44,26 @@ GROBID, OCR, and PDF text extraction commonly introduce errors that require visu
 
 Never resolve a disagreement in favor of extraction merely because its XML looks structured. Inspect the corresponding PDF pixels and preserve the paper's visible content.
 
+## Audit GROBID TEI Against the PDF
+
+Treat TEI as a searchable index and provisional outline, not a lossless representation. Before translating or polishing, align every retained TEI object to visible PDF pages and check these failure modes:
+
+| GROBID failure mode | Required check |
+| --- | --- |
+| Multi-column text, marginal content, or text surrounding a float is emitted in the wrong order. | Render every page and trace the first and last sentence of each paragraph across column, page, figure, and table boundaries. Do not trust XML node order at a transition until the visible reading order agrees. |
+| A `<head>` is merged into its first paragraph, repeated as body text, assigned to the wrong parent `<div>`, or omitted. | Compare the ordered heading outline and appendix hierarchy with the PDF. Search the draft for a heading's text outside its heading line and for section numbers that skip, repeat, or move backward. |
+| `<figure>`, `<table>`, `<figDesc>`, labels, and nearby `<p>` nodes duplicate or interleave captions with body prose. | Build ordered lists of visible figures, tables, captions, and their first body sentence; compare them with the PDF. Keep one Markdown caption, and crop only the visual object, excluding the printed caption and surrounding prose. |
+| Formula markup is flattened into Mathematical Alphanumeric Unicode, separated symbols, or prose-like tokens, such as `𝐻 𝑙`, `𝑛 win`, `𝐿 norm`, or `𝑟 len 𝑏, 𝑗`. | Search the completed pages for U+1D400–U+1D7FF characters and visually reconstruct every hit as KaTeX, including subscripts, superscripts, accents, grouping, and operator names. A plausible Unicode transcription is not sufficient. |
+| Superscript minus signs or exponents become dashes, such as `10 — 20`, `10 — 3`, or `e — 1`; `min` and `max` may become ordinary letters. | Search for spaced dash patterns next to numerals or `e`, then compare the PDF glyphs. Restore exponents with braces, for example `10^{-20}` and `e^{-1}`, and use `\min` or `\max` for operators. |
+| Equation boundaries, numbering, and surrounding sentences are split or reordered. | Inventory every displayed equation in visible order, match its printed number to the surrounding prose, and verify every formula-reference link against the rendered PDF. Do not infer grouping from TEI `<formula>` boundaries alone. |
+| Lists, algorithms, run-in headings, code indentation, table notes, and footnotes are flattened into paragraphs or detached from their markers. | Compare item counts, nesting, marker order, and continuation text with the PDF. Reconstruct algorithms and code from visible indentation; verify each footnote marker and note as a pair. |
+| Line-end hyphenation is preserved, removed incorrectly, or joins words that were separated by layout, producing forms such as `tokenbudget`. | Compare suspicious compounds with both the visible line break and searchable PDF text. Search for unexpected long tokens and for words that differ only at a page or column boundary. |
+| TEI `target`, `xml:id`, bibliography order, or generated labels drift after a missing or spurious record. | Independently map visible citation labels and cross-references from the PDF. Spot-check the beginning, middle, and end, then compare complete ordered citation and target sets; never derive printed numbering from TEI IDs. |
+| Front matter, bibliography, author lists, acknowledgements, or appendices leak into adjacent body divisions. | Record the visible start and end page of each apparatus section. Compare the first and last retained sentence of the main body and every appendix, and omit only the standalone bibliography as required by this skill. |
+| TEI coordinates select a partial panel, omit a table edge or note, or include the printed caption. | Use coordinates only to locate the object. Inspect the final scale-4 crop at actual pixels against the PDF, checking all four edges, panels, labels, legends, rules, and notes, with a small even safety margin. |
+
+Use lightweight inventories before manual comparison: count and list TEI `<head>`, `<figure>`, `<table>`, `<formula>`, `<note>`, and `<ref>` nodes in document order; then compare those sequences with the Markdown headings, anchors, images, captions, equations, annotations, and links. After reconstruction, run the paper checker and resolve its Unicode-math, suspicious-dash, structure, reference, and cross-locale warnings against the PDF instead of suppressing them.
+
 ## Recover Citations Without TeX
 
 1. Map each visible inline citation number or label to the bibliography entry printed in the PDF. Do not assume a TEI `ref` target or bibliography `xml:id` equals the printed reference number.

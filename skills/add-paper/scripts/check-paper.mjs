@@ -667,6 +667,15 @@ for (const page of pages) {
     fail(`${label}: expected permalink ${page.permalink}, found ${frontmatter.permalink ?? '(missing)'}`)
   }
 
+  const rawUnicodeMath = [...new Set(markdown.match(/[\u{1D400}-\u{1D7FF}]/gu) ?? [])]
+  if (rawUnicodeMath.length > 0) {
+    warn(`${label}: replace raw Mathematical Alphanumeric Unicode (${rawUnicodeMath.join(' ')}) with PDF-verified KaTeX notation`)
+  }
+  const suspiciousExponentDashes = markdown.match(/(?:\b10|\be)\s+[—–]\s+\d+\b/gu) ?? []
+  if (suspiciousExponentDashes.length > 0) {
+    warn(`${label}: review possible GROBID exponent-to-dash transcription(s): ${[...new Set(suspiciousExponentDashes)].join(', ')}`)
+  }
+
   const math = extractMath(markdown)
   math.forEach((expression, index) => {
     if (/\|\||\\(?:lVert|rVert|Vert)\b/.test(expression)) {
