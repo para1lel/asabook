@@ -419,7 +419,7 @@ GPU 广泛用于 LLM 部署. 为展示 T-MAC 的效率, 我们将 CPU 上的 T-M
 
 **表 7.** 3 台设备上, T-MAC 与 GPU/NPU 运行 Llama-2-7B-4bit/2bit 时的 token 生成速度 (tokens/s). NPU 的 2-bit 性能由 4-bit 推算, 以 "*" 标出.
 
-[表 5](#table-05) 给出了 NVIDIA Jetson AGX Orin 上 Llama-2-7B-2bit 模型的端到端对比. 不用 T-MAC 时, CPU 只在功率方面优于 GPU; 由于吞吐量较低, 能耗仍不如 GPU. 与 CPU 上的 llama.cpp 相比, T-MAC 不仅把吞吐量提高到 $2.2\times$, 还把功率降至 69$\%$, 能源效率因而达到 $3.2\times$. 与 GPU 上的 llama.cpp 相比, T-MAC 的吞吐量虽只有 78$\%$, 所需功率却只有 34$\%$, 能源效率达到 $2.3\times$. [图 11](#figure-11) 显示 T-MAC 的 mpGEMV 内核超过 GPU. T-MAC 的端到端吞吐量仍低于 GPU, 原因在于 CPU 上 llama.cpp 除 mpGEMV 外的其他内核性能.
+[表 5](#table-05) 给出了 NVIDIA Jetson AGX Orin 上 Llama-2-7B-2bit 模型的端到端对比. 不用 T-MAC 时, CPU 只在功率方面优于 GPU; 由于吞吐量较低, 能耗仍不如 GPU. 与 CPU 上的 llama.cpp 相比, T-MAC 不仅把吞吐量提高到 $2.2\times$, 还把功率降至 $69\%$, 能源效率因而达到 $3.2\times$. 与 GPU 上的 llama.cpp 相比, T-MAC 的吞吐量虽只有 $78\%$, 所需功率却只有 $34\%$, 能源效率达到 $2.3\times$. [图 11](#figure-11) 显示 T-MAC 的 mpGEMV 内核超过 GPU. T-MAC 的端到端吞吐量仍低于 GPU, 原因在于 CPU 上 llama.cpp 除 mpGEMV 外的其他内核性能.
 
 除了功率效率, T-MAC 在常用平台上的性能也超过 GPU/NPU. 我们进一步在 Surface Laptop 7, OnePlus 12 和 Jetson Orin NX 这 3 台设备上评估 T-MAC. 所配 CPU/GPU/NPU 的完整规格见 [表 6](#table-06). 我们采用能够充分利用内存带宽并接近最优性能的最少 CPU 核心数. GPU 评估中, NVIDIA GPU 使用 llama.cpp CUDA backend, Qualcomm GPU 使用 OpenCL backend. NPU 性能取自 Qualcomm 通过 Qualcomm AI Hub [Qua24] 发布的官方数据.
 

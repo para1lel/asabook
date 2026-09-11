@@ -232,7 +232,7 @@ AWQ は LLM のサイズを大幅に削減できる。しかし、W4A16（4 ビ�
 
 ![11 の視覚言語ベンチマークにおける VILA の結果](../../papers/awq/table-07.png)
 
-**表 7.** 11 の視覚言語ベンチマークにおける VILA-7B と VILA-13B [Lin24c] の INT4-g128 結果。AWQ はすべてのベンチマークで性能を損なわない。紙幅の都合でベンチマーク名を略記する。VQA-v2 [Goy17]、GQA [Hud19]、VisWiz [Gur18]、SQA$^{\mathrm{I}}$：ScienceQA-IMG [Lu22a]、VQA$^{\mathrm{T}}$：TextVQA [Sin19]、POPE [Li23p]、MME [Fu23a]、MMB：MMBench [Liu23k]、MMB$^{\mathrm{CN}}$：MMBench-Chinese [Liu23k]、SEED：SEED-Bench [Li23n]、LLaVA$^{\mathrm{W}}$：LLaVA-Bench（In-the-Wild）[Liu23j]、MM-Vet [Yu23a]。
+**表 7.** 11 の視覚言語ベンチマークにおける VILA-7B と VILA-13B [Lin24c] の INT4-g128 結果。AWQ はすべてのベンチマークで性能を損なわない。紙幅の都合でベンチマーク名を略記する。VQA-v2 [Goy17]、GQA [Hud19]、VisWiz [Gur18]、SQA<sup>I</sup>：ScienceQA-IMG [Lu22a]、VQA<sup>T</sup>：TextVQA [Sin19]、POPE [Li23p]、MME [Fu23a]、MMB：MMBench [Liu23k]、MMB<sup>CN</sup>：MMBench-Chinese [Liu23k]、SEED：SEED-Bench [Li23n]、LLaVA<sup>W</sup>：LLaVA-Bench（In-the-Wild）[Liu23j]、MM-Vet [Yu23a]。
 
 **LLaMA モデルでの結果。** LLaMA モデル（LLaMA [Tou23] と Llama-2 [Tou23a]）は他の公開 LLM [Zha22a, Les23] より性能が高く、多くの人気オープンソースモデル [Tao23, Chi23a] の基盤でもあるため、これを中心に評価する。[表 4](#table-04)では量子化前後の perplexity を測定する。AWQ は異なる世代とモデル規模（7B-70B）のすべてで、最近傍丸め（RTN）および並べ替えの有無を問わず GPTQ [Fra22] を一貫して上回る。
 
