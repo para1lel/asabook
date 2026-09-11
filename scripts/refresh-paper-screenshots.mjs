@@ -640,7 +640,7 @@ for (const slug of paperSlugs(options.slugs)) {
     console.log(`${slug}: located ${result.crops.length} image(s)`)
   }
 
-  await pdf.destroy()
+  await loadingTask.destroy()
 }
 
 if (failures.length > 0) {

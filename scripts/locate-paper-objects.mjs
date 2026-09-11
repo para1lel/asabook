@@ -13,12 +13,13 @@ class LocalWasmFactory {
   }
 }
 
-const pdf = await getDocument({
+const loadingTask = getDocument({
   data: new Uint8Array(readFileSync(input)),
   useSystemFonts: true,
   wasmUrl,
   WasmFactory: LocalWasmFactory,
-}).promise
+})
+const pdf = await loadingTask.promise
 
 for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
   const page = await pdf.getPage(pageNumber)
@@ -37,4 +38,4 @@ for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
   }
 }
 
-await pdf.destroy()
+await loadingTask.destroy()

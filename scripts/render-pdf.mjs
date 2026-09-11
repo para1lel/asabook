@@ -171,4 +171,4 @@ if (options.crops) {
   console.log(`Rendered ${pages.length} of ${pdf.numPages} pages to ${outputDir}`)
 }
 
-await pdf.destroy()
+await loadingTask.destroy()

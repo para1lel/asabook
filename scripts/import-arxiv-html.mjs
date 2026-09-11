@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
-import { basename } from 'node:path'
+import { basename, resolve } from 'node:path'
 import { load } from 'cheerio'
+import { readPaperAbbreviations, writePaperAbbreviations } from './lib/paper-config.mjs'
+import { synchronizePaperConfig } from './sync-paper-config.mjs'
 
 const args = process.argv.slice(2)
 const updateConfig = args.includes('--update-config')
@@ -11,9 +13,9 @@ const positional = args.filter((value, index) => (
   && value !== '--bbl'
   && (bblIndex === -1 || index !== bblIndex + 1)
 ))
-const [input, output, configPath = 'docs/.vuepress/config.ts'] = positional
+const [input, output, configPath = 'docs/.vuepress/config/papers.ts'] = positional
 if (!input || !output) {
-  throw new Error('Usage: node scripts/import-arxiv-html.mjs <input.html> <output.md> [config.ts] [--bbl <main.bbl>] [--update-config]')
+  throw new Error('Usage: node scripts/import-arxiv-html.mjs <input.html> <output.md> [papers.ts] [--bbl <main.bbl>] [--update-config]')
 }
 
 const $ = load(readFileSync(input, 'utf8'))
@@ -41,10 +43,20 @@ function normalizeUrl(url) {
 
 function existingAbbreviations() {
   const entries = []
-  for (const match of config.matchAll(/^\s*'([^']+)'\s*:\s*'((?:\\.|[^'])*)',?$/gm)) {
-    const value = match[2].replace(/\\'/g, "'").replace(/\\\\/g, '\\')
+  const sourcesBySlug = new Map()
+  for (const { key, value } of readPaperAbbreviations(config).entries) {
     const urls = [...value.matchAll(/\]\((https?:\/\/[^)]+)\)/g)].map((item) => normalizeUrl(item[1]))
-    entries.push({ key: match[1], normalized: normalizeIdentity(value), urls, value })
+    const localSlug = value.match(/\[Link\]\(\/papers\/([a-z0-9-]+)\/\)/)?.[1]
+    if (localSlug) {
+      if (!sourcesBySlug.has(localSlug)) {
+        const page = readFileSync(resolve(import.meta.dirname, `../docs/en/papers/${localSlug}.md`), 'utf8')
+        const provenance = page.match(/^> .+(?:\n>.*)*/m)?.[0] ?? ''
+        sourcesBySlug.set(localSlug, [...provenance.matchAll(/https?:\/\/(?:arxiv.org|export.arxiv.org|doi.org|www.usenix.org|proceedings\.[^/]+)\/[^)\s]+/g)]
+          .map((match) => normalizeUrl(match[0])))
+      }
+      urls.push(...sourcesBySlug.get(localSlug))
+    }
+    entries.push({ key, normalized: normalizeIdentity(value), urls, value })
   }
   return entries
 }
@@ -456,12 +468,7 @@ const body = normalizeInlineMathBoundaries([`## Abstract\n\n${abstractText}`, ..
 writeFileSync(output, `${body}\n`)
 writeFileSync(`${output}.citations.json`, `${JSON.stringify({ additions, citationKeys: Object.fromEntries(citationKeys), references }, null, 2)}\n`)
 if (updateConfig && additions.length > 0) {
-  const marker = '\n}\n\nfunction normalizePaperAbbreviation'
-  if (!config.includes(marker)) throw new Error(`Cannot find paperAbbreviations boundary in ${configPath}`)
-  const entries = additions.map(({ key, value }) => {
-    const escaped = value.replaceAll('\\', '\\\\').replaceAll("'", "\\'")
-    return `  '${key}': '${escaped}',`
-  }).join('\n')
-  writeFileSync(configPath, config.replace(marker, `\n${entries}${marker}`))
+  const entries = [...readPaperAbbreviations(config).entries, ...additions]
+  writeFileSync(configPath, synchronizePaperConfig(writePaperAbbreviations(config, entries)).source)
 }
 console.log(`Wrote ${output}: ${content.length} top-level objects, ${citedIds.size} references, ${additions.length} new abbreviations`)

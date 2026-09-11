@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { readPaperAbbreviations } from '../../../scripts/lib/paper-config.mjs'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(scriptDir, '../../..')
@@ -14,7 +15,7 @@ if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
   process.exit(2)
 }
 
-const configPath = path.join(root, 'docs/.vuepress/config.ts')
+const configPath = path.join(root, 'docs/.vuepress/config/papers.ts')
 const pages = [
   { locale: 'zh', path: path.join(root, `docs/papers/${slug}.md`), permalink: `/papers/${slug}/` },
   { locale: 'en', path: path.join(root, `docs/en/papers/${slug}.md`), permalink: `/en/papers/${slug}/` },
@@ -648,7 +649,7 @@ function validateFigureTableLinks(markdown, locale, label) {
   return captions.map((caption) => caption.id)
 }
 
-if (!fs.existsSync(configPath)) fail('missing docs/.vuepress/config.ts')
+if (!fs.existsSync(configPath)) fail('missing docs/.vuepress/config/papers.ts')
 if (!fs.existsSync(pdfPath)) fail(`missing PDF docs/.vuepress/public/paper/${slug}.pdf`)
 
 const pageData = []
@@ -752,17 +753,18 @@ if (pageData.length === pages.length) {
 
 if (fs.existsSync(configPath)) {
   const config = fs.readFileSync(configPath, 'utf8')
-  const abbreviationKeys = new Set([...config.matchAll(/^\s*'([^']+)'\s*:/gm)].map((match) => match[1]))
+  const abbreviationKeys = new Set(readPaperAbbreviations(config).entries.map(({ key }) => key))
   const allCitations = new Set(pageData.flatMap((page) => [...page.citations]))
   for (const citation of [...allCitations].sort()) {
     if (!abbreviationKeys.has(citation)) fail(`citation [${citation}] is missing from paperAbbreviations`)
   }
 
-  const sidebarMentions = [...config.matchAll(new RegExp(`['"]${slug}['"]`, 'g'))].length
-  if (sidebarMentions < 3) {
-    fail(`expected ${slug} in all three locale sidebars; found ${sidebarMentions} config mention(s)`)
-  } else if (sidebarMentions > 3) {
-    warn(`${slug} appears ${sidebarMentions} times in config; verify only the three intended sidebars reference it`)
+  const groups = config.slice(config.indexOf('const paperGroups ='))
+  const sidebarMentions = [...groups.matchAll(new RegExp(`['"]${slug}['"]`, 'g'))].length
+  if (sidebarMentions < 1) {
+    fail(`expected ${slug} once in paperGroups, which supplies all three locale sidebars`)
+  } else if (sidebarMentions > 1) {
+    warn(`${slug} appears ${sidebarMentions} times in paperGroups; verify it belongs to only one category`)
   }
 }
 

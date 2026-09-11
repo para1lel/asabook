@@ -69,7 +69,7 @@ Use lightweight inventories before manual comparison: count and list TEI `<head>
 1. Map each visible inline citation number or label to the bibliography entry printed in the PDF. Do not assume a TEI `ref` target or bibliography `xml:id` equals the printed reference number.
 2. Detect numbering drift by comparing several citations from the beginning, middle, and end of the paper. One spurious or missing extracted bibliography record can shift every later mapping.
 3. Register only citations actually retained inline after the standalone reference list is omitted. Use the repository key rules and keep each key identical across all three languages.
-4. Account for abbreviation normalization in `config.ts`: two definitions with the same canonical URL may collapse to one entry. After building, confirm every citation token became a rendered abbreviation rather than remaining raw text. If a legitimate distinct work collides, use a distinct canonical version or publication URL and then choose the next valid repository key; do not weaken the bibliographic identity merely to silence the collision.
+4. Account for abbreviation maintenance in `docs/.vuepress/config/papers.ts`: preserve every existing citation key, even when multiple keys refer to the same work. Never deduplicate keys by URL. Run `npm run paper:config` to synchronize local paper links and chronological ordering, then confirm citation tokens render as abbreviations.
 
 ## Recover Figures, Tables, Code, and Math
 

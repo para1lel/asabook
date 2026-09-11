@@ -11,7 +11,7 @@ Turn one arXiv record, DOI, publisher page, or supplied paper PDF into a source-
 
 1. Read the repository `AGENTS.md` and obey any more specific instructions discovered below the target paths.
 2. Read [references/style-guide.md](references/style-guide.md) completely before editing a paper.
-3. Inspect nearby pages in the selected collection and all three corresponding sidebar definitions in `docs/.vuepress/config.ts`.
+3. Inspect nearby pages and the shared `paperGroups` list with its Chinese, English, and Japanese titles in `docs/.vuepress/config/papers.ts`.
 4. Record `git status --short` before making changes. Preserve all existing user changes without reverting or rewriting them; include the complete repository state in the final commit.
 
 ## Normalize the Request
@@ -124,14 +124,15 @@ Turn one arXiv record, DOI, publisher page, or supplied paper PDF into a source-
 ## Register Citations and Navigation
 
 1. Collect every inline citation token used by the page, including tokens that appear in captions, tables, algorithm prose, or acronym explanations. Do not collect citations solely to generate a standalone reference list.
-2. Add missing definitions to the single `paperAbbreviations` object in `docs/.vuepress/config.ts`. Do not create per-paper abbreviation files.
+2. Add missing definitions to the single `paperAbbreviations` object in `docs/.vuepress/config/papers.ts`. Do not create per-paper abbreviation files.
+   Keep one literal assignment; never append `Object.assign` blocks. Preserve existing keys even when multiple keys cite the same work. Use a `// published: YYYY-MM-DD` comment for a verified first-submission/publication date. After creating all three pages, run `npm run paper:config` to update local reading links and sort by date, falling back to bibliographic year and then legacy key year, with key order for ties. The `paper-links.ts` Markdown plugin routes `Link` to the current page language. Run `node scripts/sync-paper-config.mjs --check` before building.
 3. Form each citation key from the first three Latin letters of the first author's surname plus the final two digits of the publication year, with the first letter uppercase and the rest lowercase, for example `Vas17`. If the surname has fewer than three letters, use the complete surname, for example `Hu21`. For a source without a personal author, use the first three Latin letters of its named project; use the organization name only when there is no distinct project name.
 4. Reuse an existing key only when it denotes the same work. When different works share the same author-or-project prefix and publication year, keep the first registered key unsuffixed and append contiguous lowercase suffixes to the rest: no suffix, `a`, `b`, `c`, and so on. Reuse existing assignments and take the next available suffix; never use a paper slug, bibliography index, page number, or mnemonic suffix as the key or suffix.
 5. Use the formal publication year shown in the bibliographic entry. When there is no formal publication, use the source's release year. Do not infer the year from a bibliography index, page range, access date, arXiv identifier, or the paper currently being added.
 6. Update citation tokens consistently in the English, Simplified Chinese, and Japanese pages whenever a key changes.
 7. Include enough bibliographic detail to identify the work and add a primary link when available. This registration is what gives citation tokens such as `[Hu21]` their underlined explanation.
-8. Add the slug to the matching category in the Chinese, English, and Japanese sidebars.
-9. Sort all three sidebar lists identically and chronologically by the resolved ordering date: the first arXiv submission date when available, otherwise the verified formal publication date. For equal dates, keep the existing stable order unless title sorting is already the local convention.
+8. Add the slug once to the matching category in `paperGroups` in `docs/.vuepress/config/papers.ts`; all three localized sidebars use that shared list.
+9. Sort the shared category list chronologically by the resolved ordering date: the first arXiv submission date when available, otherwise the verified formal publication date. For equal dates, keep the existing stable order unless title sorting is already the local convention.
 
 ## Localize to Chinese and Japanese
 

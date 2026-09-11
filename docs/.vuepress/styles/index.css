@@ -373,3 +373,9 @@ pre * {
     writing-mode: vertical-rl;
   }
 }
+/* Include tooltip padding in the viewport limit used by Plume's positioning. */
+body .vp-abbr-tooltip {
+  box-sizing: border-box;
+  max-width: min(calc(100vw - 40px), 360px);
+  overflow-wrap: anywhere;
+}
