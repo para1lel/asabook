@@ -1,8 +1,6 @@
 import { viteBundler, type ViteBundlerOptions } from '@vuepress/bundler-vite'
 import { defineUserConfig } from 'vuepress'
 import { plumeTheme } from 'vuepress-theme-plume'
-import { lowMemoryBuildPlugin } from './low-memory-build.js'
-import { lowMemoryCompiler } from './low-memory-compiler.js'
 import { pseudocodeLanguage } from './pseudocode.js'
 import { paperLinksPlugin } from './config/paper-links.js'
 import { vndbCollections } from './config/vndb.js'
@@ -34,14 +32,7 @@ export default defineUserConfig({
     paperLinksPlugin(),
     {
       name: 'asabook:build-options',
-      extendsBundlerOptions(options, app) {
-        if (app.env.isBuild) {
-          const bundlerOptions = options as ViteBundlerOptions
-          bundlerOptions.vuePluginOptions = {
-            ...bundlerOptions.vuePluginOptions,
-            compiler: lowMemoryCompiler,
-          }
-        }
+      extendsBundlerOptions(options) {
         const viteOptions = ((options as ViteBundlerOptions).viteOptions ??= {})
         const build = (viteOptions.build ??= {})
         build.chunkSizeWarningLimit = 4096
@@ -158,11 +149,7 @@ export default defineUserConfig({
 
   bundler: viteBundler({
     viteOptions: {
-      plugins: [lowMemoryBuildPlugin()],
       build: {
-        cssMinify: false,
-        minify: false,
-        reportCompressedSize: false,
         rolldownOptions: {
           checks: {
             pluginTimings: false,

@@ -1,0 +1,31 @@
+{
+  admin off
+  auto_https off
+}
+
+http://:8787 {
+  bind 127.0.0.1
+  @apex host asabook.cc
+  redir @apex https://www.asabook.cc{uri} 308
+  root * /data0/shared/dongwu.chen/asabook-deploy/current
+  encode zstd gzip
+  header Cache-Control "public, max-age=0, must-revalidate"
+  header X-Content-Type-Options nosniff
+  handle /_deployment.json {
+    header Cache-Control "no-store"
+    file_server
+  }
+  handle /assets/* {
+    root * /data0/shared/dongwu.chen/asabook-deploy
+    header Cache-Control "public, max-age=31536000, immutable"
+    file_server
+  }
+  handle {
+    file_server
+  }
+  handle_errors {
+    header Cache-Control "no-store"
+    rewrite * /404.html
+    file_server
+  }
+}

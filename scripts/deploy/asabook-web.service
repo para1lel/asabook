@@ -1,0 +1,13 @@
+[Unit]
+Description=ASa Book static website
+After=network.target
+
+[Service]
+ExecStart=%h/.local/bin/caddy run --config /data0/shared/dongwu.chen/asabook/scripts/deploy/Caddyfile --adapter caddyfile
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0022
+
+[Install]
+WantedBy=default.target

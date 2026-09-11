@@ -1,5 +1,3 @@
-import { inject as injectAnalytics } from '@vercel/analytics'
-import { injectSpeedInsights } from '@vercel/speed-insights'
 import { onMounted, onUnmounted } from 'vue'
 import { defineClientConfig } from 'vuepress/client'
 import 'lxgw-wenkai-webfont/lxgwwenkai-regular.css'
@@ -31,8 +29,6 @@ function resizeGpuproDemo(event: MessageEvent) {
 export default defineClientConfig({
   setup() {
     onMounted(() => {
-      injectAnalytics()
-      injectSpeedInsights()
       window.addEventListener('message', resizeGpuproDemo)
     })
 

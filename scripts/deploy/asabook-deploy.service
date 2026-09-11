@@ -1,0 +1,19 @@
+[Unit]
+Description=ASa Book authenticated deployment API
+After=network.target asabook-web.service
+
+[Service]
+Environment=PATH=%h/.local/opt/node-v24.18.0-linux-x64/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=NODE_OPTIONS=--max-old-space-size=65536
+EnvironmentFile=%h/.config/asabook/deploy.env
+UnsetEnvironment=http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
+ExecStart=%h/.local/opt/node-v24.18.0-linux-x64/bin/node /data0/shared/dongwu.chen/asabook/scripts/deploy/server.mjs
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=30
+NoNewPrivileges=true
+UMask=0022
+
+[Install]
+WantedBy=default.target

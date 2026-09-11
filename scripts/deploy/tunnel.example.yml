@@ -1,0 +1,15 @@
+# Replace the UUID and credentials path with cloudflared tunnel create output.
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: /home/dongwu.chen/.cloudflared/REPLACE_WITH_TUNNEL_UUID.json
+protocol: auto
+edge-ip-version: '4'
+ingress:
+  - hostname: asabook.cc
+    service: http://127.0.0.1:8787
+  - hostname: www.asabook.cc
+    service: http://127.0.0.1:8787
+  - hostname: staging.asabook.cc
+    service: http://127.0.0.1:8787
+  - hostname: deploy.asabook.cc
+    service: http://127.0.0.1:8788
+  - service: http_status:404

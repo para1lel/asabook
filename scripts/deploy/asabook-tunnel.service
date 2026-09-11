@@ -1,0 +1,14 @@
+[Unit]
+Description=ASa Book Cloudflare Tunnel
+After=network.target asabook-web.service asabook-deploy.service
+
+[Service]
+UnsetEnvironment=http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
+ExecStart=%h/.local/bin/cloudflared tunnel --no-autoupdate --config %h/.config/asabook/tunnel.yml run
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+
+[Install]
+WantedBy=default.target
