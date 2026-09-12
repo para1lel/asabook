@@ -1,0 +1,158 @@
+[
+  {
+    "name": "figure-01",
+    "page": 2,
+    "x": 105,
+    "y": 70,
+    "width": 398,
+    "height": 175,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-02",
+    "page": 9,
+    "x": 112,
+    "y": 67,
+    "width": 395,
+    "height": 228,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  },
+  {
+    "name": "figure-03",
+    "page": 29,
+    "x": 112,
+    "y": 74,
+    "width": 390,
+    "height": 340,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-04",
+    "page": 29,
+    "x": 113,
+    "y": 467,
+    "width": 389,
+    "height": 204,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-05",
+    "page": 30,
+    "x": 113,
+    "y": 105,
+    "width": 389,
+    "height": 206,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-06",
+    "page": 30,
+    "x": 113,
+    "y": 435,
+    "width": 389,
+    "height": 203,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-07",
+    "page": 31,
+    "x": 113,
+    "y": 102,
+    "width": 389,
+    "height": 205,
+    "preserveSource": false
+  },
+  {
+    "name": "figure-08",
+    "page": 31,
+    "x": 113,
+    "y": 424,
+    "width": 389,
+    "height": 206,
+    "preserveSource": false
+  },
+  {
+    "name": "table-01",
+    "page": 8,
+    "x": 144,
+    "y": 110,
+    "width": 322,
+    "height": 90,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 14,
+    "x": 138,
+    "y": 114,
+    "width": 336,
+    "height": 84,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 24,
+    "x": 104,
+    "y": 98,
+    "width": 404,
+    "height": 122,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 25,
+    "x": 104,
+    "y": 122,
+    "width": 404,
+    "height": 367,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  },
+  {
+    "name": "table-05",
+    "page": 25,
+    "x": 104,
+    "y": 564,
+    "width": 404,
+    "height": 148,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  },
+  {
+    "name": "table-06",
+    "page": 27,
+    "x": 112,
+    "y": 122,
+    "width": 388,
+    "height": 456,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  },
+  {
+    "name": "table-07",
+    "page": 28,
+    "x": 104,
+    "y": 99,
+    "width": 404,
+    "height": 220,
+    "whitespace": {
+      "minimum": 0
+    },
+    "preserveSource": false
+  }
+]
