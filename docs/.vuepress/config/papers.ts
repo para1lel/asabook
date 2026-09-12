@@ -4803,10 +4803,6 @@ export const paperAbbreviations = {
 // Shared category order and page lists for all three languages.
 const paperGroups = [
   {
-    titles: ['扩散模型', 'Diffusion Models', '拡散モデル'],
-    items: ['dpm-solver'],
-  },
-  {
     titles: ['编译技术', 'Compiler Technology', 'コンパイラ技術'],
     items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'rammer', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'welder', 'flashattention-2', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'tilesight'],
   },
@@ -4833,6 +4829,10 @@ const paperGroups = [
   {
     titles: ['LLM', 'LLM', 'LLM'],
     items: ['sparsely-gated-moe', 'attention-is-all-you-need', 'fast-transformer-decoding', 'glu-variants', 'longformer', 'gshard', 'switch-transformers', 'roformer', 's5', 'retentive-network', 'gqa', 'streaming-llm', 'mamba', 'gated-linear-attention', 'deepseek-moe', 'llama-3', 'deepseek-v2', 'gated-delta-networks', 'native-sparse-attention', 'qwen3', 'deepseek-v3-2', 'glm-5', 'deepseek-v4', 'kimi-k3', 'deepseek-v4-1-flash'],
+  },
+  {
+    titles: ['生成模型', 'Generative Models', '生成モデル'],
+    items: ['dpm-solver'],
   },
   {
     titles: ['处理器架构', 'Processor Architecture', 'プロセッサアーキテクチャ'],

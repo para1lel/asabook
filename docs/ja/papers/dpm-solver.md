@@ -512,7 +512,7 @@ $$
 \begin{aligned}
 \varphi_{1}(h) & =\frac{\mathrm{e}^{h}-1}{h}, \\
 \varphi_{2}(h) & =\frac{\mathrm{e}^{h}-h-1}{h^{2}}, \\
-\varphi_{3}(h) & =\frac{\mathrm{e}^{h}-\nicefrac{{h^{2}}}{{2}}-h-1}{h^{3}}.
+\varphi_{3}(h) & =\frac{\mathrm{e}^{h}-h^{2}/2-h-1}{h^{3}}.
 \end{aligned}
 $$
 
