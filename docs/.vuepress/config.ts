@@ -3,6 +3,7 @@ import { defineUserConfig } from 'vuepress'
 import { plumeTheme } from 'vuepress-theme-plume'
 import { pseudocodeLanguage } from './pseudocode.js'
 import { paperLinksPlugin } from './config/paper-links.js'
+import { mathHeadingsPlugin } from './config/math-headings.js'
 import { vndbCollections } from './config/vndb.js'
 import { csdiyCollections } from './config/csdiy.js'
 import { papersCollections, paperAbbreviations } from './config/papers.js'
@@ -30,6 +31,7 @@ export default defineUserConfig({
 
   plugins: [
     paperLinksPlugin(),
+    mathHeadingsPlugin(),
     {
       name: 'asabook:build-options',
       extendsBundlerOptions(options) {
