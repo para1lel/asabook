@@ -76,7 +76,7 @@ $$
 $$
 \begin{aligned}
 \mathcal{L}(\theta;\omega(t)) & \coloneqq\frac{1}{2}\int_{0}^{T}\omega(t)\mathbb{E}_{q_{t}(\bm{x}_{t})}\Big[\|\bm{\epsilon}_{\theta}(\bm{x}_{t},t)+\sigma_{t}\nabla_{\bm{x}}\log q_{t}(\bm{x}_{t})\|_{2}^{2}\Big]\mathrm{d}t \\
-=\frac{1}{2}\int_{0}^{T}\omega(t)\mathbb{E}_{q_{0}(\bm{x}_{0})}\mathbb{E}_{q(\bm{\epsilon})}\Big[\|\bm{\epsilon}_{\theta}(\bm{x}_{t},t)-\bm{\epsilon}\|_{2}^{2}\Big]\mathrm{d}t+C,
+& =\frac{1}{2}\int_{0}^{T}\omega(t)\mathbb{E}_{q_{0}(\bm{x}_{0})}\mathbb{E}_{q(\bm{\epsilon})}\Big[\|\bm{\epsilon}_{\theta}(\bm{x}_{t},t)-\bm{\epsilon}\|_{2}^{2}\Big]\mathrm{d}t+C,
 \end{aligned}
 $$
 
@@ -129,7 +129,7 @@ $$
 <span id="equation-3-1"></span>
 
 $$
-\bm{x}_{t}=e^{\int_{s}^{t}f(\tau)\mathrm{d}\tau}\bm{x}_{s}+\int_{s}^{t}\left(e^{\int_{\tau}^{t}f(r)\mathrm{d} r}\frac{g^{2}(\tau)}{2\sigma_{\tau}}\bm{\epsilon}_{\theta}(\bm{x}_{\tau},\tau)\right)\mathrm{d}\tau.
+\bm{x}_{t}=\mathrm{e}^{\int_{s}^{t}f(\tau)\mathrm{d}\tau}\bm{x}_{s}+\int_{s}^{t}\left(\mathrm{e}^{\int_{\tau}^{t}f(r)\mathrm{d} r}\frac{g^{2}(\tau)}{2\sigma_{\tau}}\bm{\epsilon}_{\theta}(\bm{x}_{\tau},\tau)\right)\mathrm{d}\tau.
 $$
 
 这一形式将线性部分与非线性部分解耦. 不同于黑盒 ODE 求解器, 现在可以精确计算线性部分, 从而消除线性项的近似误差. 不过, 非线性部分的积分仍然复杂: 它把噪声调度的系数 (即 $f(\tau),g(\tau),\sigma_{\tau}$) 与复杂的神经网络 $\bm{\epsilon}_{\theta}$ 耦合在一起, 依然很难近似.
@@ -159,10 +159,10 @@ $$
 <span id="equation-3-4"></span>
 
 $$
-\bm{x}_{t}=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\alpha_{t}\int_{\lambda_{s}}^{\lambda_{t}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
+\bm{x}_{t}=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\alpha_{t}\int_{\lambda_{s}}^{\lambda_{t}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
 $$
 
-我们把积分 $\int e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda$ 称为 $\hat{\bm{\epsilon}}_{\theta}$ 的指数加权积分. 这种特殊形式与 ODE 求解器文献中的指数积分器密切相关 [Hoc10]. 据我们所知, 此前的扩散模型工作尚未揭示这一形式.
+我们把积分 $\int \mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda$ 称为 $\hat{\bm{\epsilon}}_{\theta}$ 的指数加权积分. 这种特殊形式与 ODE 求解器文献中的指数积分器密切相关 [Hoc10]. 据我们所知, 此前的扩散模型工作尚未揭示这一形式.
 
 [公式 3.4](#equation-3-4) 为近似扩散 ODE 的解提供了新的视角. 具体而言, 给定时刻 $s$ 的 $\bm{x}_{s}$, 依照[公式 3.4](#equation-3-4), 近似时刻 $t$ 的解等价于直接近似 $\hat{\bm{\epsilon}}_{\theta}$ 从 $\lambda_{s}$ 到 $\lambda_{t}$ 的指数加权积分. 这样不会产生线性项误差, 而且指数积分器文献 [Hoc10, Hoc05] 已对该问题有充分研究. 下面据此构造扩散 ODE 的快速求解器.
 
@@ -179,7 +179,7 @@ $$
 <span id="equation-3-5"></span>
 
 $$
-\bm{x}_{t_{i-1}\to t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
+\bm{x}_{t_{i-1}\to t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
 $$
 
 因此, 要计算近似 $\bm{x}_{t_{i-1}\to t_{i}}$ 的 $\tilde{\bm{x}}_{t_{i}}$, 需要近似 $\hat{\bm{\epsilon}}_{\theta}$ 从 $\lambda_{t_{i-1}}$ 到 $\lambda_{t_{i}}$ 的指数加权积分. 记 $h_{i}\coloneqq\lambda_{t_{i}}-\lambda_{t_{i-1}}$, 并以 $\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda},\lambda)\coloneqq\frac{\mathrm{d}^{n}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)}{\mathrm{d}\lambda^{n}}$ 表示 $\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ 关于 $\lambda$ 的 $n$ 阶全导数. 对 $k\geq 1$, $\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ 在 $\lambda_{t_{i-1}}$ 处关于 $\lambda$ 的 $(k-1)$ 阶 Taylor 展开为
@@ -193,15 +193,15 @@ $$
 <span id="equation-3-6"></span>
 
 $$
-\bm{x}_{t_{i-1}\to t_{i}}\!=\!\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\sum_{n=0}^{k-1}\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda_{t_{i-1}}},\lambda_{t_{i-1}})\!\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\!\!e^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{k+1}),
+\bm{x}_{t_{i-1}\to t_{i}}\!=\!\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\sum_{n=0}^{k-1}\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda_{t_{i-1}}},\lambda_{t_{i-1}})\!\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\!\!\mathrm{e}^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{k+1}),
 $$
 
-其中积分 $\int e^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda$ 可以连续应用 $n$ 次分部积分解析计算 (见[第 8.2 节](#section-8-2)). 因此, 为近似 $\bm{x}_{t_{i-1}\to t_{i}}$, 只需近似 $n\leq k-1$ 时的 $n$ 阶全导数 $\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda},\lambda)$. 这在 ODE 文献中已有充分研究 [Hoc05, Lua21]. 略去 $\mathcal{O}(h_{i}^{k+1})$ 误差项, 再用“刚性阶条件” [Hoc05, Lua21] 近似前 $(k-1)$ 阶全导数, 就能得到扩散 ODE 的 $k$ 阶求解器. 我们把这类求解器统称为 DPM-Solver, 特定阶数 $k$ 的版本记作 DPM-Solver-$k$. 以 $k=1$ 为例, [公式 3.6](#equation-3-6) 变为
+其中积分 $\int \mathrm{e}^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda$ 可以连续应用 $n$ 次分部积分解析计算 (见[第 8.2 节](#section-8-2)). 因此, 为近似 $\bm{x}_{t_{i-1}\to t_{i}}$, 只需近似 $n\leq k-1$ 时的 $n$ 阶全导数 $\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda},\lambda)$. 这在 ODE 文献中已有充分研究 [Hoc05, Lua21]. 略去 $\mathcal{O}(h_{i}^{k+1})$ 误差项, 再用“刚性阶条件” [Hoc05, Lua21] 近似前 $(k-1)$ 阶全导数, 就能得到扩散 ODE 的 $k$ 阶求解器. 我们把这类求解器统称为 DPM-Solver, 特定阶数 $k$ 的版本记作 DPM-Solver-$k$. 以 $k=1$ 为例, [公式 3.6](#equation-3-6) 变为
 
 $$
 \begin{aligned}
-\bm{x}_{t_{i-1}\to t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}e^{-\lambda}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{2}) \\
-=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})+\mathcal{O}(h_{i}^{2}).
+\bm{x}_{t_{i-1}\to t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\mathrm{e}^{-\lambda}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{2}) \\
+& =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})+\mathcal{O}(h_{i}^{2}).
 \end{aligned}
 $$
 
@@ -212,7 +212,7 @@ $$
 <span id="equation-3-7"></span>
 
 $$
-\tilde{\bm{x}}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}),\ \ \ \ \text{where }h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}.
+\tilde{\bm{x}}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}),\ \ \ \ \text{where }h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}.
 $$
 
 $k\geq 2$ 时, 近似 Taylor 展开的前 $k$ 项还需要位于 $t$ 和 $s$ 之间的中间点 [Hoc05]. 推导较为技术化, 放在[第 8 节](#section-8). 下面给出 $k=2,3$ 的算法, 分别称为 DPM-Solver-2 和 DPM-Solver-3.
@@ -225,8 +225,8 @@ $k\geq 2$ 时, 近似 Taylor 展开的前 $k$ 项还需要位于 $t$ 和 $s$ 之
 - 令 $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **对** $i\leftarrow1$ 到 $M$:
   - 令 $s_i\leftarrow t_\lambda\!\left(\frac{\lambda_{t_{i-1}}+\lambda_{t_i}}{2}\right)$.
-  - 令 $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}\left(e^{\frac{h_i}{2}}-1\right)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\bm{u}_i,s_i)$.
+  - 令 $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}\left(\mathrm{e}^{\frac{h_i}{2}}-1\right)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\bm{u}_i,s_i)$.
 - **返回:** $\tilde{\bm{x}}_{t_M}$.
 
 <span id="algorithm-02"></span>
@@ -237,11 +237,11 @@ $k\geq 2$ 时, 近似 Taylor 展开的前 $k$ 项还需要位于 $t$ 和 $s$ 之
 - 令 $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$, $r_1\leftarrow\frac{1}{3}$, $r_2\leftarrow\frac{2}{3}$.
 - **对** $i\leftarrow1$ 到 $M$:
   - 令 $s_{2i-1}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_1h_i)$, $s_{2i}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_2h_i)$.
-  - 令 $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(e^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - 令 $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(\mathrm{e}^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
   - 令 $\bm{D}_{2i-1}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i-1},s_{2i-1})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - 令 $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(e^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{e^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
+  - 令 $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(\mathrm{e}^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{\mathrm{e}^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
   - 令 $\bm{D}_{2i}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i},s_{2i})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{e^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
+  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{\mathrm{e}^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
 - **返回:** $\tilde{\bm{x}}_{t_M}$.
 
 这里, $t_{\lambda}(\cdot)$ 是 $\lambda(t)$ 的逆函数. 对 [Den20, Nic21] 实际采用的噪声调度, 它有解析形式, 见[第 10 节](#section-10). DPM-Solver-2 选取的中间点为 $(s_{i},\bm{u}_{i})$, DPM-Solver-3 则选取 $(s_{2i-1},\bm{u}_{2i-1})$ 和 $(s_{2i},\bm{u}_{2i})$. 由算法可见, $k=1,2,3$ 时, DPM-Solver-$k$ 每一步分别需要 $k$ 次函数求值. 高阶求解器 ($k=2,3$) 的单步代价更高, 但收敛阶也更高, 通常只需少得多的步骤便能收敛, 因而总体效率更好. 下面的定理说明 DPM-Solver-$k$ 是 $k$ 阶求解器, 证明见[第 8 节](#section-8).
@@ -284,7 +284,7 @@ $$
 \tilde{\bm{x}}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\left(\frac{\sigma_{t_{i-1}}}{\alpha_{t_{i-1}}}-\frac{\sigma_{t_{i}}}{\alpha_{t_{i}}}\right)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}).
 $$
 
-尽管出发点完全不同, 我们证明 DPM-Solver-1 与 DDIM [Son21a] 的更新式相同. 由 $\lambda$ 的定义, $\frac{\sigma_{t_{i-1}}}{\alpha_{t_{i-1}}}=e^{-\lambda_{t_{i-1}}}$, $\frac{\sigma_{t_{i}}}{\alpha_{t_{i}}}=e^{-\lambda_{t_{i}}}$. 把这两式和 $h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}$ 代入[公式 4.1](#equation-4-1), 恰好得到[公式 3.7](#equation-3-7) 中 DPM-Solver-1 的一步更新. 不过, DPM-Solver 的半线性 ODE 形式还能系统地推广到高阶求解器, 并作收敛阶分析.
+尽管出发点完全不同, 我们证明 DPM-Solver-1 与 DDIM [Son21a] 的更新式相同. 由 $\lambda$ 的定义, $\frac{\sigma_{t_{i-1}}}{\alpha_{t_{i-1}}}=\mathrm{e}^{-\lambda_{t_{i-1}}}$, $\frac{\sigma_{t_{i}}}{\alpha_{t_{i}}}=\mathrm{e}^{-\lambda_{t_{i}}}$. 把这两式和 $h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}$ 代入[公式 4.1](#equation-4-1), 恰好得到[公式 3.7](#equation-3-7) 中 DPM-Solver-1 的一步更新. 不过, DPM-Solver 的半线性 ODE 形式还能系统地推广到高阶求解器, 并作收敛阶分析.
 
 近期工作 [Sal22] 也通过对[公式 4.1](#equation-4-1) 两边求导, 说明 DDIM 是扩散 ODE 的一阶离散化, 但无法解释 DDIM 与扩散 ODE 的一阶 Euler 离散化有何区别. 本文指出 DDIM 是 DPM-Solver 的一个特例, 从而表明 DDIM 充分利用了扩散 ODE 的半线性结构, 这也解释了它为何优于传统 Euler 方法.
 
@@ -377,7 +377,7 @@ $$
 **命题 3.1 (扩散 ODE 的精确解).** 给定时刻 $s$ 的初值 $\hat{\bm{x}}_{\lambda_s}$, 对应半 log-SNR 为 $\lambda_s$, 则[公式 2.7](#equation-2-7) 中扩散 ODE 在时刻 $t$, 对应半 log-SNR 为 $\lambda_t$ 时的解 $\hat{\bm{x}}_{\lambda_t}$ 为:
 
 $$
-\hat{\bm{x}}_{\lambda_t}=\frac{\alpha_t}{\alpha_s}\hat{\bm{x}}_{\lambda_s}-\alpha_t\int_{\lambda_s}^{\lambda_t}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_\lambda,\lambda)\mathrm{d}\lambda.
+\hat{\bm{x}}_{\lambda_t}=\frac{\alpha_t}{\alpha_s}\hat{\bm{x}}_{\lambda_s}-\alpha_t\int_{\lambda_s}^{\lambda_t}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_\lambda,\lambda)\mathrm{d}\lambda.
 $$
 
 下面几节将说明, 这种形式把模型 $\bm{\epsilon}_{\theta}$ 与具体噪声调度解耦, 因而对噪声调度不变. 此外, [命题 3.1](#proposition-03-01) 中对 $\lambda$ 的变量代换与扩散模型的最大似然训练 [Kin21, Son21b] 密切相关. 我们将说明, 扩散模型的最大似然训练和采样都有独立于噪声调度的不变形式.
@@ -388,15 +388,15 @@ $$
 
 本节说明[命题 3.1](#proposition-03-01) 可以把扩散 ODE 的精确解与具体噪声调度 (即函数 $\alpha_{t}=\alpha(t)$ 和 $\sigma_{t}=\sigma(t)$ 的选择) 解耦. 也就是说, 给定起点 $\lambda_{s}$, 终点 $\lambda_{t}$, $\lambda_{s}$ 处的初值 $\hat{\bm{x}}_{\lambda_{s}}$ 和噪声预测模型 $\hat{\bm{\epsilon}}_{\theta}$, 解 $\hat{\bm{x}}_{\lambda_{t}}$ 不随 $\lambda_{s}$ 与 $\lambda_{t}$ 之间的噪声调度而变.
 
-首先考虑与原始 DDPM [Den20, Son21] 等价的 VP 型扩散模型. VP 型扩散模型始终满足 $\alpha_{t}^{2}+\sigma_{t}^{2}=1$, 因而定义噪声调度等价于定义函数 $\alpha_{t}=\alpha(t)$. 例如, DDPM [Den20] 采用的噪声调度使 $\beta(t)=\frac{\mathrm{d}\log\alpha_{t}}{\mathrm{d} t}$ 成为 $t$ 的线性函数, i-DDPM [Nic21] 则使其成为 $t$ 的余弦函数. 由 $\lambda_{t}=\log\alpha_{t}-\log\sigma_{t}$, 可得 $\alpha_{t}=\sqrt{\frac{1}{1+e^{-2\lambda_{t}}}}$, $\sigma_{t}=\sqrt{\frac{1}{1+e^{2\lambda_{t}}}}$. 因此, 给定 $\lambda_{t}$ 即可直接计算 $\alpha_{t}$ 和 $\sigma_{t}$. 记 $\hat{\alpha}_{\lambda}\coloneqq\sqrt{\frac{1}{1+e^{-2\lambda}}}$, 则
+首先考虑与原始 DDPM [Den20, Son21] 等价的 VP 型扩散模型. VP 型扩散模型始终满足 $\alpha_{t}^{2}+\sigma_{t}^{2}=1$, 因而定义噪声调度等价于定义函数 $\alpha_{t}=\alpha(t)$. 例如, DDPM [Den20] 采用的噪声调度使 $\beta(t)=\frac{\mathrm{d}\log\alpha_{t}}{\mathrm{d} t}$ 成为 $t$ 的线性函数, i-DDPM [Nic21] 则使其成为 $t$ 的余弦函数. 由 $\lambda_{t}=\log\alpha_{t}-\log\sigma_{t}$, 可得 $\alpha_{t}=\sqrt{\frac{1}{1+\mathrm{e}^{-2\lambda_{t}}}}$, $\sigma_{t}=\sqrt{\frac{1}{1+\mathrm{e}^{2\lambda_{t}}}}$. 因此, 给定 $\lambda_{t}$ 即可直接计算 $\alpha_{t}$ 和 $\sigma_{t}$. 记 $\hat{\alpha}_{\lambda}\coloneqq\sqrt{\frac{1}{1+\mathrm{e}^{-2\lambda}}}$, 则
 
 <span id="equation-a-2"></span>
 
 $$
-\hat{\bm{x}}_{\lambda_{t}}=\frac{\hat{\alpha}_{\lambda_{t}}}{\hat{\alpha}_{\lambda_{s}}}\hat{\bm{x}}_{\lambda_{s}}-\hat{\alpha}_{\lambda_{t}}\int_{\lambda_{s}}^{\lambda_{t}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
+\hat{\bm{x}}_{\lambda_{t}}=\frac{\hat{\alpha}_{\lambda_{t}}}{\hat{\alpha}_{\lambda_{s}}}\hat{\bm{x}}_{\lambda_{s}}-\hat{\alpha}_{\lambda_{t}}\int_{\lambda_{s}}^{\lambda_{t}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
 $$
 
-注意, 被积函数 $e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ 是 $\lambda$ 的函数, 因而它从 $\lambda_{s}$ 到 $\lambda_{t}$ 的积分只取决于起点 $\lambda_{s}$, 终点 $\lambda_{t}$ 和函数 $\hat{\bm{\epsilon}}_{\theta}$, 与中间值无关. 其他系数 $\hat{\alpha}_{\lambda_{s}}$ 和 $\hat{\alpha}_{\lambda_{t}}$ 也只取决于起点和终点, 所以 $\hat{\bm{x}}_{\lambda_{t}}$ 不随具体噪声调度而变. 直观地说, 这是因为我们把[公式 3.1](#equation-3-1) 中关于时间 $t$ 的积分改成关于 $\lambda$ 的积分, 函数 $f(t)$ 和 $g(t)$ 随之化为解析形式 $e^{-\lambda}$, 不再依赖 $f(t)$ 与 $g(t)$ 的具体选择. 对其他扩散模型类型, 如 VE 型和 subVP 型, [Kin21] 已证明, 适当缩放噪声预测模型即可使它们与 VP 型等价, 因而这些类型的解也有同样的性质.
+注意, 被积函数 $\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ 是 $\lambda$ 的函数, 因而它从 $\lambda_{s}$ 到 $\lambda_{t}$ 的积分只取决于起点 $\lambda_{s}$, 终点 $\lambda_{t}$ 和函数 $\hat{\bm{\epsilon}}_{\theta}$, 与中间值无关. 其他系数 $\hat{\alpha}_{\lambda_{s}}$ 和 $\hat{\alpha}_{\lambda_{t}}$ 也只取决于起点和终点, 所以 $\hat{\bm{x}}_{\lambda_{t}}$ 不随具体噪声调度而变. 直观地说, 这是因为我们把[公式 3.1](#equation-3-1) 中关于时间 $t$ 的积分改成关于 $\lambda$ 的积分, 函数 $f(t)$ 和 $g(t)$ 随之化为解析形式 $\mathrm{e}^{-\lambda}$, 不再依赖 $f(t)$ 与 $g(t)$ 的具体选择. 对其他扩散模型类型, 如 VE 型和 subVP 型, [Kin21] 已证明, 适当缩放噪声预测模型即可使它们与 VP 型等价, 因而这些类型的解也有同样的性质.
 
 综上, [命题 3.1](#proposition-03-01) 将扩散 ODE 的解与噪声调度解耦, 使我们得以为 DPM 专门设计采样器. 事实上, 如[第 3.2 节](#section-3-2)所示, DPM-Solver 唯一近似的是神经网络 $\hat{\bm{\epsilon}}_{\theta}$ 关于 $\lambda$ 的 Taylor 展开, 其他系数 (对应具体的噪声调度) 均作解析计算. 换言之, DPM-Solver 尽量保留已知信息, 只近似神经网络难以处理的积分, 因而能用少得多的步骤生成相当的样本.
 
@@ -481,7 +481,7 @@ $$
 <span id="equation-b-2"></span>
 
 $$
-\varphi_{k}(z)\coloneqq\int_{0}^{1}e^{(1-\delta)z}\frac{\delta^{k-1}}{(k-1)!}\mathrm{d}\delta,\quad\quad\varphi_{0}(z)=e^{z}
+\varphi_{k}(z)\coloneqq\int_{0}^{1}\mathrm{e}^{(1-\delta)z}\frac{\delta^{k-1}}{(k-1)!}\mathrm{d}\delta,\quad\quad\varphi_{0}(z)=\mathrm{e}^{z}
 $$
 
 它满足 $\varphi_{k}(0)=\frac{1}{k!}$ 和递推关系 $\varphi_{k+1}(z)=\frac{\varphi_{k}(z)-\varphi_{k}(0)}{z}$. 对 $\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ 作 Taylor 展开, 指数积分器可写为
@@ -489,7 +489,7 @@ $$
 <span id="equation-b-3"></span>
 
 $$
-\int_{\lambda_{s}}^{\lambda_{t}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda=\frac{\sigma_{t}}{\alpha_{t}}\sum_{k=0}^{n}h^{k+1}\varphi_{k+1}(h)\hat{\bm{\epsilon}}_{\theta}^{(k)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{n+2}).
+\int_{\lambda_{s}}^{\lambda_{t}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda=\frac{\sigma_{t}}{\alpha_{t}}\sum_{k=0}^{n}h^{k+1}\varphi_{k+1}(h)\hat{\bm{\epsilon}}_{\theta}^{(k)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{n+2}).
 $$
 
 于是, [公式 3.4](#equation-3-4) 中 $\bm{x}_{t}$ 的解可展开为
@@ -510,9 +510,9 @@ $$
 
 $$
 \begin{aligned}
-\varphi_{1}(h) & =\frac{e^{h}-1}{h}, \\
-\varphi_{2}(h) & =\frac{e^{h}-h-1}{h^{2}}, \\
-\varphi_{3}(h) & =\frac{e^{h}-\nicefrac{{h^{2}}}{{2}}-h-1}{h^{3}}.
+\varphi_{1}(h) & =\frac{\mathrm{e}^{h}-1}{h}, \\
+\varphi_{2}(h) & =\frac{\mathrm{e}^{h}-h-1}{h^{2}}, \\
+\varphi_{3}(h) & =\frac{\mathrm{e}^{h}-\nicefrac{{h^{2}}}{{2}}-h-1}{h^{3}}.
 \end{aligned}
 $$
 
@@ -527,17 +527,17 @@ $$
 <span id="equation-b-8"></span>
 
 $$
-\bm{x}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},{t_{i-1}})+\mathcal{O}(h_{i}^{2}).
+\bm{x}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},{t_{i-1}})+\mathcal{O}(h_{i}^{2}).
 $$
 
 由[假设 8.2](#assumption-08-02) 和[公式 3.7](#equation-3-7), 有
 
 $$
 \begin{aligned}
-\tilde{\bm{x}}_{t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}) \\
-=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\left(\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}})\right) \\
-=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}) \\
-=\bm{x}_{t_{i}}+\mathcal{O}(h_{\max}^{2})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}).
+\tilde{\bm{x}}_{t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}) \\
+& =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\left(\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}})\right) \\
+& =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}) \\
+& =\bm{x}_{t_{i}}+\mathcal{O}(h_{\max}^{2})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}).
 \end{aligned}
 $$
 
@@ -570,8 +570,8 @@ $$
 $$
 \begin{aligned}
  s_{1} & =t_{\lambda}\left(\lambda_{s}+r_{1}h\right), \\
-\bar{\bm{u}} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(e^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(e^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)).
+\bar{\bm{u}} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(\mathrm{e}^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(\mathrm{e}^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)).
 \end{aligned}
 $$
 
@@ -591,9 +591,9 @@ $$
 
 $$
 \begin{aligned}
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(e^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)) \\
-=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}\left(e^{h}-1\right)\left[\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})\right] \\
--\frac{\sigma_{t}}{2r_{1}}\left(e^{h}-1\right)\left[(\lambda_{s_{1}}-\lambda_{s})\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{2})\right].
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(\mathrm{e}^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)) \\
+& =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}\left(\mathrm{e}^{h}-1\right)\left[\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})\right] \\
+&\quad -\frac{\sigma_{t}}{2r_{1}}\left(\mathrm{e}^{h}-1\right)\left[(\lambda_{s_{1}}-\lambda_{s})\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{2})\right].
 \end{aligned}
 $$
 
@@ -603,18 +603,18 @@ $$
 \|\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})\|=\mathcal{O}(\|\bar{\bm{u}}-\bm{x}_{s_{1}}\|)=\mathcal{O}(h^{2}),
 $$
 
-最后一个等号可由 $k=1$ 的证明中相似的论证得到. 由于 $e^{h}-1=\mathcal{O}(h)$, 上式中的第二项为 $\mathcal{O}(h^{3})$.
+最后一个等号可由 $k=1$ 的证明中相似的论证得到. 由于 $\mathrm{e}^{h}-1=\mathcal{O}(h)$, 上式中的第二项为 $\mathcal{O}(h^{3})$.
 
-又因 $\lambda_{s_{1}}-\lambda_{s}=r_{1}h$, $\varphi_{1}(h)=(e^{h}-1)/h$, $\varphi_{2}(h)=(e^{h}-h-1)/h^{2}$, 可得
+又因 $\lambda_{s_{1}}-\lambda_{s}=r_{1}h$, $\varphi_{1}(h)=(\mathrm{e}^{h}-1)/h$, $\varphi_{2}(h)=(\mathrm{e}^{h}-h-1)/h^{2}$, 可得
 
 $$
-\bm{x}_{t}-\bar{\bm{x}}_{t}=\sigma_{t}\left[h^{2}\varphi_{2}(h)-(e^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}\right]\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{3}).
+\bm{x}_{t}-\bar{\bm{x}}_{t}=\sigma_{t}\left[h^{2}\varphi_{2}(h)-(\mathrm{e}^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}\right]\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{3}).
 $$
 
 注意到
 
 $$
-h^{2}\varphi_{2}(h)-(e^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}=(2e^{h}-h-2-he^{h})/2=\mathcal{O}(h^{3}).
+h^{2}\varphi_{2}(h)-(\mathrm{e}^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}=(2\mathrm{e}^{h}-h-2-h\mathrm{e}^{h})/2=\mathcal{O}(h^{3}).
 $$
 
 :::
@@ -642,11 +642,11 @@ $$
 $$
 \begin{aligned}
  s_{1} & =t_{\lambda}\left(\lambda_{s}+r_{1}h\right),\quad s_{2}=t_{\lambda}\left(\lambda_{s}+r_{2}h\right), \\
-\bar{\bm{u}}_{1} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(e^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
+\bar{\bm{u}}_{1} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(\mathrm{e}^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
 \bm{D}_{1} & =\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{1},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
-\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(e^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{s_{2}}r_{2}}{r_{1}}\left(\frac{e^{r_{2}h}-1}{r_{2}h}-1\right)\bm{D}_{1}, \\
+\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(\mathrm{e}^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{s_{2}}r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{r_{2}h}-1}{r_{2}h}-1\right)\bm{D}_{1}, \\
 \bm{D}_{2} & =\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{2},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\bm{D}_{2}.
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\bm{D}_{2}.
 \end{aligned}
 $$
 
@@ -658,14 +658,14 @@ $$
 \bar{\bm{u}}_{2}=\bm{x}_{s_{2}}+\mathcal{O}(h^{3}).
 $$
 
-与[第 8.4 节](#section-8-4) 的证明类似, 由于 $\frac{e^{r_{2}h-1}}{r_{2}h}-1=\mathcal{O}(h)$ 且 $\bar{\bm{u}}_{1}=\bm{x}_{s_{1}}+\mathcal{O}(h^{2})$, 有
+与[第 8.4 节](#section-8-4) 的证明类似, 由于 $\frac{\mathrm{e}^{r_{2}h-1}}{r_{2}h}-1=\mathcal{O}(h)$ 且 $\bar{\bm{u}}_{1}=\bm{x}_{s_{1}}+\mathcal{O}(h^{2})$, 有
 
 $$
 \begin{aligned}
-\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(e^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
--\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{e^{r_{2}h}-1}{r_{2}h}-1\right)\left(\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\right)+\mathcal{O}(h^{3}) \\
-=\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(e^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
--\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{e^{r_{2}h}-1}{r_{2}h}-1\right)\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}).
+\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(\mathrm{e}^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
+&\quad -\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{r_{2}h}-1}{r_{2}h}-1\right)\left(\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\right)+\mathcal{O}(h^{3}) \\
+& =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(\mathrm{e}^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
+&\quad -\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{r_{2}h}-1}{r_{2}h}-1\right)\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}).
 \end{aligned}
 $$
 
@@ -673,8 +673,8 @@ $$
 
 $$
 \begin{aligned}
-\varphi_{1}(h_{2})h_{2} & =e^{h_{2}}-1, \\
-\varphi_{2}(h_{2})h_{2}^{2} & =\frac{r_{2}}{r_{1}}\left(\frac{e^{h_{2}}-1}{h_{2}}-1\right)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}),
+\varphi_{1}(h_{2})h_{2} & =\mathrm{e}^{h_{2}}-1, \\
+\varphi_{2}(h_{2})h_{2}^{2} & =\frac{r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{h_{2}}-1}{h_{2}}-1\right)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}),
 \end{aligned}
 $$
 
@@ -684,10 +684,10 @@ $$
 
 $$
 \begin{aligned}
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{2},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big) \\
-=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bm{x}_{s_{2}},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big)+\mathcal{O}(h^{4}) \\
-=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
--\sigma_{t}\frac{1}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\big(\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)r_{2}h+\frac{1}{2}\bm{\epsilon}^{(2)}_{\theta}(\bm{x}_{s},s)r_{2}^{2}h^{2}\big)+\mathcal{O}(h^{4}).
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{2},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big) \\
+& =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bm{x}_{s_{2}},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big)+\mathcal{O}(h^{4}) \\
+& =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
+&\quad -\sigma_{t}\frac{1}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\big(\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)r_{2}h+\frac{1}{2}\bm{\epsilon}^{(2)}_{\theta}(\bm{x}_{s},s)r_{2}^{2}h^{2}\big)+\mathcal{O}(h^{4}).
 \end{aligned}
 $$
 
@@ -701,16 +701,16 @@ $$
 
 $$
 \begin{aligned}
- h\varphi_{1}(h) & =e^{h}-1, \\
- h^{2}\varphi_{2}(h) & =\left(\frac{e^{h}-1}{h}-1\right)h, \\
- h^{3}\varphi_{3}(h) & =\left(\frac{e^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}+\mathcal{O}(h^{4}).
+ h\varphi_{1}(h) & =\mathrm{e}^{h}-1, \\
+ h^{2}\varphi_{2}(h) & =\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)h, \\
+ h^{3}\varphi_{3}(h) & =\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}+\mathcal{O}(h^{4}).
 \end{aligned}
 $$
 
 前两项显然成立. 最后一项可由下式得到:
 
 $$
-h^{3}\varphi_{3}(h)=e^{h}-1-h-\frac{h^{2}}{2}=\frac{h^{3}}{6}+\mathcal{O}(h^{4})=\left(\frac{e^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}.
+h^{3}\varphi_{3}(h)=\mathrm{e}^{h}-1-h-\frac{h^{2}}{2}=\frac{h^{3}}{6}+\mathcal{O}(h^{4})=\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}.
 $$
 
 因此 $\bar{\bm{x}}_{t}=\bm{x}_{t}+\mathcal{O}(h^{4})$. 证毕.
@@ -730,10 +730,10 @@ $$
 其中 $\alpha\in\mathbb{R}$, $\bm{N}(\bm{x}_{t},t)\in\mathbb{R}^{D}$ 是 $\bm{x}_{t}$ 的非线性函数. 给定时刻 $t$ 的初值 $\bm{x}_{t}$, 对 $h>0$, 时刻 $t+h$ 的真实解为
 
 $$
-\bm{x}_{t+h}=e^{\alpha h}\bm{x}_{t}+e^{\alpha h}\int_{0}^{h}e^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau.
+\bm{x}_{t+h}=\mathrm{e}^{\alpha h}\bm{x}_{t}+\mathrm{e}^{\alpha h}\int_{0}^{h}\mathrm{e}^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau.
 $$
 
-指数 Runge-Kutta 方法 [Hoc10, Hoc05] 用若干中间点近似积分 $\int e^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau$. DPM-Solver 受同一技术启发, 在 $\alpha=1$, $\bm{N}=\tilde{\bm{\epsilon}}_{\theta}$ 时近似相同的积分. 但 DPM-Solver 不同于 expRK 方法: 后者的线性项为 $e^{\alpha h}\bm{x}_{t}$, 本文的线性项则是 $\frac{\alpha_{t+h}}{\alpha_{t}}\bm{x}_{t}$. 概括而言, DPM-Solver 借用了 expRK 推导指数加权积分高阶近似的技术, 但形式与 expRK 不同, 是针对扩散 ODE 具体形式定制的.
+指数 Runge-Kutta 方法 [Hoc10, Hoc05] 用若干中间点近似积分 $\int \mathrm{e}^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau$. DPM-Solver 受同一技术启发, 在 $\alpha=1$, $\bm{N}=\tilde{\bm{\epsilon}}_{\theta}$ 时近似相同的积分. 但 DPM-Solver 不同于 expRK 方法: 后者的线性项为 $\mathrm{e}^{\alpha h}\bm{x}_{t}$, 本文的线性项则是 $\frac{\alpha_{t+h}}{\alpha_{t}}\bm{x}_{t}$. 概括而言, DPM-Solver 借用了 expRK 推导指数加权积分高阶近似的技术, 但形式与 expRK 不同, 是针对扩散 ODE 具体形式定制的.
 
 <span id="section-9"></span>
 
@@ -748,7 +748,7 @@ $$
 - **输入:** 初值 $\bm{x}_T$, 时间步 $\{t_i\}_{i=0}^M$, 模型 $\bm{\epsilon}_\theta$.
 - **定义** $\mathrm{DPM}\text{-}\mathrm{Solver}\text{-}1(\tilde{\bm{x}}_{t_{i-1}},t_{i-1},t_i)$:
   - 令 $h_i\leftarrow\lambda_{t_i}-\lambda_{t_{i-1}}$.
-  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
   - **返回** $\tilde{\bm{x}}_{t_i}$.
 - 令 $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **对** $i\leftarrow1$ 到 $M$:
@@ -763,8 +763,8 @@ $$
 - **定义** $\mathrm{DPM}\text{-}\mathrm{Solver}\text{-}2(\tilde{\bm{x}}_{t_{i-1}},t_{i-1},t_i,r_1)$:
   - 令 $h_i\leftarrow\lambda_{t_i}-\lambda_{t_{i-1}}$.
   - 令 $s_i\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_1h_i)$.
-  - 令 $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}(e^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{2r_1}(e^{h_i}-1)(\bm{\epsilon}_\theta(\bm{u}_i,s_i)-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}))$.
+  - 令 $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}(\mathrm{e}^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{2r_1}(\mathrm{e}^{h_i}-1)(\bm{\epsilon}_\theta(\bm{u}_i,s_i)-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}))$.
   - **返回** $\tilde{\bm{x}}_{t_i}$.
 - 令 $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **对** $i\leftarrow1$ 到 $M$:
@@ -779,11 +779,11 @@ $$
 - **定义** $\mathrm{DPM}\text{-}\mathrm{Solver}\text{-}3(\tilde{\bm{x}}_{t_{i-1}},t_{i-1},t_i,r_1,r_2)$:
   - 令 $h_i\leftarrow\lambda_{t_i}-\lambda_{t_{i-1}}$.
   - 令 $s_{2i-1}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_1h_i)$, $s_{2i}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_2h_i)$.
-  - 令 $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(e^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - 令 $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(\mathrm{e}^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
   - 令 $\bm{D}_{2i-1}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i-1},s_{2i-1})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - 令 $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(e^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{e^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
+  - 令 $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(\mathrm{e}^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{\mathrm{e}^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
   - 令 $\bm{D}_{2i}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i},s_{2i})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{e^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
+  - 令 $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{\mathrm{e}^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
   - **返回** $\tilde{\bm{x}}_{t_i}$.
 - 令 $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **对** $i\leftarrow1$ 到 $M$:
@@ -909,13 +909,13 @@ $$
 依照 [Son21], 其中 $\beta_{0}=0.1$, $\beta_{1}=20$. 由于 $\sigma_{t}=\sqrt{1-\alpha_{t}^{2}}$, 可以解析计算 $\lambda_{t}$. 其逆函数为
 
 $$
-t_{\lambda}(\lambda)=\frac{1}{\beta_{1}-\beta_{0}}\left(\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(e^{-2\lambda}+1\right)}-\beta_{0}\right).
+t_{\lambda}(\lambda)=\frac{1}{\beta_{1}-\beta_{0}}\left(\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(\mathrm{e}^{-2\lambda}+1\right)}-\beta_{0}\right).
 $$
 
 为减小数值问题的影响, 可用下列等价形式计算 $t_{\lambda}$:
 
 $$
-t_{\lambda}(\lambda)=\frac{2\log\left(e^{-2\lambda}+1\right)}{\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(e^{-2\lambda}+1\right)}+\beta_{0}}.
+t_{\lambda}(\lambda)=\frac{2\log\left(\mathrm{e}^{-2\lambda}+1\right)}{\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(\mathrm{e}^{-2\lambda}+1\right)}+\beta_{0}}.
 $$
 
 扩散 ODE 在 $[\epsilon,T]$ 之间求解, 其中 $T=1$.
@@ -929,13 +929,13 @@ $$
 依照 [Nic21], 其中 $s=0.008$. [Nic21] 为保证数值稳定性而截断导数, 因此我们也把最大时间截为 $T=0.9946$. 由于 $\sigma_{t}=\sqrt{1-\alpha_{t}^{2}}$, 可以解析计算 $\lambda_{t}$. 给定固定的 $\lambda$, 令
 
 $$
-f(\lambda)=-\frac{1}{2}\log\left(e^{-2\lambda}+1\right),
+f(\lambda)=-\frac{1}{2}\log\left(\mathrm{e}^{-2\lambda}+1\right),
 $$
 
 它计算 $\lambda$ 对应的 $\log\alpha$. 逆函数为
 
 $$
-t_{\lambda}(\lambda)=\frac{2(1+s)}{\pi}\arccos\left(e^{f(\lambda)+\log\cos\left(\frac{\pi s}{2(1+s)}\right)}\right)-s.
+t_{\lambda}(\lambda)=\frac{2(1+s)}{\pi}\arccos\left(\mathrm{e}^{f(\lambda)+\log\cos\left(\frac{\pi s}{2(1+s)}\right)}\right)-s.
 $$
 
 扩散 ODE 在 $[\epsilon,T]$ 之间求解, 其中 $T=0.9946$.
@@ -950,7 +950,7 @@ $$
 
 ### 10.6 数值稳定性
 
-DPM-Solver 算法需要计算 $e^{h_{i}}-1$. 依照 [Kin21], 我们用 expm1($h_{i}$) 代替 exp($h_{i}$)-1, 以提高数值稳定性.
+DPM-Solver 算法需要计算 $\mathrm{e}^{h_{i}}-1$. 依照 [Kin21], 我们用 expm1($h_{i}$) 代替 exp($h_{i}$)-1, 以提高数值稳定性.
 
 <span id="section-11"></span>
 

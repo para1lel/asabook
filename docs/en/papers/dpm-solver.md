@@ -76,7 +76,7 @@ where $\bar{\bm{w}}_{t}$ is a standard Wiener process in the reverse time. The o
 $$
 \begin{aligned}
 \mathcal{L}(\theta;\omega(t)) & \coloneqq\frac{1}{2}\int_{0}^{T}\omega(t)\mathbb{E}_{q_{t}(\bm{x}_{t})}\Big[\|\bm{\epsilon}_{\theta}(\bm{x}_{t},t)+\sigma_{t}\nabla_{\bm{x}}\log q_{t}(\bm{x}_{t})\|_{2}^{2}\Big]\mathrm{d}t \\
-=\frac{1}{2}\int_{0}^{T}\omega(t)\mathbb{E}_{q_{0}(\bm{x}_{0})}\mathbb{E}_{q(\bm{\epsilon})}\Big[\|\bm{\epsilon}_{\theta}(\bm{x}_{t},t)-\bm{\epsilon}\|_{2}^{2}\Big]\mathrm{d}t+C,
+& =\frac{1}{2}\int_{0}^{T}\omega(t)\mathbb{E}_{q_{0}(\bm{x}_{0})}\mathbb{E}_{q(\bm{\epsilon})}\Big[\|\bm{\epsilon}_{\theta}(\bm{x}_{t},t)-\bm{\epsilon}\|_{2}^{2}\Big]\mathrm{d}t+C,
 \end{aligned}
 $$
 
@@ -129,7 +129,7 @@ Our first key observation is that a part of the solution $\bm{x}_{t}$ can be exa
 <span id="equation-3-1"></span>
 
 $$
-\bm{x}_{t}=e^{\int_{s}^{t}f(\tau)\mathrm{d}\tau}\bm{x}_{s}+\int_{s}^{t}\left(e^{\int_{\tau}^{t}f(r)\mathrm{d} r}\frac{g^{2}(\tau)}{2\sigma_{\tau}}\bm{\epsilon}_{\theta}(\bm{x}_{\tau},\tau)\right)\mathrm{d}\tau.
+\bm{x}_{t}=\mathrm{e}^{\int_{s}^{t}f(\tau)\mathrm{d}\tau}\bm{x}_{s}+\int_{s}^{t}\left(\mathrm{e}^{\int_{\tau}^{t}f(r)\mathrm{d} r}\frac{g^{2}(\tau)}{2\sigma_{\tau}}\bm{\epsilon}_{\theta}(\bm{x}_{\tau},\tau)\right)\mathrm{d}\tau.
 $$
 
 This formulation decouples the linear part and the nonlinear part. In contrast to black-box ODE solvers, the linear part is now exactly computed, which eliminates the approximation error of the linear term. However, the integral of the nonlinear part is still complicated because it couples the coefficients about the noise schedule (i.e., $f(\tau),g(\tau),\sigma_{\tau}$) and the complex neural network $\bm{\epsilon}_{\theta}$, which is still hard to approximate.
@@ -159,10 +159,10 @@ As $\lambda(t)=\lambda_{t}$ is a strictly decreasing function of $t$, it has an 
 <span id="equation-3-4"></span>
 
 $$
-\bm{x}_{t}=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\alpha_{t}\int_{\lambda_{s}}^{\lambda_{t}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
+\bm{x}_{t}=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\alpha_{t}\int_{\lambda_{s}}^{\lambda_{t}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
 $$
 
-We call the integral $\int e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda$ the exponentially weighted integral of $\hat{\bm{\epsilon}}_{\theta}$, which is very special and highly related to the exponential integrators in the literature of ODE solvers [Hoc10]. To the best of our knowledge, such formulation has not been revealed in prior work of diffusion models.
+We call the integral $\int \mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda$ the exponentially weighted integral of $\hat{\bm{\epsilon}}_{\theta}$, which is very special and highly related to the exponential integrators in the literature of ODE solvers [Hoc10]. To the best of our knowledge, such formulation has not been revealed in prior work of diffusion models.
 
 [Equation 3.4](#equation-3-4) provides a new perspective for approximating the solutions of diffusion ODEs. Specifically, given $\bm{x}_{s}$ at time $s$, According to [Equation 3.4](#equation-3-4), approximating the solution at time $t$ is equivalent to directly approximating the exponentially weighted integral of $\hat{\bm{\epsilon}}_{\theta}$ from $\lambda_{s}$ to $\lambda_{t}$, which avoids the error of the linear terms and is well-studied in the literature of exponential integrators [Hoc10, Hoc05]. Based on this insight, we propose fast solvers for diffusion ODEs, as detailed in the following sections.
 
@@ -179,7 +179,7 @@ In order to reduce the approximation error between $\tilde{\bm{x}}_{t_{M}}$ and 
 <span id="equation-3-5"></span>
 
 $$
-\bm{x}_{t_{i-1}\to t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
+\bm{x}_{t_{i-1}\to t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
 $$
 
 Therefore, to compute the value $\tilde{\bm{x}}_{t_{i}}$ for approximating $\bm{x}_{t_{i-1}\to t_{i}}$, we need to approximate the exponentially weighted integral of $\hat{\bm{\epsilon}}_{\theta}$ from $\lambda_{t_{i-1}}$ to $\lambda_{t_{i}}$. Denote $h_{i}\coloneqq\lambda_{t_{i}}-\lambda_{t_{i-1}}$, and $\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda},\lambda)\coloneqq\frac{\mathrm{d}^{n}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)}{\mathrm{d}\lambda^{n}}$ as the $n$-th order total derivative of $\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ w.r.t. $\lambda$. For $k\geq 1$, the $(k-1)$-th order Taylor expansion of $\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ w.r.t. $\lambda$ at $\lambda_{t_{i-1}}$ is
@@ -193,15 +193,15 @@ Substituting the above Taylor expansion into [Equation 3.5](#equation-3-5) yield
 <span id="equation-3-6"></span>
 
 $$
-\bm{x}_{t_{i-1}\to t_{i}}\!=\!\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\sum_{n=0}^{k-1}\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda_{t_{i-1}}},\lambda_{t_{i-1}})\!\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\!\!e^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{k+1}),
+\bm{x}_{t_{i-1}\to t_{i}}\!=\!\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\sum_{n=0}^{k-1}\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda_{t_{i-1}}},\lambda_{t_{i-1}})\!\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\!\!\mathrm{e}^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{k+1}),
 $$
 
-where the integral $\int e^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda$ can be analytically computed by repeatedly applying $n$ times of integration-by-parts (see [Section 8.2](#section-8-2)). Therefore, to approximate $\bm{x}_{t_{i-1}\to t_{i}}$, we only need to approximate the $n$-th order total derivatives $\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda},\lambda)$ for $n\leq k-1$, which is a well-studied problem in the ODE literature [Hoc05, Lua21]. By dropping the $\mathcal{O}(h_{i}^{k+1})$ error term and approximating the first $(k-1)$-th total derivatives with the "stiff order conditions" [Hoc05, Lua21], we can derive $k$-th-order ODE solvers for diffusion ODEs. We name such solvers as DPM-Solver overall, and DPM-Solver-$k$ for a specific order $k$. Here we take $k=1$ for demonstration. In this case, [Equation 3.6](#equation-3-6) becomes
+where the integral $\int \mathrm{e}^{-\lambda}\frac{(\lambda-\lambda_{t_{i-1}})^{n}}{n!}\mathrm{d}\lambda$ can be analytically computed by repeatedly applying $n$ times of integration-by-parts (see [Section 8.2](#section-8-2)). Therefore, to approximate $\bm{x}_{t_{i-1}\to t_{i}}$, we only need to approximate the $n$-th order total derivatives $\hat{\bm{\epsilon}}_{\theta}^{(n)}(\hat{\bm{x}}_{\lambda},\lambda)$ for $n\leq k-1$, which is a well-studied problem in the ODE literature [Hoc05, Lua21]. By dropping the $\mathcal{O}(h_{i}^{k+1})$ error term and approximating the first $(k-1)$-th total derivatives with the "stiff order conditions" [Hoc05, Lua21], we can derive $k$-th-order ODE solvers for diffusion ODEs. We name such solvers as DPM-Solver overall, and DPM-Solver-$k$ for a specific order $k$. Here we take $k=1$ for demonstration. In this case, [Equation 3.6](#equation-3-6) becomes
 
 $$
 \begin{aligned}
-\bm{x}_{t_{i-1}\to t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}e^{-\lambda}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{2}) \\
-=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})+\mathcal{O}(h_{i}^{2}).
+\bm{x}_{t_{i-1}\to t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})\int_{\lambda_{t_{i-1}}}^{\lambda_{t_{i}}}\mathrm{e}^{-\lambda}\mathrm{d}\lambda+\mathcal{O}(h_{i}^{2}) \\
+& =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})+\mathcal{O}(h_{i}^{2}).
 \end{aligned}
 $$
 
@@ -212,7 +212,7 @@ By dropping the high-order error term $\mathcal{O}(h_{i}^{2})$, we can obtain an
 <span id="equation-3-7"></span>
 
 $$
-\tilde{\bm{x}}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}),\ \ \ \ \text{where }h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}.
+\tilde{\bm{x}}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}),\ \ \ \ \text{where }h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}.
 $$
 
 For $k\geq 2$, approximating the first $k$ terms of the Taylor expansion needs additional intermediate points between $t$ and $s$ [Hoc05]. The derivation is more technical so we defer it to [Section 8](#section-8). Below we propose algorithms for $k=2,3$ and name them as DPM-Solver-2 and DPM-Solver-3, respectively.
@@ -225,8 +225,8 @@ For $k\geq 2$, approximating the first $k$ terms of the Taylor expansion needs a
 - Set $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **For** $i\leftarrow1$ to $M$:
   - Set $s_i\leftarrow t_\lambda\!\left(\frac{\lambda_{t_{i-1}}+\lambda_{t_i}}{2}\right)$.
-  - Set $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}\left(e^{\frac{h_i}{2}}-1\right)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\bm{u}_i,s_i)$.
+  - Set $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}\left(\mathrm{e}^{\frac{h_i}{2}}-1\right)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\bm{u}_i,s_i)$.
 - **Return:** $\tilde{\bm{x}}_{t_M}$.
 
 <span id="algorithm-02"></span>
@@ -237,11 +237,11 @@ For $k\geq 2$, approximating the first $k$ terms of the Taylor expansion needs a
 - Set $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$, $r_1\leftarrow\frac{1}{3}$, $r_2\leftarrow\frac{2}{3}$.
 - **For** $i\leftarrow1$ to $M$:
   - Set $s_{2i-1}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_1h_i)$ and $s_{2i}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_2h_i)$.
-  - Set $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(e^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - Set $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(\mathrm{e}^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
   - Set $\bm{D}_{2i-1}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i-1},s_{2i-1})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - Set $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(e^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{e^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
+  - Set $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(\mathrm{e}^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{\mathrm{e}^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
   - Set $\bm{D}_{2i}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i},s_{2i})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{e^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
+  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{\mathrm{e}^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
 - **Return:** $\tilde{\bm{x}}_{t_M}$.
 
 Here, $t_{\lambda}(\cdot)$ is the inverse function of $\lambda(t)$, which has an analytical formulation for the practical noise schedule used in [Den20, Nic21], as shown in [Section 10](#section-10). The chosen intermediate points are ($s_{i}$, $\bm{u}_{i}$) for DPM-Solver-2 and $(s_{2i-1},\bm{u}_{2i-1})$ and $(s_{2i},\bm{u}_{2i})$ for DPM-Solver-3. As shown in the algorithm, DPM-Solver-$k$ requires $k$ function evaluations per step for $k=1,2,3$. Despite the more expensive steps, higher-order solvers ($k=2,3$) are usually more efficient since they require much fewer steps to converge, due to their higher convergence order. We show that DPM-Solver-$k$ is $k$-th-order solver, as stated in the following theorem. The proof is in [Section 8](#section-8).
@@ -284,7 +284,7 @@ $$
 \tilde{\bm{x}}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\alpha_{t_{i}}\left(\frac{\sigma_{t_{i-1}}}{\alpha_{t_{i-1}}}-\frac{\sigma_{t_{i}}}{\alpha_{t_{i}}}\right)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}).
 $$
 
-Although motivated by entirely different perspectives, we show that the updates of DPM-Solver-1 and Denoising Diffusion Implicit Models (DDIM) [Son21a] are identical. By the definition of $\lambda$, we have $\frac{\sigma_{t_{i-1}}}{\alpha_{t_{i-1}}}=e^{-\lambda_{t_{i-1}}}$ and $\frac{\sigma_{t_{i}}}{\alpha_{t_{i}}}=e^{-\lambda_{t_{i}}}$. Plugging these and $h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}$ to [Equation 4.1](#equation-4-1) results in exactly a step of DPM-Solver-1 in [Equation 3.7](#equation-3-7). However, the semi-linear ODE formulation of DPM-Solver allows for principled generalization to higher-order solvers and convergence order analysis.
+Although motivated by entirely different perspectives, we show that the updates of DPM-Solver-1 and Denoising Diffusion Implicit Models (DDIM) [Son21a] are identical. By the definition of $\lambda$, we have $\frac{\sigma_{t_{i-1}}}{\alpha_{t_{i-1}}}=\mathrm{e}^{-\lambda_{t_{i-1}}}$ and $\frac{\sigma_{t_{i}}}{\alpha_{t_{i}}}=\mathrm{e}^{-\lambda_{t_{i}}}$. Plugging these and $h_{i}=\lambda_{t_{i}}-\lambda_{t_{i-1}}$ to [Equation 4.1](#equation-4-1) results in exactly a step of DPM-Solver-1 in [Equation 3.7](#equation-3-7). However, the semi-linear ODE formulation of DPM-Solver allows for principled generalization to higher-order solvers and convergence order analysis.
 
 Recent work [Sal22] also show that DDIM is a first-order discretization of diffusion ODEs by differentiating both sides of [Equation 4.1](#equation-4-1). However, they cannot explain the difference between DDIM and the first-order Euler discretization of diffusion ODEs. In contrast, by showing that DDIM is a special case of DPM-Solver, we reveal that DDIM makes full use of the semi-linearity of diffusion ODEs, which explains its superiority over traditional Euler methods.
 
@@ -377,7 +377,7 @@ In this section, we discuss more about the exact solution in [Proposition 3.1](#
 **Proposition 3.1 (Exact solution of diffusion ODEs).** Given an initial value $\hat{\bm{x}}_{\lambda_s}$ at time $s$ with the corresponding half-logSNR $\lambda_s$, the solution $\hat{\bm{x}}_{\lambda_t}$ at time $t$ of diffusion ODEs in [Equation 2.7](#equation-2-7) with the corresponding half-logSNR $\lambda_t$ is:
 
 $$
-\hat{\bm{x}}_{\lambda_t}=\frac{\alpha_t}{\alpha_s}\hat{\bm{x}}_{\lambda_s}-\alpha_t\int_{\lambda_s}^{\lambda_t}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_\lambda,\lambda)\mathrm{d}\lambda.
+\hat{\bm{x}}_{\lambda_t}=\frac{\alpha_t}{\alpha_s}\hat{\bm{x}}_{\lambda_s}-\alpha_t\int_{\lambda_s}^{\lambda_t}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_\lambda,\lambda)\mathrm{d}\lambda.
 $$
 
 In the following subsections, we will show that such formulation decouples the model $\bm{\epsilon}_{\theta}$ from the specific noise schedule, and thus is invariant to the noise schedule. Moreover, such change-of-variable for $\lambda$ in [Proposition 3.1](#proposition-03-01) is highly related to the maximum likelihood training of diffusion models [Kin21, Son21b]. We show that both the maximum likelihood training and the sampling of diffusion models have invariance formulations that are independent of the noise schedule.
@@ -388,15 +388,15 @@ In the following subsections, we will show that such formulation decouples the m
 
 In this section, we show that [Proposition 3.1](#proposition-03-01) can decouples the exact solutions of the diffusion ODEs from the specific noise schedules (i.e. choice of the functions $\alpha_{t}=\alpha(t)$ and $\sigma_{t}=\sigma(t)$). Namely, given a starting point $\lambda_{s}$, a ending point $\lambda_{t}$, an initial value $\hat{\bm{x}}_{\lambda_{s}}$ at $\lambda_{s}$ and a noise prediction model $\hat{\bm{\epsilon}}_{\theta}$, the solution of $\hat{\bm{x}}_{\lambda_{t}}$ is invariant of the noise schedule between $\lambda_{s}$ and $\lambda_{t}$.
 
-We firstly consider the VP type diffusion models, which is equivalent to the original DDPM [Den20, Son21]. For VP type diffusion models, we always have $\alpha_{t}^{2}+\sigma_{t}^{2}=1$, so defining the noise schedule is equivalent to defining the function $\alpha_{t}=\alpha(t)$ (For example, DDPM [Den20] uses a noise schedule such that $\beta(t)=\frac{\mathrm{d}\log\alpha_{t}}{\mathrm{d} t}$ is a linear function of $t$, and i-DDPM [Nic21] uses a noise schedule such that $\beta(t)=\frac{\mathrm{d}\log\alpha_{t}}{\mathrm{d} t}$ is a cosine function of $t$). As $\lambda_{t}=\log\alpha_{t}-\log\sigma_{t}$, we have $\alpha_{t}=\sqrt{\frac{1}{1+e^{-2\lambda_{t}}}}$ and $\sigma_{t}=\sqrt{\frac{1}{1+e^{2\lambda_{t}}}}$. Thus, we can directly compute the $\alpha_{t}$ and $\sigma_{t}$ for a given $\lambda_{t}$. Denote $\hat{\alpha}_{\lambda}\coloneqq\sqrt{\frac{1}{1+e^{-2\lambda}}}$, we have
+We firstly consider the VP type diffusion models, which is equivalent to the original DDPM [Den20, Son21]. For VP type diffusion models, we always have $\alpha_{t}^{2}+\sigma_{t}^{2}=1$, so defining the noise schedule is equivalent to defining the function $\alpha_{t}=\alpha(t)$ (For example, DDPM [Den20] uses a noise schedule such that $\beta(t)=\frac{\mathrm{d}\log\alpha_{t}}{\mathrm{d} t}$ is a linear function of $t$, and i-DDPM [Nic21] uses a noise schedule such that $\beta(t)=\frac{\mathrm{d}\log\alpha_{t}}{\mathrm{d} t}$ is a cosine function of $t$). As $\lambda_{t}=\log\alpha_{t}-\log\sigma_{t}$, we have $\alpha_{t}=\sqrt{\frac{1}{1+\mathrm{e}^{-2\lambda_{t}}}}$ and $\sigma_{t}=\sqrt{\frac{1}{1+\mathrm{e}^{2\lambda_{t}}}}$. Thus, we can directly compute the $\alpha_{t}$ and $\sigma_{t}$ for a given $\lambda_{t}$. Denote $\hat{\alpha}_{\lambda}\coloneqq\sqrt{\frac{1}{1+\mathrm{e}^{-2\lambda}}}$, we have
 
 <span id="equation-a-2"></span>
 
 $$
-\hat{\bm{x}}_{\lambda_{t}}=\frac{\hat{\alpha}_{\lambda_{t}}}{\hat{\alpha}_{\lambda_{s}}}\hat{\bm{x}}_{\lambda_{s}}-\hat{\alpha}_{\lambda_{t}}\int_{\lambda_{s}}^{\lambda_{t}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
+\hat{\bm{x}}_{\lambda_{t}}=\frac{\hat{\alpha}_{\lambda_{t}}}{\hat{\alpha}_{\lambda_{s}}}\hat{\bm{x}}_{\lambda_{s}}-\hat{\alpha}_{\lambda_{t}}\int_{\lambda_{s}}^{\lambda_{t}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda.
 $$
 
-We should notice that the integrand $e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ is a function of $\lambda$, so its integral from $\lambda_{s}$ to $\lambda_{t}$ is only dependent on the starting point $\lambda_{s}$, the ending point $\lambda_{t}$ and the function $\hat{\bm{\epsilon}}_{\theta}$, which is independent of the intermediate values. As other coefficients ($\hat{\alpha}_{\lambda_{s}}$ and $\hat{\alpha}_{\lambda_{t}}$) are also only dependent on the starting point $\lambda_{s}$ and the ending point $\lambda_{t}$, we can conclude that $\hat{\bm{x}}_{\lambda_{t}}$ is invariant of the specific choice of the noise schedules. Intuitively, this is because we converts the original integral of time $t$ in [Equation 3.1](#equation-3-1) to the integral of $\lambda$, and the functions $f(t)$ and $g(t)$ are converted to an analytical formulation $e^{-\lambda}$, which is invariant to the specific choices of $f(t)$ and $g(t)$. Finally, for other types of diffusion models (such as the VE type and the subVP type), they are all equivalent to the VP type by equivalently rescaling the noise prediction models, as proved in [Kin21]. Therefore, the solutions of these types also have such property.
+We should notice that the integrand $\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$ is a function of $\lambda$, so its integral from $\lambda_{s}$ to $\lambda_{t}$ is only dependent on the starting point $\lambda_{s}$, the ending point $\lambda_{t}$ and the function $\hat{\bm{\epsilon}}_{\theta}$, which is independent of the intermediate values. As other coefficients ($\hat{\alpha}_{\lambda_{s}}$ and $\hat{\alpha}_{\lambda_{t}}$) are also only dependent on the starting point $\lambda_{s}$ and the ending point $\lambda_{t}$, we can conclude that $\hat{\bm{x}}_{\lambda_{t}}$ is invariant of the specific choice of the noise schedules. Intuitively, this is because we converts the original integral of time $t$ in [Equation 3.1](#equation-3-1) to the integral of $\lambda$, and the functions $f(t)$ and $g(t)$ are converted to an analytical formulation $\mathrm{e}^{-\lambda}$, which is invariant to the specific choices of $f(t)$ and $g(t)$. Finally, for other types of diffusion models (such as the VE type and the subVP type), they are all equivalent to the VP type by equivalently rescaling the noise prediction models, as proved in [Kin21]. Therefore, the solutions of these types also have such property.
 
 In summary, [Proposition 3.1](#proposition-03-01) decouples the solution of diffusion ODEs from the noise schedules, which gives us an opportunity to design tailor-made samplers for DPMs. In fact, as shown in [Section 3.2](#section-3-2), the only approximation of the proposed DPM-Solver is about the Taylor expansion of the neural network $\hat{\bm{\epsilon}}_{\theta}$ w.r.t. $\lambda$, and DPM-Solver analytically computes other coefficients (which are corresponding to the specific noise schedules). Intuitively, DPM-Solver keeps the known information as much as possible, and only approximates the intractable integral of the neural network, so it can generate comparable samples within much fewer steps.
 
@@ -481,7 +481,7 @@ To expand the exponential integrator, we further define [Hoc05]:
 <span id="equation-b-2"></span>
 
 $$
-\varphi_{k}(z)\coloneqq\int_{0}^{1}e^{(1-\delta)z}\frac{\delta^{k-1}}{(k-1)!}\mathrm{d}\delta,\quad\quad\varphi_{0}(z)=e^{z}
+\varphi_{k}(z)\coloneqq\int_{0}^{1}\mathrm{e}^{(1-\delta)z}\frac{\delta^{k-1}}{(k-1)!}\mathrm{d}\delta,\quad\quad\varphi_{0}(z)=\mathrm{e}^{z}
 $$
 
 and it satisfies $\varphi_{k}(0)=\frac{1}{k!}$ and a recurrence relation $\varphi_{k+1}(z)=\frac{\varphi_{k}(z)-\varphi_{k}(0)}{z}$. By taking the Taylor expansion of $\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)$, the exponential integrator can be rewritten as
@@ -489,7 +489,7 @@ and it satisfies $\varphi_{k}(0)=\frac{1}{k!}$ and a recurrence relation $\varph
 <span id="equation-b-3"></span>
 
 $$
-\int_{\lambda_{s}}^{\lambda_{t}}e^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda=\frac{\sigma_{t}}{\alpha_{t}}\sum_{k=0}^{n}h^{k+1}\varphi_{k+1}(h)\hat{\bm{\epsilon}}_{\theta}^{(k)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{n+2}).
+\int_{\lambda_{s}}^{\lambda_{t}}\mathrm{e}^{-\lambda}\hat{\bm{\epsilon}}_{\theta}(\hat{\bm{x}}_{\lambda},\lambda)\mathrm{d}\lambda=\frac{\sigma_{t}}{\alpha_{t}}\sum_{k=0}^{n}h^{k+1}\varphi_{k+1}(h)\hat{\bm{\epsilon}}_{\theta}^{(k)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{n+2}).
 $$
 
 So the solution of $\bm{x}_{t}$ in [Equation 3.4](#equation-3-4) can be expanded as
@@ -510,9 +510,9 @@ Finally, we list the closed-forms of $\varphi_{k}$ for $k=1,2,3$:
 
 $$
 \begin{aligned}
-\varphi_{1}(h) & =\frac{e^{h}-1}{h}, \\
-\varphi_{2}(h) & =\frac{e^{h}-h-1}{h^{2}}, \\
-\varphi_{3}(h) & =\frac{e^{h}-\nicefrac{{h^{2}}}{{2}}-h-1}{h^{3}}.
+\varphi_{1}(h) & =\frac{\mathrm{e}^{h}-1}{h}, \\
+\varphi_{2}(h) & =\frac{\mathrm{e}^{h}-h-1}{h^{2}}, \\
+\varphi_{3}(h) & =\frac{\mathrm{e}^{h}-\nicefrac{{h^{2}}}{{2}}-h-1}{h^{3}}.
 \end{aligned}
 $$
 
@@ -527,17 +527,17 @@ Taking $n=0,t=t_{i},s=t_{i-1}$ in [Equation B.4](#equation-b-4), we obtain
 <span id="equation-b-8"></span>
 
 $$
-\bm{x}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},{t_{i-1}})+\mathcal{O}(h_{i}^{2}).
+\bm{x}_{t_{i}}=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},{t_{i-1}})+\mathcal{O}(h_{i}^{2}).
 $$
 
 By [Assumption 8.2](#assumption-08-02) and [Equation 3.7](#equation-3-7), it holds that
 
 $$
 \begin{aligned}
-\tilde{\bm{x}}_{t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}) \\
-=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\left(\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}})\right) \\
-=\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t_{i}}(e^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}) \\
-=\bm{x}_{t_{i}}+\mathcal{O}(h_{\max}^{2})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}).
+\tilde{\bm{x}}_{t_{i}} & =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}) \\
+& =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\left(\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}})\right) \\
+& =\frac{\alpha_{t_{i}}}{\alpha_{t_{i-1}}}\bm{x}_{t_{i-1}}-\sigma_{t_{i}}(\mathrm{e}^{h_{i}}-1)\bm{\epsilon}_{\theta}(\bm{x}_{t_{i-1}},t_{i-1})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}) \\
+& =\bm{x}_{t_{i}}+\mathcal{O}(h_{\max}^{2})+\mathcal{O}(\tilde{\bm{x}}_{t_{i-1}}-\bm{x}_{t_{i-1}}).
 \end{aligned}
 $$
 
@@ -570,8 +570,8 @@ First, we consider the following update for $0<t<s<T,h:=\lambda_{t}-\lambda_{s}$
 $$
 \begin{aligned}
  s_{1} & =t_{\lambda}\left(\lambda_{s}+r_{1}h\right), \\
-\bar{\bm{u}} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(e^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(e^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)).
+\bar{\bm{u}} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(\mathrm{e}^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(\mathrm{e}^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)).
 \end{aligned}
 $$
 
@@ -591,9 +591,9 @@ From [Equation B.1](#equation-b-1), we have
 
 $$
 \begin{aligned}
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(e^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)) \\
-=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}\left(e^{h}-1\right)\left[\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})\right] \\
--\frac{\sigma_{t}}{2r_{1}}\left(e^{h}-1\right)\left[(\lambda_{s_{1}}-\lambda_{s})\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{2})\right].
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}(\mathrm{e}^{h}-1)(\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)) \\
+& =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{2r_{1}}\left(\mathrm{e}^{h}-1\right)\left[\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})\right] \\
+&\quad -\frac{\sigma_{t}}{2r_{1}}\left(\mathrm{e}^{h}-1\right)\left[(\lambda_{s_{1}}-\lambda_{s})\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{2})\right].
 \end{aligned}
 $$
 
@@ -603,18 +603,18 @@ $$
 \|\bm{\epsilon}_{\theta}(\bar{\bm{u}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})\|=\mathcal{O}(\|\bar{\bm{u}}-\bm{x}_{s_{1}}\|)=\mathcal{O}(h^{2}),
 $$
 
-where the last equation follows from a similar argument in the proof of $k=1$. Since $e^{h}-1=\mathcal{O}(h)$, the second term of the above display is $\mathcal{O}(h^{3})$.
+where the last equation follows from a similar argument in the proof of $k=1$. Since $\mathrm{e}^{h}-1=\mathcal{O}(h)$, the second term of the above display is $\mathcal{O}(h^{3})$.
 
-As $\lambda_{s_{1}}-\lambda_{s}=r_{1}h$, $\varphi_{i}(h)=(e^{h}-1)/h$ and $\varphi_{2}(h)=(e^{h}-h-1)/h^{2}$, we find
+As $\lambda_{s_{1}}-\lambda_{s}=r_{1}h$, $\varphi_{i}(h)=(\mathrm{e}^{h}-1)/h$ and $\varphi_{2}(h)=(\mathrm{e}^{h}-h-1)/h^{2}$, we find
 
 $$
-\bm{x}_{t}-\bar{\bm{x}}_{t}=\sigma_{t}\left[h^{2}\varphi_{2}(h)-(e^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}\right]\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{3}).
+\bm{x}_{t}-\bar{\bm{x}}_{t}=\sigma_{t}\left[h^{2}\varphi_{2}(h)-(\mathrm{e}^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}\right]\hat{\bm{\epsilon}}_{\theta}^{(1)}(\hat{\bm{x}}_{\lambda_{s}},\lambda_{s})+\mathcal{O}(h^{3}).
 $$
 
 Then, the proof is completed by noticing that
 
 $$
-h^{2}\varphi_{2}(h)-(e^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}=(2e^{h}-h-2-he^{h})/2=\mathcal{O}(h^{3}).
+h^{2}\varphi_{2}(h)-(\mathrm{e}^{h}-1)\frac{\lambda_{s_{1}}-\lambda_{s}}{2r_{1}}=(2\mathrm{e}^{h}-h-2-h\mathrm{e}^{h})/2=\mathcal{O}(h^{3}).
 $$
 
 :::
@@ -642,11 +642,11 @@ As in [Section 8.4](#section-8-4), it suffices to show that the following update
 $$
 \begin{aligned}
  s_{1} & =t_{\lambda}\left(\lambda_{s}+r_{1}h\right),\quad s_{2}=t_{\lambda}\left(\lambda_{s}+r_{2}h\right), \\
-\bar{\bm{u}}_{1} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(e^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
+\bar{\bm{u}}_{1} & =\frac{\alpha_{s_{1}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{1}}\left(\mathrm{e}^{r_{1}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
 \bm{D}_{1} & =\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{1},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
-\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(e^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{s_{2}}r_{2}}{r_{1}}\left(\frac{e^{r_{2}h}-1}{r_{2}h}-1\right)\bm{D}_{1}, \\
+\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(\mathrm{e}^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{s_{2}}r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{r_{2}h}-1}{r_{2}h}-1\right)\bm{D}_{1}, \\
 \bm{D}_{2} & =\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{2},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s), \\
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\bm{D}_{2}.
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\frac{\sigma_{t}}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\bm{D}_{2}.
 \end{aligned}
 $$
 
@@ -658,14 +658,14 @@ $$
 \bar{\bm{u}}_{2}=\bm{x}_{s_{2}}+\mathcal{O}(h^{3}).
 $$
 
-Similar to the proof in [Section 8.4](#section-8-4), since $\frac{e^{r_{2}h-1}}{r_{2}h}-1=\mathcal{O}(h)$ and $\bar{\bm{u}}_{1}=\bm{x}_{s_{1}}+\mathcal{O}(h^{2})$, then
+Similar to the proof in [Section 8.4](#section-8-4), since $\frac{\mathrm{e}^{r_{2}h-1}}{r_{2}h}-1=\mathcal{O}(h)$ and $\bar{\bm{u}}_{1}=\bm{x}_{s_{1}}+\mathcal{O}(h^{2})$, then
 
 $$
 \begin{aligned}
-\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(e^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
--\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{e^{r_{2}h}-1}{r_{2}h}-1\right)\left(\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\right)+\mathcal{O}(h^{3}) \\
-=\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(e^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
--\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{e^{r_{2}h}-1}{r_{2}h}-1\right)\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}).
+\bar{\bm{u}}_{2} & =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(\mathrm{e}^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
+&\quad -\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{r_{2}h}-1}{r_{2}h}-1\right)\left(\bm{\epsilon}_{\theta}(\bm{x}_{s_{1}},s_{1})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\right)+\mathcal{O}(h^{3}) \\
+& =\frac{\alpha_{s_{2}}}{\alpha_{s}}\bm{x}_{s}-\sigma_{s_{2}}\left(\mathrm{e}^{r_{2}h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
+&\quad -\sigma_{s_{2}}\frac{r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{r_{2}h}-1}{r_{2}h}-1\right)\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}).
 \end{aligned}
 $$
 
@@ -673,8 +673,8 @@ Let $h_{2}=r_{2}h$, then following the same line of arguments in the proof of [S
 
 $$
 \begin{aligned}
-\varphi_{1}(h_{2})h_{2} & =e^{h_{2}}-1, \\
-\varphi_{2}(h_{2})h_{2}^{2} & =\frac{r_{2}}{r_{1}}\left(\frac{e^{h_{2}}-1}{h_{2}}-1\right)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}),
+\varphi_{1}(h_{2})h_{2} & =\mathrm{e}^{h_{2}}-1, \\
+\varphi_{2}(h_{2})h_{2}^{2} & =\frac{r_{2}}{r_{1}}\left(\frac{\mathrm{e}^{h_{2}}-1}{h_{2}}-1\right)(\lambda_{s_{1}}-\lambda_{s})+\mathcal{O}(h^{3}),
 \end{aligned}
 $$
 
@@ -684,10 +684,10 @@ Using $\bar{\bm{u}}_{2}=\bm{x}_{s_{2}}+\mathcal{O}(h^{3})$ and $\lambda_{s_{2}}-
 
 $$
 \begin{aligned}
-\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{2},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big) \\
-=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bm{x}_{s_{2}},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big)+\mathcal{O}(h^{4}) \\
-=\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(e^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
--\sigma_{t}\frac{1}{r_{2}}\left(\frac{e^{h}-1}{h}-1\right)\big(\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)r_{2}h+\frac{1}{2}\bm{\epsilon}^{(2)}_{\theta}(\bm{x}_{s},s)r_{2}^{2}h^{2}\big)+\mathcal{O}(h^{4}).
+\bar{\bm{x}}_{t} & =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bar{\bm{u}}_{2},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big) \\
+& =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s)-\sigma_{t}\frac{1}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\big(\bm{\epsilon}_{\theta}(\bm{x}_{s_{2}},s_{2})-\bm{\epsilon}_{\theta}(\bm{x}_{s},s)\big)+\mathcal{O}(h^{4}) \\
+& =\frac{\alpha_{t}}{\alpha_{s}}\bm{x}_{s}-\sigma_{t}\left(\mathrm{e}^{h}-1\right)\bm{\epsilon}_{\theta}(\bm{x}_{s},s) \\
+&\quad -\sigma_{t}\frac{1}{r_{2}}\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\big(\bm{\epsilon}^{(1)}_{\theta}(\bm{x}_{s},s)r_{2}h+\frac{1}{2}\bm{\epsilon}^{(2)}_{\theta}(\bm{x}_{s},s)r_{2}^{2}h^{2}\big)+\mathcal{O}(h^{4}).
 \end{aligned}
 $$
 
@@ -701,16 +701,16 @@ we need to check the following conditions:
 
 $$
 \begin{aligned}
- h\varphi_{1}(h) & =e^{h}-1, \\
- h^{2}\varphi_{2}(h) & =\left(\frac{e^{h}-1}{h}-1\right)h, \\
- h^{3}\varphi_{3}(h) & =\left(\frac{e^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}+\mathcal{O}(h^{4}).
+ h\varphi_{1}(h) & =\mathrm{e}^{h}-1, \\
+ h^{2}\varphi_{2}(h) & =\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)h, \\
+ h^{3}\varphi_{3}(h) & =\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}+\mathcal{O}(h^{4}).
 \end{aligned}
 $$
 
 The first two conditions are clear. The last condition follows from
 
 $$
-h^{3}\varphi_{3}(h)=e^{h}-1-h-\frac{h^{2}}{2}=\frac{h^{3}}{6}+\mathcal{O}(h^{4})=\left(\frac{e^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}.
+h^{3}\varphi_{3}(h)=\mathrm{e}^{h}-1-h-\frac{h^{2}}{2}=\frac{h^{3}}{6}+\mathcal{O}(h^{4})=\left(\frac{\mathrm{e}^{h}-1}{h}-1\right)\frac{r_{2}h^{2}}{2}.
 $$
 
 Therefore, $\bar{\bm{x}}_{t}=\bm{x}_{t}+\mathcal{O}(h^{4})$.
@@ -730,10 +730,10 @@ $$
 where $\alpha\in\mathbb{R}$ and $\bm{N}(\bm{x}_{t},t)\in\mathbb{R}^{D}$ is a non-linear function of $\bm{x}_{t}$. Given an initial value $\bm{x}_{t}$ at time $t$, for $h>0$, the true solution at time $t+h$ is
 
 $$
-\bm{x}_{t+h}=e^{\alpha h}\bm{x}_{t}+e^{\alpha h}\int_{0}^{h}e^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau.
+\bm{x}_{t+h}=\mathrm{e}^{\alpha h}\bm{x}_{t}+\mathrm{e}^{\alpha h}\int_{0}^{h}\mathrm{e}^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau.
 $$
 
-The exponential Runge-Kutta methods [Hoc10, Hoc05] use some intermediate points to approximate the integral $\int e^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau$. Our proposed DPM-Solver is inspired by the same technique for approximating the same integral with $\alpha=1$ and $\bm{N}=\tilde{\bm{\epsilon}}_{\theta}$. However, DPM-Solver is different from the expRK methods, because their linear term $e^{\alpha h}\bm{x}_{t}$ is different from our linear term $\frac{\alpha_{t+h}}{\alpha_{t}}\bm{x}_{t}$. In summary, DPM-Solver is inspired by the same technique of expRK for deriving high-order approximations of the exponentially weighted integral, but the formulation of DPM-Solver is different from expRK, and DPM-Solver is customized for the specific formulation of diffusion ODEs.
+The exponential Runge-Kutta methods [Hoc10, Hoc05] use some intermediate points to approximate the integral $\int \mathrm{e}^{-\alpha\tau}\bm{N}(\bm{x}_{t+\tau},t+\tau)\mathrm{d}\tau$. Our proposed DPM-Solver is inspired by the same technique for approximating the same integral with $\alpha=1$ and $\bm{N}=\tilde{\bm{\epsilon}}_{\theta}$. However, DPM-Solver is different from the expRK methods, because their linear term $\mathrm{e}^{\alpha h}\bm{x}_{t}$ is different from our linear term $\frac{\alpha_{t+h}}{\alpha_{t}}\bm{x}_{t}$. In summary, DPM-Solver is inspired by the same technique of expRK for deriving high-order approximations of the exponentially weighted integral, but the formulation of DPM-Solver is different from expRK, and DPM-Solver is customized for the specific formulation of diffusion ODEs.
 
 <span id="section-9"></span>
 
@@ -748,7 +748,7 @@ We firstly list the detailed DPM-Solver-1, 2, 3 in [Algorithm 3](#algorithm-03),
 - **Input:** Initial value $\bm{x}_T$, time steps $\{t_i\}_{i=0}^M$, model $\bm{\epsilon}_\theta$.
 - **Define** $\mathrm{DPM}\text{-}\mathrm{Solver}\text{-}1(\tilde{\bm{x}}_{t_{i-1}},t_{i-1},t_i)$:
   - Set $h_i\leftarrow\lambda_{t_i}-\lambda_{t_{i-1}}$.
-  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
   - **Return** $\tilde{\bm{x}}_{t_i}$.
 - Set $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **For** $i\leftarrow1$ to $M$:
@@ -763,8 +763,8 @@ We firstly list the detailed DPM-Solver-1, 2, 3 in [Algorithm 3](#algorithm-03),
 - **Define** $\mathrm{DPM}\text{-}\mathrm{Solver}\text{-}2(\tilde{\bm{x}}_{t_{i-1}},t_{i-1},t_i,r_1)$:
   - Set $h_i\leftarrow\lambda_{t_i}-\lambda_{t_{i-1}}$.
   - Set $s_i\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_1h_i)$.
-  - Set $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}(e^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{2r_1}(e^{h_i}-1)(\bm{\epsilon}_\theta(\bm{u}_i,s_i)-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}))$.
+  - Set $\bm{u}_i\leftarrow\frac{\alpha_{s_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_i}(\mathrm{e}^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{2r_1}(\mathrm{e}^{h_i}-1)(\bm{\epsilon}_\theta(\bm{u}_i,s_i)-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1}))$.
   - **Return** $\tilde{\bm{x}}_{t_i}$.
 - Set $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **For** $i\leftarrow1$ to $M$:
@@ -779,11 +779,11 @@ We firstly list the detailed DPM-Solver-1, 2, 3 in [Algorithm 3](#algorithm-03),
 - **Define** $\mathrm{DPM}\text{-}\mathrm{Solver}\text{-}3(\tilde{\bm{x}}_{t_{i-1}},t_{i-1},t_i,r_1,r_2)$:
   - Set $h_i\leftarrow\lambda_{t_i}-\lambda_{t_{i-1}}$.
   - Set $s_{2i-1}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_1h_i)$ and $s_{2i}\leftarrow t_\lambda(\lambda_{t_{i-1}}+r_2h_i)$.
-  - Set $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(e^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
+  - Set $\bm{u}_{2i-1}\leftarrow\frac{\alpha_{s_{2i-1}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i-1}}(\mathrm{e}^{r_1h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
   - Set $\bm{D}_{2i-1}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i-1},s_{2i-1})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - Set $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(e^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{e^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
+  - Set $\bm{u}_{2i}\leftarrow\frac{\alpha_{s_{2i}}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{s_{2i}}(\mathrm{e}^{r_2h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{s_{2i}}r_2}{r_1}\left(\frac{\mathrm{e}^{r_2h_i}-1}{r_2h_i}-1\right)\bm{D}_{2i-1}$.
   - Set $\bm{D}_{2i}\leftarrow\bm{\epsilon}_\theta(\bm{u}_{2i},s_{2i})-\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})$.
-  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(e^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{e^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
+  - Set $\tilde{\bm{x}}_{t_i}\leftarrow\frac{\alpha_{t_i}}{\alpha_{t_{i-1}}}\tilde{\bm{x}}_{t_{i-1}}-\sigma_{t_i}(\mathrm{e}^{h_i}-1)\bm{\epsilon}_\theta(\tilde{\bm{x}}_{t_{i-1}},t_{i-1})-\frac{\sigma_{t_i}}{r_2}\left(\frac{\mathrm{e}^{h_i}-1}{h}-1\right)\bm{D}_{2i}$.
   - **Return** $\tilde{\bm{x}}_{t_i}$.
 - Set $\tilde{\bm{x}}_{t_0}\leftarrow\bm{x}_T$.
 - **For** $i\leftarrow1$ to $M$:
@@ -909,13 +909,13 @@ $$
 where $\beta_{0}=0.1$ and $\beta_{1}=20$, following [Son21]. As $\sigma_{t}=\sqrt{1-\alpha_{t}^{2}}$, we can compute $\lambda_{t}$ analytically. Moreover, the inverse function is
 
 $$
-t_{\lambda}(\lambda)=\frac{1}{\beta_{1}-\beta_{0}}\left(\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(e^{-2\lambda}+1\right)}-\beta_{0}\right).
+t_{\lambda}(\lambda)=\frac{1}{\beta_{1}-\beta_{0}}\left(\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(\mathrm{e}^{-2\lambda}+1\right)}-\beta_{0}\right).
 $$
 
 To reduce the influence of numerical issues, we can compute $t_{\lambda}$ by the following equivalent formulation:
 
 $$
-t_{\lambda}(\lambda)=\frac{2\log\left(e^{-2\lambda}+1\right)}{\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(e^{-2\lambda}+1\right)}+\beta_{0}}.
+t_{\lambda}(\lambda)=\frac{2\log\left(\mathrm{e}^{-2\lambda}+1\right)}{\sqrt{\beta_{0}^{2}+2(\beta_{1}-\beta_{0})\log\left(\mathrm{e}^{-2\lambda}+1\right)}+\beta_{0}}.
 $$
 
 And we solve diffusion ODEs between $[\epsilon,T]$, where $T=1$.
@@ -929,13 +929,13 @@ $$
 where $s=0.008$, following [Nic21]. As [Nic21] clipped the derivatives to ensure the numerical stability, we also clip the maximum time $T=0.9946$. As $\sigma_{t}=\sqrt{1-\alpha_{t}^{2}}$, we can compute $\lambda_{t}$ analytically. Moreover, given a fixed $\lambda$, let
 
 $$
-f(\lambda)=-\frac{1}{2}\log\left(e^{-2\lambda}+1\right),
+f(\lambda)=-\frac{1}{2}\log\left(\mathrm{e}^{-2\lambda}+1\right),
 $$
 
 which computes the corresponding $\log\alpha$ for $\lambda$. Then the inverse function is
 
 $$
-t_{\lambda}(\lambda)=\frac{2(1+s)}{\pi}\arccos\left(e^{f(\lambda)+\log\cos\left(\frac{\pi s}{2(1+s)}\right)}\right)-s.
+t_{\lambda}(\lambda)=\frac{2(1+s)}{\pi}\arccos\left(\mathrm{e}^{f(\lambda)+\log\cos\left(\frac{\pi s}{2(1+s)}\right)}\right)-s.
 $$
 
 And we solve diffusion ODEs between $[\epsilon,T]$, where $T=0.9946$.
@@ -950,7 +950,7 @@ DPM-Solver can also be used for conditional sampling, with a simple modification
 
 ### 10.6 Numerical Stability
 
-As we need to compute $e^{h_{i}}-1$ in the algorithm of DPM-Solver, we follow [Kin21] to use expm1($h_{i}$) instead of exp($h_{i}$)-1 to improve numerical stability.
+As we need to compute $\mathrm{e}^{h_{i}}-1$ in the algorithm of DPM-Solver, we follow [Kin21] to use expm1($h_{i}$) instead of exp($h_{i}$)-1 to improve numerical stability.
 
 <span id="section-11"></span>
 
