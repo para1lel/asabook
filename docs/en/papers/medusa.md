@@ -55,8 +55,8 @@ To streamline and democratize the acceleration of LLM inference, we take inspira
 
 $$
 \begin{aligned}
-p_{t}^{(k)}=\operatorname{softmax}\left(W_{2}^{(k)}\cdot\left(\operatorname{SiLU}(W_{1}^{(k)}\cdot h_{t})+h_{t}\right)\right), \\
-\mathrm{where}\;W_{2}^{(k)}\in\mathbb{R}^{d\times V},W_{1}^{(k)}\in\mathbb{R}^{d\times d}.
+&p_{t}^{(k)}=\operatorname{softmax}\left(W_{2}^{(k)}\cdot\left(\operatorname{SiLU}(W_{1}^{(k)}\cdot h_{t})+h_{t}\right)\right), \\
+&\mathrm{where}\;W_{2}^{(k)}\in\mathbb{R}^{d\times V},W_{1}^{(k)}\in\mathbb{R}^{d\times d}.
 \end{aligned}
 $$
 
@@ -140,8 +140,8 @@ However, in real-world scenarios, sampling from language models is often employe
 
 $$
 \begin{aligned}
-p_{\text{original}}(x_{n+k}|x_{1},x_{2},\cdots,x_{n+k-1})> \\
-\min\left(\epsilon,\delta\exp\left(-H(p_{\text{original}}(\cdot|x_{1},x_{2},\cdots,x_{n+k-1}))\right)\right),
+&p_{\text{original}}(x_{n+k}|x_{1},x_{2},\cdots,x_{n+k-1}) \\
+&>\min\left(\epsilon,\delta\exp\left(-H(p_{\text{original}}(\cdot|x_{1},x_{2},\cdots,x_{n+k-1}))\right)\right),
 \end{aligned}
 $$
 

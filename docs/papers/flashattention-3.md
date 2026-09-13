@@ -259,8 +259,8 @@ $$
 
 $$
 \begin{aligned}
-4\cdot\text{seqlen}^{2}\cdot\text{head dimension}\\
-{}\cdot\text{number of heads}.
+&4\cdot\text{seqlen}^{2}\cdot\text{head dimension}\\
+&{}\cdot\text{number of heads}.
 \end{aligned}
 $$
 

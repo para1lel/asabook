@@ -76,9 +76,9 @@ $$
 
 $$
 \begin{aligned}
-    [\mathbf{q}_{t, 1};&\mathbf{q}_{t, 2};...;\mathbf{q}_{t, n_{h}}] = \mathbf{q}_{t}, \\
-    [\mathbf{k}_{t, 1};&\mathbf{k}_{t, 2};...;\mathbf{k}_{t, n_{h}}] = \mathbf{k}_{t}, \\
-    [\mathbf{v}_{t, 1};&\mathbf{v}_{t, 2};...;\mathbf{v}_{t, n_{h}}] = \mathbf{v}_{t}, \\
+    [\mathbf{q}_{t, 1};\mathbf{q}_{t, 2};...;\mathbf{q}_{t, n_{h}}] &= \mathbf{q}_{t}, \\
+    [\mathbf{k}_{t, 1};\mathbf{k}_{t, 2};...;\mathbf{k}_{t, n_{h}}] &= \mathbf{k}_{t}, \\
+    [\mathbf{v}_{t, 1};\mathbf{v}_{t, 2};...;\mathbf{v}_{t, n_{h}}] &= \mathbf{v}_{t}, \\
     \mathbf{o}_{t, i} &= \sum_{j=1}^{t} \mathop{\mathrm{Softmax}}_j(\frac{\mathbf{q}_{t, i}^\top \mathbf{k}_{j, i}}{\sqrt{d_{h}}}) \mathbf{v}_{j, i}, \\
     \mathbf{u}_{t} &= W^{O} [\mathbf{o}_{t, 1};\mathbf{o}_{t, 2};...;\mathbf{o}_{t, n_{h}}],
 \end{aligned}

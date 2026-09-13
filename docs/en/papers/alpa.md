@@ -246,9 +246,9 @@ Our algorithm builds on top of that in TeraPipe [Li21b]. However, TeraPipe assum
 
 <span id="algorithm-01"></span>
 
-**Algorithm 1: Inter-op pass summary.**
-
 <div class="paper-algorithm">
+
+**Algorithm 1: Inter-op pass summary.**
 
 - **Input:** Model graph $G$ and cluster $C$ with shape $(N,M)$.
 - **Output:** The minimal pipeline execution latency $T^{*}$.

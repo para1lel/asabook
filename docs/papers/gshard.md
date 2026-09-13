@@ -156,10 +156,9 @@ $$
 
 <span id="algorithm-02"></span>
 
-**算法 2: 逐位置 MoE 层的前向传播. 带下划线的字母 (例如 $\underline{G}$ 和 $\underline{E}$) 表示张量将沿该维度分片.**
-
-
 <div class="paper-algorithm">
+
+**算法 2: 逐位置 MoE 层的前向传播. 带下划线的字母 (例如 $\underline{G}$ 和 $\underline{E}$) 表示张量将沿该维度分片.**
 
 - $\mathrm{gates}\leftarrow\mathrm{softmax}(\mathrm{einsum}("\mathtt{\underline{G}SM,ME\to\underline{G}SE}",\mathrm{inputs},\mathrm{wg}))$.
 - $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$.

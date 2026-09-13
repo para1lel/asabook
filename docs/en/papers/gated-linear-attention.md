@@ -143,9 +143,9 @@ We describe our I/O-aware, hardware-efficient implementation of the chunkwise fo
 
 <span id="algorithm-01"></span>
 
-**Algorithm 1: FlashLinearAttention: Forward Pass.**
-
 <div class="paper-algorithm">
+
+**Algorithm 1: FlashLinearAttention: Forward Pass.**
 
 - **Require:** ${\mathbf Q},{\mathbf K},{\mathbf V}\in\mathbb R^{L\times d}$, chunk size $C\in[L]$, `materialize` $\in\{$`True`,`False`$\}$.
 - Divide ${\mathbf Q},{\mathbf K},{\mathbf V}$ into $N=L/C$ blocks of size $C\times d$ each.
@@ -229,7 +229,7 @@ Letting ${\bm{b}}_{t}:=\prod_{j=1}^{t}{\bm{\alpha}}_{j}$, we can rewrite the abo
 $$
 \begin{aligned}
 {\bm{o}}_{t}={\bm{q}}_{t}{\mathbf{S}}_{t} & ={\bm{q}}_{t}\sum_{i=1}^{t}\left(\left(\frac{{\bm{b}}_{t}}{{\bm{b}}_{i}}\right)^{\top}\mathbf{1}\right)\odot{\bm{k}}_{i}^{\top}{\bm{v}}_{i} \\
-=\sum_{i=1}^{t}({\bm{q}}_{t}\odot{\bm{b}}_{t})\left(\frac{{\bm{k}}_{i}}{{\bm{b}}_{i}}\right)^{\top}{\bm{v}}_{i}
+&=\sum_{i=1}^{t}({\bm{q}}_{t}\odot{\bm{b}}_{t})\left(\frac{{\bm{k}}_{i}}{{\bm{b}}_{i}}\right)^{\top}{\bm{v}}_{i}
 \end{aligned}
 $$
 
@@ -305,11 +305,11 @@ We generalize the GLA layer to the multi-head case. Given $H$ heads, we have the
 
 $$
 \begin{aligned}
-{\mathbf{S}}^{h}_{t}=\left(\left({\bm{\alpha}}_{t}^{h}\right)^{\top}\mathbf{1}\right)\odot{\mathbf{S}}_{t-1}^{h}+{\bm{k}}_{t}^{h\top}\,{\bm{v}}^{h}_{t}\in\mathbb{R}^{d^{\prime}_{k}\times d^{\prime}_{v}}, \\
-{\bm{o}}^{h}_{t}={\bm{q}}_{t}^{h}{\mathbf{S}}_{t}^{h}\in\mathbb{R}^{1\times d^{\prime}_{v}}, \\
-{\bm{o}}^{\prime}_{t}=\mathrm{concat}(\mathrm{LN}({\bm{o}}^{1}_{t}),\dots,\mathrm{LN}({\bm{o}}^{H}_{t}))\in\mathbb{R}^{1\times d_{v}}, \\
-{\bm{r}}_{t}=\mathrm{Swish}({\bm{x}}_{t}{\bm{W}}_{r}+{\bm{b}}_{r})\in\mathbb{R}^{1\times d_{v}}, \\
-{\bm{y}}_{t}=({\bm{r}}_{t}\odot{\bm{o}}^{\prime}_{t}){\bm{W}}_{O}\in\mathbb{R}^{1\times d}.
+{\mathbf{S}}^{h}_{t}&=\left(\left({\bm{\alpha}}_{t}^{h}\right)^{\top}\mathbf{1}\right)\odot{\mathbf{S}}_{t-1}^{h}+{\bm{k}}_{t}^{h\top}\,{\bm{v}}^{h}_{t}\in\mathbb{R}^{d^{\prime}_{k}\times d^{\prime}_{v}}, \\
+{\bm{o}}^{h}_{t}&={\bm{q}}_{t}^{h}{\mathbf{S}}_{t}^{h}\in\mathbb{R}^{1\times d^{\prime}_{v}}, \\
+{\bm{o}}^{\prime}_{t}&=\mathrm{concat}(\mathrm{LN}({\bm{o}}^{1}_{t}),\dots,\mathrm{LN}({\bm{o}}^{H}_{t}))\in\mathbb{R}^{1\times d_{v}}, \\
+{\bm{r}}_{t}&=\mathrm{Swish}({\bm{x}}_{t}{\bm{W}}_{r}+{\bm{b}}_{r})\in\mathbb{R}^{1\times d_{v}}, \\
+{\bm{y}}_{t}&=({\bm{r}}_{t}\odot{\bm{o}}^{\prime}_{t}){\bm{W}}_{O}\in\mathbb{R}^{1\times d}.
 \end{aligned}
 $$
 
@@ -319,8 +319,8 @@ We then build up a Transformer-like model by interleaving multi-head GLA layers 
 
 $$
 \begin{aligned}
-{\mathbf{Y}}^{(l)}=\mathrm{GLA}(\mathrm{LN}({\mathbf{X}}^{(l)}))+{\mathbf{X}}^{(l)} \\
-{\mathbf{X}}^{(l+1)}=\mathrm{SwiGLU}(\mathrm{LN}({\mathbf{Y}}^{(l)}))+{\mathbf{X}}^{(l)},
+{\mathbf{Y}}^{(l)}&=\mathrm{GLA}(\mathrm{LN}({\mathbf{X}}^{(l)}))+{\mathbf{X}}^{(l)} \\
+{\mathbf{X}}^{(l+1)}&=\mathrm{SwiGLU}(\mathrm{LN}({\mathbf{Y}}^{(l)}))+{\mathbf{X}}^{(l)},
 \end{aligned}
 $$
 
@@ -480,9 +480,9 @@ The chunk-wise parallel form of linear Transformers resembles the two-stage para
 
 <span id="algorithm-02"></span>
 
-**Algorithm 2: FlashLinearAttention: Backward Pass.**
-
 <div class="paper-algorithm">
+
+**Algorithm 2: FlashLinearAttention: Backward Pass.**
 
 - **Require:** ${\mathbf Q},{\mathbf K},{\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d}$, chunk size $C\in[L]$, `materialize` $\in\{$`True`,`False`$\}$, ${\mathbf S}\in\mathbb R^{(L/C)\times d\times d}$ (available when `materialize` is `True`).
 - Initialize ${\mathbf{dS}}=\mathbf0\in\mathbb R^{d\times d}$ on SRAM and construct ${\mathbf M}\in\mathbb R^{C\times C}$ on chip.
@@ -577,9 +577,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-03"></span>
 
-**Algorithm 3: Forward pass for gated linear attention (w. materialization).**
-
 <div class="paper-algorithm">
+
+**Algorithm 3: Forward pass for gated linear attention (w. materialization).**
 
 - **Require:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V}\in\mathbb R^{L\times d_v}$, ${\mathbf G}=[{\bm\alpha}_1\dots{\bm\alpha}_L]$, and chunk size $C$.
 - Divide ${\mathbf Q},{\mathbf K},{\mathbf G}$ into $N=L/C$ blocks of size $C\times d_k$, and ${\mathbf V}$ into $N$ blocks of size $C\times d_v$. Initialize ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$ on SRAM.
@@ -592,9 +592,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-04"></span>
 
-**Algorithm 4: Backward pass for gated linear attention (w. materialization).**
-
 <div class="paper-algorithm">
+
+**Algorithm 4: Backward pass for gated linear attention (w. materialization).**
 
 - **Require:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d_v}$, and chunk size $C$.
 - Initialize ${\mathbf{dS}}=\mathbf0\in\mathbb R^{d_k\times d_v}$ on SRAM.
@@ -609,9 +609,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-05"></span>
 
-**Algorithm 5: Forward pass for gated linear attention (w/o. materialization).**
-
 <div class="paper-algorithm">
+
+**Algorithm 5: Forward pass for gated linear attention (w/o. materialization).**
 
 - **Require:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V}\in\mathbb R^{L\times d_v}$, ${\mathbf G}=[{\bm\alpha}_1\dots{\bm\alpha}_L]$, and chunk size $C$.
 - Divide the inputs into $N$ chunks and initialize ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$ on SRAM.
@@ -624,9 +624,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-06"></span>
 
-**Algorithm 6: Backward pass for gated linear attention (w/o. materialization).**
-
 <div class="paper-algorithm">
+
+**Algorithm 6: Backward pass for gated linear attention (w/o. materialization).**
 
 - **Require:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d_v}$, and chunk size $C$.
 - Initialize ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$ on SRAM.

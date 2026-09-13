@@ -196,7 +196,8 @@ $$
 
 $$
 \begin{aligned}
-    C[n, h, w, co] \mathrel{+}= &A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c] \\ \times &B[r_c, r_h, r_w, co],
+    C[n, h, w, co] &\mathrel{+}= A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c] \\
+    &\quad {}\times B[r_c, r_h, r_w, co],
 \end{aligned}
 $$
 
@@ -206,8 +207,8 @@ $x, y, k$ 与 $n, h, w, c, r_h, r_w, r_c$ 之间的映射并不直观.
 
 $$
 \begin{aligned}
-    C[n, h, w, co] \mathrel{+}= A_r[n, h, w, r_h, r_w, r_c] \times B[r_c, r_h, r_w, co],\\
-    A_r[n, h, w, r_h, r_w, r_c] = A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c].
+    C[n, h, w, co] &\mathrel{+}= A_r[n, h, w, r_h, r_w, r_c] \times B[r_c, r_h, r_w, co],\\
+    A_r[n, h, w, r_h, r_w, r_c] &= A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c].
 \end{aligned}
 $$
 
@@ -224,7 +225,8 @@ $$
 
 $$
 \begin{aligned}
-    C_t[\operatorname{fuse}(n, h, w), co] \mathrel{+}= &A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] \\ \times &B_t[\operatorname{fuse}(r_h, r_w, r_c), co],
+    C_t[\operatorname{fuse}(n, h, w), co] &\mathrel{+}= A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] \\
+    &\quad {}\times B_t[\operatorname{fuse}(r_h, r_w, r_c), co],
 \end{aligned}
 $$
 
@@ -232,9 +234,9 @@ $$
 
 $$
 \begin{aligned}
-    C_t[\operatorname{fuse}(n, h, w), co] = &C[n, h, w, co], \\
-    A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] = &A_r[n, h, w, r_h, r_w, r_c] \\
-    B_t[\operatorname{fuse}(r_h, r_w, r_c), co] = &B[r_h, r_w, r_c, co].
+    C_t[\operatorname{fuse}(n, h, w), co] &= C[n, h, w, co], \\
+    A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] &= A_r[n, h, w, r_h, r_w, r_c] \\
+    B_t[\operatorname{fuse}(r_h, r_w, r_c), co] &= B[r_h, r_w, r_c, co].
 \end{aligned}
 $$
 

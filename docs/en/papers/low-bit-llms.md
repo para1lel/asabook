@@ -45,8 +45,8 @@ The floating-point data type is comprehensively defined in the IEEE 754 [Iee19] 
 
 $$
 \begin{aligned}
-X_{\mathrm{FP}k} = {(-1)}^{s}2^{p-\mathrm{bias}}(1.\mathrm{mantissa})={(-1)}^{s}2^{p-\mathrm{bias}} \\
-\left(1+\frac{d_{1}}{2}+\frac{d_{2}}{2^{2}}+\ldots+\frac{d_{m}}{2^{m}}\right),
+X_{\mathrm{FP}k} &= {(-1)}^{s}2^{p-\mathrm{bias}}(1.\mathrm{mantissa}) \\
+&={(-1)}^{s}2^{p-\mathrm{bias}}\left(1+\frac{d_{1}}{2}+\frac{d_{2}}{2^{2}}+\ldots+\frac{d_{m}}{2^{m}}\right),
 \end{aligned}
 $$
 
@@ -63,8 +63,8 @@ As well as E4M3 and E5M2 for $\mathrm{FP}8$, both are standard formats that are 
 
 $$
 \begin{aligned}
-X^{\mathrm{NF}}_{i} =\frac{1}{2}\Bigl(\mathrm{quantile}\!\left(N(0,1),\frac{i}{2^{k}+1}\right) \\
-\quad+\,\mathrm{quantile}\!\left(N(0,1),\frac{i+1}{2^{k}+1}\right)\Bigr),
+X^{\mathrm{NF}}_{i} &=\frac{1}{2}\Bigl(\mathrm{quantile}\!\left(N(0,1),\frac{i}{2^{k}+1}\right) \\
+&\qquad {}+\,\mathrm{quantile}\!\left(N(0,1),\frac{i+1}{2^{k}+1}\right)\Bigr),
 \end{aligned}
 $$
 
@@ -659,8 +659,8 @@ In addition to FPTQ, many other works have followed the approach of SmoothQuant.
 
 $$
 \begin{aligned}
-\Phi^{*} = \underset{\Phi}{\mathrm{arg}\,\min}\,\mathbb{E}\|Q\big((\textbf{X}-\Delta)\cdot \mathrm{diag}(\Phi)^{-1}\big)Q\big(\mathrm{diag}(\Phi)\cdot\textbf{W}^{\mathsf{T}}\big) \\
-+\hat{\textbf{b}}-(\textbf{X}\textbf{W}^{\mathsf{T}}+\textbf{b})\|^{2}_{F}.
+\Phi^{*} &= \underset{\Phi}{\mathrm{arg}\,\min}\,\mathbb{E}\|Q\big((\textbf{X}-\Delta)\cdot \mathrm{diag}(\Phi)^{-1}\big)Q\big(\mathrm{diag}(\Phi)\cdot\textbf{W}^{\mathsf{T}}\big) \\
+&\quad {}+\hat{\textbf{b}}-(\textbf{X}\textbf{W}^{\mathsf{T}}+\textbf{b})\|^{2}_{F}.
 \end{aligned}
 $$
 
@@ -674,8 +674,8 @@ AWQ finds that the saliency of weight channels is actually determined by the act
 
 $$
 \begin{aligned}
-\Phi ={\Phi_{x}}^{\alpha}, \\
-\alpha^{*} =\underset{\alpha}{\mathrm{arg}\,\min}\,\left\|Q\!\left(\textbf{W}\cdot\mathrm{diag}({\Phi_{x}}^{\alpha})\right)(\mathrm{diag}({\Phi_{x}}^{\alpha}))^{-1}\textbf{X}-\textbf{W}\textbf{X}\right\|,
+\Phi &={\Phi_{x}}^{\alpha}, \\
+\alpha^{*} &=\underset{\alpha}{\mathrm{arg}\,\min}\,\left\|Q\!\left(\textbf{W}\cdot\mathrm{diag}({\Phi_{x}}^{\alpha})\right)(\mathrm{diag}({\Phi_{x}}^{\alpha}))^{-1}\textbf{X}-\textbf{W}\textbf{X}\right\|,
 \end{aligned}
 $$
 
@@ -763,10 +763,10 @@ Sparsification and quantization often conflict with each other. Sparsification t
 
 $$
 \begin{aligned}
-\textbf{I}_{ij} =\|\textbf{X}\|_{2}\cdot\|\textbf{W}\|, \\
-\textbf{A}_{ij} =\max(\hat{\textbf{Y}}_{:i})-\min(\hat{\textbf{Y}}_{:i}), \\
-\mathrm{where}\qquad\hat{\textbf{Y}}=\textbf{X}\cdot(\Theta(\textbf{W};i;j))^{\mathsf{T}}, \\
-\textbf{S}_{ij} =\textbf{I}_{ij}+\lambda\textbf{A}_{ij}.
+\textbf{I}_{ij} &=\|\textbf{X}\|_{2}\cdot\|\textbf{W}\|, \\
+\textbf{A}_{ij} &=\max(\hat{\textbf{Y}}_{:i})-\min(\hat{\textbf{Y}}_{:i}), \\
+\mathrm{where}\qquad\hat{\textbf{Y}}&=\textbf{X}\cdot(\Theta(\textbf{W};i;j))^{\mathsf{T}}, \\
+\textbf{S}_{ij} &=\textbf{I}_{ij}+\lambda\textbf{A}_{ij}.
 \end{aligned}
 $$
 

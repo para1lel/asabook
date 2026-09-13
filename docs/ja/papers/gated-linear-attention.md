@@ -143,9 +143,9 @@ Chunkwise form の I/O-aware、hardware-efficient implementation を示す。Chu
 
 <span id="algorithm-01"></span>
 
-**Algorithm 1: FlashLinearAttention の forward pass.**
-
 <div class="paper-algorithm">
+
+**Algorithm 1: FlashLinearAttention の forward pass.**
 
 - **入力:** ${\mathbf Q},{\mathbf K},{\mathbf V}\in\mathbb R^{L\times d}$、chunk size $C\in[L]$、`materialize` $\in\{$`True`,`False`$\}$。
 - ${\mathbf Q},{\mathbf K},{\mathbf V}$ を、それぞれ $C\times d$ の $N=L/C$ block に分割する。
@@ -229,7 +229,7 @@ ${\bm{b}}_{t}:=\prod_{j=1}^{t}{\bm{\alpha}}_{j}$ とおけば、上式は次の�
 $$
 \begin{aligned}
 {\bm{o}}_{t}={\bm{q}}_{t}{\mathbf{S}}_{t} & ={\bm{q}}_{t}\sum_{i=1}^{t}\left(\left(\frac{{\bm{b}}_{t}}{{\bm{b}}_{i}}\right)^{\top}\mathbf{1}\right)\odot{\bm{k}}_{i}^{\top}{\bm{v}}_{i} \\
-=\sum_{i=1}^{t}({\bm{q}}_{t}\odot{\bm{b}}_{t})\left(\frac{{\bm{k}}_{i}}{{\bm{b}}_{i}}\right)^{\top}{\bm{v}}_{i}
+&=\sum_{i=1}^{t}({\bm{q}}_{t}\odot{\bm{b}}_{t})\left(\frac{{\bm{k}}_{i}}{{\bm{b}}_{i}}\right)^{\top}{\bm{v}}_{i}
 \end{aligned}
 $$
 
@@ -305,11 +305,11 @@ GLA 層を multi-head case に一般化する。Head 数を $H$ とすると、�
 
 $$
 \begin{aligned}
-{\mathbf{S}}^{h}_{t}=\left(\left({\bm{\alpha}}_{t}^{h}\right)^{\top}\mathbf{1}\right)\odot{\mathbf{S}}_{t-1}^{h}+{\bm{k}}_{t}^{h\top}\,{\bm{v}}^{h}_{t}\in\mathbb{R}^{d^{\prime}_{k}\times d^{\prime}_{v}}, \\
-{\bm{o}}^{h}_{t}={\bm{q}}_{t}^{h}{\mathbf{S}}_{t}^{h}\in\mathbb{R}^{1\times d^{\prime}_{v}}, \\
-{\bm{o}}^{\prime}_{t}=\mathrm{concat}(\mathrm{LN}({\bm{o}}^{1}_{t}),\dots,\mathrm{LN}({\bm{o}}^{H}_{t}))\in\mathbb{R}^{1\times d_{v}}, \\
-{\bm{r}}_{t}=\mathrm{Swish}({\bm{x}}_{t}{\bm{W}}_{r}+{\bm{b}}_{r})\in\mathbb{R}^{1\times d_{v}}, \\
-{\bm{y}}_{t}=({\bm{r}}_{t}\odot{\bm{o}}^{\prime}_{t}){\bm{W}}_{O}\in\mathbb{R}^{1\times d}.
+{\mathbf{S}}^{h}_{t}&=\left(\left({\bm{\alpha}}_{t}^{h}\right)^{\top}\mathbf{1}\right)\odot{\mathbf{S}}_{t-1}^{h}+{\bm{k}}_{t}^{h\top}\,{\bm{v}}^{h}_{t}\in\mathbb{R}^{d^{\prime}_{k}\times d^{\prime}_{v}}, \\
+{\bm{o}}^{h}_{t}&={\bm{q}}_{t}^{h}{\mathbf{S}}_{t}^{h}\in\mathbb{R}^{1\times d^{\prime}_{v}}, \\
+{\bm{o}}^{\prime}_{t}&=\mathrm{concat}(\mathrm{LN}({\bm{o}}^{1}_{t}),\dots,\mathrm{LN}({\bm{o}}^{H}_{t}))\in\mathbb{R}^{1\times d_{v}}, \\
+{\bm{r}}_{t}&=\mathrm{Swish}({\bm{x}}_{t}{\bm{W}}_{r}+{\bm{b}}_{r})\in\mathbb{R}^{1\times d_{v}}, \\
+{\bm{y}}_{t}&=({\bm{r}}_{t}\odot{\bm{o}}^{\prime}_{t}){\bm{W}}_{O}\in\mathbb{R}^{1\times d}.
 \end{aligned}
 $$
 
@@ -319,8 +319,8 @@ $$
 
 $$
 \begin{aligned}
-{\mathbf{Y}}^{(l)}=\mathrm{GLA}(\mathrm{LN}({\mathbf{X}}^{(l)}))+{\mathbf{X}}^{(l)} \\
-{\mathbf{X}}^{(l+1)}=\mathrm{SwiGLU}(\mathrm{LN}({\mathbf{Y}}^{(l)}))+{\mathbf{X}}^{(l)},
+{\mathbf{Y}}^{(l)}&=\mathrm{GLA}(\mathrm{LN}({\mathbf{X}}^{(l)}))+{\mathbf{X}}^{(l)} \\
+{\mathbf{X}}^{(l+1)}&=\mathrm{SwiGLU}(\mathrm{LN}({\mathbf{Y}}^{(l)}))+{\mathbf{X}}^{(l)},
 \end{aligned}
 $$
 
@@ -480,9 +480,9 @@ Linear Transformer の chunkwise 並列形式は、chunkwise な並列計算と 
 
 <span id="algorithm-02"></span>
 
-**Algorithm 2: FlashLinearAttention の backward pass.**
-
 <div class="paper-algorithm">
+
+**Algorithm 2: FlashLinearAttention の backward pass.**
 
 - **入力:** ${\mathbf Q},{\mathbf K},{\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d}$、chunk size $C\in[L]$、`materialize` $\in\{$`True`,`False`$\}$、${\mathbf S}\in\mathbb R^{(L/C)\times d\times d}$（`materialize` が `True` の場合に利用可能）。
 - SRAM 上で ${\mathbf{dS}}=\mathbf0\in\mathbb R^{d\times d}$ を初期化し、on-chip で ${\mathbf M}\in\mathbb R^{C\times C}$ を構成する。
@@ -577,9 +577,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-03"></span>
 
-**Algorithm 3: Gated linear attention の forward pass（materialization あり）。**
-
 <div class="paper-algorithm">
+
+**Algorithm 3: Gated linear attention の forward pass（materialization あり）。**
 
 - **入力:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$、${\mathbf V}\in\mathbb R^{L\times d_v}$、${\mathbf G}=[{\bm\alpha}_1\dots{\bm\alpha}_L]$、chunk size $C$。
 - ${\mathbf Q},{\mathbf K},{\mathbf G}$ を $C\times d_k$ の $N=L/C$ block、${\mathbf V}$ を $C\times d_v$ の $N$ block に分割し、SRAM 上で ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$ を初期化する。
@@ -592,9 +592,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-04"></span>
 
-**Algorithm 4: Gated linear attention の backward pass（materialization あり）。**
-
 <div class="paper-algorithm">
+
+**Algorithm 4: Gated linear attention の backward pass（materialization あり）。**
 
 - **入力:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$、${\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d_v}$、chunk size $C$。
 - SRAM 上で ${\mathbf{dS}}=\mathbf0\in\mathbb R^{d_k\times d_v}$ を初期化する。
@@ -609,9 +609,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-05"></span>
 
-**Algorithm 5: Gated linear attention の forward pass（materialization なし）。**
-
 <div class="paper-algorithm">
+
+**Algorithm 5: Gated linear attention の forward pass（materialization なし）。**
 
 - **入力:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$、${\mathbf V}\in\mathbb R^{L\times d_v}$、${\mathbf G}=[{\bm\alpha}_1\dots{\bm\alpha}_L]$、chunk size $C$。
 - 入力を $N$ chunk に分割し、SRAM 上で ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$ を初期化する。
@@ -624,9 +624,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-06"></span>
 
-**Algorithm 6: Gated linear attention の backward pass（materialization なし）。**
-
 <div class="paper-algorithm">
+
+**Algorithm 6: Gated linear attention の backward pass（materialization なし）。**
 
 - **入力:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$、${\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d_v}$、chunk size $C$。
 - SRAM 上で ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$ を初期化する。

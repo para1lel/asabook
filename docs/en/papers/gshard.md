@@ -160,10 +160,9 @@ Our model implementation ([Algorithm 2](#algorithm-02)) views the whole accelera
 
 <span id="algorithm-02"></span>
 
-**Algorithm 2: Forward pass of the Positions-wise MoE layer. The underscored letter (e.g., $\underline{G}$ and $\underline{E}$) indicates the dimension along which a tensor will be partitioned.**
-
-
 <div class="paper-algorithm">
+
+**Algorithm 2: Forward pass of the Positions-wise MoE layer. The underscored letter (e.g., $\underline{G}$ and $\underline{E}$) indicates the dimension along which a tensor will be partitioned.**
 
 - $\mathrm{gates}\leftarrow\mathrm{softmax}(\mathrm{einsum}("\mathtt{\underline{G}SM,ME\to\underline{G}SE}",\mathrm{inputs},\mathrm{wg}))$.
 - $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$.

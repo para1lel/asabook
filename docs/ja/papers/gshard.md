@@ -160,10 +160,9 @@ $$
 
 <span id="algorithm-02"></span>
 
-**アルゴリズム 2：Position-wise MoE 層の順伝播。下線付きの文字（例：$\underline{G}$ と $\underline{E}$）は、テンソルを分割する次元を示す。**
-
-
 <div class="paper-algorithm">
+
+**アルゴリズム 2：Position-wise MoE 層の順伝播。下線付きの文字（例：$\underline{G}$ と $\underline{E}$）は、テンソルを分割する次元を示す。**
 
 - $\mathrm{gates}\leftarrow\mathrm{softmax}(\mathrm{einsum}("\mathtt{\underline{G}SM,ME\to\underline{G}SE}",\mathrm{inputs},\mathrm{wg}))$。
 - $\mathrm{combine\_weights},\mathrm{dispatch\_mask}\leftarrow\mathrm{Top2Gating}(\mathrm{gates})$。

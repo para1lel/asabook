@@ -180,9 +180,9 @@ $$
 
 <span id="alg1"></span>
 
-**算法 1: 高节点亲和性放置算法.**
-
 <div class="paper-algorithm">
+
+**算法 1: 高节点亲和性放置算法.**
 
 - **输入:** LLM $G$, 每实例节点上限 $N$, 每节点 GPU 数 $M$, GPU 内存容量 $C$, 工作负载 $W$, 流量速率 $R$.
 - **输出:** 放置方案 $\mathit{best\_plm}$.
@@ -218,9 +218,9 @@ $$
 
 <span id="alg2"></span>
 
-**算法 2: 低节点亲和性放置算法.**
-
 <div class="paper-algorithm">
+
+**算法 2: 低节点亲和性放置算法.**
 
 - **输入:** LLM $G$, 每实例节点上限 $N$, 每节点 GPU 数 $M$, GPU 内存容量 $C$, 工作负载 $W$, 流量速率 $R$.
 - **输出:** 放置方案 $\mathit{best\_plm}$.

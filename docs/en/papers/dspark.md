@@ -131,8 +131,8 @@ Here, $x_{0}$ denotes the anchor token from the previous verification cycle, $U_
 
   $$
   \begin{aligned}
-  s_{k}=\sigma(W_{g}\,z_{k}) & \odot s_{k-1}+\bigl(1-\sigma(W_{g}\,z_{k})\bigr)\odot\tanh(W_{c}\,z_{k}), \\
-  & B_{k}(x_{<k},\,\cdot\,)=W_{2}^{\top}\,\tanh(W_{o}\,z_{k}),
+  s_{k}&=\sigma(W_{g}\,z_{k}) \odot s_{k-1}+\bigl(1-\sigma(W_{g}\,z_{k})\bigr)\odot\tanh(W_{c}\,z_{k}), \\
+  B_{k}(x_{<k},\,\cdot\,)&=W_{2}^{\top}\,\tanh(W_{o}\,z_{k}),
   \end{aligned}
   $$
 

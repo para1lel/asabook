@@ -115,8 +115,8 @@ In summary, we start with recurrent modeling as shown in [Equation (1)](#equatio
 
 $$
 \begin{aligned}
-Q=(X W_Q)\odot\Theta,&\quad K=(X W_K)\odot\overline{\Theta},\quad V=X W_V \\
-\Theta_n=e^{i n\theta},&\quad
+Q&=(X W_Q)\odot\Theta,\quad K=(X W_K)\odot\overline{\Theta},\quad V=X W_V \\
+\Theta_n&=e^{i n\theta},\quad
 D_{nm}=\begin{cases}
 \gamma^{n-m}, & n\ge m \\
 0, & n<m
@@ -146,7 +146,7 @@ where $Q,K,V,\gamma$ are the same as in [Equation (5)](#equation-05).
 
 $$
 \begin{aligned}
-Q_{[i]}=Q_{Bi:B(i+1)}&,\quad K_{[i]}=K_{Bi:B(i+1)},\quad V_{[i]}=V_{Bi:B(i+1)} \\
+Q_{[i]}&=Q_{Bi:B(i+1)},\quad K_{[i]}=K_{Bi:B(i+1)},\quad V_{[i]}=V_{Bi:B(i+1)} \\
 R_i&=K_{[i]}^\top(V_{[i]}\odot\zeta)+\gamma^B R_{i-1},\quad\zeta_{ij}=\gamma^{B-i-1} \\
 \mathrm{Retention}(X_{[i]})&=\underbrace{(Q_{[i]} K_{[i]}^\top\odot D)V_{[i]}}_{\mathrm{Inner}{-}\mathrm{Chunk}}+\underbrace{(Q_{[i]}R_{i-1})\odot\xi}_{\mathrm{Cross}{-}\mathrm{Chunk}},\quad\xi_{ij}=\gamma^{i+1}
 \end{aligned}

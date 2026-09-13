@@ -143,9 +143,9 @@ $$
 
 <span id="algorithm-01"></span>
 
-**算法 1: FlashLinearAttention 前向传播.**
-
 <div class="paper-algorithm">
+
+**算法 1: FlashLinearAttention 前向传播.**
 
 - **输入:** ${\mathbf Q},{\mathbf K},{\mathbf V}\in\mathbb R^{L\times d}$, 块大小 $C\in[L]$, `materialize` $\in\{$`True`,`False`$\}$.
 - 将 ${\mathbf Q},{\mathbf K},{\mathbf V}$ 各自划分为 $N=L/C$ 个 $C\times d$ 块.
@@ -229,7 +229,7 @@ $$
 $$
 \begin{aligned}
 {\bm{o}}_{t}={\bm{q}}_{t}{\mathbf{S}}_{t} & ={\bm{q}}_{t}\sum_{i=1}^{t}\left(\left(\frac{{\bm{b}}_{t}}{{\bm{b}}_{i}}\right)^{\top}\mathbf{1}\right)\odot{\bm{k}}_{i}^{\top}{\bm{v}}_{i} \\
-=\sum_{i=1}^{t}({\bm{q}}_{t}\odot{\bm{b}}_{t})\left(\frac{{\bm{k}}_{i}}{{\bm{b}}_{i}}\right)^{\top}{\bm{v}}_{i}
+&=\sum_{i=1}^{t}({\bm{q}}_{t}\odot{\bm{b}}_{t})\left(\frac{{\bm{k}}_{i}}{{\bm{b}}_{i}}\right)^{\top}{\bm{v}}_{i}
 \end{aligned}
 $$
 
@@ -305,11 +305,11 @@ $$
 
 $$
 \begin{aligned}
-{\mathbf{S}}^{h}_{t}=\left(\left({\bm{\alpha}}_{t}^{h}\right)^{\top}\mathbf{1}\right)\odot{\mathbf{S}}_{t-1}^{h}+{\bm{k}}_{t}^{h\top}\,{\bm{v}}^{h}_{t}\in\mathbb{R}^{d^{\prime}_{k}\times d^{\prime}_{v}}, \\
-{\bm{o}}^{h}_{t}={\bm{q}}_{t}^{h}{\mathbf{S}}_{t}^{h}\in\mathbb{R}^{1\times d^{\prime}_{v}}, \\
-{\bm{o}}^{\prime}_{t}=\mathrm{concat}(\mathrm{LN}({\bm{o}}^{1}_{t}),\dots,\mathrm{LN}({\bm{o}}^{H}_{t}))\in\mathbb{R}^{1\times d_{v}}, \\
-{\bm{r}}_{t}=\mathrm{Swish}({\bm{x}}_{t}{\bm{W}}_{r}+{\bm{b}}_{r})\in\mathbb{R}^{1\times d_{v}}, \\
-{\bm{y}}_{t}=({\bm{r}}_{t}\odot{\bm{o}}^{\prime}_{t}){\bm{W}}_{O}\in\mathbb{R}^{1\times d}.
+{\mathbf{S}}^{h}_{t}&=\left(\left({\bm{\alpha}}_{t}^{h}\right)^{\top}\mathbf{1}\right)\odot{\mathbf{S}}_{t-1}^{h}+{\bm{k}}_{t}^{h\top}\,{\bm{v}}^{h}_{t}\in\mathbb{R}^{d^{\prime}_{k}\times d^{\prime}_{v}}, \\
+{\bm{o}}^{h}_{t}&={\bm{q}}_{t}^{h}{\mathbf{S}}_{t}^{h}\in\mathbb{R}^{1\times d^{\prime}_{v}}, \\
+{\bm{o}}^{\prime}_{t}&=\mathrm{concat}(\mathrm{LN}({\bm{o}}^{1}_{t}),\dots,\mathrm{LN}({\bm{o}}^{H}_{t}))\in\mathbb{R}^{1\times d_{v}}, \\
+{\bm{r}}_{t}&=\mathrm{Swish}({\bm{x}}_{t}{\bm{W}}_{r}+{\bm{b}}_{r})\in\mathbb{R}^{1\times d_{v}}, \\
+{\bm{y}}_{t}&=({\bm{r}}_{t}\odot{\bm{o}}^{\prime}_{t}){\bm{W}}_{O}\in\mathbb{R}^{1\times d}.
 \end{aligned}
 $$
 
@@ -319,8 +319,8 @@ $$
 
 $$
 \begin{aligned}
-{\mathbf{Y}}^{(l)}=\mathrm{GLA}(\mathrm{LN}({\mathbf{X}}^{(l)}))+{\mathbf{X}}^{(l)} \\
-{\mathbf{X}}^{(l+1)}=\mathrm{SwiGLU}(\mathrm{LN}({\mathbf{Y}}^{(l)}))+{\mathbf{X}}^{(l)},
+{\mathbf{Y}}^{(l)}&=\mathrm{GLA}(\mathrm{LN}({\mathbf{X}}^{(l)}))+{\mathbf{X}}^{(l)} \\
+{\mathbf{X}}^{(l+1)}&=\mathrm{SwiGLU}(\mathrm{LN}({\mathbf{Y}}^{(l)}))+{\mathbf{X}}^{(l)},
 \end{aligned}
 $$
 
@@ -480,9 +480,9 @@ RNN 依靠固定维度的隐状态编码全部历史. 隐状态维度可以近�
 
 <span id="algorithm-02"></span>
 
-**算法 2: FlashLinearAttention 反向传播.**
-
 <div class="paper-algorithm">
+
+**算法 2: FlashLinearAttention 反向传播.**
 
 - **输入:** ${\mathbf Q},{\mathbf K},{\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d}$, 块大小 $C\in[L]$, `materialize` $\in\{$`True`,`False`$\}$, 以及 ${\mathbf S}\in\mathbb R^{(L/C)\times d\times d}$ (`materialize` 为 `True` 时可用).
 - 在 SRAM 中初始化 ${\mathbf{dS}}=\mathbf0\in\mathbb R^{d\times d}$, 并在片上构造 ${\mathbf M}\in\mathbb R^{C\times C}$.
@@ -577,9 +577,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-03"></span>
 
-**算法 3: 门控线性注意力前向传播 (物化版本).**
-
 <div class="paper-algorithm">
+
+**算法 3: 门控线性注意力前向传播 (物化版本).**
 
 - **输入:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V}\in\mathbb R^{L\times d_v}$, ${\mathbf G}=[{\bm\alpha}_1\dots{\bm\alpha}_L]$, 块大小 $C$.
 - 将 ${\mathbf Q},{\mathbf K},{\mathbf G}$ 划分为 $N=L/C$ 个 $C\times d_k$ 块, 将 ${\mathbf V}$ 划分为 $N$ 个 $C\times d_v$ 块, 并在 SRAM 中初始化 ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$.
@@ -592,9 +592,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-04"></span>
 
-**算法 4: 门控线性注意力反向传播 (物化版本).**
-
 <div class="paper-algorithm">
+
+**算法 4: 门控线性注意力反向传播 (物化版本).**
 
 - **输入:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d_v}$, 块大小 $C$.
 - 在 SRAM 中初始化 ${\mathbf{dS}}=\mathbf0\in\mathbb R^{d_k\times d_v}$.
@@ -609,9 +609,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-05"></span>
 
-**算法 5: 门控线性注意力前向传播 (非物化版本).**
-
 <div class="paper-algorithm">
+
+**算法 5: 门控线性注意力前向传播 (非物化版本).**
 
 - **输入:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V}\in\mathbb R^{L\times d_v}$, ${\mathbf G}=[{\bm\alpha}_1\dots{\bm\alpha}_L]$, 块大小 $C$.
 - 将输入划分为 $N$ 个块, 并在 SRAM 中初始化 ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$.
@@ -624,9 +624,9 @@ def gated_linear_attention_forward(Q, K, V, a, C, c):
 
 <span id="algorithm-06"></span>
 
-**算法 6: 门控线性注意力反向传播 (非物化版本).**
-
 <div class="paper-algorithm">
+
+**算法 6: 门控线性注意力反向传播 (非物化版本).**
 
 - **输入:** ${\mathbf Q},{\mathbf K},{\mathbf G}\in\mathbb R^{L\times d_k}$, ${\mathbf V},{\mathbf O},{\mathbf{dO}}\in\mathbb R^{L\times d_v}$, 块大小 $C$.
 - 在 SRAM 中初始化 ${\mathbf S}=\mathbf0\in\mathbb R^{d_k\times d_v}$.

@@ -96,9 +96,9 @@ $$
 
 $$
 \begin{aligned}
-f_{q}({\boldsymbol{x}}_{m}):={\boldsymbol{W}}_{q}{\boldsymbol{x}}_{m} \\
-f_{k}({\boldsymbol{x}}_{n},n):={\boldsymbol{W}}_{k}({\boldsymbol{x}}_{n}+\tilde{{\boldsymbol{p}}}^{k}_{r}) \\
-f_{v}({\boldsymbol{x}}_{n},n):={\boldsymbol{W}}_{v}({\boldsymbol{x}}_{n}+\tilde{{\boldsymbol{p}}}^{v}_{r})
+f_{q}({\boldsymbol{x}}_{m})&:={\boldsymbol{W}}_{q}{\boldsymbol{x}}_{m} \\
+f_{k}({\boldsymbol{x}}_{n},n)&:={\boldsymbol{W}}_{k}({\boldsymbol{x}}_{n}+\tilde{{\boldsymbol{p}}}^{k}_{r}) \\
+f_{v}({\boldsymbol{x}}_{n},n)&:={\boldsymbol{W}}_{v}({\boldsymbol{x}}_{n}+\tilde{{\boldsymbol{p}}}^{v}_{r})
 \end{aligned}
 $$
 
@@ -490,8 +490,8 @@ $$
 $$
 \begin{aligned}
 \bigg|\sum_{i=0}^{d/2-1}{\boldsymbol{q}}_{[2i:2i+1]}{\boldsymbol{k}}_{[2i:2i+1]}^{*}e^{i(m-n)\theta_{i}}\bigg| & =\bigg|\sum_{i=0}^{d/2-1}S_{i+1}(h_{i+1}-h_{i})\bigg| \\
-\leq\sum_{i=0}^{d/2-1}|S_{i+1}|\,|h_{i+1}-h_{i}| \\
-\leq\big(\max_{i}|h_{i+1}-h_{i}|\big)\sum_{i=0}^{d/2-1}|S_{i+1}|
+&\leq\sum_{i=0}^{d/2-1}|S_{i+1}|\,|h_{i+1}-h_{i}| \\
+&\leq\big(\max_{i}|h_{i+1}-h_{i}|\big)\sum_{i=0}^{d/2-1}|S_{i+1}|
 \end{aligned}
 $$
 

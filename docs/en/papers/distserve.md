@@ -180,9 +180,9 @@ As explained in §[3.3](#S3.SS3 "3.3 Practical Problems ‣ 3 Tradeoff Analysis 
 
 <span id="alg1"></span>
 
-**Algorithm 1: High Node-Affinity Placement Algorithm.**
-
 <div class="paper-algorithm">
+
+**Algorithm 1: High Node-Affinity Placement Algorithm.**
 
 - **Input:** LLM $G$, #node limit per-instance $N$, #GPU per-node $M$, GPU memory capacity $C$, workload $W$, and traffic rate $R$.
 - **Output:** The placement $\mathit{best\_plm}$.
@@ -218,9 +218,9 @@ By far, we have developed Algorithm [1](#alg1 "Algorithm 1 ‣ 4.1 Placement for
 
 <span id="alg2"></span>
 
-**Algorithm 2: Low Node-Affinity Placement Algorithm.**
-
 <div class="paper-algorithm">
+
+**Algorithm 2: Low Node-Affinity Placement Algorithm.**
 
 - **Input:** LLM $G$, #node limit per-instance $N$, #GPU per-node $M$, GPU memory capacity $C$, workload $W$, and traffic rate $R$.
 - **Output:** The placement $\mathit{best\_plm}$.

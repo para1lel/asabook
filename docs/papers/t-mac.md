@@ -252,9 +252,9 @@ $g$ 也由片上内存大小和指令吞吐量决定. 对 ARM.TBL/AVX2.PSHUF 而
 $$
 \begin{aligned}
 f(v_{i}) & =\alpha_{i}^{\prime}v_{i}+\beta_{i}^{\prime},v_{i}=\alpha_{i}f(v_{i})+\beta_{i}, \\
-\mathrm{where}~\alpha_{i}=\frac{1}{\alpha_{i}^{\prime}},\beta=-\frac{\beta_{i}^{\prime}}{\alpha_{i}^{\prime}} \\
+&\mathrm{where}~\alpha_{i}=\frac{1}{\alpha_{i}^{\prime}},\beta=-\frac{\beta_{i}^{\prime}}{\alpha_{i}^{\prime}} \\
 W & =\sum_{i=0}^{b-1}\alpha_{i}2^{i}W_{i}^{\prime}+B, \\
-\mathrm{where}~W_{i}^{\prime}=f(W_{i}),B=J\cdot\sum_{i=0}^{b-1}\beta_{i}2^{i}
+&\mathrm{where}~W_{i}^{\prime}=f(W_{i}),B=J\cdot\sum_{i=0}^{b-1}\beta_{i}2^{i}
 \end{aligned}
 $$
 
@@ -263,7 +263,7 @@ $$
 $$
 \begin{aligned}
 \mathrm{LUT}[0,0:8,0]= & -A[0,0:32:4]-A[0,1:32:4] \\
--A[0,2:32:4]-A[0,3:32:4]
+&{}-A[0,2:32:4]-A[0,3:32:4]
 \end{aligned}
 $$
 

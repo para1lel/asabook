@@ -259,8 +259,8 @@ H100 80GB SXM5 GPU 上で、FP16 入力について設定を変え、因果 mask
 
 $$
 \begin{aligned}
-4\cdot\text{seqlen}^{2}\cdot\text{head dimension}\\
-{}\cdot\text{number of heads}.
+&4\cdot\text{seqlen}^{2}\cdot\text{head dimension}\\
+&{}\cdot\text{number of heads}.
 \end{aligned}
 $$
 

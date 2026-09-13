@@ -195,7 +195,8 @@ It is easy for us to match the tensor intrinsic to workloads like batch matrix m
 
 $$
 \begin{aligned}
-    C[n, h, w, co] \mathrel{+}= &A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c] \\ \times &B[r_c, r_h, r_w, co],
+    C[n, h, w, co] &\mathrel{+}= A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c] \\
+    &\quad {}\times B[r_c, r_h, r_w, co],
 \end{aligned}
 $$
 the mapping between $x, y, k$ and $n, h, w, c, r_h, r_w, r_c$ is not straightforward.
@@ -204,8 +205,8 @@ On these more general cases, we rewrite the computation expression into an equiv
 
 $$
 \begin{aligned}
-    C[n, h, w, co] \mathrel{+}= A_r[n, h, w, r_h, r_w, r_c] \times B[r_c, r_h, r_w, co],\\
-    A_r[n, h, w, r_h, r_w, r_c] = A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c].
+    C[n, h, w, co] &\mathrel{+}= A_r[n, h, w, r_h, r_w, r_c] \times B[r_c, r_h, r_w, co],\\
+    A_r[n, h, w, r_h, r_w, r_c] &= A[n, h * s_h + r_h * d_h, w*s_w+r_w*d_w, r_c].
 \end{aligned}
 $$
 We call this transformation *ReIndex* which uses intermediate iterators that appear in the buffer access indices to rewrite the buffer access expressions. To match the new computation to the tensor intrinsic, we check the buffer access where each iterator appears. For example, we notice that $n, h, w$ and $x$ appear in indices of $A(Ar), C$, $co$ and $y$ appear in indices of $B, C$, and $r_h, r_w, r_c$ and $k$ appear in indices of $A, C$. We can then match the iterators in the computation to the iterators in the tensor intrinsic by inspecting their appearance patterns. Specifically, we map $\operatorname{fuse}(n, h, y)$ to $x$, $co$ to $y$, and $\operatorname{fuse}(r_h, r_w, r_c)$ to $k$. Here $\operatorname{fuse}()$ is to fuse multiple iterators together and can be recursively defined by
@@ -220,16 +221,17 @@ where $\operatorname{extent}$ is the extent of iterator $i_r$. We can then trans
 
 $$
 \begin{aligned}
-    C_t[\operatorname{fuse}(n, h, w), co] \mathrel{+}= &A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] \\ \times &B_t[\operatorname{fuse}(r_h, r_w, r_c), co],
+    C_t[\operatorname{fuse}(n, h, w), co] &\mathrel{+}= A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] \\
+    &\quad {}\times B_t[\operatorname{fuse}(r_h, r_w, r_c), co],
 \end{aligned}
 $$
 where
 
 $$
 \begin{aligned}
-    C_t[\operatorname{fuse}(n, h, w), co] = &C[n, h, w, co], \\
-    A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] = &A_r[n, h, w, r_h, r_w, r_c] \\
-    B_t[\operatorname{fuse}(r_h, r_w, r_c), co] = &B[r_h, r_w, r_c, co].
+    C_t[\operatorname{fuse}(n, h, w), co] &= C[n, h, w, co], \\
+    A_t[\operatorname{fuse}(n, h, w), \operatorname{fuse}(r_h, r_w, r_c)] &= A_r[n, h, w, r_h, r_w, r_c] \\
+    B_t[\operatorname{fuse}(r_h, r_w, r_c), co] &= B[r_h, r_w, r_c, co].
 \end{aligned}
 $$
 We use this mapping to reshape the block instance space and the outer loops and transform the layout of *ReIndex* buffers. We insert layout rewrite blocks to rewrite $A, B, C$ to $A_t, B_t, C_t$ respectively and use $A_t, B_t, C_t$ to rewrite the computation body. After these steps, the computation body is compatible with the tensor intrinsic.

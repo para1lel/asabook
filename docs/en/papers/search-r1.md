@@ -97,13 +97,12 @@ where $\pi_{\theta}$ and $\pi_{\mathrm{old}}$ represent the current and previous
 
 $$
 \begin{aligned}
-\mathcal{J}_{\mathrm{GRPO}}(\theta) =\;&
+\mathcal{J}_{\mathrm{GRPO}}(\theta) =\;
 \mathbb{E}_{x \sim \mathcal{D}, \{ y_i \}_{i=1}^{G} \sim \pi_{\mathrm{old}}( \cdot\mid x; \mathcal{R})}
 \Bigg[
 \frac{1}{G} \sum_{i=1}^{G} \frac{1}{\sum_{t=1}^{|y_i|} I(y_{i,t})} \sum_{t=1: I(y_{i,t})=1}^{|y_i|}
-\min \Bigg(
-\frac{\pi_{\theta}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})}{\pi_{\mathrm{old}}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})} \hat{A}_{i,t},\\[8pt]
-&\hspace{80pt} \mathrm{clip} \Bigg( \frac{\pi_{\theta}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})}{\pi_{\mathrm{old}}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})}, 1 - \epsilon, 1 + \epsilon \Bigg) \hat{A}_{i,t}
+\min \Bigg(&\frac{\pi_{\theta}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})}{\pi_{\mathrm{old}}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})} \hat{A}_{i,t},\\[8pt]
+&\mathrm{clip} \Bigg( \frac{\pi_{\theta}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})}{\pi_{\mathrm{old}}(y_{i,t} \mid x, y_{i,<t}; \mathcal{R})}, 1 - \epsilon, 1 + \epsilon \Bigg) \hat{A}_{i,t}
 \Bigg)
 - \beta \mathbb{D}_{\mathrm{KL}} \left[ \pi_{\theta} \| \pi_{\mathrm{ref}} \right]
 \Bigg],
