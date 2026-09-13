@@ -282,9 +282,9 @@ $$
 
 <span id="algorithm-01"></span>
 
-**算法 1: 带因果遮罩的线性 Transformer.**
-
 <div class="paper-algorithm">
+
+**算法 1: 带因果遮罩的线性 Transformer.**
 
 - **函数** $\mathrm{forward}(\phi(Q),\phi(K),V)$:
   - 令 $V'\gets0$ 且 $S\gets0$.
@@ -468,7 +468,7 @@ $$
 $$
 \begin{aligned}
 \frac{\partial\mathcal{L}}{\partial K_{lt}} & =\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}\frac{\partial\bar{V}_{ie}}{\partial K_{lt}}=\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}\frac{\partial\left(\sum_{d=1}^{D}\sum_{j=1}^{i}Q_{id}K_{jd}V_{je}\right)}{\partial K_{lt}} \\
-=\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}Q_{it}V_{le}.
+& =\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}Q_{it}V_{le}.
 \end{aligned}
 $$
 

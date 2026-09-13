@@ -282,9 +282,9 @@ In the above equations, $x_{i}$ denotes the $i$-th input and $y_{i}$ the $i$-th 
 
 <span id="algorithm-01"></span>
 
-**Algorithm 1: Linear transformers with causal masking.**
-
 <div class="paper-algorithm">
+
+**Algorithm 1: Linear transformers with causal masking.**
 
 - **Function** $\mathrm{forward}(\phi(Q),\phi(K),V)$:
   - Set $V'\gets0$ and $S\gets0$.
@@ -468,7 +468,7 @@ proving [Equation 13](#equation-13) from the main paper. In [Equation 24](#equat
 $$
 \begin{aligned}
 \frac{\partial\mathcal{L}}{\partial K_{lt}} & =\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}\frac{\partial\bar{V}_{ie}}{\partial K_{lt}}=\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}\frac{\partial\left(\sum_{d=1}^{D}\sum_{j=1}^{i}Q_{id}K_{jd}V_{je}\right)}{\partial K_{lt}} \\
-=\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}Q_{it}V_{le}.
+& =\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}Q_{it}V_{le}.
 \end{aligned}
 $$
 

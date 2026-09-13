@@ -282,9 +282,9 @@ $$
 
 <span id="algorithm-01"></span>
 
-**アルゴリズム 1：因果マスクを備えた linear transformer。**
-
 <div class="paper-algorithm">
+
+**アルゴリズム 1：因果マスクを備えた linear transformer。**
 
 - **関数** $\mathrm{forward}(\phi(Q),\phi(K),V)$：
   - $V'\gets0$、$S\gets0$ と**設定**する。
@@ -468,7 +468,7 @@ $$
 $$
 \begin{aligned}
 \frac{\partial\mathcal{L}}{\partial K_{lt}} & =\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}\frac{\partial\bar{V}_{ie}}{\partial K_{lt}}=\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}\frac{\partial\left(\sum_{d=1}^{D}\sum_{j=1}^{i}Q_{id}K_{jd}V_{je}\right)}{\partial K_{lt}} \\
-=\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}Q_{it}V_{le}.
+& =\sum_{e=1}^{M}\sum_{i=l}^{N}\frac{\partial\mathcal{L}}{\partial\bar{V}_{ie}}Q_{it}V_{le}.
 \end{aligned}
 $$
 

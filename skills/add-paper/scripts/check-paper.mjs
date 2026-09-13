@@ -62,6 +62,71 @@ function extractMath(markdown) {
   return expressions
 }
 
+function splitTopLevelTexRows(body) {
+  const rows = []
+  let start = 0
+  let braceDepth = 0
+  let nestedEnvironmentDepth = 0
+
+  for (let index = 0; index < body.length; index += 1) {
+    if (body.startsWith('\\begin{', index) || body.startsWith('\\end{', index)) {
+      const isBegin = body.startsWith('\\begin{', index)
+      const close = body.indexOf('}', index + (isBegin ? 7 : 5))
+      if (close !== -1) {
+        nestedEnvironmentDepth += isBegin ? 1 : -1
+        index = close
+        continue
+      }
+    }
+
+    const character = body[index]
+    const escaped = index > 0 && body[index - 1] === '\\'
+    if (character === '{' && !escaped) braceDepth += 1
+    if (character === '}' && !escaped && braceDepth > 0) braceDepth -= 1
+
+    if (
+      character === '\\'
+      && body[index + 1] === '\\'
+      && braceDepth === 0
+      && nestedEnvironmentDepth === 0
+    ) {
+      rows.push(body.slice(start, index))
+      index += 1
+      start = index + 1
+    }
+  }
+
+  rows.push(body.slice(start))
+  return rows
+}
+
+function hasUnescapedAmpersand(row) {
+  for (let index = 0; index < row.length; index += 1) {
+    if (row[index] !== '&') continue
+    let backslashes = 0
+    for (let cursor = index - 1; cursor >= 0 && row[cursor] === '\\'; cursor -= 1) {
+      backslashes += 1
+    }
+    if (backslashes % 2 === 0) return true
+  }
+  return false
+}
+
+function validateAlignedMathRows(expression, expressionNumber, label) {
+  const environments = expression.matchAll(/\\begin\{(aligned|alignedat|split)\}([\s\S]*?)\\end\{\1\}/g)
+  for (const environment of environments) {
+    const rows = splitTopLevelTexRows(environment[2])
+    if (rows.length < 2) continue
+
+    rows.forEach((row, rowIndex) => {
+      const content = row.replace(/^\s*\[[^\]]*\]/, '').trim()
+      if (content && !hasUnescapedAmpersand(content)) {
+        fail(`${label}: math expression ${expressionNumber} ${environment[1]} row ${rowIndex + 1} lacks an explicit & alignment point`)
+      }
+    })
+  }
+}
+
 function plainMathWords(expression) {
   const shortWords = new Set(['and', 'arg', 'cos', 'exp', 'for', 'if', 'in', 'log', 'not', 'of', 'or', 'out', 'sin', 'tan', 'to'])
   const stripped = expression
@@ -354,6 +419,28 @@ function validateRunInParagraphHeadings(markdown, label) {
     const startsBlock = /^(?:#{1,6}\s|!\[|<|\||>|`{3,}|~{3,}|:::|---|\[\+|\$\$|[-+*]\s|\d+\.\s)/.test(following)
     if (following && !startsBlock) {
       fail(`${label}: run-in paragraph heading at line ${index + 1} must share a line with its paragraph`)
+    }
+  }
+}
+
+function validateAlgorithmDescriptions(markdown, label) {
+  const lines = markdown.split(/\r?\n/)
+  const nextNonblank = (start) => {
+    let index = start
+    while (index < lines.length && !lines[index].trim()) index += 1
+    return index
+  }
+
+  for (const [index, line] of lines.entries()) {
+    if (!/^\*\*(?:Algorithm|算法|アルゴリズム)\s*\d+[^*]*\*\*$/iu.test(line)) continue
+
+    const firstBodyLine = nextNonblank(index + 1)
+    if (/^<div\s+class=["']paper-algorithm["']\s*>$/i.test(lines[firstBodyLine] ?? '')) {
+      fail(`${label}: .paper-algorithm at line ${firstBodyLine + 1} must open before the algorithm title so the title and list share one wrapper`)
+      continue
+    }
+    if (!/^-\s+/.test(lines[firstBodyLine] ?? '')) {
+      fail(`${label}: algorithm title at line ${index + 1} must be followed directly by its unordered-list body`)
     }
   }
 }
@@ -679,6 +766,7 @@ for (const page of pages) {
 
   const math = extractMath(markdown)
   math.forEach((expression, index) => {
+    validateAlignedMathRows(expression, index + 1, label)
     if (/\|\||\\(?:lVert|rVert|Vert)\b/.test(expression)) {
       fail(`${label}: math expression ${index + 1} uses a norm delimiter other than \\|`)
     }
@@ -702,6 +790,7 @@ for (const page of pages) {
     warn(`${label}: review pseudocode fence; math-heavy algorithms must use nested unordered lists`)
   }
   validateFencedCodeIndentation(markdown, label)
+  validateAlgorithmDescriptions(markdown, label)
   validateRunInParagraphHeadings(markdown, label)
   const formalContent = validateFormalStatementsAndProofs(markdown, page.locale, label)
   validateNoTypesetTables(markdown, label)

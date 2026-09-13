@@ -103,6 +103,7 @@ Localized summaries use the same body structure:
 - Put prose words, units, abbreviations, and textual subscripts or superscripts inside `\mathrm{}`. Do not infer textual meaning from length alone: products of adjacent single-letter variables such as `RD`, `thm`, `sl_i`, `nst_2`, and `8Bh`, as well as multi-index symbols such as `a_{ij}`, must remain mathematical italics. Use `\mathit{}` for a genuine multi-letter variable name when the source treats the whole sequence as one identifier. The checker reports ambiguous sequences as warnings for source review, not as instructions to add `\mathrm{}`. Examples: `X_{\mathrm{FP}32}`, `X^{\mathrm{unscaled}}`, `\mathrm{round}(x)`, `\mathrm{LZD}(b)`, `RD<1`, and `T_1=C_1(4th^2+2thm)`.
 - Leave single-letter mathematical variables such as `x`, `m`, `W`, and `R` unwrapped.
 - Use semantic built-in operators where available. In particular, use `\min` and `\max`, never raw `min`/`max`, `\mathrm{min}`, or `\mathrm{max}`.
+- In every multi-row `aligned`, `alignedat`, or `split` formula, put an explicit `&` alignment point on each nonempty row at the intended relation or operator. A continuation row must not fall back to the display's left edge merely because its `&` was omitted. Keep the same alignment points across all three locales and inspect the rendered formula.
 - Use `\|x\|` for every norm. Never write `||x||`, `\Vert x\Vert`, or `\lVert x\rVert`.
 - Use `\texttt{}` only for literal code symbols and bit operations, not mathematical names. Use `\mathbin{\texttt{<<}}` or `\mathbin{\texttt{>>}}` when shifts act as binary operators.
 - Preserve source macros only when KaTeX supports them in VuePress. Expand unsupported macros into standard KaTeX commands.
@@ -125,6 +126,7 @@ def example(items):
 - Render every list in a paper page as a standard Markdown unordered or ordered list with `-` (or `*`) or `1.` markers. Do not emulate lists with bold paragraphs, manual numeric prefixes, or blank-line-separated pseudo-items.
 - Render math-heavy algorithms as unordered Markdown lists, not `pseudocode` fences.
 - Put the algorithm title in bold above the list.
+- Keep the title and list in the same structural block so their spacing matches a normal Markdown paragraph followed by a list. If the list uses a `.paper-algorithm` overflow wrapper, put both the bold title and the complete list inside that wrapper; do not leave the title outside or add special CSS margin overrides to compensate.
 - Use nested list indentation to express branches, loops, and substeps.
 - Put control words in bold localized prose and keep variables or expressions in KaTeX.
 - Use inline code only for actual literals, masks, slices, and programming operators.
@@ -208,6 +210,8 @@ Example:
 - Compare the canonical kind-and-number sequence of every formal statement across all three languages. Confirm every label is bold and shares its paragraph with the statement.
 - Compare proof-container counts across all three languages. Confirm the summaries are `Proof`, `证明`, and `証明`, every proof is closed by default, and no visible proof prefix or terminal QED mark remains.
 - Compare equation anchors, citation-token sets, image basenames, and algorithm step counts.
+- Confirm every nonempty row in a multi-row `aligned`, `alignedat`, or `split` formula has an intentional `&` alignment point, and compare those points across all three languages.
+- Confirm every algorithm title is followed by its list with ordinary Markdown paragraph-to-list spacing. When an overflow wrapper is present, confirm it contains both the title and complete list rather than beginning between them.
 - Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
 - Confirm no standalone reference-list or empty generic appendix heading remains.
 - Confirm every title is at most 50 characters and every matrix transpose uses `^\top`.
