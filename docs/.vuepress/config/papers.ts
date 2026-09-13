@@ -4852,7 +4852,7 @@ const paperGroups = [
   },
   {
     titles: ['处理器架构', 'Processor Architecture', 'プロセッサアーキテクチャ'],
-    items: ['efficient-dnn-processing', 'tpu-performance-analysis', 'nvidia-h100-architecture', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
+    items: ['efficient-dnn-processing', 'nvidia-pascal-architecture', 'tpu-performance-analysis', 'nvidia-h100-architecture', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
   },
 ]
 

@@ -6,7 +6,7 @@
   "scripts": {
     "deploy:check": "node --test scripts/tests/deploy.test.mjs",
     "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
+    "docs:build": "node --max-old-space-size=16384 node_modules/vuepress/bin/vuepress.js build docs",
     "docs:clean-dev": "vuepress dev docs --clean-cache --clean-temp",
     "paper:render": "node scripts/render-pdf.mjs",
     "paper:refresh-screenshots": "node scripts/refresh-paper-screenshots.mjs",
