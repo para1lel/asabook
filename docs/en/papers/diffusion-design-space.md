@@ -25,7 +25,7 @@ Our second set of contributions concerns the sampling processes used to synthesi
 
 The third set of contributions focuses on the training of the score-modeling neural network. While we continue to rely on the commonly used network architectures (DDPM [Den20], NCSN [Son19a]), we provide the first principled analysis of the preconditioning of the networks' inputs, outputs, and loss functions in a diffusion model setting and derive best practices for improving the training dynamics. We also suggest an improved distribution of noise levels during training, and note that non-leaking augmentation [Kar20a] — typically used with GANs — is beneficial for diffusion models as well.
 
-Taken together, our contributions enable significant improvements in result quality, e.g., leading to record FIDs of 1.79 for CIFAR-10 [Kri09] and 1.36 for ImageNet [Den09a] in 64$\times$64 resolution. With all key ingredients of the design space explicitly tabulated, we believe that our approach will allow easier innovation on the individual components, and thus enable more extensive and targeted exploration of the design space of diffusion models. Our implementation and pre-trained models are available at <https://github.com/NVlabs/edm>
+Taken together, our contributions enable significant improvements in result quality, e.g., leading to record FIDs of 1.79 for CIFAR-10 [Kri09] and 1.36 for ImageNet [Den09a] in $64\times64$ resolution. With all key ingredients of the design space explicitly tabulated, we believe that our approach will allow easier innovation on the individual components, and thus enable more extensive and targeted exploration of the design space of diffusion models. Our implementation and pre-trained models are available at <https://github.com/NVlabs/edm>
 
 <span id="section-2"></span>
 
@@ -66,7 +66,7 @@ where $\boldsymbol{y}$ is a training image and $\boldsymbol{n}$ is noise. In thi
 
 **Table 1.** Specific design choices employed by different model families. $N$ is the number of ODE solver iterations that we wish to execute during sampling. The corresponding sequence of time steps is $\{t_0, t_1, \dots, t_N\}$, where $t_N = 0$. If the model was originally trained for specific choices of $N$ and $\{t_i\}$, the originals are denoted by $M$ and $\{u_j\}$, respectively. The denoiser is defined as $D_\theta(\boldsymbol{x}; \sigma) = c_\mathrm{skip}(\sigma) \boldsymbol{x} + c_\mathrm{out}(\sigma) F_\theta(c_\mathrm{in}(\sigma) \boldsymbol{x}; c_\mathrm{noise}(\sigma))$; $F_\theta$ represents the raw neural network layers.
 
-**Time-dependent signal scaling.** Some methods (see [Section 9.1](#section-9-1)) introduce an additional scale schedule $s(t)$ and consider $\boldsymbol{x}= s(t) \hat\boldsymbol{x}$ to be a scaled version of the original, non-scaled variable $\hat\boldsymbol{x}$. This changes the time-dependent probability density, and consequently also the ODE solution trajectories. The resulting ODE is a generalization of [Equation 1](#equation-01): <span id="equation-04"></span>
+**Time-dependent signal scaling.** Some methods (see [Section 9.1](#section-9-1)) introduce an additional scale schedule $s(t)$ and consider $\boldsymbol{x}= s(t) \hat{\boldsymbol{x}}$ to be a scaled version of the original, non-scaled variable $\hat{\boldsymbol{x}}$. This changes the time-dependent probability density, and consequently also the ODE solution trajectories. The resulting ODE is a generalization of [Equation 1](#equation-01): <span id="equation-04"></span>
 
 $$
 \mathrm{d}\boldsymbol{x}= \left[ \frac{\dot s(t)}{s(t)} ~\boldsymbol{x}-s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\left(\frac{\boldsymbol{x}}{s(t)}; \sigma(t)\right) \right] ~\mathrm{d}t\text{.}
@@ -83,7 +83,7 @@ Note that we explicitly undo the scaling of $\boldsymbol{x}$ when evaluating the
 
 Improving the output quality and/or decreasing the computational cost of sampling are common topics in diffusion model research (e.g., [Doc22, Jol21, Liu22h, Lu22c, Luh21, Nic21, Sal22, Vah21, Wat22, Wat21, Zha22i]). Our hypothesis is that the choices related to the sampling process are largely independent of the other components, such as network architecture and training details. In other words, the training procedure of $D_\theta$ should not dictate $\sigma(t)$, $s(t)$, and $\{t_i\}$, nor vice versa; from the viewpoint of the sampler, $D_\theta$ is simply a black box [Wat22, Wat21]. We test this by evaluating different samplers on three *pre-trained* models, each representing a different theoretical framework and model family. We first measure baseline results for these models using their original sampler implementations, and then bring these samplers into our unified framework using the formulas in [Table 1](#table-01), followed by our improvements. This allows us to evaluate different practical choices and propose general improvements to the sampling process that are applicable to all models.
 
-We evaluate the "DDPM++ cont. (VP)" and "NCSN++ cont. (VE)" models by Song et al. [Son21] trained on unconditional CIFAR-10 [Kri09] at 32$\times$32, corresponding to the variance preserving (VP) and variance exploding (VE) formulations [Son21], originally inspired by DDPM [Den20] and SMLD [Son19a]. We also evaluate the "ADM (dropout)" model by Dhariwal and Nichol [Dha21] trained on class-conditional ImageNet [Den09a] at 64$\times$64, corresponding to the improved DDPM (iDDPM) formulation [Nic21]. This model was trained using a discrete set of $M=1000$ noise levels. Further details are given in [Section 9](#section-9).
+We evaluate the "DDPM++ cont. (VP)" and "NCSN++ cont. (VE)" models by Song et al. [Son21] trained on unconditional CIFAR-10 [Kri09] at $32\times32$, corresponding to the variance preserving (VP) and variance exploding (VE) formulations [Son21], originally inspired by DDPM [Den20] and SMLD [Son19a]. We also evaluate the "ADM (dropout)" model by Dhariwal and Nichol [Dha21] trained on class-conditional ImageNet [Den09a] at $64\times64$, corresponding to the improved DDPM (iDDPM) formulation [Nic21]. This model was trained using a discrete set of $M=1000$ noise levels. Further details are given in [Section 9](#section-9).
 
 <span id="figure-02"></span>
 
@@ -136,7 +136,7 @@ The effect of setting $\sigma(t)=t$ and $s(t)=1$ is shown as the red curves in [
 
 **Figure 3.** A sketch of ODE curvature in 1D where $p_\text{data}$ is two Dirac peaks at $\boldsymbol{x}=\pm 1$. Horizontal $t$ axis is chosen to show $\sigma\in[0,25]$ in each plot, with insets showing $\sigma\in[0,1]$ near the data. Example local gradients are shown with black arrows. **(a)** Variance preserving ODE of Song et al. [Son21] has solution trajectories that flatten out to horizontal lines at large $\sigma$. Local gradients start pointing towards data only at small $\sigma$. **(b)** Variance exploding variant has extreme curvature near data and the solution trajectories are curved everywhere. **(c)** With the schedule used by DDIM [Son21a] and us, as $\sigma$ increases the solution trajectories approach straight lines that point towards the mean of data. As $\sigma\to 0$, the trajectories become linear and point towards the data manifold.
 
-**Discussion.** The choices that we made in this section to improve deterministic sampling are summarized in the *Sampling* part of [Table 1](#table-01). Together, they reduce the NFE needed to reach high-quality results by a large factor: 7.3$\times$ for VP, 300$\times$ for VE, and 3.2$\times$ for DDIM, corresponding to the highlighted NFE values in [Figure 2](#figure-02). In practice, we can generate 26.3 high-quality CIFAR-10 images per second on a single NVIDIA V100. The consistency of improvements corroborates our hypothesis that the sampling process is orthogonal to how each model was originally trained. As further validation, we show results for the adaptive RK45 method [Dor80] using our schedule as the dashed black curves in [Figure 2](#figure-02); the cost of this sophisticated ODE solver outweighs its benefits.
+**Discussion.** The choices that we made in this section to improve deterministic sampling are summarized in the *Sampling* part of [Table 1](#table-01). Together, they reduce the NFE needed to reach high-quality results by a large factor: $7.3\times$ for VP, $300\times$ for VE, and $3.2\times$ for DDIM, corresponding to the highlighted NFE values in [Figure 2](#figure-02). In practice, we can generate 26.3 high-quality CIFAR-10 images per second on a single NVIDIA V100. The consistency of improvements corroborates our hypothesis that the sampling process is orthogonal to how each model was originally trained. As further validation, we show results for the adaptive RK45 method [Dor80] using our schedule as the dashed black curves in [Figure 2](#figure-02); the cost of this sophisticated ODE solver outweighs its benefits.
 
 <span id="section-4"></span>
 
@@ -227,7 +227,7 @@ This form reveals the effective training target of $F_\theta$, allowing us to de
 
 **Table 2.** Evaluation of our training improvements. The starting point (config A) is VP & VE using our **deterministic** sampler. At the end (configs E, F), VP & VE only differ in the architecture of $F_\theta$.
 
-[Table 2](#table-02) shows FID for a series of training setups, evaluated using our deterministic sampler from [Section 3](#section-3). We start with the baseline training setup of Song et al. [Son21], which differs considerably between the VP and VE cases; we provide separate results for each (config A). To obtain a more meaningful point of comparison, we re-adjust the basic hyperparameters (config B) and improve the expressive power of the model (config C) by removing the lowest-resolution layers and doubling the capacity of the highest-resolution layers instead; see [Section 12.3](#section-12-3) for further details. We then replace the original choices of $\{c_\text{in}, c_\text{out}, c_\text{noise}, c_\text{skip}\}$ with our preconditioning (config D), which keeps the results largely unchanged — except for VE that improves considerably at 64$\times$64 resolution. Instead of improving FID per se, the main benefit of our preconditioning is that it makes the training more robust, enabling us to turn our focus on redesigning the loss function without adverse effects.
+[Table 2](#table-02) shows FID for a series of training setups, evaluated using our deterministic sampler from [Section 3](#section-3). We start with the baseline training setup of Song et al. [Son21], which differs considerably between the VP and VE cases; we provide separate results for each (config A). To obtain a more meaningful point of comparison, we re-adjust the basic hyperparameters (config B) and improve the expressive power of the model (config C) by removing the lowest-resolution layers and doubling the capacity of the highest-resolution layers instead; see [Section 12.3](#section-12-3) for further details. We then replace the original choices of $\{c_\text{in}, c_\text{out}, c_\text{noise}, c_\text{skip}\}$ with our preconditioning (config D), which keeps the results largely unchanged — except for VE that improves considerably at $64\times64$ resolution. Instead of improving FID per se, the main benefit of our preconditioning is that it makes the training more robust, enabling us to turn our focus on redesigning the loss function without adverse effects.
 
 **Loss weighting and sampling.** [Equation 8](#equation-08) shows that training $F_\theta$ as preconditioned in [Equation 7](#equation-07) incurs an effective per-sample loss weight of $\lambda(\sigma)c_\text{out}(\sigma)^2$. To balance the effective loss weights, we set $\lambda(\sigma)=1/c_\text{out}(\sigma)^2$, which also equalizes the initial training loss over the entire $\sigma$ range as shown in [Figure 5a](#figure-05) (green curve). Finally, we need to select $p_\text{train}(\sigma)$, i.e., how to choose noise levels during training. Inspecting the per-$\sigma$ loss after training (blue and orange curves) reveals that a significant reduction is possible only at intermediate noise levels; at very low levels, it is both difficult and irrelevant to discern the vanishingly small noise component, whereas at high levels the training targets are always dissimilar from the correct answer that approaches dataset average. Therefore, we target the training efforts to the relevant range using a simple log-normal distribution for $p_\text{train}(\sigma)$ as detailed in [Table 1](#table-01) and illustrated in [Figure 5a](#figure-05) (red curve).
 
@@ -237,9 +237,9 @@ This form reveals the effective training target of $F_\theta$, allowing us to de
 
 <span id="figure-05"></span>
 
-![(a) Observed initial (green) and final loss per noise level, representative of the the 32$\times$32 (blue) and 64$\times$64 (orange) models considered in this paper.](../../papers/diffusion-design-space/figure-05.png)
+![(a) Observed initial (green) and final loss per noise level, representative of the the $32\times32$ (blue) and $64\times64$ (orange) models considered in this paper.](../../papers/diffusion-design-space/figure-05.png)
 
-**Figure 5.** **(a)** Observed initial (green) and final loss per noise level, representative of the the 32$\times$32 (blue) and 64$\times$64 (orange) models considered in this paper. The shaded regions represent the standard deviation over 10k random samples. Our proposed training sample density is shown by the dashed red curve. **(b)** Effect of $S_\text{churn}$ on unconditional CIFAR-10 with 256 steps (NFE $=$ 511). For the original training setup of Song et al. [Son21], stochastic sampling is highly beneficial (blue, green), while deterministic sampling ($S_\text{churn}= 0$) leads to relatively poor FID. For our training setup, the situation is reversed (orange, red); stochastic sampling is not only unnecessary but harmful. **(c)** Effect of $S_\text{churn}$ on class-conditional ImageNet-64 with 256 steps (NFE $=$ 511). In this more challenging scenario, stochastic sampling turns out to be useful again. Our training setup improves the results for both deterministic and stochastic sampling.
+**Figure 5.** **(a)** Observed initial (green) and final loss per noise level, representative of the the $32\times32$ (blue) and $64\times64$ (orange) models considered in this paper. The shaded regions represent the standard deviation over 10k random samples. Our proposed training sample density is shown by the dashed red curve. **(b)** Effect of $S_\text{churn}$ on unconditional CIFAR-10 with 256 steps (NFE $=$ 511). For the original training setup of Song et al. [Son21], stochastic sampling is highly beneficial (blue, green), while deterministic sampling ($S_\text{churn}= 0$) leads to relatively poor FID. For our training setup, the situation is reversed (orange, red); stochastic sampling is not only unnecessary but harmful. **(c)** Effect of $S_\text{churn}$ on class-conditional ImageNet-64 with 256 steps (NFE $=$ 511). In this more challenging scenario, stochastic sampling turns out to be useful again. Our training setup improves the results for both deterministic and stochastic sampling.
 
 **Stochastic sampling revisited.** Interestingly, the relevance of stochastic sampling appears to diminish as the model itself improves, as shown in [Figure 5b](#figure-05), [Figure 5c](#figure-05). When using our training setup in CIFAR-10 ([Figure 5b](#figure-05)), the best results were obtained with deterministic sampling, and any amount of stochastic sampling was detrimental.
 
@@ -251,7 +251,7 @@ This form reveals the effective training target of $F_\theta$, allowing us to de
 
 Our approach of putting diffusion models to a common framework exposes a modular design. This allows a targeted investigation of individual components, potentially helping to better cover the viable design space. In our tests this let us simply replace the samplers in various earlier models, drastically improving the results. For example, in ImageNet-64 our sampler turned an average model (FID 2.07) to a challenger (1.55) for the previous SOTA model (1.48) [Ho22b], and with training improvements achieved SOTA FID of 1.36. We also obtained new state-of-the-art results on CIFAR-10 while using only 35 model evaluations, deterministic sampling, and a small network. The current high-resolution diffusion models rely either on separate super-resolution steps [Ho22b, Nic22, Ram22], subspace projection [Jin22a], very large networks [Dha21, Son21], or hybrid approaches [Pre22, Rom22, Vah21] — we believe that our contributions are orthogonal to these extensions. That said, many of our parameter values may need to be re-adjusted for higher resolution datasets. Furthermore, we feel that the precise interaction between stochastic sampling and the training objective remains an interesting question for future work.
 
-**Societal impact.** Our advances in sample quality can potentially amplify negative societal effects when used in a large-scale system like DALL$\cdot$E 2, including types of disinformation or emphasizing sterotypes and harmful biases [Mis22a]. The training and sampling of diffusion models needs a lot of electricity; our project consumed $\sim$250MWh on an in-house cluster of NVIDIA V100s.
+**Societal impact.** Our advances in sample quality can potentially amplify negative societal effects when used in a large-scale system like DALL·E 2, including types of disinformation or emphasizing sterotypes and harmful biases [Mis22a]. The training and sampling of diffusion models needs a lot of electricity; our project consumed $\sim 250$ MWh on an in-house cluster of NVIDIA V100s.
 
 ## Acknowledgments
 
@@ -275,45 +275,45 @@ We thank Jaakko Lehtinen, Ming-Yu Liu, Tuomas Kynkäänniemi, Axel Sauer, Arash 
 
 <span id="figure-06"></span>
 
-![Results for different samplers on class-conditional ImageNet at 64$\times$64 resolution, using the pre-trained model by Dhariwal and Nichol.](../../papers/diffusion-design-space/figure-06.png)
+![Results for different samplers on class-conditional ImageNet at $64\times64$ resolution, using the pre-trained model by Dhariwal and Nichol.](../../papers/diffusion-design-space/figure-06.png)
 
-**Figure 6.** Results for different samplers on class-conditional ImageNet [Den09a] at 64$\times$64 resolution, using the pre-trained model by Dhariwal and Nichol [Dha21]. The cases correspond to dots in [Figure 2c](#figure-02) and [Figure 4c](#figure-04).
+**Figure 6.** Results for different samplers on class-conditional ImageNet [Den09a] at $64\times64$ resolution, using the pre-trained model by Dhariwal and Nichol [Dha21]. The cases correspond to dots in [Figure 2c](#figure-02) and [Figure 4c](#figure-04).
 
 <span id="figure-07"></span>
 
-![Results for our training configuration on class-conditional ImageNet at 64$\times$64 resolution, using our deterministic and stochastic samplers.](../../papers/diffusion-design-space/figure-07.png)
+![Results for our training configuration on class-conditional ImageNet at $64\times64$ resolution, using our deterministic and stochastic samplers.](../../papers/diffusion-design-space/figure-07.png)
 
-**Figure 7.** Results for our training configuration on class-conditional ImageNet [Den09a] at 64$\times$64 resolution, using our deterministic and stochastic samplers.
+**Figure 7.** Results for our training configuration on class-conditional ImageNet [Den09a] at $64\times64$ resolution, using our deterministic and stochastic samplers.
 
 <span id="figure-08"></span>
 
-![Results for different samplers on unconditional CIFAR-10 at 32$\times$32 resolution, using the pre-trained models by Song et al.](../../papers/diffusion-design-space/figure-08.png)
+![Results for different samplers on unconditional CIFAR-10 at $32\times32$ resolution, using the pre-trained models by Song et al.](../../papers/diffusion-design-space/figure-08.png)
 
-**Figure 8.** Results for different samplers on unconditional CIFAR-10 [Kri09] at 32$\times$32 resolution, using the pre-trained models by Song et al. [Son21]. The cases correspond to dots in [Figure 2a](#figure-02), [Figure 2b](#figure-02) and [Figure 4a](#figure-04), [Figure 4b](#figure-04).
+**Figure 8.** Results for different samplers on unconditional CIFAR-10 [Kri09] at $32\times32$ resolution, using the pre-trained models by Song et al. [Son21]. The cases correspond to dots in [Figure 2a](#figure-02), [Figure 2b](#figure-02) and [Figure 4a](#figure-04), [Figure 4b](#figure-04).
 
 <span id="figure-09"></span>
 
-![Results for different training configurations on unconditional CIFAR-10 at 32$\times$32 resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.](../../papers/diffusion-design-space/figure-09.png)
+![Results for different training configurations on unconditional CIFAR-10 at $32\times32$ resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.](../../papers/diffusion-design-space/figure-09.png)
 
-**Figure 9.** Results for different training configurations on unconditional CIFAR-10 [Kri09] at 32$\times$32 resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.
+**Figure 9.** Results for different training configurations on unconditional CIFAR-10 [Kri09] at $32\times32$ resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.
 
 <span id="figure-10"></span>
 
-![Results for different training configurations on class-conditional CIFAR-10 at 32$\times$32 resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.](../../papers/diffusion-design-space/figure-10.png)
+![Results for different training configurations on class-conditional CIFAR-10 at $32\times32$ resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.](../../papers/diffusion-design-space/figure-10.png)
 
-**Figure 10.** Results for different training configurations on class-conditional CIFAR-10 [Kri09] at 32$\times$32 resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.
+**Figure 10.** Results for different training configurations on class-conditional CIFAR-10 [Kri09] at $32\times32$ resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.
 
 <span id="figure-11"></span>
 
-![Results for different training configurations on FFHQ and AFHQv2 at 64$\times$64 resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.](../../papers/diffusion-design-space/figure-11.png)
+![Results for different training configurations on FFHQ and AFHQv2 at $64\times64$ resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.](../../papers/diffusion-design-space/figure-11.png)
 
-**Figure 11.** Results for different training configurations on FFHQ [Kar18] and AFHQv2 [Cho20c] at 64$\times$64 resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.
+**Figure 11.** Results for different training configurations on FFHQ [Kar18] and AFHQv2 [Cho20c] at $64\times64$ resolution, using our deterministic sampler with the same set of latent codes ($\boldsymbol{x}_0$) in each case.
 
 <span id="figure-12"></span>
 
 ![Image quality and FID as a function of NFE using our deterministic sampler.](../../papers/diffusion-design-space/figure-12.png)
 
-**Figure 12.** Image quality and FID as a function of NFE using our deterministic sampler. At 32$\times$32 resolution, reasonable image quality is reached around NFE $=$ 13, but FID keeps improving until NFE $=$ 35. At 64$\times$64 resolution, reasonable image quality is reached around NFE $=$ 19, but FID keeps improving until NFE $=$ 79.
+**Figure 12.** Image quality and FID as a function of NFE using our deterministic sampler. At $32\times32$ resolution, reasonable image quality is reached around NFE $=$ 13, but FID keeps improving until NFE $=$ 35. At $64\times64$ resolution, reasonable image quality is reached around NFE $=$ 19, but FID keeps improving until NFE $=$ 79.
 
 [Figure 6](#figure-06) presents generated images for class-conditional ImageNet-64 [Den09a] using the pre-trained ADM model by Dhariwal and Nichol [Dha21]. The original DDIM [Son21a] and iDDPM [Nic21] samplers are compared to ours in both deterministic and stochastic settings ([Section 3](#section-3) and [Section 4](#section-4)). [Figure 7](#figure-07) shows the corresponding results that we obtain by training the model from scratch using our improved training configuration ([Section 5](#section-5)).
 
@@ -566,13 +566,13 @@ which matches [Equation 3](#equation-03) in the main paper.
 
 ### 8.4 Evaluating our ODE in practice ([Algorithm 1](#algorithm-01))
 
-Let us consider $\boldsymbol{x}$ to be a scaled version of an original, non-scaled variable $\hat\boldsymbol{x}$ and substitute $\boldsymbol{x}= s(t) ~\hat\boldsymbol{x}$ into the score term that appears in our scaled ODE ([Equation 4](#equation-04)):
+Let us consider $\boldsymbol{x}$ to be a scaled version of an original, non-scaled variable $\hat{\boldsymbol{x}}$ and substitute $\boldsymbol{x}= s(t) ~\hat{\boldsymbol{x}}$ into the score term that appears in our scaled ODE ([Equation 4](#equation-04)):
 $$
 \begin{aligned}
   && \nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) \\
-  &= \nabla_{[ s(t) \hat \boldsymbol{x}]} \log p\big( [s(t) ~\hat\boldsymbol{x}] / s(t); \sigma(t) \big) \\
-  &= \nabla_{s(t) \hat \boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) \\
-  &= \tfrac{1}{s(t)} \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big)
+  &= \nabla_{[ s(t) \hat{\boldsymbol{x}}]} \log p\big( [s(t) ~\hat{\boldsymbol{x}}] / s(t); \sigma(t) \big) \\
+  &= \nabla_{s(t) \hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) \\
+  &= \tfrac{1}{s(t)} \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big)
   \text{.}
 \end{aligned}
 $$
@@ -580,7 +580,7 @@ $$
 We can further rewrite this with respect to $D(\cdot)$ using [Equation 3](#equation-03): <span id="equation-74"></span>
 
 $$
-\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) ~=~ \tfrac{1}{s(t) \sigma(t)^2} \Big( D\big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big)
+\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) ~=~ \tfrac{1}{s(t) \sigma(t)^2} \Big( D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big)
 
   \text{.}
 $$
@@ -588,17 +588,17 @@ $$
 Let us now substitute [Equation 74](#equation-74) into [Equation 4](#equation-04), approximating the ideal denoiser $D(\cdot)$ with our trained model $D_\theta(\cdot)$:
 $$
 \begin{aligned}
-  \mathrm{d}\boldsymbol{x}&= \left[ \dot s(t) ~\boldsymbol{x}/ s(t) - s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\Big[ \tfrac{1}{s(t) \sigma(t)^2} \Big( D_\theta \big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) \Big] \right] ~\mathrm{d}t \\
-  &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) \right] ~\mathrm{d}t
+  \mathrm{d}\boldsymbol{x}&= \left[ \dot s(t) ~\boldsymbol{x}/ s(t) - s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\Big[ \tfrac{1}{s(t) \sigma(t)^2} \Big( D_\theta \big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) \Big] \right] ~\mathrm{d}t \\
+  &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) \right] ~\mathrm{d}t
   \text{.}
 \end{aligned}
 $$
 
-Finally, backsubstitute $\hat\boldsymbol{x}= \boldsymbol{x}/ s(t)$: <span id="equation-80"></span>
+Finally, backsubstitute $\hat{\boldsymbol{x}}= \boldsymbol{x}/ s(t)$: <span id="equation-80"></span>
 
 $$
 \begin{aligned}
-  \mathrm{d}\boldsymbol{x}&= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\hat\boldsymbol{x}]; \sigma(t) \big) - [\hat\boldsymbol{x}] \Big) \right] ~\mathrm{d}t \\
+  \mathrm{d}\boldsymbol{x}&= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\hat{\boldsymbol{x}}]; \sigma(t) \big) - [\hat{\boldsymbol{x}}] \Big) \right] ~\mathrm{d}t \\
   &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\boldsymbol{x}/ s(t)]; \sigma(t) \big) - [\boldsymbol{x}/ s(t)] \Big) \right] ~\mathrm{d}t \\
   &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} D_\theta \big( \boldsymbol{x}/ s(t); \sigma(t) \big) + \tfrac{\dot\sigma(t)}{\sigma(t)} ~\boldsymbol{x}\right] ~\mathrm{d}t \\
   &= \left[ \left( \tfrac{\dot\sigma(t)}{\sigma(t)} + \tfrac{\dot s(t)}{s(t)} \right) \boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} D_\theta \big( \boldsymbol{x}/ s(t); \sigma(t) \big) \right] ~\mathrm{d}t
@@ -997,13 +997,13 @@ $$
 $$
 where $M = 1000$, $F_\theta$ denotes the network, and $\bar\sigma(t)$ corresponds to the standard deviation of the perturbation kernel of [Equation 11](#equation-11).
 
-Let us expand the definitions of $p_t(\boldsymbol{x})$ and $\bar\sigma(t)$ from [Equation 20](#equation-20) and [Equation 11](#equation-11), respectively, and substitute $\boldsymbol{x}= s(t) \hat\boldsymbol{x}$ to obtain the corresponding formula with respect to the non-scaled variable $\hat\boldsymbol{x}$:
+Let us expand the definitions of $p_t(\boldsymbol{x})$ and $\bar\sigma(t)$ from [Equation 20](#equation-20) and [Equation 11](#equation-11), respectively, and substitute $\boldsymbol{x}= s(t) \hat{\boldsymbol{x}}$ to obtain the corresponding formula with respect to the non-scaled variable $\hat{\boldsymbol{x}}$:
 $$
 \begin{aligned}
   \nabla_{\boldsymbol{x}} \log \big[ p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) \big] &\approx& {-}\tfrac{1}{[s(t) \sigma(t)]} ~F_\theta\big( \boldsymbol{x}; ~(M{-}1)t \big) \\
-  \nabla_{[s(t) \hat\boldsymbol{x}]} \log p\big( [s(t) ~\hat\boldsymbol{x}] / s(t); \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( [s(t) ~\hat\boldsymbol{x}]; ~(M{-}1)t \big) \\
-  \tfrac{1}{s(t)} \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big)
+  \nabla_{[s(t) \hat{\boldsymbol{x}}]} \log p\big( [s(t) ~\hat{\boldsymbol{x}}] / s(t); \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( [s(t) ~\hat{\boldsymbol{x}}]; ~(M{-}1)t \big) \\
+  \tfrac{1}{s(t)} \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big)
   \text{.}
 \end{aligned}
 $$
@@ -1011,16 +1011,16 @@ $$
 We can now replace the left-hand side with [Equation 3](#equation-03) and expand the definition of $s(t)$ from [Equation 170](#equation-170):
 $$
 \begin{aligned}
-  \Big[ \Big( D\big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) / \sigma(t)^2 \Big] &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  D\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& \hat\boldsymbol{x}- \sigma(t) ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  D\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& \hat\boldsymbol{x}- \sigma(t) ~F_\theta\bigg( \bigg[ \tfrac{1}{\sqrt{\sigma(t)^2 + 1}} \bigg] ~\hat\boldsymbol{x}; ~(M{-}1)t \bigg)
+  \Big[ \Big( D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) / \sigma(t)^2 \Big] &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& \hat{\boldsymbol{x}}- \sigma(t) ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& \hat{\boldsymbol{x}}- \sigma(t) ~F_\theta\bigg( \bigg[ \tfrac{1}{\sqrt{\sigma(t)^2 + 1}} \bigg] ~\hat{\boldsymbol{x}}; ~(M{-}1)t \bigg)
   \text{,}
 \end{aligned}
 $$
 which can be further expressed in terms of $\sigma$ by replacing $\sigma(t) \rightarrow \sigma$ and $t \rightarrow \sigma^{-1}(\sigma)$: <span id="equation-180"></span>
 
 $$
-D(\hat\boldsymbol{x}; \sigma) ~\approx~ \hat\boldsymbol{x}- \sigma ~F_\theta\Big( \tfrac{1}{\sqrt{\sigma^2 + 1}} ~\hat\boldsymbol{x}; ~(M{-}1) ~\sigma^{-1}(\sigma) \Big)
+D(\hat{\boldsymbol{x}}; \sigma) ~\approx~ \hat{\boldsymbol{x}}- \sigma ~F_\theta\Big( \tfrac{1}{\sqrt{\sigma^2 + 1}} ~\hat{\boldsymbol{x}}; ~(M{-}1) ~\sigma^{-1}(\sigma) \Big)
 
   \text{.}
 $$
@@ -1028,7 +1028,7 @@ $$
 We adopt the right-hand side of [Equation 180](#equation-180) as the definition of $D_\theta$, obtaining <span id="equation-181"></span>
 
 $$
-D_\theta(\hat\boldsymbol{x}; \sigma) = \underbrace{1~\cdot}_{c_\text{skip}}\hat\boldsymbol{x}~\underbrace{-~\sigma}_{c_\text{out}} \,\cdot ~F_\theta\Big( \underbrace{\tfrac{1}{\sqrt{\sigma^2 + 1}}}_{c_\text{in}} \,\cdot~\hat\boldsymbol{x}; ~\underbrace{(M{-}1)~\sigma^{-1}(\sigma)}_{c_\text{noise}} \Big)
+D_\theta(\hat{\boldsymbol{x}}; \sigma) = \underbrace{1~\cdot}_{c_\text{skip}}\hat{\boldsymbol{x}}~\underbrace{-~\sigma}_{c_\text{out}} \,\cdot ~F_\theta\Big( \underbrace{\tfrac{1}{\sqrt{\sigma^2 + 1}}}_{c_\text{in}} \,\cdot~\hat{\boldsymbol{x}}; ~\underbrace{(M{-}1)~\sigma^{-1}(\sigma)}_{c_\text{noise}} \Big)
 
   \text{,}
 $$
@@ -1040,14 +1040,14 @@ where $c_\text{skip}$, $c_\text{out}$, $c_\text{in}$, and $c_\text{noise}$ match
 
 Song et al. [Son21] define their training loss as [+2]
 $$
-\mathbb{E}_{t \sim \mathcal{U}(\epsilon_\text{t}, 1), \boldsymbol{y}\sim p_\text{data}, \bar\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \Big[ \big\| \bar\sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ \bar\sigma(t) ~\bar\boldsymbol{n}; ~F_\theta, t \big) + \bar\boldsymbol{n}\big\|^2_2 \Big]
+\mathbb{E}_{t \sim \mathcal{U}(\epsilon_\text{t}, 1), \boldsymbol{y}\sim p_\text{data}, \bar{\boldsymbol{n}}\sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \Big[ \big\| \bar\sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ \bar\sigma(t) ~\bar{\boldsymbol{n}}; ~F_\theta, t \big) + \bar{\boldsymbol{n}}\big\|^2_2 \Big]
   \text{,}
 $$
-where the definition of $\mathop{\mathrm{score}}(\cdot)$ is the same as in [Equation 172](#equation-172). Let us simplify the formula by substituting $\bar\sigma(t) = s(t) \sigma(t)$ and $\bar\boldsymbol{n}= \boldsymbol{n}/ \sigma(t)$, where $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma(t)^2 \mathbf{I})$: <span id="equation-185"></span>
+where the definition of $\mathop{\mathrm{score}}(\cdot)$ is the same as in [Equation 172](#equation-172). Let us simplify the formula by substituting $\bar\sigma(t) = s(t) \sigma(t)$ and $\bar{\boldsymbol{n}}= \boldsymbol{n}/ \sigma(t)$, where $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma(t)^2 \mathbf{I})$: <span id="equation-185"></span>
 
 $$
 \begin{aligned}
-  && \mathbb{E}_{t, \boldsymbol{y}, \bar\boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ [s(t)\sigma(t)] ~\bar\boldsymbol{n}; ~F_\theta, t \big) + \bar\boldsymbol{n}\big\|^2_2 \Big] \\
+  && \mathbb{E}_{t, \boldsymbol{y}, \bar{\boldsymbol{n}}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ [s(t)\sigma(t)] ~\bar{\boldsymbol{n}}; ~F_\theta, t \big) + \bar{\boldsymbol{n}}\big\|^2_2 \Big] \\
   &= \mathbb{E}_{t, \boldsymbol{y}, \boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ s(t)\sigma(t) ~[\boldsymbol{n}/ \sigma(t)]; ~F_\theta, t \big) + [\boldsymbol{n}/ \sigma(t)] \big\|^2_2 \Big] \\
   &= \mathbb{E}_{t, \boldsymbol{y}, \boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~(\boldsymbol{y}+ \boldsymbol{n}); ~F_\theta, t \big) + \boldsymbol{n}/ \sigma(t) \big\|^2_2 \Big]
 
@@ -1179,7 +1179,7 @@ $$
 $$
 which is made identical to [Equation 200](#equation-200) by the choice $\bar p_i(\boldsymbol{x}) = p\big( \boldsymbol{x}; \sigma(t_i) \big)$.
 
-Finally, Song et al. [Son21] set $\sigma_{\min}= 0.01$ and $\sigma_{\max}= 50$ for CIFAR-10 (Appendix C in [Son21]), and choose to represent their images in the range $[0, 1]$ to match previous SMLD models. Since our standardized range $[-1, 1]$ is twice as large, we must multiply $\sigma_{\min}$ and $\sigma_{\max}$ by 2$\times$ to compensate. The "Parameters" section of [Table 1](#table-01) reflects these adjusted values.
+Finally, Song et al. [Son21] set $\sigma_{\min}= 0.01$ and $\sigma_{\max}= 50$ for CIFAR-10 (Appendix C in [Son21]), and choose to represent their images in the range $[0, 1]$ to match previous SMLD models. Since our standardized range $[-1, 1]$ is twice as large, we must multiply $\sigma_{\min}$ and $\sigma_{\max}$ by $2\times$ to compensate. The "Parameters" section of [Table 1](#table-01) reflects these adjusted values.
 
 <span id="section-9-2-3"></span>
 
@@ -1311,16 +1311,16 @@ This matches our [Equation 4](#equation-04) with $s(t) = 1$ and $\sigma(t) = t$,
 
 #### 9.3.2 iDDPM time step discretization
 
-The original DDPM formulation of Ho et al. [Den20] defines the forward process (Eq. 2 in [Den20]) as a Markov chain that gradually adds Gaussian noise to $\bar\boldsymbol{x}_0 \sim p_\text{data}$ according to a discrete variance schedule $\{\beta_1, \dots, \beta_T\}$:
+The original DDPM formulation of Ho et al. [Den20] defines the forward process (Eq. 2 in [Den20]) as a Markov chain that gradually adds Gaussian noise to $\bar{\boldsymbol{x}}_0 \sim p_\text{data}$ according to a discrete variance schedule $\{\beta_1, \dots, \beta_T\}$:
 $$
-q(\bar\boldsymbol{x}_t ~|~ \bar\boldsymbol{x}_{t-1}) = \mathcal{N}\big( \bar\boldsymbol{x}_t; ~\sqrt{1 - \beta_t} ~\bar\boldsymbol{x}_{t-1}, ~\beta_t ~\mathbf{I}\big)
+q(\bar{\boldsymbol{x}}_t ~|~ \bar{\boldsymbol{x}}_{t-1}) = \mathcal{N}\big( \bar{\boldsymbol{x}}_t; ~\sqrt{1 - \beta_t} ~\bar{\boldsymbol{x}}_{t-1}, ~\beta_t ~\mathbf{I}\big)
   \text{.}
 $$
 
-The corresponding transition probability from $\bar\boldsymbol{x}_0$ to $\bar\boldsymbol{x}_t$ (Eq. 4 in [Den20]) is given by <span id="equation-233"></span>
+The corresponding transition probability from $\bar{\boldsymbol{x}}_0$ to $\bar{\boldsymbol{x}}_t$ (Eq. 4 in [Den20]) is given by <span id="equation-233"></span>
 
 $$
-q(\bar\boldsymbol{x}_t ~|~ \bar\boldsymbol{x}_0) = \mathcal{N}\big( \bar\boldsymbol{x}_t; ~\sqrt{\bar\alpha_t} ~\bar\boldsymbol{x}_0, ~(1 - \bar\alpha_t) ~\mathbf{I}\big)
+q(\bar{\boldsymbol{x}}_t ~|~ \bar{\boldsymbol{x}}_0) = \mathcal{N}\big( \bar{\boldsymbol{x}}_t; ~\sqrt{\bar\alpha_t} ~\bar{\boldsymbol{x}}_0, ~(1 - \bar\alpha_t) ~\mathbf{I}\big)
   \text{,}\hspace{4mm}\text{where}\hspace{4mm}
   \bar\alpha_t = \prod_{s=1}^t ~(1 - \beta_s)
   \text{.}
@@ -1371,7 +1371,7 @@ Let us now reinterpret the above formulas in our unified framework. Recall from 
 
 $$
 \begin{aligned}
-  q(\bar\boldsymbol{x}_j ~|~ \bar\boldsymbol{x}_M) &= \mathcal{N}\big( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\bar\boldsymbol{x}_M, ~(1 - \bar\alpha'_j) ~\mathbf{I}\big)  \text{,} \\[2mm]
+  q(\bar{\boldsymbol{x}}_j ~|~ \bar{\boldsymbol{x}}_M) &= \mathcal{N}\big( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\bar{\boldsymbol{x}}_M, ~(1 - \bar\alpha'_j) ~\mathbf{I}\big)  \text{,} \\[2mm]
   \bar\alpha_j &= \cos^2 \bigg( \frac{(M - j) / M + C_2}{1 + C_2} \cdot \frac{\pi}{2} \bigg)  \text{,}\hspace{4mm}\text{and} \\
   \bar\alpha'_j &= \prod_{s=M-1}^j ~\max\bigg( \frac{\bar\alpha_j}{\bar\alpha_{j+1}}, ~C_1 \bigg) ~=~ \bar\alpha'_{j+1} ~\max\bigg( \frac{\bar\alpha_j}{\bar\alpha_{j+1}}, ~C_1 \bigg)
   \text{,}
@@ -1391,22 +1391,22 @@ $$
 $$
 giving the formula shown in the "Parameters" section of [Table 1](#table-01).
 
-To harmonize the definitions of $\boldsymbol{x}$ and $\bar\boldsymbol{x}$, we must match the perturbation kernel of [Equation 11](#equation-11) with the transition probability of [Equation 243](#equation-243) for each time step $t = u_j$:
+To harmonize the definitions of $\boldsymbol{x}$ and $\bar{\boldsymbol{x}}$, we must match the perturbation kernel of [Equation 11](#equation-11) with the transition probability of [Equation 243](#equation-243) for each time step $t = u_j$:
 $$
 \begin{aligned}
-  p_{0t}\big( \boldsymbol{x}(u_j) ~|~ \boldsymbol{x}(0) \big) &= q(\bar\boldsymbol{x}_j ~|~ \bar\boldsymbol{x}_M) \\
-  \mathcal{N} \big( \boldsymbol{x}(u_j); ~s(t) ~\boldsymbol{x}(0), ~s(u_j)^2 ~\sigma(u_j)^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\bar\boldsymbol{x}_M, ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
+  p_{0t}\big( \boldsymbol{x}(u_j) ~|~ \boldsymbol{x}(0) \big) &= q(\bar{\boldsymbol{x}}_j ~|~ \bar{\boldsymbol{x}}_M) \\
+  \mathcal{N} \big( \boldsymbol{x}(u_j); ~s(t) ~\boldsymbol{x}(0), ~s(u_j)^2 ~\sigma(u_j)^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\bar{\boldsymbol{x}}_M, ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
   \text{.}
 \end{aligned}
 $$
 
-Substituting $s(t) = 1$ and $\sigma(t) = t$ from [Section 9.3.1](#section-9-3-1), as well as $\bar\boldsymbol{x}_M = \boldsymbol{x}(0)$:
+Substituting $s(t) = 1$ and $\sigma(t) = t$ from [Section 9.3.1](#section-9-3-1), as well as $\bar{\boldsymbol{x}}_M = \boldsymbol{x}(0)$:
 $$
-\mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) = \mathcal{N}\left( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
+\mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) = \mathcal{N}\left( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
   \text{.}
 $$
 
-We can match the means of these two distributions by defining $\bar\boldsymbol{x}_j = \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j)$:
+We can match the means of these two distributions by defining $\bar{\boldsymbol{x}}_j = \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j)$:
 $$
 \begin{aligned}
   \mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j); ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right) \\
@@ -1469,7 +1469,7 @@ Note that [Equation 268](#equation-268) is identical to the VP preconditioning f
 
 #### 9.3.4 iDDPM practical considerations
 
-The pre-trained iDDPM model that we use on ImageNet-64 corresponds to the "ADM (dropout)" checkpoint [+17] provided by Dhariwal and Nichol [Dha21]. It contains 296 million trainable parameters and supports a discrete set of $M = 1000$ noise levels $\sigma \in \{u_j\} \approx \{$20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, $\dots$, 0.0064$\}$. The fact that we can only evaluate $F_\theta$ these specific choices of $\sigma$ presents three practical challenges:
+The pre-trained iDDPM model that we use on ImageNet-64 corresponds to the "ADM (dropout)" checkpoint [+17] provided by Dhariwal and Nichol [Dha21]. It contains 296 million trainable parameters and supports a discrete set of $M = 1000$ noise levels $\sigma \in \{u_j\} \approx \{20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, \dots, 0.0064\}$. The fact that we can only evaluate $F_\theta$ these specific choices of $\sigma$ presents three practical challenges:
 
 1.  In the context of DDIM, we must choose how to resample $\{u_j\}$ to yield $\{t_i\}$ for $N \ne M$. Song et al. [Son21a] employ a simple resampling scheme where $t_i = u_{k \cdot i}$ for resampling factor $k \in \mathbb{Z}^+$. This scheme, however, requires that $1000 \equiv 0 \pmod{N}$, which limits the possible choices for $N$ considerably. Nichol and Dhariwal [Nic21], on the other hand, employ a more flexible scheme where $t_i = u_j$ with $j = \lfloor (M - 1) / (N - 1) \cdot i \rfloor$. We note, however, that in practice the values of $u_{j<8}$ are considerably larger than our preferred $\sigma_{\max}= 80$. We choose to skip these values by defining $j = \lfloor j_0 + (M - 1 - j_0) / (N - 1) \cdot i \rfloor$ with $j_0 = 8$, matching the "Time steps" row in [Table 1](#table-01). In [Figure 2c](#figure-02), the differences between the original sampler (blue) and our reimplementation (orange) are explained by this choice.
 
@@ -1489,7 +1489,7 @@ With these changes, we are able to import the pre-trained model directly as $F_\
 
 As discussed in [Section 3](#section-3), the fundamental reason why diffusion models tend to require a large number of sampling steps is that any numerical ODE solver is necessarily an approximation; the larger the steps, the farther away we drift from the true solution at each step. Specifically, given the value of $\boldsymbol{x}_{i-1}$ at time step $i-1$, the solver approximates the true $\boldsymbol{x}^*_i$ as $\boldsymbol{x}_i$, resulting in local truncation error $\boldsymbol{\tau}_i = \boldsymbol{x}^*_i - \boldsymbol{x}_i$. The local errors get accumulated over the $N$ steps, ultimately leading to global truncation error $\boldsymbol{e}_N$.
 
-Euler's method is a first order ODE solver, meaning that $\boldsymbol{\tau}_i = \mathcal{O}\left(h_i^2\right)$ for any sufficiently smooth $\boldsymbol{x}(t)$, where $h_i = |t_i - t_{i-1}|$ is the local step size [Sul03]. In other words, there exist some $C$ and $H$ such that $\|\boldsymbol{\tau}_i\| < C h_i^2$ for every $h_i < H$, i.e., halving $h_i$ reduces $\boldsymbol{\tau}_i$ by 4$\times$. Furthermore, if we assume that $D_\theta$ is Lipschitz continuous — which is true for all network architectures considered in this paper — the global truncation error is bounded by $\|\boldsymbol{e}_N\| \le E \max_i \|\boldsymbol{\tau}_i\|$, where the value of $E$ depends on $N$, $t_0$, $t_N$, and the Lipschitz constant [Sul03]. Thus, reducing the global error for given $N$, which in turn enables reducing $N$ itself, boils down to choosing the solver and $\{t_i\}$ so that $\max_i \|\boldsymbol{\tau}_i\|$ is minimized.
+Euler's method is a first order ODE solver, meaning that $\boldsymbol{\tau}_i = \mathcal{O}\left(h_i^2\right)$ for any sufficiently smooth $\boldsymbol{x}(t)$, where $h_i = |t_i - t_{i-1}|$ is the local step size [Sul03]. In other words, there exist some $C$ and $H$ such that $\|\boldsymbol{\tau}_i\| < C h_i^2$ for every $h_i < H$, i.e., halving $h_i$ reduces $\boldsymbol{\tau}_i$ by $4\times$. Furthermore, if we assume that $D_\theta$ is Lipschitz continuous — which is true for all network architectures considered in this paper — the global truncation error is bounded by $\|\boldsymbol{e}_N\| \le E \max_i \|\boldsymbol{\tau}_i\|$, where the value of $E$ depends on $N$, $t_0$, $t_N$, and the Lipschitz constant [Sul03]. Thus, reducing the global error for given $N$, which in turn enables reducing $N$ itself, boils down to choosing the solver and $\{t_i\}$ so that $\max_i \|\boldsymbol{\tau}_i\|$ is minimized.
 
 <span id="figure-13"></span>
 
@@ -1603,7 +1603,7 @@ Our implementation and pre-trained models are available at <https://github.com/N
 
 ### 12.1 FID calculation
 
-We calculate FID [Heu17] between 50,000 generated images and all available real images, without any augmentation such as $x$-flips. We use the pre-trained Inception-v3 model provided with StyleGAN3 [+22] [Kar21] that is, in turn, a direct PyTorch translation of the original TensorFlow-based model [+23]. We have verified that our FID implementation produces identical results compared to Dhariwal and Nichol [Dha21] and Karras et al. [Kar21]. To reduce the impact of random variation, typically in the order of $\pm$2%, we compute FID three times in each experiment and report the minimum. We also highlight the difference between the highest and lowest achieved FID in [Figure 4](#figure-04), [Figure 5b](#figure-05), [Figure 13c](#figure-13), and [Figure 15](#figure-15).
+We calculate FID [Heu17] between 50,000 generated images and all available real images, without any augmentation such as $x$-flips. We use the pre-trained Inception-v3 model provided with StyleGAN3 [+22] [Kar21] that is, in turn, a direct PyTorch translation of the original TensorFlow-based model [+23]. We have verified that our FID implementation produces identical results compared to Dhariwal and Nichol [Dha21] and Karras et al. [Kar21]. To reduce the impact of random variation, typically in the order of $\pm 2\%$, we compute FID three times in each experiment and report the minimum. We also highlight the difference between the highest and lowest achieved FID in [Figure 4](#figure-04), [Figure 5b](#figure-05), [Figure 13c](#figure-13), and [Figure 15](#figure-15).
 
 <span id="section-12-2"></span>
 
@@ -1611,7 +1611,7 @@ We calculate FID [Heu17] between 50,000 generated images and all available real 
 
 In [Section 5](#section-5), we propose to combat overfitting of $D_\theta$ using conditional augmentation. We build our augmentation pipeline around the same concepts that were originally proposed by Karras et al. [Kar20a] in the context of GANs. In practice, we employ a set of 6 geometric transformations; we have found other types of augmentations, such as color corruption and image-space filtering, to be consistently harmful for diffusion-based models.
 
-The details of our augmentation pipeline are shown in [Table 6](#table-06). We apply the augmentations independently to each training image $\boldsymbol{y}\sim p_\text{data}$ prior to adding the noise $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$. First, we determine whether to enable or disable each augmentation based on a weighted coin toss. The probability of enabling a given augmentation ("Prob." column) is fixed to 12% for CIFAR-10 and 15% for FFHQ and AFHQv2, except for $x$-flips that are always enabled. We then draw 8 random parameters from their corresponding distributions ("Parameters" column); if a given augmentation is disabled, we override the associated parameters with zero. Based on these, we construct a homogeneous 2D transformation matrix based on the parameters ("Transformation" column). This transformation is applied to the image using the implementation of [Kar20a] that employs 2$\times$ supersampled high-quality Wavelet filters. Finally, we construct a 9-dimensional conditioning input vector ("Conditioning" column) and feed it to the denoiser network, in addition to the image and noise level inputs.
+The details of our augmentation pipeline are shown in [Table 6](#table-06). We apply the augmentations independently to each training image $\boldsymbol{y}\sim p_\text{data}$ prior to adding the noise $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$. First, we determine whether to enable or disable each augmentation based on a weighted coin toss. The probability of enabling a given augmentation ("Prob." column) is fixed to 12% for CIFAR-10 and 15% for FFHQ and AFHQv2, except for $x$-flips that are always enabled. We then draw 8 random parameters from their corresponding distributions ("Parameters" column); if a given augmentation is disabled, we override the associated parameters with zero. Based on these, we construct a homogeneous 2D transformation matrix based on the parameters ("Transformation" column). This transformation is applied to the image using the implementation of [Kar20a] that employs $2\times$ supersampled high-quality Wavelet filters. Finally, we construct a 9-dimensional conditioning input vector ("Conditioning" column) and feed it to the denoiser network, in addition to the image and noise level inputs.
 
 <span id="table-06"></span>
 
@@ -1621,7 +1621,7 @@ The details of our augmentation pipeline are shown in [Table 6](#table-06). We a
 
 The role of the conditioning input is to present the network with a set of auxiliary tasks; in addition to the main task of modeling $p(\boldsymbol{x}; \sigma)$, we effectively ask the network to also model an infinite set of distributions $p(\boldsymbol{x}; \sigma, \boldsymbol{a})$ for each possible choice of the augmentation parameters $\boldsymbol{a}$. These auxiliary tasks provide the network with a large variety of unique training samples, preventing it from overfitting to any individual sample. Still, the auxiliary tasks appear to be beneficial for the main task; we speculate that this is because the denoising operation itself is similar for every choice of $\boldsymbol{a}$.
 
-We have designed the conditioning input so that zero corresponds to the case where no augmentations were applied. During sampling, we simply set $\boldsymbol{a} = \mathbf{0}$ to obtain results consistent with the main task. We have not observed any leakage between the auxiliary tasks and the main task; the generated images exhibit no traces of out-of-domain geometric transformations even with $A_\text{prob} = 100$%. In practice, this means that we are free to choose the constants $\{A_\text{prob}, A_\text{scale}, A_\text{aniso}, A_\text{trans}\}$ any way we like as long as the results improve. Horizontal flips serve as an interesting example. Most of the prior work augments the training set with random $x$-flips, which is beneficial for most datasets but has the downside that any text or logos may appear mirrored in the generated images. With our non-leaky augmentations, we get the same benefits without the downsides by executing the $x$-flip augmentation with 100% probability. Thus, we rely exclusively on our augmentation scheme and disable dataset $x$-flips to ensure that the generated images stay true to the original distribution.
+We have designed the conditioning input so that zero corresponds to the case where no augmentations were applied. During sampling, we simply set $\boldsymbol{a} = \mathbf{0}$ to obtain results consistent with the main task. We have not observed any leakage between the auxiliary tasks and the main task; the generated images exhibit no traces of out-of-domain geometric transformations even with $A_\text{prob} = 100\%$. In practice, this means that we are free to choose the constants $\{A_\text{prob}, A_\text{scale}, A_\text{aniso}, A_\text{trans}\}$ any way we like as long as the results improve. Horizontal flips serve as an interesting example. Most of the prior work augments the training set with random $x$-flips, which is beneficial for most datasets but has the downside that any text or logos may appear mirrored in the generated images. With our non-leaky augmentations, we get the same benefits without the downsides by executing the $x$-flip augmentation with 100% probability. Thus, we rely exclusively on our augmentation scheme and disable dataset $x$-flips to ensure that the generated images stay true to the original distribution.
 
 <span id="section-12-3"></span>
 
@@ -1635,15 +1635,15 @@ We have designed the conditioning input so that zero corresponds to the case whe
 
 [Table 7](#table-07) shows the exact set of hyperparameters that we used in our training experiments reported in [Section 5](#section-5). We will first detail the configurations used with CIFAR-10, FFHQ, and AFHQv2, and then discuss the training of our improved ImageNet model.
 
-Config A of [Table 2](#table-02) ("Baseline") corresponds to the original setup of Song et al. [Son21] for the two cases (VP and VE), and config F ("Ours") corresponds to our improved setup. We trained each model until a total of 200 million images had been drawn from the training set, abbreviated as "200 Mimg" in [Table 7](#table-07); this corresponds to a total of $\sim$400,000 training iterations using a batch size of 512. We saved a snapshot of the model every 2.5 million images and reported results for the snapshot that achieved the lowest FID according to our deterministic sampler with NFE $=$ 35 or NFE $=$ 79, depending on the resolution.
+Config A of [Table 2](#table-02) ("Baseline") corresponds to the original setup of Song et al. [Son21] for the two cases (VP and VE), and config F ("Ours") corresponds to our improved setup. We trained each model until a total of 200 million images had been drawn from the training set, abbreviated as "200 Mimg" in [Table 7](#table-07); this corresponds to a total of $\sim 400{,}000$ training iterations using a batch size of 512. We saved a snapshot of the model every 2.5 million images and reported results for the snapshot that achieved the lowest FID according to our deterministic sampler with NFE $=$ 35 or NFE $=$ 79, depending on the resolution.
 
-In config B, we re-adjust the basic hyperparameters to enable faster training and obtain a more meaningful point of comparison. Specifically, we increase the parallelism from 4 to 8 GPUs and batch size from 128 to 512 or 256, depending on the resolution. We also disable gradient clipping, i.e., forcing $\| \mathrm{d}\mathcal{L}(D_\theta) / \mathrm{d}\theta \|_2 \le 1$, that we found to provide no benefit in practice. Furthermore, we increase the learning rate from 0.0002 to 0.001 for CIFAR-10, ramping it up during the first 10 million images, and standardize the half-life of the exponential moving average of $\theta$ to 0.5 million images. Finally, we adjust the dropout probability for each dataset as shown in [Table 7](#table-07) via a full grid search at 1% increments. Our total training time is approximately 2 days for CIFAR-10 at 32$\times$32 resolution and 4 days for FFHQ and AFHQv2 at 64$\times$64 resolution.
+In config B, we re-adjust the basic hyperparameters to enable faster training and obtain a more meaningful point of comparison. Specifically, we increase the parallelism from 4 to 8 GPUs and batch size from 128 to 512 or 256, depending on the resolution. We also disable gradient clipping, i.e., forcing $\| \mathrm{d}\mathcal{L}(D_\theta) / \mathrm{d}\theta \|_2 \le 1$, that we found to provide no benefit in practice. Furthermore, we increase the learning rate from 0.0002 to 0.001 for CIFAR-10, ramping it up during the first 10 million images, and standardize the half-life of the exponential moving average of $\theta$ to 0.5 million images. Finally, we adjust the dropout probability for each dataset as shown in [Table 7](#table-07) via a full grid search at 1% increments. Our total training time is approximately 2 days for CIFAR-10 at $32\times32$ resolution and 4 days for FFHQ and AFHQv2 at $64\times64$ resolution.
 
-In config C, we improve the expressive power of the model by removing the 4$\times$4 layers and doubling the capacity of the 16$\times$16 layers instead; we found the former to mainly contribute to overfitting, whereas the latter were critical for obtaining high-quality results. The original models of Song et al. [Son21] employ 128 channels at 64$\times$64 (where applicable) and 32$\times$32, and 256 channels at 16$\times$16, 8$\times$8, and 4$\times$4. We change these numbers to 128 channels at 64$\times$64 (where applicable), and 256 channels at 32$\times$32, 16$\times$16, and 8$\times$8. We abbreviate these counts in [Table 7](#table-07) as multiples of 128, listed from the highest resolution to the lowest. In practice, this rebalancing reduces the total number of trainable parameters slightly, resulting in $\sim$56 million parameters for each model at 32$\times$32 resolution and $\sim$62 million parameters at 64$\times$64 resolution.
+In config C, we improve the expressive power of the model by removing the $4\times4$ layers and doubling the capacity of the $16\times16$ layers instead; we found the former to mainly contribute to overfitting, whereas the latter were critical for obtaining high-quality results. The original models of Song et al. [Son21] employ 128 channels at $64\times64$ (where applicable) and $32\times32$, and 256 channels at $16\times16$, $8\times8$, and $4\times4$. We change these numbers to 128 channels at $64\times64$ (where applicable), and 256 channels at $32\times32$, $16\times16$, and $8\times8$. We abbreviate these counts in [Table 7](#table-07) as multiples of 128, listed from the highest resolution to the lowest. In practice, this rebalancing reduces the total number of trainable parameters slightly, resulting in $\sim 56$ million parameters for each model at $32\times32$ resolution and $\sim 62$ million parameters at $64\times64$ resolution.
 
 In config D, we replace the original preconditioning with our improved formulas ("Network and preconditioning" section in [Table 1](#table-01)). In config E, we do the same for the noise distribution and loss weighting ("Training" section in [Table 1](#table-01)). Finally, in config F, we enable augmentation regularization as discussed in [Section 12.2](#section-12-2). The other hyperparameters remain the same as in config C.
 
-With ImageNet-64, it is necessary to train considerably longer compared to the other datasets in order to reach state-of-the-art results. To reduce the training time, we employed 32 NVIDIA Ampere GPUs (4 nodes) with a batch size of 4096 (128 per GPU) and utilized the high-performance Tensor Cores via mixed-precision FP16/FP32 training. In practice, we store the trainable parameters as FP32 but cast them to FP16 when evaluating $F_\theta$, except for the embedding and self-attention layers, where we found the limited exponent range of FP16 to occasionally lead to stability issues. We trained the model for two weeks, corresponding to $\sim$2500 million images drawn from the training set and $\sim$600,000 training iterations, using learning rate 0.0001, exponential moving average of 50 million images, and the same model architecture and dropout probability as Dhariwal and Nichol [Dha21]. We did not find overfitting to be a concern, and thus chose to not employ augmentation regularization.
+With ImageNet-64, it is necessary to train considerably longer compared to the other datasets in order to reach state-of-the-art results. To reduce the training time, we employed 32 NVIDIA Ampere GPUs (4 nodes) with a batch size of 4096 (128 per GPU) and utilized the high-performance Tensor Cores via mixed-precision FP16/FP32 training. In practice, we store the trainable parameters as FP32 but cast them to FP16 when evaluating $F_\theta$, except for the embedding and self-attention layers, where we found the limited exponent range of FP16 to occasionally lead to stability issues. We trained the model for two weeks, corresponding to $\sim 2500$ million images drawn from the training set and $\sim 600{,}000$ training iterations, using learning rate 0.0001, exponential moving average of 50 million images, and the same model architecture and dropout probability as Dhariwal and Nichol [Dha21]. We did not find overfitting to be a concern, and thus chose to not employ augmentation regularization.
 
 <span id="section-12-4"></span>
 
@@ -1659,7 +1659,7 @@ As a result of our training improvements, the VP and VE cases become otherwise i
 
 For class conditioning and augmentation regularization, we extend the original DDPM++ and NCSN++ arhictectures by introducing two optional conditioning inputs alongside the noise level input. We represent class labels as one-hot encoded vectors that we first scale by $\sqrt{C}$, where $C$ is the total number of classes, and then feed through a fully-connected layer. For the augmentation parameters, we feed the conditioning inputs of [Section 12.2](#section-12-2) through a fully-connected layer as-is. We then combine the resulting feature vectors with the original noise level conditioning vector through elementwise addition.
 
-For class-conditional ImageNet-64, we use the ADM architecture of Dhariwal and Nichol [Dha21] with no changes. The model has a total of $\sim$296 million trainable parameters. As detailed in [Tables 7](#table-07) and [Table 8](#table-08), the most notable differences to DDPM++ include the use of a slightly shallower model (3 residual blocks per resolution instead of 4) with considerably more channels (e.g., 768 in the lowest resolution instead of 256), more self-attention layers interspersed throughout the network (22 instead of 6), and the use of multi-head attention (e.g., 12 heads in the lowest resolution). We feel that the precise impact of architectural choices remains an interesting question for future work.
+For class-conditional ImageNet-64, we use the ADM architecture of Dhariwal and Nichol [Dha21] with no changes. The model has a total of $\sim 296$ million trainable parameters. As detailed in [Tables 7](#table-07) and [Table 8](#table-08), the most notable differences to DDPM++ include the use of a slightly shallower model (3 residual blocks per resolution instead of 4) with considerably more channels (e.g., 768 in the lowest resolution instead of 256), more self-attention layers interspersed throughout the network (22 instead of 6), and the use of multi-head attention (e.g., 12 heads in the lowest resolution). We feel that the precise impact of architectural choices remains an interesting question for future work.
 
 <span id="section-12-5"></span>
 

@@ -25,7 +25,7 @@ pageClass: paper-reading
 
 第 3 の一連の貢献は、スコアをモデル化するニューラルネットワークの学習に焦点を当てる。一般に用いられるネットワークアーキテクチャ（DDPM [Den20]、NCSN [Son19a]）を引き続き利用しつつ、拡散モデルの設定におけるネットワークの入力、出力、損失関数の事前調整を初めて原理的に分析し、学習ダイナミクスを改善するためのベストプラクティスを導出する。また、学習中のノイズレベル分布の改善案を示し、通常は GAN で用いられる non-leaking augmentation [Kar20a] が拡散モデルにも有益であることを指摘する。
 
-これらの貢献を総合すると、結果の品質を大幅に改善できる。たとえば、64$\times$64 解像度において CIFAR-10 [Kri09] で 1.79、ImageNet [Den09a] で 1.36 という記録的な FID を達成する。設計空間の主要な要素をすべて明示的に表へまとめることで、本アプローチは個々の構成要素に対する革新を容易にし、拡散モデルの設計空間をより広範かつ的を絞って探索できるようになると考えている。実装と事前学習済みモデルは <https://github.com/NVlabs/edm> で公開している。
+これらの貢献を総合すると、結果の品質を大幅に改善できる。たとえば、$64\times64$ 解像度において CIFAR-10 [Kri09] で 1.79、ImageNet [Den09a] で 1.36 という記録的な FID を達成する。設計空間の主要な要素をすべて明示的に表へまとめることで、本アプローチは個々の構成要素に対する革新を容易にし、拡散モデルの設計空間をより広範かつ的を絞って探索できるようになると考えている。実装と事前学習済みモデルは <https://github.com/NVlabs/edm> で公開している。
 
 <span id="section-2"></span>
 
@@ -66,7 +66,7 @@ $$
 
 **表 1.** 各モデルファミリーで採用されている具体的な設計上の選択。$N$ は、サンプリング中に実行する ODE ソルバーの反復回数である。対応する時間ステップ列は $\{t_0, t_1, \dots, t_N\}$ で、$t_N = 0$ である。モデルが特定の $N$ と $\{t_i\}$ に対して学習されていた場合、その元の値をそれぞれ $M$ と $\{u_j\}$ で表す。denoiser は $D_\theta(\boldsymbol{x}; \sigma) = c_\mathrm{skip}(\sigma) \boldsymbol{x} + c_\mathrm{out}(\sigma) F_\theta(c_\mathrm{in}(\sigma) \boldsymbol{x}; c_\mathrm{noise}(\sigma))$ と定義し、$F_\theta$ は加工前のニューラルネットワーク層を表す。
 
-**時間依存の信号スケーリング。** 一部の手法（[第 9.1 節](#section-9-1) を参照）は、追加のスケールスケジュール $s(t)$ を導入し、$\boldsymbol{x}= s(t) \hat\boldsymbol{x}$ を元のスケーリングされていない変数 $\hat\boldsymbol{x}$ のスケーリング版とみなす。これにより時間依存の確率密度が変わり、その結果として ODE の解軌跡も変化する。得られる ODE は [式 1](#equation-01) の一般化である。<span id="equation-04"></span>
+**時間依存の信号スケーリング。** 一部の手法（[第 9.1 節](#section-9-1) を参照）は、追加のスケールスケジュール $s(t)$ を導入し、$\boldsymbol{x}= s(t) \hat{\boldsymbol{x}}$ を元のスケーリングされていない変数 $\hat{\boldsymbol{x}}$ のスケーリング版とみなす。これにより時間依存の確率密度が変わり、その結果として ODE の解軌跡も変化する。得られる ODE は [式 1](#equation-01) の一般化である。<span id="equation-04"></span>
 
 $$
 \mathrm{d}\boldsymbol{x}= \left[ \frac{\dot s(t)}{s(t)} ~\boldsymbol{x}-s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\left(\frac{\boldsymbol{x}}{s(t)}; \sigma(t)\right) \right] ~\mathrm{d}t\text{.}
@@ -83,7 +83,7 @@ $$
 
 出力品質の向上および／またはサンプリングの計算コスト削減は、diffusion model 研究における一般的な主題である（たとえば [Doc22, Jol21, Liu22h, Lu22c, Luh21, Nic21, Sal22, Vah21, Wat22, Wat21, Zha22i]）。本研究の仮説は、サンプリング過程に関する選択が、ネットワークアーキテクチャや学習の詳細など、他の構成要素からほぼ独立しているというものである。言い換えれば、$D_\theta$ の学習手順が $\sigma(t)$、$s(t)$、および $\{t_i\}$ を規定すべきではなく、その逆も同様であり、サンプラーの観点から見れば、$D_\theta$ は単なる black box である [Wat22, Wat21]。本研究では、それぞれが異なる理論的枠組みとモデルファミリーを表す 3 つの*事前学習済み*モデル上で異なるサンプラーを評価し、この仮説を検証する。まず、これらのモデルについて元のサンプラー実装を用いてベースライン結果を測定し、次に[表 1](#table-01)の式を用いてこれらのサンプラーを本研究の統一された枠組みに取り込み、その後に本研究の改善を適用する。これにより、さまざまな実用上の選択肢を評価し、すべてのモデルに適用可能なサンプリング過程の一般的な改善を提案できる。
 
-Song ら [Son21] が 32$\times$32 の無条件 CIFAR-10 [Kri09] で学習した「DDPM++ cont. (VP)」モデルと「NCSN++ cont. (VE)」モデルを評価する。これらは、それぞれ variance preserving（VP）定式化と variance exploding（VE）定式化 [Son21] に対応し、もともとは DDPM [Den20] と SMLD [Son19a] に着想を得ている。また、Dhariwal と Nichol [Dha21] が 64$\times$64 のクラス条件付き ImageNet [Den09a] で学習した「ADM (dropout)」モデルも評価する。これは improved DDPM（iDDPM）定式化 [Nic21] に対応する。このモデルは、$M=1000$ 個の離散的なノイズレベル集合を用いて学習された。詳細は[第 9 節](#section-9)に示す。
+Song ら [Son21] が $32\times32$ の無条件 CIFAR-10 [Kri09] で学習した「DDPM++ cont. (VP)」モデルと「NCSN++ cont. (VE)」モデルを評価する。これらは、それぞれ variance preserving（VP）定式化と variance exploding（VE）定式化 [Son21] に対応し、もともとは DDPM [Den20] と SMLD [Son19a] に着想を得ている。また、Dhariwal と Nichol [Dha21] が $64\times64$ のクラス条件付き ImageNet [Den09a] で学習した「ADM (dropout)」モデルも評価する。これは improved DDPM（iDDPM）定式化 [Nic21] に対応する。このモデルは、$M=1000$ 個の離散的なノイズレベル集合を用いて学習された。詳細は[第 9 節](#section-9)に示す。
 
 <span id="figure-02"></span>
 
@@ -136,7 +136,7 @@ $\sigma(t)=t$ と $s(t)=1$ と置く効果を、[図 2](#figure-02)の赤い曲�
 
 **図 3。** $p_\text{data}$ が $\boldsymbol{x}=\pm 1$ に 2 つの Dirac peak をもつ場合の、1D における ODE 曲率のスケッチ。水平 $t$ 軸は、各プロットで $\sigma\in[0,25]$ を示すように選び、挿入図はデータ付近の $\sigma\in[0,1]$ を示す。局所勾配の例を黒い矢印で示す。**（a）** Song ら [Son21] の variance preserving ODE は、大きな $\sigma$ で水平線へ平坦化する解軌道をもつ。局所勾配は、小さな $\sigma$ でのみデータを指し始める。**（b）** Variance exploding variant はデータ付近で極端な曲率をもち、解軌道は至る所で曲がっている。**（c）** DDIM [Son21a] と本研究が用いるスケジュールでは、$\sigma$ が増加するにつれて、解軌道はデータの平均を指す直線へ近づく。$\sigma\to 0$ になると、軌道は線形になり、データ多様体を指す。
 
-**考察。** 決定論的サンプリングを改善するため本節で行った選択は、[表 1](#table-01)の*Sampling* 部分にまとめられている。これらを組み合わせると、高品質な結果に到達するために必要な NFE は大幅に削減される。すなわち VP では 7.3$\times$、VE では 300$\times$、DDIM では 3.2$\times$ であり、[図 2](#figure-02)で強調した NFE 値に対応する。実際、1 台の NVIDIA V100 で 1 秒当たり 26.3 枚の高品質な CIFAR-10 画像を生成できる。改善の一貫性は、サンプリング過程が各モデルの元の学習方法と直交するという本研究の仮説を裏付ける。さらなる検証として、本研究のスケジュールを用いた adaptive RK45 法 [Dor80] の結果を、[図 2](#figure-02)の黒い破線で示す。この高度な ODE ソルバーのコストは、その利点を上回る。
+**考察。** 決定論的サンプリングを改善するため本節で行った選択は、[表 1](#table-01)の*Sampling* 部分にまとめられている。これらを組み合わせると、高品質な結果に到達するために必要な NFE は大幅に削減される。すなわち VP では $7.3\times$、VE では $300\times$、DDIM では $3.2\times$ であり、[図 2](#figure-02)で強調した NFE 値に対応する。実際、1 台の NVIDIA V100 で 1 秒当たり 26.3 枚の高品質な CIFAR-10 画像を生成できる。改善の一貫性は、サンプリング過程が各モデルの元の学習方法と直交するという本研究の仮説を裏付ける。さらなる検証として、本研究のスケジュールを用いた adaptive RK45 法 [Dor80] の結果を、[図 2](#figure-02)の黒い破線で示す。この高度な ODE ソルバーのコストは、その利点を上回る。
 
 <span id="section-4"></span>
 
@@ -227,7 +227,7 @@ $$
 
 **表 2。** 本研究の学習改善の評価。開始点（config A）は、本研究の**決定論的**サンプラーを用いた VP と VE である。最終段階（config E、F）では、VP と VE の違いは $F_\theta$ のアーキテクチャだけである。
 
-[表 2](#table-02)は、[第 3 節](#section-3)の本研究の決定論的サンプラーを用いて評価した、一連の学習設定の FID を示す。Song ら [Son21] のベースライン学習設定から開始し、この設定は VP と VE の場合で大きく異なるため、それぞれについて別々の結果（config A）を示す。より意味のある比較点を得るため、基本ハイパーパラメータを再調整し（config B）、最低解像度の層を取り除いて、代わりに最高解像度の層の容量を 2 倍にすることで、モデルの表現力を改善する（config C）。詳細は[第 12.3 節](#section-12-3)を参照されたい。次に、元の $\{c_\text{in}, c_\text{out}, c_\text{noise}, c_\text{skip}\}$ の選択を本研究の preconditioning（config D）で置き換える。これにより、64$\times$64 解像度で大幅に改善する VE を除けば、結果はほぼ変わらないまま保たれる。FID 自体を改善する代わりに、本研究の preconditioning の主な利点は学習をより頑健にすることであり、悪影響を伴わずに損失関数の再設計へ焦点を移せるようになる。
+[表 2](#table-02)は、[第 3 節](#section-3)の本研究の決定論的サンプラーを用いて評価した、一連の学習設定の FID を示す。Song ら [Son21] のベースライン学習設定から開始し、この設定は VP と VE の場合で大きく異なるため、それぞれについて別々の結果（config A）を示す。より意味のある比較点を得るため、基本ハイパーパラメータを再調整し（config B）、最低解像度の層を取り除いて、代わりに最高解像度の層の容量を 2 倍にすることで、モデルの表現力を改善する（config C）。詳細は[第 12.3 節](#section-12-3)を参照されたい。次に、元の $\{c_\text{in}, c_\text{out}, c_\text{noise}, c_\text{skip}\}$ の選択を本研究の preconditioning（config D）で置き換える。これにより、$64\times64$ 解像度で大幅に改善する VE を除けば、結果はほぼ変わらないまま保たれる。FID 自体を改善する代わりに、本研究の preconditioning の主な利点は学習をより頑健にすることであり、悪影響を伴わずに損失関数の再設計へ焦点を移せるようになる。
 
 **損失の重み付けとサンプリング。** [式 8](#equation-08)は、[式 7](#equation-07)のように precondition した $F_\theta$ を学習すると、実効的なサンプルごとの損失重み $\lambda(\sigma)c_\text{out}(\sigma)^2$ が生じることを示す。実効損失重みを均衡させるため、$\lambda(\sigma)=1/c_\text{out}(\sigma)^2$ と置く。これは[図 5a](#figure-05)（緑の曲線）に示すように、$\sigma$ の全範囲にわたって初期学習損失も均等にする。最後に、$p_\text{train}(\sigma)$、すなわち学習中にノイズレベルをどのように選択するかを決める必要がある。学習後の $\sigma$ ごとの損失（青とオレンジの曲線）を調べると、中間のノイズレベルでのみ大幅な低減が可能であることが分かる。きわめて低いレベルでは、消失するほど小さいノイズ成分を識別することは困難であるうえに重要でもない一方、高いレベルでは、学習ターゲットはデータセットの平均へ近づく正解とは常に異なる。したがって、[表 1](#table-01)で詳述し、[図 5a](#figure-05)（赤の曲線）で示すように、$p_\text{train}(\sigma)$ に単純な log-normal 分布を用い、関連する範囲へ学習の労力を集中させる。
 
@@ -237,9 +237,9 @@ $$
 
 <span id="figure-05"></span>
 
-![（a）本稿で検討する 32$\times$32（青）および 64$\times$64（オレンジ）のモデルを代表する、ノイズレベルごとに観測された初期損失（緑）と最終損失。](../../papers/diffusion-design-space/figure-05.png)
+![（a）本稿で検討する $32\times32$（青）および $64\times64$（オレンジ）のモデルを代表する、ノイズレベルごとに観測された初期損失（緑）と最終損失。](../../papers/diffusion-design-space/figure-05.png)
 
-**図 5。** **（a）** 本稿で検討する 32$\times$32（青）および 64$\times$64（オレンジ）のモデルを代表する、ノイズレベルごとに観測された初期損失（緑）と最終損失。網掛け領域は、10k 個のランダムサンプルにわたる標準偏差を表す。提案する学習サンプル密度を赤い破線で示す。**（b）** 無条件 CIFAR-10 に対する $S_\text{churn}$ の影響（256 ステップ、NFE $=$ 511）。Song ら [Son21] の元の学習設定では、確率的サンプリングが非常に有益である（青、緑）一方、決定論的サンプリング（$S_\text{churn}= 0$）は比較的悪い FID につながる。本研究の学習設定では状況が逆転し（オレンジ、赤）、確率的サンプリングは不要なだけでなく有害である。**（c）** クラス条件付き ImageNet-64 に対する $S_\text{churn}$ の影響（256 ステップ、NFE $=$ 511）。このより困難なシナリオでは、確率的サンプリングが再び有用であることが分かる。本研究の学習設定は、決定論的サンプリングと確率的サンプリングの両方で結果を改善する。
+**図 5。** **（a）** 本稿で検討する $32\times32$（青）および $64\times64$（オレンジ）のモデルを代表する、ノイズレベルごとに観測された初期損失（緑）と最終損失。網掛け領域は、10k 個のランダムサンプルにわたる標準偏差を表す。提案する学習サンプル密度を赤い破線で示す。**（b）** 無条件 CIFAR-10 に対する $S_\text{churn}$ の影響（256 ステップ、NFE $=$ 511）。Song ら [Son21] の元の学習設定では、確率的サンプリングが非常に有益である（青、緑）一方、決定論的サンプリング（$S_\text{churn}= 0$）は比較的悪い FID につながる。本研究の学習設定では状況が逆転し（オレンジ、赤）、確率的サンプリングは不要なだけでなく有害である。**（c）** クラス条件付き ImageNet-64 に対する $S_\text{churn}$ の影響（256 ステップ、NFE $=$ 511）。このより困難なシナリオでは、確率的サンプリングが再び有用であることが分かる。本研究の学習設定は、決定論的サンプリングと確率的サンプリングの両方で結果を改善する。
 
 **確率的サンプリングの再検討。** 興味深いことに、[図 5b](#figure-05)、[図 5c](#figure-05)に示すように、モデル自体が改善するにつれて、確率的サンプリングの重要性は低下するように見える。CIFAR-10 で本研究の学習設定を用いた場合（[図 5b](#figure-05)）、最良の結果は決定論的サンプリングで得られ、いかなる量の確率的サンプリングも有害であった。
 
@@ -251,7 +251,7 @@ $$
 
 diffusion model を共通の枠組みに置く本研究のアプローチは、モジュール化された設計を明らかにする。これにより、個々の構成要素を対象とした調査が可能となり、実用可能な設計空間をより十分に網羅する助けとなる可能性がある。本研究の試験では、これによりさまざまな先行モデルのサンプラーを単純に置き換え、結果を劇的に改善できた。たとえば ImageNet-64 では、本研究のサンプラーにより、平均的なモデル（FID 2.07）を従来の SOTA モデル（1.48）[Ho22b] に対抗するモデル（1.55）へ変え、学習の改善と併用して SOTA FID 1.36 を達成した。また、35 回のモデル評価、決定論的サンプリング、小規模なネットワークだけを用いながら、CIFAR-10 で新たな state-of-the-art の結果も得た。現在の高解像度 diffusion model は、個別の super-resolution ステップ [Ho22b, Nic22, Ram22]、subspace projection [Jin22a]、非常に大規模なネットワーク [Dha21, Son21]、または hybrid approach [Pre22, Rom22, Vah21] のいずれかに依存しているが、本研究の貢献はこれらの拡張と直交すると考えている。とはいえ、本研究のパラメータ値の多くは、より高解像度のデータセットに対して再調整が必要となる可能性がある。さらに、確率的サンプリングと学習目的との正確な相互作用は、今後の研究にとって興味深い問いであり続けると考えている。
 
-**社会的影響。** 本研究によるサンプル品質の進歩は、DALL$\cdot$E 2 のような大規模システムで使用された場合、偽情報の類型や、ステレオタイプと有害なバイアスの強調を含む、社会への悪影響を増幅する可能性がある [Mis22a]。diffusion model の学習とサンプリングには大量の電力が必要であり、本プロジェクトは NVIDIA V100 から成る社内クラスターで $\sim$250MWh を消費した。
+**社会的影響。** 本研究によるサンプル品質の進歩は、DALL·E 2 のような大規模システムで使用された場合、偽情報の類型や、ステレオタイプと有害なバイアスの強調を含む、社会への悪影響を増幅する可能性がある [Mis22a]。diffusion model の学習とサンプリングには大量の電力が必要であり、本プロジェクトは NVIDIA V100 から成る社内クラスターで $\sim 250$ MWh を消費した。
 
 ## 謝辞
 
@@ -275,45 +275,45 @@ diffusion model を共通の枠組みに置く本研究のアプローチは、�
 
 <span id="figure-06"></span>
 
-![Dhariwal と Nichol による事前学習済みモデルを用いた、64$\times$64 解像度のクラス条件付き ImageNet における各種サンプラーの結果。](../../papers/diffusion-design-space/figure-06.png)
+![Dhariwal と Nichol による事前学習済みモデルを用いた、$64\times64$ 解像度のクラス条件付き ImageNet における各種サンプラーの結果。](../../papers/diffusion-design-space/figure-06.png)
 
-**図 6。** Dhariwal と Nichol による事前学習済みモデル [Dha21] を用いた、64$\times$64 解像度のクラス条件付き ImageNet [Den09a] における各種サンプラーの結果。各ケースは[図 2c](#figure-02) および[図 4c](#figure-04) の点に対応する。
+**図 6。** Dhariwal と Nichol による事前学習済みモデル [Dha21] を用いた、$64\times64$ 解像度のクラス条件付き ImageNet [Den09a] における各種サンプラーの結果。各ケースは[図 2c](#figure-02) および[図 4c](#figure-04) の点に対応する。
 
 <span id="figure-07"></span>
 
-![本研究の決定論的サンプラーと確率的サンプラーを用いた、64$\times$64 解像度のクラス条件付き ImageNet における本研究の学習構成の結果。](../../papers/diffusion-design-space/figure-07.png)
+![本研究の決定論的サンプラーと確率的サンプラーを用いた、$64\times64$ 解像度のクラス条件付き ImageNet における本研究の学習構成の結果。](../../papers/diffusion-design-space/figure-07.png)
 
-**図 7。** 本研究の決定論的サンプラーと確率的サンプラーを用いた、64$\times$64 解像度のクラス条件付き ImageNet [Den09a] における本研究の学習構成の結果。
+**図 7。** 本研究の決定論的サンプラーと確率的サンプラーを用いた、$64\times64$ 解像度のクラス条件付き ImageNet [Den09a] における本研究の学習構成の結果。
 
 <span id="figure-08"></span>
 
-![Song らによる事前学習済みモデルを用いた、32$\times$32 解像度の無条件 CIFAR-10 における各種サンプラーの結果。](../../papers/diffusion-design-space/figure-08.png)
+![Song らによる事前学習済みモデルを用いた、$32\times32$ 解像度の無条件 CIFAR-10 における各種サンプラーの結果。](../../papers/diffusion-design-space/figure-08.png)
 
-**図 8。** Song らによる事前学習済みモデル [Son21] を用いた、32$\times$32 解像度の無条件 CIFAR-10 [Kri09] における各種サンプラーの結果。各ケースは[図 2a](#figure-02)、[図 2b](#figure-02)、[図 4a](#figure-04)、[図 4b](#figure-04) の点に対応する。
+**図 8。** Song らによる事前学習済みモデル [Son21] を用いた、$32\times32$ 解像度の無条件 CIFAR-10 [Kri09] における各種サンプラーの結果。各ケースは[図 2a](#figure-02)、[図 2b](#figure-02)、[図 4a](#figure-04)、[図 4b](#figure-04) の点に対応する。
 
 <span id="figure-09"></span>
 
-![32$\times$32 解像度の無条件 CIFAR-10 において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。](../../papers/diffusion-design-space/figure-09.png)
+![$32\times32$ 解像度の無条件 CIFAR-10 において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。](../../papers/diffusion-design-space/figure-09.png)
 
-**図 9。** 32$\times$32 解像度の無条件 CIFAR-10 [Kri09] において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。
+**図 9。** $32\times32$ 解像度の無条件 CIFAR-10 [Kri09] において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。
 
 <span id="figure-10"></span>
 
-![32$\times$32 解像度のクラス条件付き CIFAR-10 において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。](../../papers/diffusion-design-space/figure-10.png)
+![$32\times32$ 解像度のクラス条件付き CIFAR-10 において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。](../../papers/diffusion-design-space/figure-10.png)
 
-**図 10。** 32$\times$32 解像度のクラス条件付き CIFAR-10 [Kri09] において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。
+**図 10。** $32\times32$ 解像度のクラス条件付き CIFAR-10 [Kri09] において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。
 
 <span id="figure-11"></span>
 
-![64$\times$64 解像度の FFHQ および AFHQv2 において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。](../../papers/diffusion-design-space/figure-11.png)
+![$64\times64$ 解像度の FFHQ および AFHQv2 において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。](../../papers/diffusion-design-space/figure-11.png)
 
-**図 11。** 64$\times$64 解像度の FFHQ [Kar18] および AFHQv2 [Cho20c] において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。
+**図 11。** $64\times64$ 解像度の FFHQ [Kar18] および AFHQv2 [Cho20c] において、各ケースで同じ潜在コード集合（$\boldsymbol{x}_0$）を用い、本研究の決定論的サンプラーを使用した、各種学習構成の結果。
 
 <span id="figure-12"></span>
 
 ![本研究の決定論的サンプラーを用いた場合の、NFE の関数としての画像品質と FID。](../../papers/diffusion-design-space/figure-12.png)
 
-**図 12。** 本研究の決定論的サンプラーを用いた場合の、NFE の関数としての画像品質と FID。32$\times$32 解像度では、NFE $=$ 13 前後で妥当な画像品質に達するが、FID は NFE $=$ 35 まで改善し続ける。64$\times$64 解像度では、NFE $=$ 19 前後で妥当な画像品質に達するが、FID は NFE $=$ 79 まで改善し続ける。
+**図 12。** 本研究の決定論的サンプラーを用いた場合の、NFE の関数としての画像品質と FID。$32\times32$ 解像度では、NFE $=$ 13 前後で妥当な画像品質に達するが、FID は NFE $=$ 35 まで改善し続ける。$64\times64$ 解像度では、NFE $=$ 19 前後で妥当な画像品質に達するが、FID は NFE $=$ 79 まで改善し続ける。
 
 [図 6](#figure-06) は、Dhariwal と Nichol による事前学習済み ADM モデル [Dha21] を用いた、クラス条件付き ImageNet-64 [Den09a] の生成画像を示す。元の DDIM [Son21a] および iDDPM [Nic21] サンプラーを、決定論的設定と確率的設定の両方で本研究のサンプラーと比較している（[第 3 節](#section-3)および[第 4 節](#section-4)）。[図 7](#figure-07) は、本研究の改善された学習構成（[第 5 節](#section-5)）を用いてモデルをゼロから学習することで得られた、対応する結果を示す。
 
@@ -567,13 +567,13 @@ $$
 
 ### 8.4 本研究の ODE の実際の評価（[アルゴリズム 1](#algorithm-01)）
 
-$\boldsymbol{x}$ を元のスケーリングされていない変数 $\hat\boldsymbol{x}$ のスケーリング版とみなし、$\boldsymbol{x}= s(t) ~\hat\boldsymbol{x}$ を、本研究のスケーリングされた ODE（[式 4](#equation-04)）に現れる score 項へ代入する。
+$\boldsymbol{x}$ を元のスケーリングされていない変数 $\hat{\boldsymbol{x}}$ のスケーリング版とみなし、$\boldsymbol{x}= s(t) ~\hat{\boldsymbol{x}}$ を、本研究のスケーリングされた ODE（[式 4](#equation-04)）に現れる score 項へ代入する。
 $$
 \begin{aligned}
   && \nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) \\
-  &= \nabla_{[ s(t) \hat \boldsymbol{x}]} \log p\big( [s(t) ~\hat\boldsymbol{x}] / s(t); \sigma(t) \big) \\
-  &= \nabla_{s(t) \hat \boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) \\
-  &= \tfrac{1}{s(t)} \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big)
+  &= \nabla_{[ s(t) \hat{\boldsymbol{x}}]} \log p\big( [s(t) ~\hat{\boldsymbol{x}}] / s(t); \sigma(t) \big) \\
+  &= \nabla_{s(t) \hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) \\
+  &= \tfrac{1}{s(t)} \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big)
   \text{.}
 \end{aligned}
 $$
@@ -581,7 +581,7 @@ $$
 [式 3](#equation-03)を用いることで、これを $D(\cdot)$ に関してさらに書き換えられる。<span id="equation-74"></span>
 
 $$
-\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) ~=~ \tfrac{1}{s(t) \sigma(t)^2} \Big( D\big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big)
+\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) ~=~ \tfrac{1}{s(t) \sigma(t)^2} \Big( D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big)
 
   \text{.}
 $$
@@ -589,17 +589,17 @@ $$
 ここで、理想的なデノイザー $D(\cdot)$ を学習済みモデル $D_\theta(\cdot)$ で近似し、[式 74](#equation-74)を[式 4](#equation-04)へ代入する。
 $$
 \begin{aligned}
-  \mathrm{d}\boldsymbol{x}&= \left[ \dot s(t) ~\boldsymbol{x}/ s(t) - s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\Big[ \tfrac{1}{s(t) \sigma(t)^2} \Big( D_\theta \big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) \Big] \right] ~\mathrm{d}t \\
-  &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) \right] ~\mathrm{d}t
+  \mathrm{d}\boldsymbol{x}&= \left[ \dot s(t) ~\boldsymbol{x}/ s(t) - s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\Big[ \tfrac{1}{s(t) \sigma(t)^2} \Big( D_\theta \big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) \Big] \right] ~\mathrm{d}t \\
+  &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) \right] ~\mathrm{d}t
   \text{.}
 \end{aligned}
 $$
 
-最後に、$\hat\boldsymbol{x}= \boldsymbol{x}/ s(t)$ を逆代入する。<span id="equation-80"></span>
+最後に、$\hat{\boldsymbol{x}}= \boldsymbol{x}/ s(t)$ を逆代入する。<span id="equation-80"></span>
 
 $$
 \begin{aligned}
-  \mathrm{d}\boldsymbol{x}&= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\hat\boldsymbol{x}]; \sigma(t) \big) - [\hat\boldsymbol{x}] \Big) \right] ~\mathrm{d}t \\
+  \mathrm{d}\boldsymbol{x}&= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\hat{\boldsymbol{x}}]; \sigma(t) \big) - [\hat{\boldsymbol{x}}] \Big) \right] ~\mathrm{d}t \\
   &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\boldsymbol{x}/ s(t)]; \sigma(t) \big) - [\boldsymbol{x}/ s(t)] \Big) \right] ~\mathrm{d}t \\
   &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} D_\theta \big( \boldsymbol{x}/ s(t); \sigma(t) \big) + \tfrac{\dot\sigma(t)}{\sigma(t)} ~\boldsymbol{x}\right] ~\mathrm{d}t \\
   &= \left[ \left( \tfrac{\dot\sigma(t)}{\sigma(t)} + \tfrac{\dot s(t)}{s(t)} \right) \boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} D_\theta \big( \boldsymbol{x}/ s(t); \sigma(t) \big) \right] ~\mathrm{d}t
@@ -998,13 +998,13 @@ $$
 $$
 ここで、$M = 1000$、$F_\theta$ はネットワークを表し、$\bar\sigma(t)$ は[式 11](#equation-11)の摂動カーネルの標準偏差に対応する。
 
-[式 20](#equation-20)と[式 11](#equation-11)から、それぞれ $p_t(\boldsymbol{x})$ と $\bar\sigma(t)$ の定義を展開し、$\boldsymbol{x}= s(t) \hat\boldsymbol{x}$ を代入して、スケーリングされていない変数 $\hat\boldsymbol{x}$ に関する対応する式を得る。
+[式 20](#equation-20)と[式 11](#equation-11)から、それぞれ $p_t(\boldsymbol{x})$ と $\bar\sigma(t)$ の定義を展開し、$\boldsymbol{x}= s(t) \hat{\boldsymbol{x}}$ を代入して、スケーリングされていない変数 $\hat{\boldsymbol{x}}$ に関する対応する式を得る。
 $$
 \begin{aligned}
   \nabla_{\boldsymbol{x}} \log \big[ p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) \big] &\approx& {-}\tfrac{1}{[s(t) \sigma(t)]} ~F_\theta\big( \boldsymbol{x}; ~(M{-}1)t \big) \\
-  \nabla_{[s(t) \hat\boldsymbol{x}]} \log p\big( [s(t) ~\hat\boldsymbol{x}] / s(t); \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( [s(t) ~\hat\boldsymbol{x}]; ~(M{-}1)t \big) \\
-  \tfrac{1}{s(t)} \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big)
+  \nabla_{[s(t) \hat{\boldsymbol{x}}]} \log p\big( [s(t) ~\hat{\boldsymbol{x}}] / s(t); \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( [s(t) ~\hat{\boldsymbol{x}}]; ~(M{-}1)t \big) \\
+  \tfrac{1}{s(t)} \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big)
   \text{.}
 \end{aligned}
 $$
@@ -1012,16 +1012,16 @@ $$
 ここで、左辺を[式 3](#equation-03)で置き換え、[式 170](#equation-170)から $s(t)$ の定義を展開する。
 $$
 \begin{aligned}
-  \Big[ \Big( D\big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) / \sigma(t)^2 \Big] &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  D\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& \hat\boldsymbol{x}- \sigma(t) ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  D\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& \hat\boldsymbol{x}- \sigma(t) ~F_\theta\bigg( \bigg[ \tfrac{1}{\sqrt{\sigma(t)^2 + 1}} \bigg] ~\hat\boldsymbol{x}; ~(M{-}1)t \bigg)
+  \Big[ \Big( D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) / \sigma(t)^2 \Big] &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& \hat{\boldsymbol{x}}- \sigma(t) ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& \hat{\boldsymbol{x}}- \sigma(t) ~F_\theta\bigg( \bigg[ \tfrac{1}{\sqrt{\sigma(t)^2 + 1}} \bigg] ~\hat{\boldsymbol{x}}; ~(M{-}1)t \bigg)
   \text{,}
 \end{aligned}
 $$
 これは、$\sigma$ に関して、$\sigma(t) \rightarrow \sigma$ および $t \rightarrow \sigma^{-1}(\sigma)$ と置き換えることでさらに表せる。<span id="equation-180"></span>
 
 $$
-D(\hat\boldsymbol{x}; \sigma) ~\approx~ \hat\boldsymbol{x}- \sigma ~F_\theta\Big( \tfrac{1}{\sqrt{\sigma^2 + 1}} ~\hat\boldsymbol{x}; ~(M{-}1) ~\sigma^{-1}(\sigma) \Big)
+D(\hat{\boldsymbol{x}}; \sigma) ~\approx~ \hat{\boldsymbol{x}}- \sigma ~F_\theta\Big( \tfrac{1}{\sqrt{\sigma^2 + 1}} ~\hat{\boldsymbol{x}}; ~(M{-}1) ~\sigma^{-1}(\sigma) \Big)
 
   \text{.}
 $$
@@ -1029,7 +1029,7 @@ $$
 [式 180](#equation-180)の右辺を $D_\theta$ の定義として採用し、次を得る。<span id="equation-181"></span>
 
 $$
-D_\theta(\hat\boldsymbol{x}; \sigma) = \underbrace{1~\cdot}_{c_\text{skip}}\hat\boldsymbol{x}~\underbrace{-~\sigma}_{c_\text{out}} \,\cdot ~F_\theta\Big( \underbrace{\tfrac{1}{\sqrt{\sigma^2 + 1}}}_{c_\text{in}} \,\cdot~\hat\boldsymbol{x}; ~\underbrace{(M{-}1)~\sigma^{-1}(\sigma)}_{c_\text{noise}} \Big)
+D_\theta(\hat{\boldsymbol{x}}; \sigma) = \underbrace{1~\cdot}_{c_\text{skip}}\hat{\boldsymbol{x}}~\underbrace{-~\sigma}_{c_\text{out}} \,\cdot ~F_\theta\Big( \underbrace{\tfrac{1}{\sqrt{\sigma^2 + 1}}}_{c_\text{in}} \,\cdot~\hat{\boldsymbol{x}}; ~\underbrace{(M{-}1)~\sigma^{-1}(\sigma)}_{c_\text{noise}} \Big)
 
   \text{,}
 $$
@@ -1041,14 +1041,14 @@ $$
 
 Song ら [Son21] は、学習損失を次のように定義する。[+2]
 $$
-\mathbb{E}_{t \sim \mathcal{U}(\epsilon_\text{t}, 1), \boldsymbol{y}\sim p_\text{data}, \bar\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \Big[ \big\| \bar\sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ \bar\sigma(t) ~\bar\boldsymbol{n}; ~F_\theta, t \big) + \bar\boldsymbol{n}\big\|^2_2 \Big]
+\mathbb{E}_{t \sim \mathcal{U}(\epsilon_\text{t}, 1), \boldsymbol{y}\sim p_\text{data}, \bar{\boldsymbol{n}}\sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \Big[ \big\| \bar\sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ \bar\sigma(t) ~\bar{\boldsymbol{n}}; ~F_\theta, t \big) + \bar{\boldsymbol{n}}\big\|^2_2 \Big]
   \text{,}
 $$
-ここで、$\mathop{\mathrm{score}}(\cdot)$ の定義は[式 172](#equation-172)と同じである。$\bar\sigma(t) = s(t) \sigma(t)$ および $\bar\boldsymbol{n}= \boldsymbol{n}/ \sigma(t)$ を代入して、この式を簡約する。ここで、$\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma(t)^2 \mathbf{I})$ である。<span id="equation-185"></span>
+ここで、$\mathop{\mathrm{score}}(\cdot)$ の定義は[式 172](#equation-172)と同じである。$\bar\sigma(t) = s(t) \sigma(t)$ および $\bar{\boldsymbol{n}}= \boldsymbol{n}/ \sigma(t)$ を代入して、この式を簡約する。ここで、$\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma(t)^2 \mathbf{I})$ である。<span id="equation-185"></span>
 
 $$
 \begin{aligned}
-  && \mathbb{E}_{t, \boldsymbol{y}, \bar\boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ [s(t)\sigma(t)] ~\bar\boldsymbol{n}; ~F_\theta, t \big) + \bar\boldsymbol{n}\big\|^2_2 \Big] \\
+  && \mathbb{E}_{t, \boldsymbol{y}, \bar{\boldsymbol{n}}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ [s(t)\sigma(t)] ~\bar{\boldsymbol{n}}; ~F_\theta, t \big) + \bar{\boldsymbol{n}}\big\|^2_2 \Big] \\
   &= \mathbb{E}_{t, \boldsymbol{y}, \boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ s(t)\sigma(t) ~[\boldsymbol{n}/ \sigma(t)]; ~F_\theta, t \big) + [\boldsymbol{n}/ \sigma(t)] \big\|^2_2 \Big] \\
   &= \mathbb{E}_{t, \boldsymbol{y}, \boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~(\boldsymbol{y}+ \boldsymbol{n}); ~F_\theta, t \big) + \boldsymbol{n}/ \sigma(t) \big\|^2_2 \Big]
 
@@ -1180,7 +1180,7 @@ $$
 $$
 これは、$\bar p_i(\boldsymbol{x}) = p\big( \boldsymbol{x}; \sigma(t_i) \big)$ と選択することで[式 200](#equation-200)と同一になる。
 
-最後に、Song ら [Son21] は CIFAR-10 に対して $\sigma_{\min}= 0.01$ と $\sigma_{\max}= 50$ を設定し（[Son21] の Appendix C）、先行する SMLD モデルに合わせて画像を範囲 $[0, 1]$ で表現することを選択する。本研究で標準化した範囲 $[-1, 1]$ は 2 倍広いため、補償のために $\sigma_{\min}$ と $\sigma_{\max}$ を 2$\times$ 倍しなければならない。[表 1](#table-01)の「Parameters」セクションは、これらの調整後の値を反映している。
+最後に、Song ら [Son21] は CIFAR-10 に対して $\sigma_{\min}= 0.01$ と $\sigma_{\max}= 50$ を設定し（[Son21] の Appendix C）、先行する SMLD モデルに合わせて画像を範囲 $[0, 1]$ で表現することを選択する。本研究で標準化した範囲 $[-1, 1]$ は 2 倍広いため、補償のために $\sigma_{\min}$ と $\sigma_{\max}$ を $2\times$ 倍しなければならない。[表 1](#table-01)の「Parameters」セクションは、これらの調整後の値を反映している。
 
 <span id="section-9-2-3"></span>
 
@@ -1312,16 +1312,16 @@ $$
 
 #### 9.3.2 iDDPM の時刻ステップ離散化
 
-Ho ら [Den20] による元の DDPM 定式化では、順方向過程（[Den20] の式 2）を、$\bar\boldsymbol{x}_0 \sim p_\text{data}$ に対して離散分散スケジュール $\{\beta_1, \dots, \beta_T\}$ に従い Gaussian ノイズを徐々に加える Markov chain として定義する。
+Ho ら [Den20] による元の DDPM 定式化では、順方向過程（[Den20] の式 2）を、$\bar{\boldsymbol{x}}_0 \sim p_\text{data}$ に対して離散分散スケジュール $\{\beta_1, \dots, \beta_T\}$ に従い Gaussian ノイズを徐々に加える Markov chain として定義する。
 $$
-q(\bar\boldsymbol{x}_t ~|~ \bar\boldsymbol{x}_{t-1}) = \mathcal{N}\big( \bar\boldsymbol{x}_t; ~\sqrt{1 - \beta_t} ~\bar\boldsymbol{x}_{t-1}, ~\beta_t ~\mathbf{I}\big)
+q(\bar{\boldsymbol{x}}_t ~|~ \bar{\boldsymbol{x}}_{t-1}) = \mathcal{N}\big( \bar{\boldsymbol{x}}_t; ~\sqrt{1 - \beta_t} ~\bar{\boldsymbol{x}}_{t-1}, ~\beta_t ~\mathbf{I}\big)
   \text{.}
 $$
 
-$\bar\boldsymbol{x}_0$ から $\bar\boldsymbol{x}_t$ への対応する遷移確率（[Den20] の式 4）は、次で与えられる。<span id="equation-233"></span>
+$\bar{\boldsymbol{x}}_0$ から $\bar{\boldsymbol{x}}_t$ への対応する遷移確率（[Den20] の式 4）は、次で与えられる。<span id="equation-233"></span>
 
 $$
-q(\bar\boldsymbol{x}_t ~|~ \bar\boldsymbol{x}_0) = \mathcal{N}\big( \bar\boldsymbol{x}_t; ~\sqrt{\bar\alpha_t} ~\bar\boldsymbol{x}_0, ~(1 - \bar\alpha_t) ~\mathbf{I}\big)
+q(\bar{\boldsymbol{x}}_t ~|~ \bar{\boldsymbol{x}}_0) = \mathcal{N}\big( \bar{\boldsymbol{x}}_t; ~\sqrt{\bar\alpha_t} ~\bar{\boldsymbol{x}}_0, ~(1 - \bar\alpha_t) ~\mathbf{I}\big)
   \text{,}\hspace{4mm}\text{where}\hspace{4mm}
   \bar\alpha_t = \prod_{s=1}^t ~(1 - \beta_s)
   \text{.}
@@ -1372,7 +1372,7 @@ $$
 
 $$
 \begin{aligned}
-  q(\bar\boldsymbol{x}_j ~|~ \bar\boldsymbol{x}_M) &= \mathcal{N}\big( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\bar\boldsymbol{x}_M, ~(1 - \bar\alpha'_j) ~\mathbf{I}\big)  \text{,} \\[2mm]
+  q(\bar{\boldsymbol{x}}_j ~|~ \bar{\boldsymbol{x}}_M) &= \mathcal{N}\big( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\bar{\boldsymbol{x}}_M, ~(1 - \bar\alpha'_j) ~\mathbf{I}\big)  \text{,} \\[2mm]
   \bar\alpha_j &= \cos^2 \bigg( \frac{(M - j) / M + C_2}{1 + C_2} \cdot \frac{\pi}{2} \bigg)  \text{,}\hspace{4mm}\text{and} \\
   \bar\alpha'_j &= \prod_{s=M-1}^j ~\max\bigg( \frac{\bar\alpha_j}{\bar\alpha_{j+1}}, ~C_1 \bigg) ~=~ \bar\alpha'_{j+1} ~\max\bigg( \frac{\bar\alpha_j}{\bar\alpha_{j+1}}, ~C_1 \bigg)
   \text{,}
@@ -1392,22 +1392,22 @@ $$
 $$
 これにより、[表 1](#table-01)の「Parameters」セクションに示した式が得られる。
 
-$\boldsymbol{x}$ と $\bar\boldsymbol{x}$ の定義を統一するには、各時刻ステップ $t = u_j$ において、[式 11](#equation-11)の摂動カーネルと[式 243](#equation-243)の遷移確率を一致させなければならない。
+$\boldsymbol{x}$ と $\bar{\boldsymbol{x}}$ の定義を統一するには、各時刻ステップ $t = u_j$ において、[式 11](#equation-11)の摂動カーネルと[式 243](#equation-243)の遷移確率を一致させなければならない。
 $$
 \begin{aligned}
-  p_{0t}\big( \boldsymbol{x}(u_j) ~|~ \boldsymbol{x}(0) \big) &= q(\bar\boldsymbol{x}_j ~|~ \bar\boldsymbol{x}_M) \\
-  \mathcal{N} \big( \boldsymbol{x}(u_j); ~s(t) ~\boldsymbol{x}(0), ~s(u_j)^2 ~\sigma(u_j)^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\bar\boldsymbol{x}_M, ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
+  p_{0t}\big( \boldsymbol{x}(u_j) ~|~ \boldsymbol{x}(0) \big) &= q(\bar{\boldsymbol{x}}_j ~|~ \bar{\boldsymbol{x}}_M) \\
+  \mathcal{N} \big( \boldsymbol{x}(u_j); ~s(t) ~\boldsymbol{x}(0), ~s(u_j)^2 ~\sigma(u_j)^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\bar{\boldsymbol{x}}_M, ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
   \text{.}
 \end{aligned}
 $$
 
-[第 9.3.1 節](#section-9-3-1)の $s(t) = 1$ と $\sigma(t) = t$、および $\bar\boldsymbol{x}_M = \boldsymbol{x}(0)$ を代入する。
+[第 9.3.1 節](#section-9-3-1)の $s(t) = 1$ と $\sigma(t) = t$、および $\bar{\boldsymbol{x}}_M = \boldsymbol{x}(0)$ を代入する。
 $$
-\mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) = \mathcal{N}\left( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
+\mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) = \mathcal{N}\left( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
   \text{.}
 $$
 
-$\bar\boldsymbol{x}_j = \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j)$ と定義することで、これら 2 つの分布の平均を一致させられる。
+$\bar{\boldsymbol{x}}_j = \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j)$ と定義することで、これら 2 つの分布の平均を一致させられる。
 $$
 \begin{aligned}
   \mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j); ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right) \\
@@ -1470,7 +1470,7 @@ $$
 
 #### 9.3.4 iDDPM の実用上の考慮事項
 
-ImageNet-64 で用いる事前学習済み iDDPM モデルは、Dhariwal と Nichol [Dha21] が提供する「ADM (dropout)」チェックポイント [+17] に対応する。このモデルは 296 million 個の学習可能パラメータをもち、$M = 1000$ 個の離散的なノイズレベル集合 $\sigma \in \{u_j\} \approx \{$20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, $\dots$, 0.0064$\}$ をサポートする。$F_\theta$ をこのような特定の $\sigma$ の選択肢についてしか評価できないことから、実用上の課題が 3 つ生じる。
+ImageNet-64 で用いる事前学習済み iDDPM モデルは、Dhariwal と Nichol [Dha21] が提供する「ADM (dropout)」チェックポイント [+17] に対応する。このモデルは 296 million 個の学習可能パラメータをもち、$M = 1000$ 個の離散的なノイズレベル集合 $\sigma \in \{u_j\} \approx \{20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, \dots, 0.0064\}$ をサポートする。$F_\theta$ をこのような特定の $\sigma$ の選択肢についてしか評価できないことから、実用上の課題が 3 つ生じる。
 
 1.  DDIM の文脈では、$\{u_j\}$ をどのように再サンプリングして $\{t_i\}$ を得るかを、$N \ne M$ の場合について選ばなければならない。Song ら [Son21a] は、$t_i = u_{k \cdot i}$ とする単純な再サンプリング方式を用いる。ここで、再サンプリング係数は $k \in \mathbb{Z}^+$ である。しかし、この方式は $1000 \equiv 0 \pmod{N}$ を必要とするため、$N$ の可能な選択肢を大幅に制限する。一方、Nichol と Dhariwal [Nic21] は、$t_i = u_j$ とし、$j = \lfloor (M - 1) / (N - 1) \cdot i \rfloor$ とする、より柔軟な方式を用いる。しかし実際には、$u_{j<8}$ の値が、本研究が選好する $\sigma_{\max}= 80$ よりかなり大きいことに注意する。本研究では、$j = \lfloor j_0 + (M - 1 - j_0) / (N - 1) \cdot i \rfloor$ と定義し、$j_0 = 8$ とすることでこれらの値をスキップすることを選択し、これは[表 1](#table-01)の「Time steps」行と一致する。[図 2c](#figure-02)における元のサンプラー（青）と本研究の再実装（オレンジ）の差は、この選択によって説明される。
 
@@ -1490,7 +1490,7 @@ ImageNet-64 で用いる事前学習済み iDDPM モデルは、Dhariwal と Nic
 
 [第 3 節](#section-3)で論じたように、拡散モデルが多数のサンプリングステップを必要とする傾向がある根本的な理由は、どのような数値 ODE ソルバーも必然的に近似であることにある。ステップが大きいほど、各ステップで真の解からより遠く逸脱する。具体的には、与えられた $\boldsymbol{x}_{i-1}$ の値が時間ステップ $i-1$ におけるものであるとき、ソルバーは真の $\boldsymbol{x}^*_i$ を $\boldsymbol{x}_i$ として近似し、その結果、局所打ち切り誤差 $\boldsymbol{\tau}_i = \boldsymbol{x}^*_i - \boldsymbol{x}_i$ が生じる。局所誤差は $N$ ステップにわたって蓄積し、最終的に大域打ち切り誤差 $\boldsymbol{e}_N$ につながる。
 
-Euler 法は1次の ODE ソルバーであり、$\boldsymbol{\tau}_i = \mathcal{O}\left(h_i^2\right)$ が任意の十分に滑らかな $\boldsymbol{x}(t)$ に対して成り立つことを意味する。ここで、$h_i = |t_i - t_{i-1}|$ は局所ステップ幅である [Sul03]。言い換えると、ある $C$ と $H$ が存在し、$\|\boldsymbol{\tau}_i\| < C h_i^2$ がすべての $h_i < H$ に対して成り立つ。すなわち、$h_i$ を半分にすると $\boldsymbol{\tau}_i$ は 4$\times$ 小さくなる。さらに、$D_\theta$ が Lipschitz 連続であると仮定すると—これは本論文で検討するすべてのネットワークアーキテクチャに当てはまる—大域打ち切り誤差は $\|\boldsymbol{e}_N\| \le E \max_i \|\boldsymbol{\tau}_i\|$ で上から抑えられる。ここで、$E$ の値は $N$、$t_0$、$t_N$、および Lipschitz 定数に依存する [Sul03]。したがって、与えられた $N$ に対する大域誤差を減らし、ひいては $N$ 自体を減らせるようにすることは、ソルバーと $\{t_i\}$ を、$\max_i \|\boldsymbol{\tau}_i\|$ が最小になるように選ぶことに帰着する。
+Euler 法は1次の ODE ソルバーであり、$\boldsymbol{\tau}_i = \mathcal{O}\left(h_i^2\right)$ が任意の十分に滑らかな $\boldsymbol{x}(t)$ に対して成り立つことを意味する。ここで、$h_i = |t_i - t_{i-1}|$ は局所ステップ幅である [Sul03]。言い換えると、ある $C$ と $H$ が存在し、$\|\boldsymbol{\tau}_i\| < C h_i^2$ がすべての $h_i < H$ に対して成り立つ。すなわち、$h_i$ を半分にすると $\boldsymbol{\tau}_i$ は $4\times$ 小さくなる。さらに、$D_\theta$ が Lipschitz 連続であると仮定すると—これは本論文で検討するすべてのネットワークアーキテクチャに当てはまる—大域打ち切り誤差は $\|\boldsymbol{e}_N\| \le E \max_i \|\boldsymbol{\tau}_i\|$ で上から抑えられる。ここで、$E$ の値は $N$、$t_0$、$t_N$、および Lipschitz 定数に依存する [Sul03]。したがって、与えられた $N$ に対する大域誤差を減らし、ひいては $N$ 自体を減らせるようにすることは、ソルバーと $\{t_i\}$ を、$\max_i \|\boldsymbol{\tau}_i\|$ が最小になるように選ぶことに帰着する。
 
 <span id="figure-13"></span>
 
@@ -1604,7 +1604,7 @@ $\alpha=1$ と設定するもう1つの利点は、事前学習済みニュー�
 
 ### 12.1 FID の計算
 
-50,000枚の生成画像と利用可能なすべての実画像との間で、$x$ 反転などのデータ拡張を一切行わずに FID [Heu17] を計算する。StyleGAN3 [+22] [Kar21] に付属する事前学習済み Inception-v3 モデルを使用するが、これはさらに、元の TensorFlow ベースのモデルを直接 PyTorch に移植したものである [+23]。本研究の FID 実装が、Dhariwal と Nichol [Dha21] および Karras ら [Kar21] と比較して同一の結果を生成することを確認した。通常 $\pm$2% 程度であるランダムな変動の影響を抑えるため、各実験で FID を3回計算し、最小値を報告する。また、[図 4](#figure-04)、[図 5b](#figure-05)、[図 13c](#figure-13)、および[図 15](#figure-15)では、得られた FID の最高値と最低値の差も強調している。
+50,000枚の生成画像と利用可能なすべての実画像との間で、$x$ 反転などのデータ拡張を一切行わずに FID [Heu17] を計算する。StyleGAN3 [+22] [Kar21] に付属する事前学習済み Inception-v3 モデルを使用するが、これはさらに、元の TensorFlow ベースのモデルを直接 PyTorch に移植したものである [+23]。本研究の FID 実装が、Dhariwal と Nichol [Dha21] および Karras ら [Kar21] と比較して同一の結果を生成することを確認した。通常 $\pm 2\%$ 程度であるランダムな変動の影響を抑えるため、各実験で FID を3回計算し、最小値を報告する。また、[図 4](#figure-04)、[図 5b](#figure-05)、[図 13c](#figure-13)、および[図 15](#figure-15)では、得られた FID の最高値と最低値の差も強調している。
 
 <span id="section-12-2"></span>
 
@@ -1612,7 +1612,7 @@ $\alpha=1$ と設定するもう1つの利点は、事前学習済みニュー�
 
 [第 5 節](#section-5)では、条件付きデータ拡張を用いて $D_\theta$ の過学習に対処することを提案する。本研究のデータ拡張パイプラインは、もともと GAN の文脈で Karras ら [Kar20a] が提案したものと同じ概念に基づいて構築する。実際には6種類の幾何変換を使用する。色の破壊や画像空間フィルタリングなど、他の種類のデータ拡張は、拡散ベースのモデルに一貫して有害であることを確認した。
 
-本研究のデータ拡張パイプラインの詳細を[表 6](#table-06)に示す。各学習画像 $\boldsymbol{y}\sim p_\text{data}$ にデータ拡張を独立に適用してから、ノイズ $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$ を追加する。まず、重み付きコイントスに基づいて各データ拡張を有効化するか無効化するかを決定する。所与のデータ拡張を有効にする確率（「Prob.」列）は、常に有効にする $x$ 反転を除き、CIFAR-10 では12%、FFHQ と AFHQv2 では15%に固定する。次に、対応する分布（「Parameters」列）から8個のランダムパラメータを抽出する。所与のデータ拡張が無効な場合、関連するパラメータをゼロで上書きする。これらに基づき、パラメータ（「Transformation」列）に基づく同次2次元変換行列を構築する。この変換は、2$\times$ スーパーサンプリングされた高品質 Wavelet フィルタを用いる [Kar20a] の実装によって画像へ適用される。最後に、9次元の条件付け入力ベクトル（「Conditioning」列）を構築し、画像およびノイズレベルの入力に加えてデノイザーネットワークへ入力する。
+本研究のデータ拡張パイプラインの詳細を[表 6](#table-06)に示す。各学習画像 $\boldsymbol{y}\sim p_\text{data}$ にデータ拡張を独立に適用してから、ノイズ $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$ を追加する。まず、重み付きコイントスに基づいて各データ拡張を有効化するか無効化するかを決定する。所与のデータ拡張を有効にする確率（「Prob.」列）は、常に有効にする $x$ 反転を除き、CIFAR-10 では12%、FFHQ と AFHQv2 では15%に固定する。次に、対応する分布（「Parameters」列）から8個のランダムパラメータを抽出する。所与のデータ拡張が無効な場合、関連するパラメータをゼロで上書きする。これらに基づき、パラメータ（「Transformation」列）に基づく同次2次元変換行列を構築する。この変換は、$2\times$ スーパーサンプリングされた高品質 Wavelet フィルタを用いる [Kar20a] の実装によって画像へ適用される。最後に、9次元の条件付け入力ベクトル（「Conditioning」列）を構築し、画像およびノイズレベルの入力に加えてデノイザーネットワークへ入力する。
 
 <span id="table-06"></span>
 
@@ -1622,7 +1622,7 @@ $\alpha=1$ と設定するもう1つの利点は、事前学習済みニュー�
 
 条件付け入力の役割は、ネットワークに一連の補助タスクを提示することである。$p(\boldsymbol{x}; \sigma)$ をモデル化する主タスクに加え、無限個の分布 $p(\boldsymbol{x}; \sigma, \boldsymbol{a})$ も、データ拡張パラメータ $\boldsymbol{a}$ の可能な各選択についてモデル化するようネットワークに実質的に求める。これらの補助タスクは、多種多様な固有の学習サンプルをネットワークに与え、個々のサンプルへの過学習を防ぐ。それでも、補助タスクは主タスクにも有益であるように見える。これは、デノイズ操作自体が $\boldsymbol{a}$ のどの選択に対しても類似しているためだと推測する。
 
-条件付け入力は、ゼロがデータ拡張を適用しなかった場合に対応するよう設計した。サンプリング中は、主タスクと整合する結果を得るため、単に $\boldsymbol{a} = \mathbf{0}$ と設定する。補助タスクと主タスクの間に漏洩は観測されておらず、$A_\text{prob} = 100$% であっても、生成画像にはドメイン外の幾何変換の痕跡がまったく現れない。実際には、これは結果が改善する限り、定数 $\{A_\text{prob}, A_\text{scale}, A_\text{aniso}, A_\text{trans}\}$ を自由に選べることを意味する。水平反転は興味深い例である。先行研究の大半は、ランダムな $x$ 反転で学習セットを拡張しており、これはほとんどのデータセットに有益だが、生成画像中のテキストやロゴが鏡像として現れ得るという欠点がある。本研究の漏洩のないデータ拡張では、$x$ 反転のデータ拡張を100%の確率で実行することにより、欠点を伴わずに同じ利点を得られる。したがって、生成画像を元の分布に忠実に保つため、本研究のデータ拡張方式だけに依存し、データセットの $x$ 反転を無効化する。
+条件付け入力は、ゼロがデータ拡張を適用しなかった場合に対応するよう設計した。サンプリング中は、主タスクと整合する結果を得るため、単に $\boldsymbol{a} = \mathbf{0}$ と設定する。補助タスクと主タスクの間に漏洩は観測されておらず、$A_\text{prob} = 100\%$ であっても、生成画像にはドメイン外の幾何変換の痕跡がまったく現れない。実際には、これは結果が改善する限り、定数 $\{A_\text{prob}, A_\text{scale}, A_\text{aniso}, A_\text{trans}\}$ を自由に選べることを意味する。水平反転は興味深い例である。先行研究の大半は、ランダムな $x$ 反転で学習セットを拡張しており、これはほとんどのデータセットに有益だが、生成画像中のテキストやロゴが鏡像として現れ得るという欠点がある。本研究の漏洩のないデータ拡張では、$x$ 反転のデータ拡張を100%の確率で実行することにより、欠点を伴わずに同じ利点を得られる。したがって、生成画像を元の分布に忠実に保つため、本研究のデータ拡張方式だけに依存し、データセットの $x$ 反転を無効化する。
 
 <span id="section-12-3"></span>
 
@@ -1636,15 +1636,15 @@ $\alpha=1$ と設定するもう1つの利点は、事前学習済みニュー�
 
 [表 7](#table-07)は、[第 5 節](#section-5)で報告した学習実験で使用したハイパーパラメータの正確な一式を示す。まず CIFAR-10、FFHQ、AFHQv2 で使用した構成を詳述し、次に改良した ImageNet モデルの学習について論じる。
 
-[表 2](#table-02)の構成 A（「Baseline」）は2つのケース（VP と VE）に対する Song ら [Son21] の元の設定に対応し、構成 F（「Ours」）は本研究の改良設定に対応する。学習セットから合計2億枚の画像が抽出されるまで各モデルを学習した。これは[表 7](#table-07)で「200 Mimg」と略記しており、バッチサイズ512を用いた合計 $\sim$400,000回の学習反復に相当する。250万枚の画像ごとにモデルのスナップショットを保存し、解像度に応じて NFE $=$ 35 または NFE $=$ 79 の決定論的サンプラーで最小の FID を達成したスナップショットの結果を報告した。
+[表 2](#table-02)の構成 A（「Baseline」）は2つのケース（VP と VE）に対する Song ら [Son21] の元の設定に対応し、構成 F（「Ours」）は本研究の改良設定に対応する。学習セットから合計2億枚の画像が抽出されるまで各モデルを学習した。これは[表 7](#table-07)で「200 Mimg」と略記しており、バッチサイズ512を用いた合計 $\sim 400{,}000$ 回の学習反復に相当する。250万枚の画像ごとにモデルのスナップショットを保存し、解像度に応じて NFE $=$ 35 または NFE $=$ 79 の決定論的サンプラーで最小の FID を達成したスナップショットの結果を報告した。
 
-構成 B では、より高速な学習を可能にし、より意味のある比較点を得るため、基本ハイパーパラメータを再調整する。具体的には、解像度に応じて、並列度を4基から8基の GPU へ、バッチサイズを128から512または256へ増やす。また、$\| \mathrm{d}\mathcal{L}(D_\theta) / \mathrm{d}\theta \|_2 \le 1$ を強制する勾配クリッピングを無効にする。これは実際には何の利点ももたらさないことを確認した。さらに、CIFAR-10 では学習率を0.0002から0.001へ引き上げ、最初の1000万枚の画像にわたってランプアップし、$\theta$ の指数移動平均の半減期を50万枚の画像に統一する。最後に、1%刻みの完全なグリッドサーチにより、[表 7](#table-07)に示すとおり各データセットの dropout 確率を調整する。総学習時間は、32$\times$32解像度の CIFAR-10 で約2日、64$\times$64解像度の FFHQ と AFHQv2 で4日である。
+構成 B では、より高速な学習を可能にし、より意味のある比較点を得るため、基本ハイパーパラメータを再調整する。具体的には、解像度に応じて、並列度を4基から8基の GPU へ、バッチサイズを128から512または256へ増やす。また、$\| \mathrm{d}\mathcal{L}(D_\theta) / \mathrm{d}\theta \|_2 \le 1$ を強制する勾配クリッピングを無効にする。これは実際には何の利点ももたらさないことを確認した。さらに、CIFAR-10 では学習率を0.0002から0.001へ引き上げ、最初の1000万枚の画像にわたってランプアップし、$\theta$ の指数移動平均の半減期を50万枚の画像に統一する。最後に、1%刻みの完全なグリッドサーチにより、[表 7](#table-07)に示すとおり各データセットの dropout 確率を調整する。総学習時間は、$32\times32$ 解像度の CIFAR-10 で約2日、$64\times64$ 解像度の FFHQ と AFHQv2 で4日である。
 
-構成 C では、4$\times$4層を取り除き、代わりに16$\times$16層の容量を倍増させることで、モデルの表現力を改善する。前者は主に過学習に寄与する一方、後者は高品質な結果を得るうえで不可欠であることを確認した。Song ら [Son21] の元のモデルは、64$\times$64（該当する場合）および32$\times$32で128チャネル、16$\times$16、8$\times$8、および4$\times$4で256チャネルを使用する。これらを、64$\times$64（該当する場合）で128チャネル、32$\times$32、16$\times$16、および8$\times$8で256チャネルに変更する。[表 7](#table-07)では、これらのチャネル数を128の倍数として略記し、最高解像度から最低解像度の順に列挙する。実際には、この再配分により学習可能パラメータの総数がわずかに減少し、結果として、各モデルは $\sim$5600万個のパラメータを32$\times$32解像度で、$\sim$6200万個のパラメータを64$\times$64解像度で持つ。
+構成 C では、$4\times4$ 層を取り除き、代わりに $16\times16$ 層の容量を倍増させることで、モデルの表現力を改善する。前者は主に過学習に寄与する一方、後者は高品質な結果を得るうえで不可欠であることを確認した。Song ら [Son21] の元のモデルは、$64\times64$（該当する場合）および $32\times32$ で128チャネル、$16\times16$、$8\times8$、および $4\times4$ で256チャネルを使用する。これらを、$64\times64$（該当する場合）で128チャネル、$32\times32$、$16\times16$、および $8\times8$ で256チャネルに変更する。[表 7](#table-07)では、これらのチャネル数を128の倍数として略記し、最高解像度から最低解像度の順に列挙する。実際には、この再配分により学習可能パラメータの総数がわずかに減少し、結果として、各モデルは $\sim 5600$ 万個のパラメータを $32\times32$ 解像度で、$\sim 6200$ 万個のパラメータを $64\times64$ 解像度で持つ。
 
 構成 D では、元の事前条件付けを本研究の改良した式（[表 1](#table-01)の「Network and preconditioning」セクション）に置き換える。構成 E では、ノイズ分布と損失の重み付けについて同じ置き換えを行う（[表 1](#table-01)の「Training」セクション）。最後に、構成 F では、[第 12.2 節](#section-12-2)で論じたデータ拡張正則化を有効にする。他のハイパーパラメータは構成 C と同じままである。
 
-ImageNet-64 では、最先端の結果に到達するため、他のデータセットと比べて大幅に長く学習する必要がある。学習時間を短縮するため、バッチサイズ4096（GPU 1基あたり128）で32基の NVIDIA Ampere GPU（4ノード）を使用し、混合精度 FP16/FP32 学習によって高性能 Tensor Core を利用した。実際には、学習可能パラメータを FP32 として保存するが、$F_\theta$ を評価するときは FP16 にキャストする。ただし、embedding 層と self-attention 層では、FP16 の限られた指数範囲が時折安定性の問題を引き起こすことを確認したため、この限りではない。モデルを2週間学習した。これは学習セットから抽出された $\sim$25億枚の画像と $\sim$600,000回の学習反復に相当し、学習率0.0001、5000万枚の画像に相当する指数移動平均、および Dhariwal と Nichol [Dha21] と同じモデルアーキテクチャと dropout 確率を使用した。過学習が問題になるとは認められなかったため、データ拡張正則化は使用しないことにした。
+ImageNet-64 では、最先端の結果に到達するため、他のデータセットと比べて大幅に長く学習する必要がある。学習時間を短縮するため、バッチサイズ4096（GPU 1基あたり128）で32基の NVIDIA Ampere GPU（4ノード）を使用し、混合精度 FP16/FP32 学習によって高性能 Tensor Core を利用した。実際には、学習可能パラメータを FP32 として保存するが、$F_\theta$ を評価するときは FP16 にキャストする。ただし、embedding 層と self-attention 層では、FP16 の限られた指数範囲が時折安定性の問題を引き起こすことを確認したため、この限りではない。モデルを2週間学習した。これは学習セットから抽出された $\sim 25$ 億枚の画像と $\sim 600{,}000$ 回の学習反復に相当し、学習率0.0001、5000万枚の画像に相当する指数移動平均、および Dhariwal と Nichol [Dha21] と同じモデルアーキテクチャと dropout 確率を使用した。過学習が問題になるとは認められなかったため、データ拡張正則化は使用しないことにした。
 
 <span id="section-12-4"></span>
 
@@ -1660,7 +1660,7 @@ ImageNet-64 では、最先端の結果に到達するため、他のデータ�
 
 クラス条件付けとデータ拡張正則化のため、ノイズレベル入力と並行して2つのオプションの条件付け入力を導入し、元の DDPM++ および NCSN++ アーキテクチャを拡張する。クラスラベルは one-hot encoding したベクトルとして表し、まず $\sqrt{C}$ 倍する。ここで、$C$ はクラスの総数であり、その後ベクトルを全結合層に通す。データ拡張パラメータについては、[第 12.2 節](#section-12-2)の条件付け入力をそのまま全結合層に通す。次に、得られた特徴ベクトルを元のノイズレベル条件付けベクトルと要素ごとの加算によって結合する。
 
-クラス条件付き ImageNet-64 には、Dhariwal と Nichol [Dha21] の ADM アーキテクチャを変更せずに使用する。このモデルには合計 $\sim$2億9600万個の学習可能パラメータがある。[表 7](#table-07)および[表 8](#table-08)で詳述するように、DDPM++ との最も顕著な違いには、チャネル数を大幅に増やした（例えば最低解像度で256ではなく768）やや浅いモデル（解像度ごとに4個ではなく3個の residual block）を使用すること、ネットワーク全体により多くの self-attention 層を散在させること（6層ではなく22層）、および multi-head attention を使用すること（例えば最低解像度で12 head）が含まれる。アーキテクチャ選択の正確な影響は、今後も興味深い研究課題であると考える。
+クラス条件付き ImageNet-64 には、Dhariwal と Nichol [Dha21] の ADM アーキテクチャを変更せずに使用する。このモデルには合計 $\sim 2$ 億9600万個の学習可能パラメータがある。[表 7](#table-07)および[表 8](#table-08)で詳述するように、DDPM++ との最も顕著な違いには、チャネル数を大幅に増やした（例えば最低解像度で256ではなく768）やや浅いモデル（解像度ごとに4個ではなく3個の residual block）を使用すること、ネットワーク全体により多くの self-attention 層を散在させること（6層ではなく22層）、および multi-head attention を使用すること（例えば最低解像度で12 head）が含まれる。アーキテクチャ選択の正確な影響は、今後も興味深い研究課題であると考える。
 
 <span id="section-12-5"></span>
 

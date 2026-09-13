@@ -25,7 +25,7 @@ pageClass: paper-reading
 
 第三组贡献集中在分数建模神经网络的训练上. 在继续采用常用网络架构 (DDPM [Den20], NCSN [Son19a]) 的同时, 我们首次对扩散模型中网络输入, 输出和损失函数的预条件进行了系统分析, 并由此推导出改善训练动态的最佳实践. 我们还提出了一种更好的训练噪声水平分布, 并指出通常用于 GAN 的非泄漏增强 [Kar20a] 同样有利于扩散模型.
 
-综合这些贡献, 结果质量得到显著改善, 例如在 64$\times$64 分辨率下, CIFAR-10 [Kri09] 和 ImageNet [Den09a] 分别取得了创纪录的 1.79 和 1.36 FID. 设计空间中的所有关键要素都在表中明确列出, 我们认为这会让单个组件更容易创新, 从而更广泛, 更有针对性地探索扩散模型的设计空间. 实现和预训练模型见 <https://github.com/NVlabs/edm>
+综合这些贡献, 结果质量得到显著改善, 例如在 $64\times64$ 分辨率下, CIFAR-10 [Kri09] 和 ImageNet [Den09a] 分别取得了创纪录的 1.79 和 1.36 FID. 设计空间中的所有关键要素都在表中明确列出, 我们认为这会让单个组件更容易创新, 从而更广泛, 更有针对性地探索扩散模型的设计空间. 实现和预训练模型见 <https://github.com/NVlabs/edm>
 
 <span id="section-2"></span>
 
@@ -66,7 +66,7 @@ $$
 
 **表 1.** 不同模型族采用的具体设计选择. $N$ 是采样时希望执行的 ODE 求解器迭代次数. 对应的时间步序列为 $\{t_0, t_1, \dots, t_N\}$, 其中 $t_N = 0$. 如果模型最初针对特定的 $N$ 和 $\{t_i\}$ 训练, 则分别以 $M$ 和 $\{u_j\}$ 表示其原始值. 去噪器定义为 $D_\theta(\boldsymbol{x}; \sigma) = c_\mathrm{skip}(\sigma) \boldsymbol{x} + c_\mathrm{out}(\sigma) F_\theta(c_\mathrm{in}(\sigma) \boldsymbol{x}; c_\mathrm{noise}(\sigma))$; $F_\theta$ 表示原始神经网络层.
 
-**随时间变化的信号缩放.** 一些方法 (见 [第 9.1 节](#section-9-1)) 引入额外的缩放调度 $s(t)$, 并将 $\boldsymbol{x}= s(t) \hat\boldsymbol{x}$ 视为原始未缩放变量 $\hat\boldsymbol{x}$ 的缩放版本. 这会改变随时间变化的概率密度, 进而改变 ODE 的解轨迹. 所得 ODE 是 [公式 1](#equation-01) 的推广: <span id="equation-04"></span>
+**随时间变化的信号缩放.** 一些方法 (见 [第 9.1 节](#section-9-1)) 引入额外的缩放调度 $s(t)$, 并将 $\boldsymbol{x}= s(t) \hat{\boldsymbol{x}}$ 视为原始未缩放变量 $\hat{\boldsymbol{x}}$ 的缩放版本. 这会改变随时间变化的概率密度, 进而改变 ODE 的解轨迹. 所得 ODE 是 [公式 1](#equation-01) 的推广: <span id="equation-04"></span>
 
 $$
 \mathrm{d}\boldsymbol{x}= \left[ \frac{\dot s(t)}{s(t)} ~\boldsymbol{x}-s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\left(\frac{\boldsymbol{x}}{s(t)}; \sigma(t)\right) \right] ~\mathrm{d}t\text{.}
@@ -83,7 +83,7 @@ $$
 
 提高输出质量和/或降低采样计算成本是扩散模型研究中的常见主题 (如 [Doc22, Jol21, Liu22h, Lu22c, Luh21, Nic21, Sal22, Vah21, Wat22, Wat21, Zha22i]). 我们假设, 与采样过程有关的选择在很大程度上独立于网络架构和训练细节等其他组件. 换言之, $D_\theta$ 的训练流程不应决定 $\sigma(t)$, $s(t)$ 和 $\{t_i\}$, 反之亦然; 从采样器的角度看, $D_\theta$ 只是一个黑箱 [Wat22, Wat21]. 为检验这一假设, 我们在三个*预训练*模型上评估不同的采样器, 每个模型分别代表一种理论框架和模型族. 我们先用这些模型原有的采样器实现测量基线结果, 再利用 [表 1](#table-01) 中的公式把采样器纳入统一框架, 随后加入本文的改进. 这样便能评估不同的实际选择, 并提出适用于所有模型的通用采样改进.
 
-我们评估了 Song 等人 [Son21] 在 32$\times$32 无条件 CIFAR-10 [Kri09] 上训练的 "DDPM++ cont. (VP)" 和 "NCSN++ cont. (VE)" 模型, 它们分别对应方差保持 (VP) 与方差爆炸 (VE) 表述 [Son21], 最初受到 DDPM [Den20] 和 SMLD [Son19a] 的启发. 我们还评估了 Dhariwal 和 Nichol [Dha21] 在 64$\times$64 类别条件 ImageNet [Den09a] 上训练的 "ADM (dropout)" 模型, 它对应改进的 DDPM (iDDPM) 表述 [Nic21]. 该模型使用一组离散的 $M=1000$ 个噪声水平训练. 更多细节见 [第 9 节](#section-9).
+我们评估了 Song 等人 [Son21] 在 $32\times32$ 无条件 CIFAR-10 [Kri09] 上训练的 "DDPM++ cont. (VP)" 和 "NCSN++ cont. (VE)" 模型, 它们分别对应方差保持 (VP) 与方差爆炸 (VE) 表述 [Son21], 最初受到 DDPM [Den20] 和 SMLD [Son19a] 的启发. 我们还评估了 Dhariwal 和 Nichol [Dha21] 在 $64\times64$ 类别条件 ImageNet [Den09a] 上训练的 "ADM (dropout)" 模型, 它对应改进的 DDPM (iDDPM) 表述 [Nic21]. 该模型使用一组离散的 $M=1000$ 个噪声水平训练. 更多细节见 [第 9 节](#section-9).
 
 <span id="figure-02"></span>
 
@@ -136,7 +136,7 @@ Heun 法和 [公式 5](#equation-05) 的结果是 [图 2](#figure-02) 中的绿�
 
 **图 3.** 一维 ODE 曲率示意图, 其中 $p_\text{data}$ 是位于 $\boldsymbol{x}=\pm 1$ 的两个 Dirac 峰. 每幅图的水平 $t$ 轴都选为显示 $\sigma\in[0,25]$, 插图则显示数据附近的 $\sigma\in[0,1]$. 黑色箭头表示局部梯度示例. **(a)** Song 等人 [Son21] 的方差保持 ODE 在 $\sigma$ 较大时, 解轨迹会变平为水平线. 只有当 $\sigma$ 较小时, 局部梯度才开始指向数据. **(b)** 方差爆炸变体在数据附近有极大曲率, 且解轨迹处处弯曲. **(c)** 采用 DDIM [Son21a] 和本文所用的调度时, 随着 $\sigma$ 增大, 解轨迹趋近于指向数据均值的直线. 当 $\sigma\to 0$ 时, 轨迹变为线性并指向数据流形.
 
-**讨论.** 本节为改进确定性采样所做的选择汇总在 [表 1](#table-01) 的*采样*部分. 它们共同大幅减少了获得高质量结果所需的 NFE: VP 减少 7.3$\times$, VE 减少 300$\times$, DDIM 减少 3.2$\times$, 分别对应 [图 2](#figure-02) 中突出显示的 NFE 值. 实际上, 单张 NVIDIA V100 每秒可生成 26.3 张高质量 CIFAR-10 图像. 各项改进的一致性证实了我们的假设: 采样过程与各模型最初的训练方式正交. 作为进一步验证, [图 2](#figure-02) 的黑色虚线给出了采用本文调度的自适应 RK45 方法 [Dor80] 的结果; 这种复杂 ODE 求解器的成本超过了其收益.
+**讨论.** 本节为改进确定性采样所做的选择汇总在 [表 1](#table-01) 的*采样*部分. 它们共同大幅减少了获得高质量结果所需的 NFE: VP 减少 $7.3\times$, VE 减少 $300\times$, DDIM 减少 $3.2\times$, 分别对应 [图 2](#figure-02) 中突出显示的 NFE 值. 实际上, 单张 NVIDIA V100 每秒可生成 26.3 张高质量 CIFAR-10 图像. 各项改进的一致性证实了我们的假设: 采样过程与各模型最初的训练方式正交. 作为进一步验证, [图 2](#figure-02) 的黑色虚线给出了采用本文调度的自适应 RK45 方法 [Dor80] 的结果; 这种复杂 ODE 求解器的成本超过了其收益.
 
 <span id="section-4"></span>
 
@@ -227,7 +227,7 @@ $$
 
 **表 2.** 训练改进的评估. 起点 (配置 A) 是采用我们的**确定性**采样器的 VP 与 VE. 在终点 (配置 E, F), VP 与 VE 仅在 $F_\theta$ 的架构上有所不同.
 
-[表 2](#table-02) 给出了采用一系列训练设置所得的 FID, 评估使用 [第 3 节](#section-3) 中的确定性采样器. 我们从 Song 等人 [Son21] 的基线训练设置出发; 该设置在 VP 和 VE 两种情况下差异很大, 因此分别报告结果 (配置 A). 为了获得更有意义的比较基准, 我们重新调整基本超参数 (配置 B), 并移除最低分辨率层, 转而将最高分辨率层的容量翻倍, 从而提高模型的表达能力 (配置 C); 详见 [第 12.3 节](#section-12-3). 随后, 我们用自己的预条件方案取代原有的 $\{c_\text{in}, c_\text{out}, c_\text{noise}, c_\text{skip}\}$ 选择 (配置 D), 结果大体不变, 但 VE 在 64$\times$64 分辨率下有显著改善. 预条件的主要益处并非直接改善 FID, 而是使训练更加稳健, 让我们可以把重点转向重新设计损失函数而不产生不良影响.
+[表 2](#table-02) 给出了采用一系列训练设置所得的 FID, 评估使用 [第 3 节](#section-3) 中的确定性采样器. 我们从 Song 等人 [Son21] 的基线训练设置出发; 该设置在 VP 和 VE 两种情况下差异很大, 因此分别报告结果 (配置 A). 为了获得更有意义的比较基准, 我们重新调整基本超参数 (配置 B), 并移除最低分辨率层, 转而将最高分辨率层的容量翻倍, 从而提高模型的表达能力 (配置 C); 详见 [第 12.3 节](#section-12-3). 随后, 我们用自己的预条件方案取代原有的 $\{c_\text{in}, c_\text{out}, c_\text{noise}, c_\text{skip}\}$ 选择 (配置 D), 结果大体不变, 但 VE 在 $64\times64$ 分辨率下有显著改善. 预条件的主要益处并非直接改善 FID, 而是使训练更加稳健, 让我们可以把重点转向重新设计损失函数而不产生不良影响.
 
 **损失加权与采样.** [公式 8](#equation-08) 表明, 按照 [公式 7](#equation-07) 对 $F_\theta$ 做预条件并训练时, 每个样本的有效损失权重为 $\lambda(\sigma)c_\text{out}(\sigma)^2$. 为平衡有效损失权重, 我们令 $\lambda(\sigma)=1/c_\text{out}(\sigma)^2$; 如 [图 5a](#figure-05) (绿色曲线) 所示, 这也使整个 $\sigma$ 范围内的初始训练损失相等. 最后还需选择 $p_\text{train}(\sigma)$, 即训练时如何选择噪声水平. 检查训练后每个 $\sigma$ 对应的损失 (蓝色和橙色曲线) 可以发现, 只有中等噪声水平上的损失能够显著降低; 噪声水平很低时, 几乎消失的噪声分量既难以辨别也无关紧要, 而在高噪声水平下, 训练目标总是与趋近数据集均值的正确答案不同. 因此, 我们用一个简单的对数正态分布作为 $p_\text{train}(\sigma)$, 将训练集中在相关范围内; 具体见 [表 1](#table-01), [图 5a](#figure-05) (红色曲线) 也给出了示意.
 
@@ -237,9 +237,9 @@ $$
 
 <span id="figure-05"></span>
 
-![**(a)** 观测到的各噪声水平初始损失 (绿色) 与最终损失, 后者以本文研究的 32$\times$32 (蓝色) 和 64$\times$64 (橙色) 模型为代表.](./diffusion-design-space/figure-05.png)
+![**(a)** 观测到的各噪声水平初始损失 (绿色) 与最终损失, 后者以本文研究的 $32\times32$ (蓝色) 和 $64\times64$ (橙色) 模型为代表.](./diffusion-design-space/figure-05.png)
 
-**图 5.** **(a)** 观测到的各噪声水平初始损失 (绿色) 与最终损失, 后者以本文研究的 32$\times$32 (蓝色) 和 64$\times$64 (橙色) 模型为代表. 阴影区域表示 10k 个随机样本上的标准差. 我们提出的训练样本密度以红色虚线表示. **(b)** 使用 256 步 (NFE $=$ 511) 时, $S_\text{churn}$ 对无条件 CIFAR-10 的影响. 对 Song 等人 [Son21] 的原始训练设置而言, 随机采样非常有益 (蓝色, 绿色), 而确定性采样 ($S_\text{churn}= 0$) 得到的 FID 较差. 对我们的训练设置而言, 情况正好相反 (橙色, 红色); 随机采样不仅没有必要, 反而有害. **(c)** 使用 256 步 (NFE $=$ 511) 时, $S_\text{churn}$ 对类别条件 ImageNet-64 的影响. 在这一更具挑战性的场景中, 随机采样再次显现出用处. 我们的训练设置同时改善了确定性采样和随机采样的结果.
+**图 5.** **(a)** 观测到的各噪声水平初始损失 (绿色) 与最终损失, 后者以本文研究的 $32\times32$ (蓝色) 和 $64\times64$ (橙色) 模型为代表. 阴影区域表示 10k 个随机样本上的标准差. 我们提出的训练样本密度以红色虚线表示. **(b)** 使用 256 步 (NFE $=$ 511) 时, $S_\text{churn}$ 对无条件 CIFAR-10 的影响. 对 Song 等人 [Son21] 的原始训练设置而言, 随机采样非常有益 (蓝色, 绿色), 而确定性采样 ($S_\text{churn}= 0$) 得到的 FID 较差. 对我们的训练设置而言, 情况正好相反 (橙色, 红色); 随机采样不仅没有必要, 反而有害. **(c)** 使用 256 步 (NFE $=$ 511) 时, $S_\text{churn}$ 对类别条件 ImageNet-64 的影响. 在这一更具挑战性的场景中, 随机采样再次显现出用处. 我们的训练设置同时改善了确定性采样和随机采样的结果.
 
 **再谈随机采样.** 有意思的是, 如 [图 5b](#figure-05), [图 5c](#figure-05) 所示, 随着模型本身的改进, 随机采样的重要性似乎有所降低. 在 CIFAR-10 上采用我们的训练设置时 ([图 5b](#figure-05)), 确定性采样得到的结果最好, 任何程度的随机采样都会损害结果.
 
@@ -251,7 +251,7 @@ $$
 
 我们将扩散模型纳入统一框架的方法呈现出模块化设计. 这样便能有针对性地研究各个组件, 有望更充分地覆盖可行的设计空间. 在测试中, 我们只需替换多个早期模型的采样器, 就能大幅改善结果. 例如, 在 ImageNet-64 上, 我们的采样器把一个表现普通的模型 (FID 2.07) 提升为此前 SOTA 模型 (1.48) [Ho22b] 的有力竞争者 (1.55), 加入训练改进后则取得 1.36 的 SOTA FID. 我们还仅用 35 次模型评估, 确定性采样和一个小型网络, 就在 CIFAR-10 上取得了新的 SOTA 结果. 当前的高分辨率扩散模型依赖独立的超分辨率步骤 [Ho22b, Nic22, Ram22], 子空间投影 [Jin22a], 超大型网络 [Dha21, Son21] 或混合方法 [Pre22, Rom22, Vah21]; 我们认为本文贡献与这些扩展相互正交. 不过, 面对更高分辨率的数据集, 我们的许多参数值可能需要重新调整. 此外, 随机采样与训练目标之间的确切相互作用, 仍是一个值得未来研究的问题.
 
-**社会影响.** 若将我们在样本质量上的进展用于 DALL$\cdot$E 2 这类大规模系统, 可能会放大负面社会影响, 包括各类虚假信息, 或强化刻板印象和有害偏见 [Mis22a]. 扩散模型的训练与采样需要大量电力; 本项目在内部 NVIDIA V100 集群上消耗了 $\sim$250MWh 电力.
+**社会影响.** 若将我们在样本质量上的进展用于 DALL·E 2 这类大规模系统, 可能会放大负面社会影响, 包括各类虚假信息, 或强化刻板印象和有害偏见 [Mis22a]. 扩散模型的训练与采样需要大量电力; 本项目在内部 NVIDIA V100 集群上消耗了 $\sim 250$ MWh 电力.
 
 ## 致谢
 
@@ -275,45 +275,45 @@ $$
 
 <span id="figure-06"></span>
 
-![在 64$\times$64 分辨率的类别条件 ImageNet 上, 使用 Dhariwal 和 Nichol 的预训练模型时不同采样器的结果.](./diffusion-design-space/figure-06.png)
+![在 $64\times64$ 分辨率的类别条件 ImageNet 上, 使用 Dhariwal 和 Nichol 的预训练模型时不同采样器的结果.](./diffusion-design-space/figure-06.png)
 
-**图 6.** 在 64$\times$64 分辨率的类别条件 ImageNet [Den09a] 上, 使用 Dhariwal 和 Nichol 的预训练模型 [Dha21] 时不同采样器的结果. 各个情形对应 [图 2c](#figure-02) 和 [图 4c](#figure-04) 中的点.
+**图 6.** 在 $64\times64$ 分辨率的类别条件 ImageNet [Den09a] 上, 使用 Dhariwal 和 Nichol 的预训练模型 [Dha21] 时不同采样器的结果. 各个情形对应 [图 2c](#figure-02) 和 [图 4c](#figure-04) 中的点.
 
 <span id="figure-07"></span>
 
-![在 64$\times$64 分辨率的类别条件 ImageNet 上, 使用我们的确定性和随机采样器时, 本文训练配置所得的结果.](./diffusion-design-space/figure-07.png)
+![在 $64\times64$ 分辨率的类别条件 ImageNet 上, 使用我们的确定性和随机采样器时, 本文训练配置所得的结果.](./diffusion-design-space/figure-07.png)
 
-**图 7.** 在 64$\times$64 分辨率的类别条件 ImageNet [Den09a] 上, 使用我们的确定性和随机采样器时, 本文训练配置所得的结果.
+**图 7.** 在 $64\times64$ 分辨率的类别条件 ImageNet [Den09a] 上, 使用我们的确定性和随机采样器时, 本文训练配置所得的结果.
 
 <span id="figure-08"></span>
 
-![在 32$\times$32 分辨率的无条件 CIFAR-10 上, 使用 Song 等人的预训练模型时不同采样器的结果.](./diffusion-design-space/figure-08.png)
+![在 $32\times32$ 分辨率的无条件 CIFAR-10 上, 使用 Song 等人的预训练模型时不同采样器的结果.](./diffusion-design-space/figure-08.png)
 
-**图 8.** 在 32$\times$32 分辨率的无条件 CIFAR-10 [Kri09] 上, 使用 Song 等人的预训练模型 [Son21] 时不同采样器的结果. 各个情形对应 [图 2a](#figure-02), [图 2b](#figure-02) 和 [图 4a](#figure-04), [图 4b](#figure-04) 中的点.
+**图 8.** 在 $32\times32$ 分辨率的无条件 CIFAR-10 [Kri09] 上, 使用 Song 等人的预训练模型 [Son21] 时不同采样器的结果. 各个情形对应 [图 2a](#figure-02), [图 2b](#figure-02) 和 [图 4a](#figure-04), [图 4b](#figure-04) 中的点.
 
 <span id="figure-09"></span>
 
-![在 32$\times$32 分辨率的无条件 CIFAR-10 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.](./diffusion-design-space/figure-09.png)
+![在 $32\times32$ 分辨率的无条件 CIFAR-10 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.](./diffusion-design-space/figure-09.png)
 
-**图 9.** 在 32$\times$32 分辨率的无条件 CIFAR-10 [Kri09] 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.
+**图 9.** 在 $32\times32$ 分辨率的无条件 CIFAR-10 [Kri09] 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.
 
 <span id="figure-10"></span>
 
-![在 32$\times$32 分辨率的类别条件 CIFAR-10 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.](./diffusion-design-space/figure-10.png)
+![在 $32\times32$ 分辨率的类别条件 CIFAR-10 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.](./diffusion-design-space/figure-10.png)
 
-**图 10.** 在 32$\times$32 分辨率的类别条件 CIFAR-10 [Kri09] 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.
+**图 10.** 在 $32\times32$ 分辨率的类别条件 CIFAR-10 [Kri09] 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.
 
 <span id="figure-11"></span>
 
-![在 64$\times$64 分辨率的 FFHQ 和 AFHQv2 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.](./diffusion-design-space/figure-11.png)
+![在 $64\times64$ 分辨率的 FFHQ 和 AFHQv2 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.](./diffusion-design-space/figure-11.png)
 
-**图 11.** 在 64$\times$64 分辨率的 FFHQ [Kar18] 和 AFHQv2 [Cho20c] 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.
+**图 11.** 在 $64\times64$ 分辨率的 FFHQ [Kar18] 和 AFHQv2 [Cho20c] 上, 使用确定性采样器且每种情形采用同一组潜变量编码 ($\boldsymbol{x}_0$) 时不同训练配置的结果.
 
 <span id="figure-12"></span>
 
 ![使用确定性采样器时, 图像质量和 FID 随 NFE 的变化.](./diffusion-design-space/figure-12.png)
 
-**图 12.** 使用确定性采样器时, 图像质量和 FID 随 NFE 的变化. 在 32$\times$32 分辨率下, NFE $=$ 13 左右即可获得尚可的图像质量, 但 FID 会持续改善到 NFE $=$ 35. 在 64$\times$64 分辨率下, NFE $=$ 19 左右即可获得尚可的图像质量, 但 FID 会持续改善到 NFE $=$ 79.
+**图 12.** 使用确定性采样器时, 图像质量和 FID 随 NFE 的变化. 在 $32\times32$ 分辨率下, NFE $=$ 13 左右即可获得尚可的图像质量, 但 FID 会持续改善到 NFE $=$ 35. 在 $64\times64$ 分辨率下, NFE $=$ 19 左右即可获得尚可的图像质量, 但 FID 会持续改善到 NFE $=$ 79.
 
 [图 6](#figure-06) 展示了使用 Dhariwal 和 Nichol [Dha21] 的预训练 ADM 模型在类别条件 ImageNet-64 [Den09a] 上生成的图像. 我们在确定性和随机两种设置下, 将原始 DDIM [Son21a] 和 iDDPM [Nic21] 采样器与本文方法进行比较 ([第 3 节](#section-3) 和 [第 4 节](#section-4)). [图 7](#figure-07) 则展示了采用改进后的训练配置从头训练模型时得到的相应结果 ([第 5 节](#section-5)).
 
@@ -566,13 +566,13 @@ $$
 
 ### 8.4 实际求解我们的 ODE ([算法 1](#algorithm-01))
 
-将 $\boldsymbol{x}$ 视为原始未缩放变量 $\hat\boldsymbol{x}$ 的缩放版本, 并把 $\boldsymbol{x}= s(t) ~\hat\boldsymbol{x}$ 代入缩放 ODE ([公式 4](#equation-04)) 中的得分项:
+将 $\boldsymbol{x}$ 视为原始未缩放变量 $\hat{\boldsymbol{x}}$ 的缩放版本, 并把 $\boldsymbol{x}= s(t) ~\hat{\boldsymbol{x}}$ 代入缩放 ODE ([公式 4](#equation-04)) 中的得分项:
 $$
 \begin{aligned}
   && \nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) \\
-  &= \nabla_{[ s(t) \hat \boldsymbol{x}]} \log p\big( [s(t) ~\hat\boldsymbol{x}] / s(t); \sigma(t) \big) \\
-  &= \nabla_{s(t) \hat \boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) \\
-  &= \tfrac{1}{s(t)} \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big)
+  &= \nabla_{[ s(t) \hat{\boldsymbol{x}}]} \log p\big( [s(t) ~\hat{\boldsymbol{x}}] / s(t); \sigma(t) \big) \\
+  &= \nabla_{s(t) \hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) \\
+  &= \tfrac{1}{s(t)} \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big)
   \text{.}
 \end{aligned}
 $$
@@ -580,7 +580,7 @@ $$
 还可以利用 [公式 3](#equation-03), 按照 $D(\cdot)$ 进一步改写: <span id="equation-74"></span>
 
 $$
-\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) ~=~ \tfrac{1}{s(t) \sigma(t)^2} \Big( D\big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big)
+\nabla_{\hspace{-0.5mm}\boldsymbol{x}}\log p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) ~=~ \tfrac{1}{s(t) \sigma(t)^2} \Big( D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big)
 
   \text{.}
 $$
@@ -588,17 +588,17 @@ $$
 现在将 [公式 74](#equation-74) 代入 [公式 4](#equation-04), 并用训练后的模型 $D_\theta(\cdot)$ 近似理想去噪器 $D(\cdot)$:
 $$
 \begin{aligned}
-  \mathrm{d}\boldsymbol{x}&= \left[ \dot s(t) ~\boldsymbol{x}/ s(t) - s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\Big[ \tfrac{1}{s(t) \sigma(t)^2} \Big( D_\theta \big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) \Big] \right] ~\mathrm{d}t \\
-  &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) \right] ~\mathrm{d}t
+  \mathrm{d}\boldsymbol{x}&= \left[ \dot s(t) ~\boldsymbol{x}/ s(t) - s(t)^2 ~\dot\sigma(t) ~\sigma(t) ~\Big[ \tfrac{1}{s(t) \sigma(t)^2} \Big( D_\theta \big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) \Big] \right] ~\mathrm{d}t \\
+  &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) \right] ~\mathrm{d}t
   \text{.}
 \end{aligned}
 $$
 
-最后, 代回 $\hat\boldsymbol{x}= \boldsymbol{x}/ s(t)$: <span id="equation-80"></span>
+最后, 代回 $\hat{\boldsymbol{x}}= \boldsymbol{x}/ s(t)$: <span id="equation-80"></span>
 
 $$
 \begin{aligned}
-  \mathrm{d}\boldsymbol{x}&= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\hat\boldsymbol{x}]; \sigma(t) \big) - [\hat\boldsymbol{x}] \Big) \right] ~\mathrm{d}t \\
+  \mathrm{d}\boldsymbol{x}&= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\hat{\boldsymbol{x}}]; \sigma(t) \big) - [\hat{\boldsymbol{x}}] \Big) \right] ~\mathrm{d}t \\
   &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} \Big( D_\theta \big( [\boldsymbol{x}/ s(t)]; \sigma(t) \big) - [\boldsymbol{x}/ s(t)] \Big) \right] ~\mathrm{d}t \\
   &= \left[ \tfrac{\dot s(t)}{s(t)} ~\boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} D_\theta \big( \boldsymbol{x}/ s(t); \sigma(t) \big) + \tfrac{\dot\sigma(t)}{\sigma(t)} ~\boldsymbol{x}\right] ~\mathrm{d}t \\
   &= \left[ \left( \tfrac{\dot\sigma(t)}{\sigma(t)} + \tfrac{\dot s(t)}{s(t)} \right) \boldsymbol{x}- \tfrac{\dot\sigma(t) s(t)}{\sigma(t)} D_\theta \big( \boldsymbol{x}/ s(t); \sigma(t) \big) \right] ~\mathrm{d}t
@@ -997,13 +997,13 @@ $$
 $$
 其中 $M = 1000$, $F_\theta$ 表示网络, $\bar\sigma(t)$ 对应 [公式 11](#equation-11) 中扰动核的标准差.
 
-分别展开 [公式 20](#equation-20) 和 [公式 11](#equation-11) 中 $p_t(\boldsymbol{x})$ 和 $\bar\sigma(t)$ 的定义, 并代入 $\boldsymbol{x}= s(t) \hat\boldsymbol{x}$, 得到关于未缩放变量 $\hat\boldsymbol{x}$ 的相应公式:
+分别展开 [公式 20](#equation-20) 和 [公式 11](#equation-11) 中 $p_t(\boldsymbol{x})$ 和 $\bar\sigma(t)$ 的定义, 并代入 $\boldsymbol{x}= s(t) \hat{\boldsymbol{x}}$, 得到关于未缩放变量 $\hat{\boldsymbol{x}}$ 的相应公式:
 $$
 \begin{aligned}
   \nabla_{\boldsymbol{x}} \log \big[ p\big( \boldsymbol{x}/ s(t); \sigma(t) \big) \big] &\approx& {-}\tfrac{1}{[s(t) \sigma(t)]} ~F_\theta\big( \boldsymbol{x}; ~(M{-}1)t \big) \\
-  \nabla_{[s(t) \hat\boldsymbol{x}]} \log p\big( [s(t) ~\hat\boldsymbol{x}] / s(t); \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( [s(t) ~\hat\boldsymbol{x}]; ~(M{-}1)t \big) \\
-  \tfrac{1}{s(t)} \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  \nabla_{\hat\boldsymbol{x}} \log p\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big)
+  \nabla_{[s(t) \hat{\boldsymbol{x}}]} \log p\big( [s(t) ~\hat{\boldsymbol{x}}] / s(t); \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( [s(t) ~\hat{\boldsymbol{x}}]; ~(M{-}1)t \big) \\
+  \tfrac{1}{s(t)} \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& {-}\tfrac{1}{s(t) \sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  \nabla_{\hat{\boldsymbol{x}}} \log p\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big)
   \text{.}
 \end{aligned}
 $$
@@ -1011,16 +1011,16 @@ $$
 现在可以用 [公式 3](#equation-03) 替换左侧, 并展开 [公式 170](#equation-170) 中 $s(t)$ 的定义:
 $$
 \begin{aligned}
-  \Big[ \Big( D\big( \hat\boldsymbol{x}; \sigma(t) \big) - \hat\boldsymbol{x}\Big) / \sigma(t)^2 \Big] &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  D\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& \hat\boldsymbol{x}- \sigma(t) ~F_\theta\big( s(t) ~\hat\boldsymbol{x}; ~(M{-}1)t \big) \\
-  D\big( \hat\boldsymbol{x}; \sigma(t) \big) &\approx& \hat\boldsymbol{x}- \sigma(t) ~F_\theta\bigg( \bigg[ \tfrac{1}{\sqrt{\sigma(t)^2 + 1}} \bigg] ~\hat\boldsymbol{x}; ~(M{-}1)t \bigg)
+  \Big[ \Big( D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) - \hat{\boldsymbol{x}}\Big) / \sigma(t)^2 \Big] &\approx& {-}\tfrac{1}{\sigma(t)} ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& \hat{\boldsymbol{x}}- \sigma(t) ~F_\theta\big( s(t) ~\hat{\boldsymbol{x}}; ~(M{-}1)t \big) \\
+  D\big( \hat{\boldsymbol{x}}; \sigma(t) \big) &\approx& \hat{\boldsymbol{x}}- \sigma(t) ~F_\theta\bigg( \bigg[ \tfrac{1}{\sqrt{\sigma(t)^2 + 1}} \bigg] ~\hat{\boldsymbol{x}}; ~(M{-}1)t \bigg)
   \text{,}
 \end{aligned}
 $$
 再将 $\sigma(t) \rightarrow \sigma$ 且 $t \rightarrow \sigma^{-1}(\sigma)$, 可以进一步按照 $\sigma$ 表示: <span id="equation-180"></span>
 
 $$
-D(\hat\boldsymbol{x}; \sigma) ~\approx~ \hat\boldsymbol{x}- \sigma ~F_\theta\Big( \tfrac{1}{\sqrt{\sigma^2 + 1}} ~\hat\boldsymbol{x}; ~(M{-}1) ~\sigma^{-1}(\sigma) \Big)
+D(\hat{\boldsymbol{x}}; \sigma) ~\approx~ \hat{\boldsymbol{x}}- \sigma ~F_\theta\Big( \tfrac{1}{\sqrt{\sigma^2 + 1}} ~\hat{\boldsymbol{x}}; ~(M{-}1) ~\sigma^{-1}(\sigma) \Big)
 
   \text{.}
 $$
@@ -1028,7 +1028,7 @@ $$
 采用 [公式 180](#equation-180) 的右侧作为 $D_\theta$ 的定义, 得到 <span id="equation-181"></span>
 
 $$
-D_\theta(\hat\boldsymbol{x}; \sigma) = \underbrace{1~\cdot}_{c_\text{skip}}\hat\boldsymbol{x}~\underbrace{-~\sigma}_{c_\text{out}} \,\cdot ~F_\theta\Big( \underbrace{\tfrac{1}{\sqrt{\sigma^2 + 1}}}_{c_\text{in}} \,\cdot~\hat\boldsymbol{x}; ~\underbrace{(M{-}1)~\sigma^{-1}(\sigma)}_{c_\text{noise}} \Big)
+D_\theta(\hat{\boldsymbol{x}}; \sigma) = \underbrace{1~\cdot}_{c_\text{skip}}\hat{\boldsymbol{x}}~\underbrace{-~\sigma}_{c_\text{out}} \,\cdot ~F_\theta\Big( \underbrace{\tfrac{1}{\sqrt{\sigma^2 + 1}}}_{c_\text{in}} \,\cdot~\hat{\boldsymbol{x}}; ~\underbrace{(M{-}1)~\sigma^{-1}(\sigma)}_{c_\text{noise}} \Big)
 
   \text{,}
 $$
@@ -1040,14 +1040,14 @@ $$
 
 Song 等人 [Son21] 将训练损失定义为 [+2]
 $$
-\mathbb{E}_{t \sim \mathcal{U}(\epsilon_\text{t}, 1), \boldsymbol{y}\sim p_\text{data}, \bar\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \Big[ \big\| \bar\sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ \bar\sigma(t) ~\bar\boldsymbol{n}; ~F_\theta, t \big) + \bar\boldsymbol{n}\big\|^2_2 \Big]
+\mathbb{E}_{t \sim \mathcal{U}(\epsilon_\text{t}, 1), \boldsymbol{y}\sim p_\text{data}, \bar{\boldsymbol{n}}\sim \mathcal{N}(\mathbf{0}, \mathbf{I})} \Big[ \big\| \bar\sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ \bar\sigma(t) ~\bar{\boldsymbol{n}}; ~F_\theta, t \big) + \bar{\boldsymbol{n}}\big\|^2_2 \Big]
   \text{,}
 $$
-其中 $\mathop{\mathrm{score}}(\cdot)$ 的定义与 [公式 172](#equation-172) 相同. 代入 $\bar\sigma(t) = s(t) \sigma(t)$ 和 $\bar\boldsymbol{n}= \boldsymbol{n}/ \sigma(t)$ 来化简公式, 其中 $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma(t)^2 \mathbf{I})$: <span id="equation-185"></span>
+其中 $\mathop{\mathrm{score}}(\cdot)$ 的定义与 [公式 172](#equation-172) 相同. 代入 $\bar\sigma(t) = s(t) \sigma(t)$ 和 $\bar{\boldsymbol{n}}= \boldsymbol{n}/ \sigma(t)$ 来化简公式, 其中 $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma(t)^2 \mathbf{I})$: <span id="equation-185"></span>
 
 $$
 \begin{aligned}
-  && \mathbb{E}_{t, \boldsymbol{y}, \bar\boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ [s(t)\sigma(t)] ~\bar\boldsymbol{n}; ~F_\theta, t \big) + \bar\boldsymbol{n}\big\|^2_2 \Big] \\
+  && \mathbb{E}_{t, \boldsymbol{y}, \bar{\boldsymbol{n}}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ [s(t)\sigma(t)] ~\bar{\boldsymbol{n}}; ~F_\theta, t \big) + \bar{\boldsymbol{n}}\big\|^2_2 \Big] \\
   &= \mathbb{E}_{t, \boldsymbol{y}, \boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~\boldsymbol{y}+ s(t)\sigma(t) ~[\boldsymbol{n}/ \sigma(t)]; ~F_\theta, t \big) + [\boldsymbol{n}/ \sigma(t)] \big\|^2_2 \Big] \\
   &= \mathbb{E}_{t, \boldsymbol{y}, \boldsymbol{n}} \Big[ \big\| s(t) \sigma(t) ~\mathop{\mathrm{score}}\big( s(t) ~(\boldsymbol{y}+ \boldsymbol{n}); ~F_\theta, t \big) + \boldsymbol{n}/ \sigma(t) \big\|^2_2 \Big]
 
@@ -1179,7 +1179,7 @@ $$
 $$
 取 $\bar p_i(\boldsymbol{x}) = p\big( \boldsymbol{x}; \sigma(t_i) \big)$ 后, 它便与 [公式 200](#equation-200) 完全相同.
 
-最后, Song 等人 [Son21] 在 CIFAR-10 上令 $\sigma_{\min}= 0.01$ 且 $\sigma_{\max}= 50$ ([Son21] 的附录 C), 并选择在 $[0, 1]$ 范围内表示图像, 以匹配先前的 SMLD 模型. 我们的标准范围 $[-1, 1]$ 大两倍, 因此必须将 $\sigma_{\min}$ 和 $\sigma_{\max}$ 乘以 2$\times$ 作为补偿. [表 1](#table-01) 的 "Parameters" 部分反映了调整后的数值.
+最后, Song 等人 [Son21] 在 CIFAR-10 上令 $\sigma_{\min}= 0.01$ 且 $\sigma_{\max}= 50$ ([Son21] 的附录 C), 并选择在 $[0, 1]$ 范围内表示图像, 以匹配先前的 SMLD 模型. 我们的标准范围 $[-1, 1]$ 大两倍, 因此必须将 $\sigma_{\min}$ 和 $\sigma_{\max}$ 乘以 $2\times$ 作为补偿. [表 1](#table-01) 的 "Parameters" 部分反映了调整后的数值.
 
 <span id="section-9-2-3"></span>
 
@@ -1311,16 +1311,16 @@ $$
 
 #### 9.3.2 iDDPM 时间步离散化
 
-Ho 等人 [Den20] 的原始 DDPM 表述把前向过程 ([Den20] 中的公式 2) 定义为一条 Markov 链, 它按照离散方差调度 $\{\beta_1, \dots, \beta_T\}$, 逐渐向 $\bar\boldsymbol{x}_0 \sim p_\text{data}$ 添加 Gaussian 噪声:
+Ho 等人 [Den20] 的原始 DDPM 表述把前向过程 ([Den20] 中的公式 2) 定义为一条 Markov 链, 它按照离散方差调度 $\{\beta_1, \dots, \beta_T\}$, 逐渐向 $\bar{\boldsymbol{x}}_0 \sim p_\text{data}$ 添加 Gaussian 噪声:
 $$
-q(\bar\boldsymbol{x}_t ~|~ \bar\boldsymbol{x}_{t-1}) = \mathcal{N}\big( \bar\boldsymbol{x}_t; ~\sqrt{1 - \beta_t} ~\bar\boldsymbol{x}_{t-1}, ~\beta_t ~\mathbf{I}\big)
+q(\bar{\boldsymbol{x}}_t ~|~ \bar{\boldsymbol{x}}_{t-1}) = \mathcal{N}\big( \bar{\boldsymbol{x}}_t; ~\sqrt{1 - \beta_t} ~\bar{\boldsymbol{x}}_{t-1}, ~\beta_t ~\mathbf{I}\big)
   \text{.}
 $$
 
-从 $\bar\boldsymbol{x}_0$ 到 $\bar\boldsymbol{x}_t$ 的相应转移概率 ([Den20] 中的公式 4) 为 <span id="equation-233"></span>
+从 $\bar{\boldsymbol{x}}_0$ 到 $\bar{\boldsymbol{x}}_t$ 的相应转移概率 ([Den20] 中的公式 4) 为 <span id="equation-233"></span>
 
 $$
-q(\bar\boldsymbol{x}_t ~|~ \bar\boldsymbol{x}_0) = \mathcal{N}\big( \bar\boldsymbol{x}_t; ~\sqrt{\bar\alpha_t} ~\bar\boldsymbol{x}_0, ~(1 - \bar\alpha_t) ~\mathbf{I}\big)
+q(\bar{\boldsymbol{x}}_t ~|~ \bar{\boldsymbol{x}}_0) = \mathcal{N}\big( \bar{\boldsymbol{x}}_t; ~\sqrt{\bar\alpha_t} ~\bar{\boldsymbol{x}}_0, ~(1 - \bar\alpha_t) ~\mathbf{I}\big)
   \text{,}\hspace{4mm}\text{where}\hspace{4mm}
   \bar\alpha_t = \prod_{s=1}^t ~(1 - \beta_s)
   \text{.}
@@ -1371,7 +1371,7 @@ $$
 
 $$
 \begin{aligned}
-  q(\bar\boldsymbol{x}_j ~|~ \bar\boldsymbol{x}_M) &= \mathcal{N}\big( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\bar\boldsymbol{x}_M, ~(1 - \bar\alpha'_j) ~\mathbf{I}\big)  \text{,} \\[2mm]
+  q(\bar{\boldsymbol{x}}_j ~|~ \bar{\boldsymbol{x}}_M) &= \mathcal{N}\big( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\bar{\boldsymbol{x}}_M, ~(1 - \bar\alpha'_j) ~\mathbf{I}\big)  \text{,} \\[2mm]
   \bar\alpha_j &= \cos^2 \bigg( \frac{(M - j) / M + C_2}{1 + C_2} \cdot \frac{\pi}{2} \bigg)  \text{,}\hspace{4mm}\text{and} \\
   \bar\alpha'_j &= \prod_{s=M-1}^j ~\max\bigg( \frac{\bar\alpha_j}{\bar\alpha_{j+1}}, ~C_1 \bigg) ~=~ \bar\alpha'_{j+1} ~\max\bigg( \frac{\bar\alpha_j}{\bar\alpha_{j+1}}, ~C_1 \bigg)
   \text{,}
@@ -1391,22 +1391,22 @@ $$
 $$
 得到 [表 1](#table-01) 的 "Parameters" 部分所示公式.
 
-为统一 $\boldsymbol{x}$ 与 $\bar\boldsymbol{x}$ 的定义, 必须在每个时间步 $t = u_j$ 上, 使 [公式 11](#equation-11) 的扰动核与 [公式 243](#equation-243) 的转移概率匹配:
+为统一 $\boldsymbol{x}$ 与 $\bar{\boldsymbol{x}}$ 的定义, 必须在每个时间步 $t = u_j$ 上, 使 [公式 11](#equation-11) 的扰动核与 [公式 243](#equation-243) 的转移概率匹配:
 $$
 \begin{aligned}
-  p_{0t}\big( \boldsymbol{x}(u_j) ~|~ \boldsymbol{x}(0) \big) &= q(\bar\boldsymbol{x}_j ~|~ \bar\boldsymbol{x}_M) \\
-  \mathcal{N} \big( \boldsymbol{x}(u_j); ~s(t) ~\boldsymbol{x}(0), ~s(u_j)^2 ~\sigma(u_j)^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\bar\boldsymbol{x}_M, ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
+  p_{0t}\big( \boldsymbol{x}(u_j) ~|~ \boldsymbol{x}(0) \big) &= q(\bar{\boldsymbol{x}}_j ~|~ \bar{\boldsymbol{x}}_M) \\
+  \mathcal{N} \big( \boldsymbol{x}(u_j); ~s(t) ~\boldsymbol{x}(0), ~s(u_j)^2 ~\sigma(u_j)^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\bar{\boldsymbol{x}}_M, ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
   \text{.}
 \end{aligned}
 $$
 
-代入 [第 9.3.1 节](#section-9-3-1) 中的 $s(t) = 1$ 和 $\sigma(t) = t$, 以及 $\bar\boldsymbol{x}_M = \boldsymbol{x}(0)$:
+代入 [第 9.3.1 节](#section-9-3-1) 中的 $s(t) = 1$ 和 $\sigma(t) = t$, 以及 $\bar{\boldsymbol{x}}_M = \boldsymbol{x}(0)$:
 $$
-\mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) = \mathcal{N}\left( \bar\boldsymbol{x}_j; ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
+\mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) = \mathcal{N}\left( \bar{\boldsymbol{x}}_j; ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right)
   \text{.}
 $$
 
-定义 $\bar\boldsymbol{x}_j = \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j)$, 即可匹配这两个分布的均值:
+定义 $\bar{\boldsymbol{x}}_j = \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j)$, 即可匹配这两个分布的均值:
 $$
 \begin{aligned}
   \mathcal{N} \big( \boldsymbol{x}(u_j); ~\boldsymbol{x}(0), ~u_j^2 ~\mathbf{I}\big) &= \mathcal{N}\left( \sqrt{\bar\alpha'_j} ~\boldsymbol{x}(u_j); ~\sqrt{\bar\alpha'_j} ~\boldsymbol{x}(0), ~\big( 1 - \bar\alpha'_j \big) ~\mathbf{I}\right) \\
@@ -1469,7 +1469,7 @@ $$
 
 #### 9.3.4 iDDPM 的实际考量
 
-我们在 ImageNet-64 上使用的预训练 iDDPM 模型对应 Dhariwal 和 Nichol [Dha21] 提供的 "ADM (dropout)" 检查点 [+17]. 它含有 2.96 亿个可训练参数, 支持由 $M = 1000$ 个噪声水平构成的离散集合 $\sigma \in \{u_j\} \approx \{$20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, $\dots$, 0.0064$\}$. 只能在这些特定的 $\sigma$ 取值上求值 $F_\theta$, 这带来了三个实际挑战:
+我们在 ImageNet-64 上使用的预训练 iDDPM 模型对应 Dhariwal 和 Nichol [Dha21] 提供的 "ADM (dropout)" 检查点 [+17]. 它含有 2.96 亿个可训练参数, 支持由 $M = 1000$ 个噪声水平构成的离散集合 $\sigma \in \{u_j\} \approx \{20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, \dots, 0.0064\}$. 只能在这些特定的 $\sigma$ 取值上求值 $F_\theta$, 这带来了三个实际挑战:
 
 1.  在 DDIM 中, 当 $N \ne M$ 时, 必须选择如何对 $\{u_j\}$ 重采样以得到 $\{t_i\}$. Song 等人 [Son21a] 使用简单的重采样方案: 对重采样因子 $k \in \mathbb{Z}^+$ 令 $t_i = u_{k \cdot i}$. 但该方案要求 $1000 \equiv 0 \pmod{N}$, 极大限制了 $N$ 的可选值. Nichol 和 Dhariwal [Nic21] 则采用更灵活的方案: 令 $t_i = u_j$, 其中 $j = \lfloor (M - 1) / (N - 1) \cdot i \rfloor$. 不过, 实际上 $u_{j<8}$ 的值远大于我们偏好的 $\sigma_{\max}= 80$. 我们令 $j_0 = 8$, 并定义 $j = \lfloor j_0 + (M - 1 - j_0) / (N - 1) \cdot i \rfloor$, 从而跳过这些值, 与 [表 1](#table-01) 的 "Time steps" 行一致. [图 2c](#figure-02) 中原始采样器 (蓝色) 与我们的重新实现 (橙色) 之间的差异正是由这一选择造成的.
 
@@ -1489,7 +1489,7 @@ $$
 
 如 [第 3 节](#section-3) 所述, 扩散模型往往需要大量采样步, 根本原因在于任何数值 ODE 求解器都必然只是近似; 步长越大, 每一步偏离真实解就越远. 具体而言, 给定时间步 $i-1$ 处的 $\boldsymbol{x}_{i-1}$, 求解器以 $\boldsymbol{x}_i$ 近似真实的 $\boldsymbol{x}^*_i$, 产生局部截断误差 $\boldsymbol{\tau}_i = \boldsymbol{x}^*_i - \boldsymbol{x}_i$. 局部误差在 $N$ 步中累积, 最终形成全局截断误差 $\boldsymbol{e}_N$.
 
-Euler 方法是一阶 ODE 求解器, 这意味着对任意足够光滑的 $\boldsymbol{x}(t)$, 均有 $\boldsymbol{\tau}_i = \mathcal{O}\left(h_i^2\right)$, 其中 $h_i = |t_i - t_{i-1}|$ 是局部步长 [Sul03]. 换言之, 存在某些 $C$ 和 $H$, 使每个 $h_i < H$ 都满足 $\|\boldsymbol{\tau}_i\| < C h_i^2$; 即把 $h_i$ 减半会使 $\boldsymbol{\tau}_i$ 减少 4$\times$. 此外, 若假设 $D_\theta$ 是 Lipschitz 连续的 (本文研究的所有网络架构都满足这一点), 则全局截断误差的界为 $\|\boldsymbol{e}_N\| \le E \max_i \|\boldsymbol{\tau}_i\|$, 其中 $E$ 的值取决于 $N$, $t_0$, $t_N$ 和 Lipschitz 常数 [Sul03]. 因此, 要在给定 $N$ 时减小全局误差, 进而能够减小 $N$ 本身, 归根结底就是选择求解器和 $\{t_i\}$, 使 $\max_i \|\boldsymbol{\tau}_i\|$ 最小.
+Euler 方法是一阶 ODE 求解器, 这意味着对任意足够光滑的 $\boldsymbol{x}(t)$, 均有 $\boldsymbol{\tau}_i = \mathcal{O}\left(h_i^2\right)$, 其中 $h_i = |t_i - t_{i-1}|$ 是局部步长 [Sul03]. 换言之, 存在某些 $C$ 和 $H$, 使每个 $h_i < H$ 都满足 $\|\boldsymbol{\tau}_i\| < C h_i^2$; 即把 $h_i$ 减半会使 $\boldsymbol{\tau}_i$ 减少 $4\times$. 此外, 若假设 $D_\theta$ 是 Lipschitz 连续的 (本文研究的所有网络架构都满足这一点), 则全局截断误差的界为 $\|\boldsymbol{e}_N\| \le E \max_i \|\boldsymbol{\tau}_i\|$, 其中 $E$ 的值取决于 $N$, $t_0$, $t_N$ 和 Lipschitz 常数 [Sul03]. 因此, 要在给定 $N$ 时减小全局误差, 进而能够减小 $N$ 本身, 归根结底就是选择求解器和 $\{t_i\}$, 使 $\max_i \|\boldsymbol{\tau}_i\|$ 最小.
 
 <span id="figure-13"></span>
 
@@ -1603,7 +1603,7 @@ $$
 
 ### 12.1 FID 计算
 
-我们计算 50,000 幅生成图像与所有可用真实图像之间的 FID [Heu17], 不采用 $x$ 翻转等任何增强. 使用 StyleGAN3 [+22] [Kar21] 提供的预训练 Inception-v3 模型, 该模型又是原始 TensorFlow 模型 [+23] 的直接 PyTorch 翻译. 我们已经验证, 本文的 FID 实现与 Dhariwal 和 Nichol [Dha21] 及 Karras 等人 [Kar21] 得到完全相同的结果. 为减小通常约为 $\pm$2% 的随机变化影响, 每项实验计算三次 FID 并报告最小值. 我们还在 [图 4](#figure-04), [图 5b](#figure-05), [图 13c](#figure-13) 和 [图 15](#figure-15) 中标出了所得最高与最低 FID 之间的差异.
+我们计算 50,000 幅生成图像与所有可用真实图像之间的 FID [Heu17], 不采用 $x$ 翻转等任何增强. 使用 StyleGAN3 [+22] [Kar21] 提供的预训练 Inception-v3 模型, 该模型又是原始 TensorFlow 模型 [+23] 的直接 PyTorch 翻译. 我们已经验证, 本文的 FID 实现与 Dhariwal 和 Nichol [Dha21] 及 Karras 等人 [Kar21] 得到完全相同的结果. 为减小通常约为 $\pm 2\%$ 的随机变化影响, 每项实验计算三次 FID 并报告最小值. 我们还在 [图 4](#figure-04), [图 5b](#figure-05), [图 13c](#figure-13) 和 [图 15](#figure-15) 中标出了所得最高与最低 FID 之间的差异.
 
 <span id="section-12-2"></span>
 
@@ -1611,7 +1611,7 @@ $$
 
 在 [第 5 节](#section-5) 中, 我们提出用条件增强对抗 $D_\theta$ 的过拟合. 增强流水线围绕 Karras 等人 [Kar20a] 最初在 GAN 场景下提出的相同概念构建. 实践中, 我们采用 6 种几何变换; 研究发现, 颜色破坏和图像空间滤波等其他增强类型会持续损害扩散模型.
 
-[表 6](#table-06) 给出了增强流水线的细节. 在添加噪声 $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$ 前, 对每幅训练图像 $\boldsymbol{y}\sim p_\text{data}$ 独立应用增强. 首先, 根据加权掷硬币决定启用还是禁用各项增强. 除始终启用的 $x$ 翻转外, 给定增强的启用概率 ("Prob." 栏) 在 CIFAR-10 上固定为 12%, 在 FFHQ 和 AFHQv2 上固定为 15%. 随后从相应分布 ("Parameters" 栏) 抽取 8 个随机参数; 若某项增强被禁用, 则将相关参数覆写为零. 根据这些参数 ("Transformation" 栏) 构造齐次二维变换矩阵. 使用 [Kar20a] 的实现将该变换应用于图像, 其中采用 2$\times$ 超采样的高质量 Wavelet 滤波器. 最后, 构造 9 维条件输入向量 ("Conditioning" 栏), 与图像和噪声水平输入一同馈入去噪器网络.
+[表 6](#table-06) 给出了增强流水线的细节. 在添加噪声 $\boldsymbol{n}\sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$ 前, 对每幅训练图像 $\boldsymbol{y}\sim p_\text{data}$ 独立应用增强. 首先, 根据加权掷硬币决定启用还是禁用各项增强. 除始终启用的 $x$ 翻转外, 给定增强的启用概率 ("Prob." 栏) 在 CIFAR-10 上固定为 12%, 在 FFHQ 和 AFHQv2 上固定为 15%. 随后从相应分布 ("Parameters" 栏) 抽取 8 个随机参数; 若某项增强被禁用, 则将相关参数覆写为零. 根据这些参数 ("Transformation" 栏) 构造齐次二维变换矩阵. 使用 [Kar20a] 的实现将该变换应用于图像, 其中采用 $2\times$ 超采样的高质量 Wavelet 滤波器. 最后, 构造 9 维条件输入向量 ("Conditioning" 栏), 与图像和噪声水平输入一同馈入去噪器网络.
 
 <span id="table-06"></span>
 
@@ -1621,7 +1621,7 @@ $$
 
 条件输入的作用是向网络提供一组辅助任务. 除对 $p(\boldsymbol{x}; \sigma)$ 建模这一主要任务外, 实际上还要求网络针对增强参数 $\boldsymbol{a}$ 的每种可能选择, 对无限多个分布 $p(\boldsymbol{x}; \sigma, \boldsymbol{a})$ 建模. 这些辅助任务为网络提供了种类繁多的独特训练样本, 防止它对任何单一样本过拟合. 辅助任务似乎也有益于主要任务; 我们推测, 这是因为每种 $\boldsymbol{a}$ 选择对应的去噪操作本身都相似.
 
-我们把条件输入设计成以零表示未应用任何增强的情形. 采样期间只需令 $\boldsymbol{a} = \mathbf{0}$, 即可得到与主要任务一致的结果. 我们没有观察到辅助任务与主要任务之间发生任何泄漏; 即使 $A_\text{prob} = 100$%, 生成图像也没有域外几何变换的痕迹. 实际上, 这意味着只要结果有所改善, 就可以任意选择常数 $\{A_\text{prob}, A_\text{scale}, A_\text{aniso}, A_\text{trans}\}$. 水平翻转是一个有意思的例子. 大多数先前工作使用随机 $x$ 翻转增强训练集, 这对多数数据集有益, 但缺点是生成图像中的文字或标志可能呈镜像. 采用我们的无泄漏增强, 以 100% 概率执行 $x$ 翻转增强, 可以得到相同益处而没有这些缺点. 因此, 我们只依赖自己的增强方案, 并禁用数据集 $x$ 翻转, 确保生成图像忠于原始分布.
+我们把条件输入设计成以零表示未应用任何增强的情形. 采样期间只需令 $\boldsymbol{a} = \mathbf{0}$, 即可得到与主要任务一致的结果. 我们没有观察到辅助任务与主要任务之间发生任何泄漏; 即使 $A_\text{prob} = 100\%$, 生成图像也没有域外几何变换的痕迹. 实际上, 这意味着只要结果有所改善, 就可以任意选择常数 $\{A_\text{prob}, A_\text{scale}, A_\text{aniso}, A_\text{trans}\}$. 水平翻转是一个有意思的例子. 大多数先前工作使用随机 $x$ 翻转增强训练集, 这对多数数据集有益, 但缺点是生成图像中的文字或标志可能呈镜像. 采用我们的无泄漏增强, 以 100% 概率执行 $x$ 翻转增强, 可以得到相同益处而没有这些缺点. 因此, 我们只依赖自己的增强方案, 并禁用数据集 $x$ 翻转, 确保生成图像忠于原始分布.
 
 <span id="section-12-3"></span>
 
@@ -1635,15 +1635,15 @@ $$
 
 [表 7](#table-07) 给出了 [第 5 节](#section-5) 所报告训练实验使用的确切超参数集合. 我们先详述 CIFAR-10, FFHQ 和 AFHQv2 所用的配置, 再讨论改进型 ImageNet 模型的训练.
 
-[表 2](#table-02) 的配置 A ("Baseline") 对应 Song 等人 [Son21] 在两种情形 (VP 和 VE) 下的原始设置, 配置 F ("Ours") 对应我们的改进设置. 每个模型持续训练, 直到从训练集抽取的图像总数达到 2 亿, 在 [表 7](#table-07) 中简写为 "200 Mimg"; batch size 为 512 时, 这相当于总计 $\sim$400,000 次训练迭代. 每 250 万幅图像保存一次模型快照, 并根据分辨率, 使用 NFE $=$ 35 或 NFE $=$ 79 的确定性采样器, 报告取得最低 FID 的快照结果.
+[表 2](#table-02) 的配置 A ("Baseline") 对应 Song 等人 [Son21] 在两种情形 (VP 和 VE) 下的原始设置, 配置 F ("Ours") 对应我们的改进设置. 每个模型持续训练, 直到从训练集抽取的图像总数达到 2 亿, 在 [表 7](#table-07) 中简写为 "200 Mimg"; batch size 为 512 时, 这相当于总计 $\sim 400{,}000$ 次训练迭代. 每 250 万幅图像保存一次模型快照, 并根据分辨率, 使用 NFE $=$ 35 或 NFE $=$ 79 的确定性采样器, 报告取得最低 FID 的快照结果.
 
-在配置 B 中, 我们重新调整基本超参数, 以加快训练并获得更有意义的比较基准. 具体而言, 根据分辨率, 将并行度从 4 块 GPU 提高到 8 块, batch size 从 128 提高到 512 或 256. 我们还禁用实践中未发现任何益处的梯度裁剪, 即强制 $\| \mathrm{d}\mathcal{L}(D_\theta) / \mathrm{d}\theta \|_2 \le 1$. 此外, 将 CIFAR-10 的学习率从 0.0002 提高到 0.001, 在前 1000 万幅图像期间逐步升高, 并将 $\theta$ 指数移动平均的半衰期统一为 50 万幅图像. 最后, 以 1% 为增量做完整网格搜索, 为每个数据集调整 [表 7](#table-07) 所示的 dropout 概率. 总训练时间约为: 32$\times$32 分辨率的 CIFAR-10 训练 2 天, 64$\times$64 分辨率的 FFHQ 和 AFHQv2 训练 4 天.
+在配置 B 中, 我们重新调整基本超参数, 以加快训练并获得更有意义的比较基准. 具体而言, 根据分辨率, 将并行度从 4 块 GPU 提高到 8 块, batch size 从 128 提高到 512 或 256. 我们还禁用实践中未发现任何益处的梯度裁剪, 即强制 $\| \mathrm{d}\mathcal{L}(D_\theta) / \mathrm{d}\theta \|_2 \le 1$. 此外, 将 CIFAR-10 的学习率从 0.0002 提高到 0.001, 在前 1000 万幅图像期间逐步升高, 并将 $\theta$ 指数移动平均的半衰期统一为 50 万幅图像. 最后, 以 1% 为增量做完整网格搜索, 为每个数据集调整 [表 7](#table-07) 所示的 dropout 概率. 总训练时间约为: $32\times32$ 分辨率的 CIFAR-10 训练 2 天, $64\times64$ 分辨率的 FFHQ 和 AFHQv2 训练 4 天.
 
-在配置 C 中, 我们移除 4$\times$4 层, 转而将 16$\times$16 层的容量翻倍, 从而提高模型的表达能力; 研究发现, 前者主要造成过拟合, 后者对取得高质量结果至关重要. Song 等人 [Son21] 的原始模型在 64$\times$64 (若适用) 和 32$\times$32 分辨率采用 128 个通道, 在 16$\times$16, 8$\times$8 和 4$\times$4 分辨率采用 256 个通道. 我们改为在 64$\times$64 分辨率 (若适用) 采用 128 个通道, 在 32$\times$32, 16$\times$16 和 8$\times$8 分辨率采用 256 个通道. [表 7](#table-07) 将这些数量简写为 128 的倍数, 从最高分辨率列到最低分辨率. 实际上, 这种再平衡略微减少了可训练参数总数, 32$\times$32 分辨率的每个模型约有 5600 万个参数, 64$\times$64 分辨率的模型约有 6200 万个参数.
+在配置 C 中, 我们移除 $4\times4$ 层, 转而将 $16\times16$ 层的容量翻倍, 从而提高模型的表达能力; 研究发现, 前者主要造成过拟合, 后者对取得高质量结果至关重要. Song 等人 [Son21] 的原始模型在 $64\times64$ (若适用) 和 $32\times32$ 分辨率采用 128 个通道, 在 $16\times16$, $8\times8$ 和 $4\times4$ 分辨率采用 256 个通道. 我们改为在 $64\times64$ 分辨率 (若适用) 采用 128 个通道, 在 $32\times32$, $16\times16$ 和 $8\times8$ 分辨率采用 256 个通道. [表 7](#table-07) 将这些数量简写为 128 的倍数, 从最高分辨率列到最低分辨率. 实际上, 这种再平衡略微减少了可训练参数总数, $32\times32$ 分辨率的每个模型约有 5600 万个参数, $64\times64$ 分辨率的模型约有 6200 万个参数.
 
 在配置 D 中, 用改进后的公式替换原始预条件 ([表 1](#table-01) 的 "Network and preconditioning" 部分). 在配置 E 中, 对噪声分布和损失加权做同样替换 ([表 1](#table-01) 的 "Training" 部分). 最后, 在配置 F 中启用 [第 12.2 节](#section-12-2) 所述的增强正则化. 其他超参数与配置 C 相同.
 
-为在 ImageNet-64 上取得 SOTA 结果, 需要比其他数据集训练得久得多. 为缩短训练时间, 我们使用 32 块 NVIDIA Ampere GPU (4 个节点), batch size 为 4096 (每块 GPU 128), 并通过 FP16/FP32 混合精度训练使用高性能 Tensor Core. 实践中, 可训练参数以 FP32 存储, 但求值 $F_\theta$ 时将其转换为 FP16; embedding 层和 self-attention 层除外, 因为我们发现 FP16 有限的指数范围偶尔会导致稳定性问题. 模型训练了两周, 相当于从训练集抽取约 $\sim$25 亿幅图像并完成 $\sim$600,000 次训练迭代; 学习率为 0.0001, 指数移动平均为 5000 万幅图像, 模型架构和 dropout 概率与 Dhariwal 和 Nichol [Dha21] 相同. 我们没有发现过拟合问题, 因而没有采用增强正则化.
+为在 ImageNet-64 上取得 SOTA 结果, 需要比其他数据集训练得久得多. 为缩短训练时间, 我们使用 32 块 NVIDIA Ampere GPU (4 个节点), batch size 为 4096 (每块 GPU 128), 并通过 FP16/FP32 混合精度训练使用高性能 Tensor Core. 实践中, 可训练参数以 FP32 存储, 但求值 $F_\theta$ 时将其转换为 FP16; embedding 层和 self-attention 层除外, 因为我们发现 FP16 有限的指数范围偶尔会导致稳定性问题. 模型训练了两周, 相当于从训练集抽取约 $\sim 25$ 亿幅图像并完成 $\sim 600{,}000$ 次训练迭代; 学习率为 0.0001, 指数移动平均为 5000 万幅图像, 模型架构和 dropout 概率与 Dhariwal 和 Nichol [Dha21] 相同. 我们没有发现过拟合问题, 因而没有采用增强正则化.
 
 <span id="section-12-4"></span>
 
@@ -1659,7 +1659,7 @@ $$
 
 对于类别条件和增强正则化, 我们在噪声水平输入之外引入两个可选条件输入, 以扩展原始 DDPM++ 和 NCSN++ 架构. 类别标签表示为 one-hot 编码向量, 先乘以 $\sqrt{C}$, 其中 $C$ 为类别总数, 再馈入全连接层. 对增强参数, 将 [第 12.2 节](#section-12-2) 的条件输入原样馈入全连接层. 随后通过逐元素相加, 把所得特征向量与原始噪声水平条件向量合并.
 
-对类别条件 ImageNet-64, 我们原样采用 Dhariwal 和 Nichol [Dha21] 的 ADM 架构. 该模型共有 $\sim$2.96 亿个可训练参数. 如 [表 7](#table-07) 和 [表 8](#table-08) 所述, 它与 DDPM++ 最显著的差异包括: 模型稍浅 (每个分辨率 3 个残差块, 而非 4 个), 但通道多得多 (例如最低分辨率为 768, 而非 256); 网络中穿插更多 self-attention 层 (22 层, 而非 6 层); 并使用 multi-head attention (例如最低分辨率有 12 个 head). 架构选择的确切影响仍是值得未来研究的问题.
+对类别条件 ImageNet-64, 我们原样采用 Dhariwal 和 Nichol [Dha21] 的 ADM 架构. 该模型共有 $\sim 2.96$ 亿个可训练参数. 如 [表 7](#table-07) 和 [表 8](#table-08) 所述, 它与 DDPM++ 最显著的差异包括: 模型稍浅 (每个分辨率 3 个残差块, 而非 4 个), 但通道多得多 (例如最低分辨率为 768, 而非 256); 网络中穿插更多 self-attention 层 (22 层, 而非 6 层); 并使用 multi-head attention (例如最低分辨率有 12 个 head). 架构选择的确切影响仍是值得未来研究的问题.
 
 <span id="section-12-5"></span>
 
