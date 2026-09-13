@@ -1687,7 +1687,6 @@ export const paperAbbreviations = {
   'Nag20a': 'Nagel, M., Amjad, R. A., Van Baalen, M., Louizos, C., and Blankevoort, T. Up or down? adaptive rounding for post-training quantization. In International Conference on Machine Learning, pp.\\ 7197--7206. PMLR, 2020.',
   'New20': 'Mingxuan He, Choungki Song, Ilkon Kim, Chunseok Jeong, Seho Kim, Il Park, Mithuna Thottethodi, and TN Vijaykumar. 2020. Newton: A DRAM-maker’s accelerator-in-memory (AiM) architecture for machine learning. In 2020 53rd Annual IEEE/ACM International Symposium on Microarchitecture (MICRO). IEEE, 372–385.',
   'Ni20': 'Renkun Ni, Hong-min Chu, Oscar Castañeda, Ping-yeh Chiang, Christoph Studer, and Tom Goldstein. Wrapnet: Neural net inference with ultra-low-resolution arithmetic. arXiv preprint arXiv:2007.13242, 2020.',
-  'Nvi20': 'NVIDIA Corporation. "NVIDIA A100 Tensor Core GPU Architecture." Technical report. 2020. [Link](https://images.nvidia.com/aem-dam/en-zz/Solutions/data-center/nvidia-ampere-architecture-whitepaper.pdf)',
   'Nvi20a': 'NVIDIA A100 Tensor Core GPU. https://www.nvidia.com/en-us/data-center/a100/. 2020. [Link](https://www.nvidia.com/en-us/data-center/a100/)',
   'Nvi20b': 'NVIDIA. Nvidia A100 tensor core GPU architecture, 2020.',
   'Nvi20c': 'NVIDIA Selene Supercomputer. https://www.top500.org/system/179842/. 2020. [Link](https://www.top500.org/system/179842/)',
@@ -1808,6 +1807,7 @@ export const paperAbbreviations = {
   'Sha20': 'Noam Shazeer. "GLU Variants Improve Transformer." 2020. [Link](/papers/glu-variants/)', // published: 2020-02-12
   'Bel20': 'Iz Beltagy, Matthew E. Peters, and Arman Cohan. Longformer: The long-document transformer, 2020. [Link](/papers/longformer/)', // published: 2020-04-10
   'Bel20a': 'Iz Beltagy, Matthew E Peters, and Arman Cohan. Longformer: The long-document transformer. arXiv preprint arXiv:2004.05150, 2020. [Link](/papers/longformer/)', // published: 2020-04-10
+  'Nvi20': 'NVIDIA Corporation. "NVIDIA A100 Tensor Core GPU Architecture." Technical report. 2020. [Link](/papers/nvidia-a100-architecture/)', // published: 2020-05-14
   'Zhe20': 'Lianmin Zheng, Chengfan Jia, Minmin Sun, Zhao Wu, Cody Hao Yu, Ameer Haj-Ali, Yida Wang, Jun Yang, Danyang Zhuo, Koushik Sen. "Ansor: Generating High-Performance Tensor Programs for Deep Learning." 14th USENIX Symposium on Operating Systems Design and Implementation (OSDI 20). 2020. [Link](/papers/ansor/)', // published: 2020-06-11
   'Kat20': 'Angelos Katharopoulos, Apoorv Vyas, Nikolaos Pappas, and François Fleuret. "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention." Proceedings of the 37th International Conference on Machine Learning, PMLR 119:5156-5165, 2020. [Link](/papers/transformers-are-rnns/)', // published: 2020-06-29
   'Lep20': 'Dmitry Lepikhin. "Gshard: Scaling giant models with conditional computation and automatic sharding." arXiv preprint. 2020. [Link](/papers/gshard/)', // published: 2020-06-30
@@ -4852,7 +4852,7 @@ const paperGroups = [
   },
   {
     titles: ['处理器架构', 'Processor Architecture', 'プロセッサアーキテクチャ'],
-    items: ['efficient-dnn-processing', 'nvidia-pascal-architecture', 'tpu-performance-analysis', 'nvidia-h100-architecture', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
+    items: ['efficient-dnn-processing', 'nvidia-pascal-architecture', 'tpu-performance-analysis', 'nvidia-a100-architecture', 'nvidia-h100-architecture', 'llmcompass', 'neupims', 'fred', 'stratum', 'kelle', 'deca', 'nvidia-blackwell-architecture'],
   },
 ]
 
