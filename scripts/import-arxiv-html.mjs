@@ -363,13 +363,16 @@ function renderEquation(element) {
       .replace(/^\\displaystyle\s*/, '')).filter(Boolean)
   )).filter((row) => row.length > 0)
   if (rows.length === 0) return ''
-  const sourceId = container.attr('id') ?? $(container.find('math').first()).attr('id')?.split('.m')[0]
-  const target = targets.get(sourceId)
-  const anchor = target ? `<span id="${target}"></span>\n\n` : ''
+  const sourceIds = [container.attr('id'), ...container.find('[id]').toArray().map((node) => $(node).attr('id'))]
+    .filter(Boolean)
+    .map((id) => id.split('.m')[0])
+  const equationTargets = [...new Set(sourceIds.map((id) => targets.get(id)).filter(Boolean))]
+  const anchor = equationTargets.map((target) => `<span id="${target}"></span>`).join('\n')
+  const anchorBlock = anchor ? `${anchor}\n\n` : ''
   const expression = rows.length === 1 && rows[0].length === 1
     ? rows[0][0]
     : `\\begin{aligned}\n${rows.map((row) => row.join(' & ')).join(' \\\\\n')}\n\\end{aligned}`
-  return `${anchor}$$\n${expression}\n$$`
+  return `${anchorBlock}$$\n${expression}\n$$`
 }
 
 function renderFigure(element) {
@@ -412,6 +415,40 @@ function renderParagraphContainer(element) {
   return blocks.join('\n\n')
 }
 
+function unwrapTheoremItalic(value) {
+  return value.trim().split('\n\n').map((block) => (
+    block.startsWith('*') && block.endsWith('*')
+      ? block.slice(1, -1)
+      : block
+  )).join('\n\n')
+}
+
+function renderFormalStatement(element) {
+  const container = $(element)
+  const heading = container.children('h5,h6').first()
+  const label = normalizeSpace(heading.text()).replace(/\s+([.!?:;])$/, '$1')
+  const blocks = container.children().toArray()
+    .filter((child) => child !== heading[0])
+    .map(renderBlock)
+    .filter(Boolean)
+    .map(unwrapTheoremItalic)
+  if (blocks.length === 0) return `**${label}**`
+  return [`**${label}** ${blocks[0]}`, ...blocks.slice(1)].join('\n\n')
+}
+
+function renderProof(element) {
+  const container = $(element)
+  const heading = container.children('h5,h6').first()
+  const body = container.children().toArray()
+    .filter((child) => child !== heading[0])
+    .map(renderBlock)
+    .filter(Boolean)
+    .join('\n\n')
+    .replace(/(?:\s|\*)*[∎□](?:\*)?\s*$/, '')
+    .trim()
+  return `::: details Proof\n${body}\n:::`
+}
+
 function renderSection(element) {
   const section = $(element)
   if (section.attr('id') === 'bib') return ''
@@ -435,6 +472,8 @@ function renderBlock(node) {
   if (node.type !== 'tag') return ''
   const element = $(node)
   const name = node.name
+  if (element.hasClass('ltx_theorem')) return renderFormalStatement(node)
+  if (element.hasClass('ltx_proof')) return renderProof(node)
   if (name === 'section' && element.hasClass('ltx_paragraph')) return renderParagraphContainer(node)
   if (name === 'section') return renderSection(node)
   if (name === 'figure') return renderFigure(node)
