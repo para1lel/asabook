@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process'
 import { access, cp, mkdir, readlink, rename, symlink, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { readJob, repo, saveJob, state, validId } from './common.mjs'
+import { fetchMain } from './git-fetch.mjs'
 
 const id = process.argv[2]
 if (!validId(id)) throw new Error('Invalid job ID')
@@ -10,11 +11,16 @@ if (!job) throw new Error('Unknown deployment job')
 
 function run(command, args, capture = false) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: repo, stdio: ['ignore', capture ? 'pipe' : 'inherit', 'inherit'] })
+    const child = spawn(command, args, { cwd: repo, stdio: ['ignore', capture ? 'pipe' : 'inherit', 'pipe'] })
     let output = ''
+    let stderr = ''
     child.stdout?.on('data', (chunk) => { output += chunk })
+    child.stderr.on('data', (chunk) => {
+      process.stderr.write(chunk)
+      stderr = (stderr + chunk).slice(-4096)
+    })
     child.once('error', reject)
-    child.once('exit', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} failed (${code})`)))
+    child.once('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} ${args.join(' ')} failed (${code}): ${stderr.trim()}`)))
   })
 }
 async function update(fields) {
@@ -28,13 +34,13 @@ try {
   if (await run('git', ['rev-parse', '--is-shallow-repository'], true) !== 'false') throw new Error('Full Git history is required')
   if (await run('git', ['remote', 'get-url', 'origin'], true) !== 'https://github.com/para1lel/asabook.git') throw new Error('Unexpected repository origin')
   if (await run('git', ['branch', '--show-current'], true) !== 'main') throw new Error('Server checkout must use main')
-  await run('git', ['-c', 'http.proxy=', '-c', 'https.proxy=', 'fetch', '--prune', 'origin'])
+  await fetchMain(run)
   const latest = await run('git', ['rev-parse', 'origin/main'], true)
   if (job.sha !== latest) {
     await update({ status: 'superseded', finishedAt: new Date().toISOString() })
   } else {
-    await run('git', ['-c', 'http.proxy=', '-c', 'https.proxy=', 'pull', '--ff-only', 'origin', 'main'])
-    if (await run('git', ['rev-parse', 'HEAD'], true) !== job.sha) throw new Error('Main changed during pull; retry the latest workflow')
+    await run('git', ['merge', '--ff-only', latest])
+    if (await run('git', ['rev-parse', 'HEAD'], true) !== job.sha) throw new Error('Checkout does not match the requested deployment commit')
     await run('npm', ['ci', '--no-audit', '--no-fund'])
     await run('npm', ['run', 'paper:check-config'])
     await run('npm', ['run', 'docs:build', '--', '--clean-cache'])

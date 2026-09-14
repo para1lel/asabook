@@ -7,6 +7,38 @@ import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
+import { fetchMain } from '../deploy/git-fetch.mjs'
+
+test('Git fetch retries transient TLS failures and succeeds after recovery', async () => {
+  let attempts = 0
+  const waits = []
+  await fetchMain(async () => {
+    if (++attempts < 3) throw new Error('fatal: GnuTLS recv error (-110): The TLS connection was non-properly terminated.')
+  }, async (ms) => { waits.push(ms) })
+  assert.equal(attempts, 3)
+  assert.deepEqual(waits, [10000, 20000])
+})
+
+test('Git fetch stops after four network failures and preserves the cause', async () => {
+  let attempts = 0
+  const cause = new Error('fatal: Failed to connect to github.com port 443: Connection timed out')
+  await assert.rejects(fetchMain(async () => {
+    attempts++
+    throw cause
+  }, async () => {}), (error) => error === cause)
+  assert.equal(attempts, 4)
+})
+
+test('Git fetch does not retry authentication, certificate or repository errors', async () => {
+  for (const message of ['Authentication failed', 'server certificate verification failed', 'Repository not found', 'cannot lock ref']) {
+    let attempts = 0
+    await assert.rejects(fetchMain(async () => {
+      attempts++
+      throw new Error(message)
+    }, async () => { assert.fail('Must not retry permanent errors') }), { message })
+    assert.equal(attempts, 1)
+  }
+})
 
 test('deployment API rejects unauthenticated and unsafe requests and recovers interrupted jobs', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'asabook-deploy-test-'))

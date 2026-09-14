@@ -32,7 +32,8 @@ Node.js 使用 `~/.local/opt/node-v24.18.0-linux-x64`，不替换系统 Node。�
 服务器验证请求、串行部署并使用 `flock` 防止重叠。它拒绝浅克隆、脏工作区、错误 origin 或非 `main` 分支，仅拉取远端当前 `main`，不接受任意命令或分支。过期提交标记为 `superseded`。每次运行：
 
 ```sh
-git pull --ff-only origin main
+git fetch --prune origin
+git merge --ff-only <已验证的-origin/main-SHA>
 npm ci --no-audit --no-fund
 npm run paper:check-config
 npm run docs:build -- --clean-cache
@@ -43,6 +44,18 @@ npm run docs:build -- --clean-cache
 `staging.asabook.cc` 用于验证同一个当前版本；它不是独立的预发布构建环境。静态服务只监听 `127.0.0.1:8787`，部署接口只监听 `127.0.0.1:8788`。Tunnel 按域名转发，其他域名返回 404。
 
 ## 初次安装与配置更新
+
+### GitHub 连接故障
+
+服务器直连 GitHub，不使用代理。拉取遇到 TLS 意外中断、连接超时等暂时性网络错误时，最多尝试四次，间隔为 10、20、30 秒；传输速度连续 60 秒低于 1 KiB/s 时结束当前尝试。认证、证书校验和仓库错误直接失败。Actions 会显示失败命令和最后 4 KiB 的标准错误输出，完整日志仍保存在服务器。
+
+拉取成功后只对已验证的提交执行本地 fast-forward，避免 `pull` 再次建立网络连接。不要关闭证书校验，也不要将 GitHub 的某个 IP 永久写入 hosts；临时节点故障应结合 DNS、TLS 和 Git 实际传输日志排查。
+
+2026-09-14 排查记录：默认解析的 `20.205.243.166` 曾发生 TCP 443 连接超时，随后同一地址的 TLS、HTTP/1.1、HTTP/2 和 Git 引用查询均恢复；替代 GitHub 节点的证书校验及引用查询也成功，但完整拉取仍发生低速超时，强制 HTTP/1.1 也未解决。证据指向直连路径的间歇性故障，未能确定具体断连设备。原任务日志没有 TLS 跟踪，不能仅凭 `GnuTLS recv error (-110)` 判定为证书、协议版本或 DNS 污染问题。
+
+若持续无法下载缺失对象，可按下方完整 bundle 的安装方式，经可信内网传输增量 bundle，在服务器运行 `git bundle verify` 后用 `git fetch <bundle-path> main` 导入对象，再让部署流程从 GitHub 验证最新 `main`。这属于故障恢复，不替代日常直连拉取。
+
+### 安装步骤
 
 首次准备仓库时使用完整 `git clone`，不要加 `--depth`。也可从完整 `git bundle --all` 克隆，再将 origin 设置为 GitHub 地址并 fetch。确认：
 
