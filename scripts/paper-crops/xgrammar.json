@@ -1,0 +1,110 @@
+[
+  {
+    "name": "figure-01",
+    "preserveSource": true,
+    "sourceHeight": 1203,
+    "sourceWidth": 2097
+  },
+  {
+    "name": "figure-02",
+    "preserveSource": true,
+    "sourceHeight": 2157,
+    "sourceWidth": 3332
+  },
+  {
+    "name": "figure-03",
+    "preserveSource": true,
+    "sourceHeight": 2776,
+    "sourceWidth": 2323
+  },
+  {
+    "name": "figure-04",
+    "preserveSource": true,
+    "sourceHeight": 1772,
+    "sourceWidth": 2762
+  },
+  {
+    "name": "figure-05",
+    "preserveSource": true,
+    "sourceHeight": 1216,
+    "sourceWidth": 1698
+  },
+  {
+    "name": "figure-06",
+    "preserveSource": true,
+    "sourceHeight": 2542,
+    "sourceWidth": 2237
+  },
+  {
+    "name": "figure-07",
+    "preserveSource": true,
+    "sourceHeight": 2528,
+    "sourceWidth": 2521
+  },
+  {
+    "name": "figure-08",
+    "preserveSource": true,
+    "sourceHeight": 840,
+    "sourceWidth": 2889
+  },
+  {
+    "name": "figure-09",
+    "preserveSource": true,
+    "sourceHeight": 4560,
+    "sourceWidth": 4708
+  },
+  {
+    "name": "figure-10",
+    "preserveSource": true,
+    "sourceHeight": 1144,
+    "sourceWidth": 3331
+  },
+  {
+    "name": "figure-11",
+    "preserveSource": true,
+    "sourceHeight": 1611,
+    "sourceWidth": 2827
+  },
+  {
+    "name": "figure-12",
+    "preserveSource": true,
+    "sourceHeight": 2345,
+    "sourceWidth": 2750
+  },
+  {
+    "name": "table-01",
+    "page": 9,
+    "x": 315,
+    "y": 122.5,
+    "width": 219,
+    "height": 66.5,
+    "preserveSource": false
+  },
+  {
+    "name": "table-02",
+    "page": 10,
+    "x": 54,
+    "y": 316,
+    "width": 237,
+    "height": 80,
+    "preserveSource": false
+  },
+  {
+    "name": "table-03",
+    "page": 10,
+    "x": 53,
+    "y": 431,
+    "width": 243,
+    "height": 78,
+    "preserveSource": false
+  },
+  {
+    "name": "table-04",
+    "page": 10,
+    "x": 305,
+    "y": 307,
+    "width": 239,
+    "height": 54,
+    "preserveSource": false
+  }
+]
