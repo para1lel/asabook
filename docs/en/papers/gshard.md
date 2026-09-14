@@ -97,17 +97,13 @@ where $x_s$ is the input token to the MoE layer, $\mathit{wi}$ and $\mathit{wo}$
 The gating function $\mathrm{GATE}(\cdot)$ is critical to the MoE layer, which is modeled by a softmax activation function to indicate the weights of each expert in processing incoming tokens. In other words, to indicate how good an expert is at processing the incoming token. Furthermore, the gating function must satisfy two goals:
 
 - Balanced load It is desirable that the MoE layer to sparsely activate the experts for a given token. A naive solution would be just to choose the top-$k$ experts according to the softmax probability distribution. However, it is known that this approach leads to load imbalance problem for training [Sha17]: most tokens seen during training would have been dispatched to a small number of experts, amassing a very large input buffer for only a few (busy) experts leaving other experts untrained, slowing down the training. Meanwhile many other experts do not get sufficiently trained at all. A better design of the gating function would distribute processing burden more evenly across all experts.
-
 - Efficiency at scale It would be rather trivial to achieve a balanced load if the gating function is done sequentially. The computation cost for the gating function alone is at least $O(NE)$ for all $N$ tokens in the input batch given $E$ experts. However, in our study, $N$ is in the order of millions and $E$ is in the order of thousands, a sequential implementation of the gating function would keep most of the computational resources idle most of the time. Therefore, we need an efficient parallel implementation of the gating function to leverage many devices.
 
 We designed the following mechanisms in the gating function $\mathrm{GATE}(\cdot)$ to meet the above requirements (details illustrated in [Algorithm 1](#algorithm-01)):
 
 - Expert capacity To ensure the load is balanced, we enforce that the number of tokens processed by one expert is below some uniform threshold, which we define as expert capacity. Assuming that the total number of tokens in a training batch is $N$, and each token is dispatched to at most two experts, then the expert capacity is set to be $O(N/E)$. $\mathrm{GATE}(\cdot)$ keeps a running counter $c_{e}$ for how many tokens are dispatched to an expert. When both experts selected by a token already exceed their capacity, the token is considered as an overflowed token, where $\mathcal{G}_{s,E}$ degenerates into a zero vector. Such tokens have their representation $x_{s}$ passed on to the next layer via residual connections.
-
 - Local group dispatching $\mathrm{GATE}(\cdot)$ partitions all tokens in a training batch evenly into $G$ groups, i.e., each group contains $S=N/G$ tokens. All groups are processed independently in parallel. Each group is given a fractional capacity of each expert, $2N/(G\cdot E)$. Each group ensures that at most this many tokens are dispatched to an expert. In this way, we can ensure that expert capacity is still enforced and the overall load is balanced.
-
 - Auxiliary loss It is important that the gating function does not always choose the same few experts, as this would lead to a capacity overflow for only a few experts and under-utilization for the remaining ones. Following [Sha17], we define an auxiliary loss term $\ell_{\mathrm{aux}}$ to enforce this constraint. It is added to the overall loss function of the model $\mathcal{L}=\ell_{\mathrm{nll}}+k*\ell_{\mathrm{aux}}$ with a constant multiplier $k$. The particular form of the auxiliary loss term $\ell_{\mathrm{aux}}$ in line (13) of [Algorithm 1](#algorithm-01) is motivated by the following consideration: the term $c_e/S$ represents the fraction of input routed to each expert, and we want to minimize mean square of $c_e/S$. But because $c_e$ is derived from top-2 operation and is not differentiable, we use the mean gates per expert $m_e$ as a differentiable approximation and replace $(c_e/S)^2$ with $m_e(c_e/S)$, which can now be optimized with gradient descent.
-
 - Random routing Intuitively, because $y_{s}$ is a weighted average of what selected experts return, if the weight for the 2nd expert is very small, we can simply ignore the 2nd expert to conserve the overall expert capacity. Hence, in addition to respecting the expert capacity constraint, $\mathrm{GATE}(\cdot)$ dispatches to the 2nd-best expert with the probability proportional to its weight $g_{2}$.
 
 <span id="algorithm-01"></span>
@@ -200,9 +196,7 @@ In addition to the computation cost, we have non-constant cross-device communica
 Due to the daunting size and computation demand of tensors in [Algorithm 1](#algorithm-01), we have to parallelize the algorithm over many devices. An immediate solution of how to shard each tensor in the algorithm is illustrated by underscored letters in [Algorithm 2](#algorithm-02). The *sharding* API in GShard allows us to annotate tensors in the program to selectively specify how they should be partitioned. This information is propagated to the compiler so that the compiler can automatically apply transformations for parallel execution. We use the following APIs in TensorFlow/Lingvo [She19a] in our work.
 
 - replicate(tensor) annotates tensor to be replicated across partitions, and returns the annotated tensor. This is often used for the non-MoE layers in our model to replicate the weights.
-
 - split(tensor, split\_dimension, num\_partitions) annotates tensor to be partitioned along split\_dimension, and returns the annotated tensor. Partition $i$ is placed on the $i$’th device, and num\_partitions must not exceed the number of devices on the system.
-
 - shard(tensor, device\_assignment) generalizes split() to allow partitioning multiple dimensions and specifying the placement of each partition. [Appendix A.3](#appendix-a-03) describes this API with more details.
 
 Note that the invocations to split or shard only adds annotations and does not change the logical shape in the user program. The user still works with full shapes and does not need to worry about issues like uneven partitioning.
@@ -292,9 +286,7 @@ There are a few important technical challenges in general cases, which we will c
 **Einsum Case Study.** Einsum is the most critical operator in implementing the MoE model. They are represented as a Dot operation in XLA HLO, where each operand (LHS or RHS) consists of three types of dimensions:
 
 - Batch dimensions are the embarrassingly parallel dimensions. The same set of batch dimensions must exist in all of LHS, RHS and the output, and each element in the output only depends on the corresponding batch in LHS and RHS.
-
 - Contracting dimensions only exist in the operands. LHS and RHS must have the same set of contracting dimensions, and they are summed up and collapsed in the output.
-
 - Non-contracting dimensions are also parallel dimensions that exist in one of the operands and the output. Each of LHS and RHS has its own set of non-contracting dimensions, which are inherited by the output.
 
 Sharding propagation prioritizes choosing the same sharding on batch dimensions of LHS, RHS and output, because that would avoid any cross-partition communication. However, that is not always possible, and we need cross-partition communication in the following three cases.
@@ -306,9 +298,7 @@ Sharding propagation prioritizes choosing the same sharding on batch dimensions 
 **Figure 4.** Examples of Einsum partitioning with cross-device communication.
 
 - Resharding. In the MoE model we built, the expert dispatching logic (Line 3 in [Algorithm 2](#algorithm-02)) requires switching the partitioned dimension after an Einsum. Since resharding is efficient (Section [5.2](#section-05-02)) with AllToAll, we first execute the Einsum locally, then reshard it to the desired dimension, as shown in [Figure 4a](#figure-04).
-
 - Accumulating partial results. If the inputs are partitioned along contracting dimensions, the local result is partial and we need to use an AllReduce to combine them and produce the final result, as shown in [Figure 4b](#figure-04).
-
 - Slicing in a loop. For certain scenarios, we also implemented an algorithm similar to Cannon’s algorithm [Can69], in order to limit the size of tensors on each partition. For example, if both operands are partitioned on a non-contracting dimension, we cannot compute the local Einsum directly since operands have different non-contracting dimensions. Replicating one of the operands would not cause redundant computation, but it requires the replicated operand to fit in device memory. Therefore, if the size of the operand is too large, we instead keep both operands partitioned and use a loop to iterate over each slice of the result, and use CollectivePermute to communicate the input slices ([Figure 4c](#figure-04)).
 
 <span id="section-03-03-03"></span>
@@ -460,9 +450,7 @@ This section discusses how well GShard achieves computation and memory efficienc
 In the GShard model, there are mainly three types of memory usage, all of which have constant per-device sizes after SPMD partitioning, when the number of experts increases.
 
 - Replicated weights (e.g. transformer feed-forward layers).
-
 - Distributed weights (MoE feed-forward layers [+15]).
-
 - Activations (output of each layer that is used in both forward and backward pass).
 
 The $O(1)$ memory scaling is demonstrated in [Figure 7](#figure-07), which shows the per-device memory usage distribution for different models. With a fixed number of layers, both weight memory and activation memory stay constant when the number of experts increases.
@@ -628,11 +616,8 @@ GShard will then propagate the sharding on the spatial dimension to other layers
 We first introduce the window configurations that the SPMD partitioner has to consider. Each spatial dimension in the convolution has the following set of configurations.
 
 - Stride is the distance (in number of elements) that the window moves to produce the next output element.
-
 - Low/high padding is the number of elements padded to the low/high end of the dimension in LHS (base).
-
 - Base dilation is the dilation factor of the LHS, i.e., one plus the number of elements padded between every element (excluding low/high padding). No base dilation means the value is set to 1.
-
 - Window dilation is one plus the number of elements padded between every element in the RHS (window).
 
 **Non-constant halo size.** We demonstrate that non-constant halo size is common using a simple example, which does not have dilation. [Figure 11](#figure-11) shows a 4-way partitioned convolution, where the right halo sizes for the partitions are (1, 2, 3, 4) and can be expressed as a linear function of the partition ID: $\mathrm{partition}\_\mathrm{id}+1$. Partition 1 is in charge of generating 2 output elements (red cells), which means that the partition needs to get 0 elements from Partition 0, and 2 elements from Partition 2 (area covered by two dotted red windows).
@@ -666,7 +651,6 @@ We first introduce the window configurations that the SPMD partitioner has to co
     $$
 
     which determines the right halo size. Because $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is divisible by $\mathrm{dilation}$, it can be simplified as $a\times i+b$, where $a$ and $b$ are both constants.
-
 - $\mathrm{stride}==1$ but $\mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is not divisible by $\mathrm{dilation}$. In this case, the low padding on different partitions are different, but it is a static configuration in windowed operations, which can’t be specialized for each partition for SPMD execution. Using Pad and DynamicSlice on the operand also would not work, because those operators would be applied before dilation, so everything would be multiplied by the dilation factor. Fortunately, with $\mathrm{stride}==1$, all positions on the padded and dilated base region are valid window starts, and we can use the maximum low padding on all partitions to ensure that each partition calculates all required windows, then do a DynamicSlice on the output of the partitioned windowed operator to remove unnecessary data. The limit index of required data on the non-padded base region for Partition $i$ is same as before,
 
     $$
@@ -674,7 +658,6 @@ We first introduce the window configurations that the SPMD partitioner has to co
     $$
 
     but cannot be simplified to $a\times i+b$.
-
 - $\mathrm{stride}\neq 1$ and $\mathrm{stride}\times \mathrm{per}\_\mathrm{shard}\_\mathrm{window}\_\mathrm{count}$ is not divisible by $\mathrm{dilation}$. If neither of the above conditions are true, different partitions could start with different number of padding elements, and not all offsets are valid window starts. Consider the last example in [Figure 13](#figure-13). Whatever low padding we chose, some partition will be invalid, because the valid windows could be skipped since $\mathrm{stride}\neq 1$. A solution to this problem is to pad the window in addition to padding the base area. We can use the maximum low padding required by the partitions on the base area, then increase the window size by that low padding amount. However, the low and high padding amounts on the window vary on different partitions, which can be implemented by a Pad followed by a DynamicSlice. The window padding is used to mask off the unaligned elements in the base area, so that the start of the non-padding window element will be aligned with the desired start in the base area for each partition.
 
 **Window dilation.** If the RHS is replicated, window dilation only affects the effective window size when partitioning the operator based on its LHS. If the dilated RHS is also partitioned, which typically occurs in the gradient computation of strided convolutions, handling window dilation is still simpler than handling base dilation, because there is no low/high padding on the RHS. We skip the details of the implementation.

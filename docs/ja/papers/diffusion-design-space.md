@@ -622,7 +622,6 @@ $$
 本研究では、次の方針で[式 6](#equation-06)の SDE を導出する。
 
 - 所望の周辺密度 $p\big( \boldsymbol{x}; \sigma(t) \big)$ は、データ密度 $p_\text{data}$ と、標準偏差 $\sigma(t)$ をもつ等方 Gaussian 密度との畳み込みである（[式 20](#equation-20)を参照）。したがって、密度を時間 $t$ の関数とみなすと、時間変化する拡散率をもつ熱拡散 PDE に従って発展する。第一段階として、この PDE を求める。
-
 - 次に、Fokker-Planck 方程式を用いて、この PDE に従って密度が発展する SDE の族を復元する。[式 6](#equation-06)は、この族の適切なパラメータ化から得られる。
 
 <span id="section-8-5-1"></span>
@@ -1473,9 +1472,7 @@ $$
 ImageNet-64 で用いる事前学習済み iDDPM モデルは、Dhariwal と Nichol [Dha21] が提供する「ADM (dropout)」チェックポイント [+17] に対応する。このモデルは 296 million 個の学習可能パラメータをもち、$M = 1000$ 個の離散的なノイズレベル集合 $\sigma \in \{u_j\} \approx \{20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, \dots, 0.0064\}$ をサポートする。$F_\theta$ をこのような特定の $\sigma$ の選択肢についてしか評価できないことから、実用上の課題が 3 つ生じる。
 
 1.  DDIM の文脈では、$\{u_j\}$ をどのように再サンプリングして $\{t_i\}$ を得るかを、$N \ne M$ の場合について選ばなければならない。Song ら [Son21a] は、$t_i = u_{k \cdot i}$ とする単純な再サンプリング方式を用いる。ここで、再サンプリング係数は $k \in \mathbb{Z}^+$ である。しかし、この方式は $1000 \equiv 0 \pmod{N}$ を必要とするため、$N$ の可能な選択肢を大幅に制限する。一方、Nichol と Dhariwal [Nic21] は、$t_i = u_j$ とし、$j = \lfloor (M - 1) / (N - 1) \cdot i \rfloor$ とする、より柔軟な方式を用いる。しかし実際には、$u_{j<8}$ の値が、本研究が選好する $\sigma_{\max}= 80$ よりかなり大きいことに注意する。本研究では、$j = \lfloor j_0 + (M - 1 - j_0) / (N - 1) \cdot i \rfloor$ と定義し、$j_0 = 8$ とすることでこれらの値をスキップすることを選択し、これは[表 1](#table-01)の「Time steps」行と一致する。[図 2c](#figure-02)における元のサンプラー（青）と本研究の再実装（オレンジ）の差は、この選択によって説明される。
-
 2.  本研究の時刻ステップ離散化（[式 5](#equation-05)）の文脈では、$\sigma_i \in \{u_j\}$ であることを保証しなければならない。各 $\sigma_i$ を最も近いサポート対象の値へ丸める、すなわち $\sigma_i \gets u_{\mathop{\mathrm{arg}\,\min}_j |u_j - \sigma_i|}$ とし、$\sigma_{\min}= 0.0064 ~\approx~ u_{N-1}$ と設定することでこれを実現する。[アルゴリズム 1](#algorithm-01)が $D_\theta(\cdot; \sigma)$ を $\sigma \in \{\sigma_{i<N}\}$ の場合にのみ評価するため、これで十分である。
-
 3.  本研究の確率的サンプラーの文脈では、$\hat t_i \in \{u_j\}$ であることを保証しなければならない。[アルゴリズム 2](#algorithm-02)の 5 行目を $\hat t_i \gets u_{\mathop{\mathrm{arg}\,\min}_j |u_j - (t_i + \gamma_i t_i)|}$ に置き換えることで、これを実現する。
 
 これらの変更により、事前学習済みモデルを $F_\theta(\cdot)$ として直接インポートし、[表 1](#table-01)の定義を用いて[アルゴリズム 1](#algorithm-01)と[アルゴリズム 2](#algorithm-02)を実行できる。モデルは、[Nic21] の対応するセクション（3.1）で述べられているように、$\epsilon_\theta(\cdot)$ と $\Sigma_\theta(\cdot)$ の両方を出力することに注意されたい。本研究では前者のみを用い、後者は無視する。
@@ -1669,19 +1666,14 @@ ImageNet-64 では、最先端の結果に到達するため、他のデータ�
 データセット：
 
 - CIFAR-10 [Kri09]：MIT ライセンス
-
 - FFHQ [Kar18]：Creative Commons BY-NC-SA 4.0 ライセンス
-
 - AFHQv2 [Cho20c]：Creative Commons BY-NC 4.0 ライセンス
-
 - ImageNet [Den09a]：ライセンスの状態は不明
 
 事前学習済みモデル：
 
 - Song らの CIFAR-10 モデル [Son21]：Apache V2.0 ライセンス
-
 - Dhariwal と Nichol の ImageNet-64 モデル [Dha21]：MIT ライセンス
-
 - Szegedy らの Inception-v3 モデル [Sze16]：Apache V2.0 ライセンス
 
 [+1]: <https://github.com/yang-song/score_sde_pytorch/blob/1618ddea340f3e4a2ed7852a0694a809775cf8d0/models/utils.py#L144>

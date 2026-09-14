@@ -22,11 +22,8 @@ Accelerator の進化における重要な傾向は、hardware unit の非対称
 そこで我々は FlashAttention-4 を提案する。これは、現代の GPU アーキテクチャで変化したボトルネックに対応するため、アルゴリズムと kernel 実装を協調設計するものである。Hardware を一様な計算資源として扱うのではなく、非 matmul unit のボトルネックを明示的に特定し、アルゴリズム上の工夫で緩和する。
 
 1. **最大限の overlap を実現する再設計パイプライン：** Blackwell の完全非同期 MMA 演算と大きな tile を活用し、Tensor Core、softmax 計算、メモリ演算の overlap を最大化する forward pass と backward pass の新しい software pipeline を開発する。
-
 2. **指数演算ユニットのボトルネック緩和：** Forward pass では、FMA unit 上の多項式近似によって指数関数を software emulation し、指数演算のスループットを高める。また、不要な rescaling を省略する conditional softmax rescaling を導入する。
-
 3. **共有メモリトラフィックの削減：** Backward pass では Tensor Memory により多くの中間結果を格納し、共有メモリトラフィックを減らす。さらに Blackwell の 2-CTA MMA モードを利用し、各 CTA が operand B の半分だけを stage・load することで共有メモリトラフィックをさらに減らす。これを利用して dQ step を再構成し、atomic reduction の回数を半減させる。また、性能 overhead の小さい deterministic execution mode を実装し、reinforcement learning application で再現可能な学習を可能にする。
-
 4. **Scheduling と resource allocation の改善：** Blackwell の resource constraint と大きな tile に合わせ、新しい CTA scheduling strategy と register allocation scheme を開発する。
 
 アルゴリズム上の工夫に加え、FlashAttention-4 は Python に埋め込まれた CuTe-DSL だけで実装されており、完全な表現力を保ったまま、従来の C++ template ベースの手法より 20-30$\times$ 高速にコンパイルできる。この framework は開発生産性を大幅に高め、参入障壁を下げるため、C++ template metaprogramming に深い専門知識を持たない研究者でも、新しい attention variant を素早く prototype・deploy できる。

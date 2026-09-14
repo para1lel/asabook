@@ -43,9 +43,7 @@ During pre-training, we train DeepSeek-V4.1-Flash on a large-scale multimodal co
 Building on this base model, we conduct post-training to elicit its reasoning and agentic capabilities. In contrast to the architectural innovations described above, our post-training introduces no algorithmic innovation: the recipe follows the standard paradigm of supervised fine-tuning (SFT) followed by reinforcement learning (RL) and on-policy distillation (OPD), without any modification beyond well-established practice used in DeepSeek-V4 development [Dee26]. All substantive changes lie instead in the data pipeline. We develop large-scale automated pipelines for data synthesis and environment construction, and progressively scale the data, tasks, and rollouts employed during RL, thereby extending the model's capabilities across textual, multimodal, and agentic domains. [Figure 1(a)](#figure-01) summarizes DeepSeek-V4.1-Flash's performance on core agentic benchmarks. Our evaluation shows that, despite its compact size, DeepSeek-V4.1-Flash exhibits a distinctive capability profile:
 
 - Reasoning. The model delivers strong reasoning ability, sustaining high accuracy on reasoning-intensive benchmarks such as mathematics and competitive programming, showing comparable performance with top open-source models, such as Kimi-K3 [Kim26c] and DeepSeek-V4-Pro.
-
 - Agent. DeepSeek-V4.1-Flash achieves performance on par with closed-source frontier models across standard agentic benchmarks like Terminal-Bench 2.1 [Mer26], DeepSWE v1.1 [Dee26c], and AutomationBench [She26]. It has proven fully capable of handling everyday coding tasks and white-collar workflows. However, a gap with giant models remains on science-oriented agentic tasks, such as Terminal-Bench 4.0 [Mar26], that require expert-level domain knowledge.
-
 - Multimodal. Within the multimodal domain, the model surpasses top-tier open-source competitors like Kimi-K3 specifically on benchmarks evaluating visual reasoning and the interpretation of professional charts. Beyond formal metrics, it also exhibits practical utility in real-world visual agentic workflows, such as frontend development and office automation, where it can utilize rendered screen captures for visual inspection and self-correction. Nevertheless, we acknowledge that a distinct overall performance gap remains when compared to giant closed-source systems.
 
 These results indicate that DeepSeek-V4.1-Flash can already match closed-source frontier models on the vast majority of benchmarks, and is capable of completing over 95% of real-world tasks. Meanwhile, its small activation footprint yields low inference latency and serving cost. We therefore believe that DeepSeek-V4.1-Flash offers a favorable trade-off between capability and efficiency, and can serve as a fast, affordable assistant supporting the daily work of a broad population of users. In summary, DeepSeek-V4.1-Flash simultaneously improves model intelligence and inference efficiency while reducing deployment costs. It substantially lowers the cost barrier to deploying long-horizon agents at scale and creates new opportunities for their adoption across a broader range of scenarios. DeepSeek-V4.1-Flash also serves as a new starting point for our continued scaling efforts. Building on this foundation, we will pursue the joint scaling of model architecture, pre-training, and post-training to further explore the frontier of model intelligence.
@@ -308,7 +306,6 @@ where $V$ and $T$ denote the visual and text features, $(A\parallel C)$ denotes 
   $$
 
   where $N$ is the token count, $\rho$ the raw bytes per token, $C$ the per-token compute, and $B_{\mathrm{IO}}$, $B_{\mathrm{GPU}}$ the file-system and GPU bandwidths. Since $N$ cancels, the criterion involves only per-token quantities ($\rho$ and $C$), independent of sequence length and cluster size; $\rho$ is set by the vision-module configuration (e.g., the resolution cap or the spatial downsample). Storage throughput therefore becomes a bottleneck only for small models with low per-token compute, as in ablations, while production-scale models remain compute-bound.
-
 - Incremental image transfer. Besides the balanced sharding above, the reinforcement-learning rollout transfers images to the inference engine only incrementally, and caches the engine's CPU-side decoding and preprocessing outputs on a distributed file system for reuse across rollouts and subsequent training.
 
 <span id="section-3-1-2"></span>
@@ -352,7 +349,6 @@ Persistently storing SWA KV is both costly and ineffective, because its access p
 V4.1 therefore revises persistent KV cache management as follows:
 
 1. SWA KV is no longer cached in the persistent KV cache and instead stored in a distributed memory pool provisioned from 10% of the host DRAM on each machine. Although this pool is far smaller in aggregate capacity, its short TTL (only minutes) allows expired entries to be recycled immediately for new sessions; under real-world workloads, this high turnover suffices to serve the vast majority of concurrent active sessions. Global KV remains in the persistent KV cache with a guaranteed lifetime of at least 72 hours.
-
 2. Evicting SWA KV inevitably causes misses, which stay affordable thanks to a lightweight fallback, Encoder SWA Bounded Replay (detailed in [Section 3.2.2](#section-3-2-2)). For the inevitable but infrequent requests that hit global KV but miss SWA KV, it recovers the missing state by recomputing only $n_{\mathrm{win}}$ tokens instead of a full $L\times n_{\mathrm{win}}$-token forward pass. This bounded replay is the cornerstone of the design: it turns a catastrophic miss into a graceful, inexpensive degradation, thereby justifying the removal of SWA KV from the persistent KV cache.
 
 <span id="section-3-2-2"></span>
@@ -608,11 +604,8 @@ Our post-training evaluation focuses primarily on reasoning and agentic capabili
 For reasoning, we evaluate on GPQA Diamond [Rei23], Humanity's Last Exam [Pha25], Codeforces (internal benchmark), and MathArena Apex [Dek25], using temperature and top-$p$ of 1.0. For agentic capabilities, we evaluate across four categories:
 
 - Code agent: Terminal-Bench 2.1 [Mer26], Terminal-Bench 3.0 [Mar26a], Terminal-Bench 4.0 [Mar26], DeepSWE v1.1 [Dee26c], ProgramBench [Yan26a], NL2Repo-Bench [Din25].
-
 - Cyber security: SEC-Bench Pro version 260505 [Lee26], CyberGym [Wan25c], and ExploitGym [Wan26b].
-
 - General agent: the public evaluation set of AutomationBench v1.0.6 [She26], Agents' Last Exam [Sun26a] (ALE-CLI).
-
 - Visual agent: Chartography [Gar26], BabyVision [Che26], main set of ZeroBench [Rob25].
 
 For code agents, we evaluate DeepSeek-V4.1-Flash using the Minimal mode of DeepSeek Harness with a 1M-token context window, temperature set to 1.0, and top-p set to 0.95. To align with official setup requirements, we employ the mini-SWE harness for DeepSWE v1.1. For SEC-Bench Pro, we utilize the Claude Code harness specifically for its session compact design. For visual agent tasks, we evaluate using the Claude Code harness with a 512k-token context window, temperature set to 1.0, and top-p set to 0.95. Agents' Last Exam and AutomationBench are evaluated with their official scaffolds. Model performance with other coding scaffolds is reported in [Table 4](#table-04).

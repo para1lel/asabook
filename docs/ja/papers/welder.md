@@ -372,13 +372,9 @@ WELDER は tile-graph 抽象によるエンドツーエンド DNN model compilat
 以下を検証する。
 
 - [図 9](#figure-09)、[図 10](#figure-10)、[図 11](#figure-11)、[表 3](#table-03)、[表 6](#table-06) のエンドツーエンド性能。
-
 - [図 1](#figure-01) と[図 2](#figure-02) の動機実験。
-
 - [図 13](#figure-13) のアブレーション。
-
 - [表 5](#table-05) のコンパイル時間。
-
 - [表 7](#table-07) の GPU scale-out 実験。
 
 <span id="section-9-2"></span>

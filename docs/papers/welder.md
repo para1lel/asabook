@@ -372,13 +372,9 @@ WELDER 通过新的 tile-graph 抽象提供端到端 DNN 模型编译. 本 artif
 本 artifact 将验证以下主张:
 
 - 端到端模型性能, 通过复现[图 9](#figure-09), [图 10](#figure-10), [图 11](#figure-11), [表 3](#table-03) 和[表 6](#table-06) 的实验验证.
-
 - [图 1](#figure-01) 与[图 2](#figure-02) 中的动机实验.
-
 - [图 13](#figure-13) 中的消融研究.
-
 - [表 5](#table-05) 中的编译时间.
-
 - [表 7](#table-07) 中的 GPU stale out 实验.
 
 <span id="section-9-2"></span>

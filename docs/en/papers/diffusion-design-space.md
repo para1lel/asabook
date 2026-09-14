@@ -621,7 +621,6 @@ matching lines 4 and 7 of [Algorithm 1](#algorithm-01).
 We derive the SDE of [Equation 6](#equation-06) by the following strategy:
 
 - The desired marginal densities $p\big( \boldsymbol{x}; \sigma(t) \big)$ are convolutions of the data density $p_\text{data}$ and an isotropic Gaussian density with standard deviation $\sigma(t)$ (see [Equation 20](#equation-20)). Hence, considered as a function of the time $t$, the density evolves according to a heat diffusion PDE with time-varying diffusivity. As a first step, we find this PDE.
-
 - We then use the Fokker-Planck equation to recover a family of SDEs for which the density evolves according to this PDE. [Equation 6](#equation-06) is obtained from a suitable parametrization of this family.
 
 <span id="section-8-5-1"></span>
@@ -1472,9 +1471,7 @@ Note that [Equation 268](#equation-268) is identical to the VP preconditioning f
 The pre-trained iDDPM model that we use on ImageNet-64 corresponds to the "ADM (dropout)" checkpoint [+17] provided by Dhariwal and Nichol [Dha21]. It contains 296 million trainable parameters and supports a discrete set of $M = 1000$ noise levels $\sigma \in \{u_j\} \approx \{20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, \dots, 0.0064\}$. The fact that we can only evaluate $F_\theta$ these specific choices of $\sigma$ presents three practical challenges:
 
 1.  In the context of DDIM, we must choose how to resample $\{u_j\}$ to yield $\{t_i\}$ for $N \ne M$. Song et al. [Son21a] employ a simple resampling scheme where $t_i = u_{k \cdot i}$ for resampling factor $k \in \mathbb{Z}^+$. This scheme, however, requires that $1000 \equiv 0 \pmod{N}$, which limits the possible choices for $N$ considerably. Nichol and Dhariwal [Nic21], on the other hand, employ a more flexible scheme where $t_i = u_j$ with $j = \lfloor (M - 1) / (N - 1) \cdot i \rfloor$. We note, however, that in practice the values of $u_{j<8}$ are considerably larger than our preferred $\sigma_{\max}= 80$. We choose to skip these values by defining $j = \lfloor j_0 + (M - 1 - j_0) / (N - 1) \cdot i \rfloor$ with $j_0 = 8$, matching the "Time steps" row in [Table 1](#table-01). In [Figure 2c](#figure-02), the differences between the original sampler (blue) and our reimplementation (orange) are explained by this choice.
-
 2.  In the context of our time step discretization ([Equation 5](#equation-05)), we must ensure that $\sigma_i \in \{u_j\}$. We accomplish this by rounding each $\sigma_i$ to its nearest supported counterpart, i.e., $\sigma_i \gets u_{\mathop{\mathrm{arg}\,\min}_j |u_j - \sigma_i|}$, and setting $\sigma_{\min}= 0.0064 ~\approx~ u_{N-1}$. This is sufficient, because [Algorithm 1](#algorithm-01) only evaluates $D_\theta(\cdot; \sigma)$ with $\sigma \in \{\sigma_{i<N}\}$.
-
 3.  In the context of our stochastic sampler, we must ensure that $\hat t_i \in \{u_j\}$. We accomplish this by replacing line 5 of [Algorithm 2](#algorithm-02) with $\hat t_i \gets u_{\mathop{\mathrm{arg}\,\min}_j |u_j - (t_i + \gamma_i t_i)|}$.
 
 With these changes, we are able to import the pre-trained model directly as $F_\theta(\cdot)$ and run [Algorithm 1](#algorithm-01) and [Algorithm 2](#algorithm-02) using the definitions in [Table 1](#table-01). Note that the model outputs both $\epsilon_\theta(\cdot)$ and $\Sigma_\theta(\cdot)$, as described in the corresponding section (3.1) of [Nic21]; we use only the former and ignore the latter.
@@ -1668,19 +1665,14 @@ For class-conditional ImageNet-64, we use the ADM architecture of Dhariwal and N
 Datasets:
 
 - CIFAR-10 [Kri09]: MIT license
-
 - FFHQ [Kar18]: Creative Commons BY-NC-SA 4.0 license
-
 - AFHQv2 [Cho20c]: Creative Commons BY-NC 4.0 license
-
 - ImageNet [Den09a]: The license status is unclear
 
 Pre-trained models:
 
 - CIFAR-10 models by Song et al. [Son21]: Apache V2.0 license
-
 - ImageNet-64 model by Dhariwal and Nichol [Dha21]: MIT license
-
 - Inception-v3 model by Szegedy et al. [Sze16]: Apache V2.0 license
 
 [+1]: <https://github.com/yang-song/score_sde_pytorch/blob/1618ddea340f3e4a2ed7852a0694a809775cf8d0/models/utils.py#L144>

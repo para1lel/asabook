@@ -577,9 +577,7 @@ We employ multiple sandbox runtimes to support the diverse requirements of Kimi 
 AgentENV ([repository](https://github.com/kvcache-ai/AgentENV)), developed in collaboration with our partners, is a sandbox system specifically designed for agentic AI workloads. It is built around three core design goals:
 
 - **High-fidelity isolated sandbox runtime.** As agents become more capable and tasks more difficult, they tend to explore more aggressively and may even attempt reward hacking. On the one hand, this poses unique security challenges: in our early experiments with traditional container-based sandbox runtimes, we observed several kernel panics and deadlocks caused by unintended agent operations. On the other hand, we want to permit as much exploration as possible so as not to constrain agent capability, and complex tasks require a sandbox close to a real-world environment -for example, agents should be able to mount disks, run containers, or even launch virtual machines at will. By running isolated microVMs with Firecracker [Aga20], AgentENV provides a level of isolation and fidelity that container-based runtimes cannot match.
-
 - **Flexible sandbox life-cycles for agentic RL.** At the low level, AgentENV supports incremental checkpointing and resuming of sandbox states, where only memory pages dirtied since the last checkpoint are saved during checkpointing, achieving checkpoint and resume latencies as low as 133 ms and 49 ms, respectively. On top of this, AgentENV provides three high-level operations that help improve agentic RL efficiency. (a) Pause and Resume: a paused sandbox consumes no memory or CPU resources; a sandbox can therefore be paused while the agent is waiting for the model's inference result, which can account for as much as 98% of the sandbox lifetime. (b) Fork: fork creates a new sandbox from the exact state of the original one while keeping the original running, which is useful for reward judging without side effects. (c) Snapshot: snapshots of a sandbox can be saved at regular intervals for error recovery.
-
 - **High efficiency and high density.** In our workloads, tens of thousands of sandboxes, each with a unique set of images, may need to be created within seconds. We adopt OverlayBD [Li20] as the image format, together with a custom ublk driver implementation, storage-layer sharing, and P2P transport, achieving sub-second launch latency at large scale. We further reduce memory usage with copy-on-write memory and page-cache optimizations, achieving a memory overcommit ratio of up to $6.5\times$ in real workloads.
 
 Throughout Kimi K3's training and evaluation, a total of 51,219,741 sandboxes across 1,505,678 images were created.
@@ -653,11 +651,8 @@ Production traffic mixes short requests under 2K tokens with ultra-long requests
 We evaluate Kimi K3 on a comprehensive benchmark suite organized along four broad capability axes:
 
 - **Reasoning & Knowledge:** GPQA Diamond [Rei24], CritPt [Art26], AA-LCR [Art26a], and Humanity's Last Exam (HLE-Full, with and without tools) [Pha25].
-
 - **Coding:** DeepSWE [Ela26], ProgramBench [Pro26], Terminal-Bench 2.1 [Mer26], FrontierSWE [Fu24], SWE-Marathon [Swe26], PostTrainBench [Pos26], MLS-Bench-Lite [Lyu26], and SciCode [Tia24, Art26].
-
 - **Agentic:** BrowseComp [Wei25], DeepSearchQA [Ved25], ResearchRubrics [Sha26], Toolathlon-Verified [Too26], MCPMark-Verified [Wu25], MCP-Atlas [Ban26a], AutomationBench [She26], JobBench [Li26], GDPval-AA v2 [Pat25], AA-Briefcase [Art26, Age26], Agents' Last Exam (ALE) [Age26a, Sun26a], APEX-Agents [Vid26], OfficeQA Pro [Ops26], SpreadsheetBench 2 [Zhu26], OSWorld-Verified [Xie25] and OSWorld 2.0 [Yua26], SaaS-Bench [Shi26], $\tau^3$-Banking [Ban26, Art26], Harvey Lab-AA [Art26, Har26], CorpFin v2 [Val26], Finance Agent v2 [Fro26], and Legal Research Bench [Val26b].
-
 - **Vision:** WorldVQA [Zho26], OmniDocBench [Ouy25], PerceptionBench [Kim26d], Video-MME [Fu24], MMVU [Zha25a], and BabyVision [Che26] with Python tool. MMMU-Pro [Yue24], CharXiv (RQ) [Wan24a], Math-Vision [Wan24], and ZeroBenchmain [Rob25], each with and without Python tool augmentation.
 
 #### 6.1.2 Baselines
@@ -705,7 +700,6 @@ Beyond the public benchmark suite, we maintain a collection of in-house benchmar
 #### Coding Capability and Experience
 
 - **Kimi Code Bench 2.0 (KCB 2.0):** evaluates code agents on realistic, end-to-end software engineering tasks across a broad range of programming languages and production-oriented technology stacks.
-
 - **Kimi Webdev Bench:** evaluates models on challenging web development prompts drawn from real usage scenarios, with outputs compared through blind expert judgment, with results available in [Table 4](#table-04).
 
 <span id="table-04"></span>
@@ -719,33 +713,21 @@ Beyond the public benchmark suite, we maintain a collection of in-house benchmar
 #### General Agent Experience
 
 - **24/7 ClawBench 2.0:** simulates always-on assistant work, in which tasks span multiple days, events arrive concurrently, and interruptions are routine.
-
 - **Multi-Agent Infra for Routing and Assignment (MIRA) Bench:** evaluates long-chain, multi-role, multi-system enterprise collaboration tasks, assessing whether agents can carry out end-to-end work and judge when to organize or delegate to subagents.
-
 - **Kimi Autonomous Execution Tasks (KAET):** evaluates long-horizon autonomous execution on tasks simulating real user requests and enterprise system operations.
-
 - **Context Learning and Instruction Following (CLIF) Bench:** targets in-context learning, requiring models to learn from a provided context while following instructions that interleave multiple complex skills.
-
 - **Agentic Vision Bench:** evaluates whether agents notice and correctly use key visual facts during task execution.
-
 - **Swarm Bench:** evaluates models' ability to orchestrate agent swarms [Kim26b] on complex tasks that benefit from coordinated decomposition and parallel execution.
-
 - **Online Experience:** mirrors the distribution of real online agent usage, measuring performance on the deliverable file types most frequently requested by users.
-
 - **Deep Research Bench:** evaluates models on deep-research-style queries curated by domain experts and graded with expert-aligned rubrics.
-
 - **Finance Bench:** evaluates models on realistic financial work that requires end-to-end execution of complete workflows, from source materials to reviewable deliverables.
-
 - **Knowledge Work Vision (KWV) Bench:** evaluates atomic visual capabilities extracted from tasks distilled from real knowledge-work scenarios.
-
 - **DECK Bench:** measures the capability to produce high-quality presentation decks from task descriptions drawn from real usage scenarios.
-
 - **Agent Behavior Bench:** extends agent evaluation from outcome correctness to process quality, scoring tool-use behavior, efficiency, and discipline alongside task completion.
 
 #### Conversational Experience
 
 - **Faithfulness:** measures factual hallucination rates in model responses, with each response verified by a fact checker.
-
 - **Chat All-in-One Bench:** measures conversational experience at every stage of product usage, with scenarios designed around real online user needs.
 
 **Evaluation Configurations.** Unless a benchmark is split into separate rows by harness, the Harness column in [Table 3](#table-03) reports the harness used for Kimi K3. For other models, Claude models and GLM-5.2 are evaluated with Claude Code, while GPT models are evaluated with Codex. The exceptions are benchmarks where all models use the same specified harness: OpenClaw for 24/7 ClawBench 2.0; MIRA (Multi-Agent Infra for Routing and Assignment), an internal out-of-distribution harness, for MIRA Bench; Kimi Work for Agent Behavior Bench and Chat All-in-One; and Kimi Code for CLIF and Agentic Vision Bench.

@@ -621,7 +621,6 @@ $$
 我们按以下思路推导 [公式 6](#equation-06) 中的 SDE:
 
 - 所需的边缘密度 $p\big( \boldsymbol{x}; \sigma(t) \big)$ 是数据密度 $p_\text{data}$ 与标准差为 $\sigma(t)$ 的各向同性 Gaussian 密度的卷积 (见 [公式 20](#equation-20)). 因此, 将密度视为时间 $t$ 的函数时, 它会按照扩散率随时间变化的热扩散 PDE 演化. 第一步是求出这个 PDE.
-
 - 随后利用 Fokker-Planck 方程恢复一族 SDE, 其密度按该 PDE 演化. 对这族 SDE 做适当的参数化, 即可得到 [公式 6](#equation-06).
 
 <span id="section-8-5-1"></span>
@@ -1472,9 +1471,7 @@ $$
 我们在 ImageNet-64 上使用的预训练 iDDPM 模型对应 Dhariwal 和 Nichol [Dha21] 提供的 "ADM (dropout)" 检查点 [+17]. 它含有 2.96 亿个可训练参数, 支持由 $M = 1000$ 个噪声水平构成的离散集合 $\sigma \in \{u_j\} \approx \{20291, 642, 321, 214, 160, 128, 106, 92, 80, 71, \dots, 0.0064\}$. 只能在这些特定的 $\sigma$ 取值上求值 $F_\theta$, 这带来了三个实际挑战:
 
 1.  在 DDIM 中, 当 $N \ne M$ 时, 必须选择如何对 $\{u_j\}$ 重采样以得到 $\{t_i\}$. Song 等人 [Son21a] 使用简单的重采样方案: 对重采样因子 $k \in \mathbb{Z}^+$ 令 $t_i = u_{k \cdot i}$. 但该方案要求 $1000 \equiv 0 \pmod{N}$, 极大限制了 $N$ 的可选值. Nichol 和 Dhariwal [Nic21] 则采用更灵活的方案: 令 $t_i = u_j$, 其中 $j = \lfloor (M - 1) / (N - 1) \cdot i \rfloor$. 不过, 实际上 $u_{j<8}$ 的值远大于我们偏好的 $\sigma_{\max}= 80$. 我们令 $j_0 = 8$, 并定义 $j = \lfloor j_0 + (M - 1 - j_0) / (N - 1) \cdot i \rfloor$, 从而跳过这些值, 与 [表 1](#table-01) 的 "Time steps" 行一致. [图 2c](#figure-02) 中原始采样器 (蓝色) 与我们的重新实现 (橙色) 之间的差异正是由这一选择造成的.
-
 2.  对于我们的时间步离散化 ([公式 5](#equation-05)), 必须保证 $\sigma_i \in \{u_j\}$. 为此, 将每个 $\sigma_i$ 舍入到最近的支持值, 即 $\sigma_i \gets u_{\mathop{\mathrm{arg}\,\min}_j |u_j - \sigma_i|}$, 并令 $\sigma_{\min}= 0.0064 ~\approx~ u_{N-1}$. 这已经足够, 因为 [算法 1](#algorithm-01) 只在 $\sigma \in \{\sigma_{i<N}\}$ 时求值 $D_\theta(\cdot; \sigma)$.
-
 3.  对于我们的随机采样器, 必须保证 $\hat t_i \in \{u_j\}$. 为此, 将 [算法 2](#algorithm-02) 的第 5 行替换为 $\hat t_i \gets u_{\mathop{\mathrm{arg}\,\min}_j |u_j - (t_i + \gamma_i t_i)|}$.
 
 做出这些修改后, 我们可以直接将预训练模型导入为 $F_\theta(\cdot)$, 并使用 [表 1](#table-01) 中的定义运行 [算法 1](#algorithm-01) 和 [算法 2](#algorithm-02). 请注意, 如 [Nic21] 相应章节 (3.1) 所述, 模型同时输出 $\epsilon_\theta(\cdot)$ 和 $\Sigma_\theta(\cdot)$; 我们只使用前者, 忽略后者.
@@ -1668,19 +1665,14 @@ $$
 数据集:
 
 - CIFAR-10 [Kri09]: MIT 许可证
-
 - FFHQ [Kar18]: Creative Commons BY-NC-SA 4.0 许可证
-
 - AFHQv2 [Cho20c]: Creative Commons BY-NC 4.0 许可证
-
 - ImageNet [Den09a]: 许可证状态不明确
 
 预训练模型:
 
 - Song 等人的 CIFAR-10 模型 [Son21]: Apache V2.0 许可证
-
 - Dhariwal 和 Nichol 的 ImageNet-64 模型 [Dha21]: MIT 许可证
-
 - Szegedy 等人的 Inception-v3 模型 [Sze16]: Apache V2.0 许可证
 
 [+1]: <https://github.com/yang-song/score_sde_pytorch/blob/1618ddea340f3e4a2ed7852a0694a809775cf8d0/models/utils.py#L144>

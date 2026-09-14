@@ -238,9 +238,7 @@ $\mathrm{rank}(\cdot)$ は降順の順位で、rank = 1 が最大値、$\mathcal
 訓練・prefill で FlashAttention 級の高速化を得るため、Triton 上にハードウェア整合型の疎な注意 kernel を実装する。デコード時に MHA は memory-intensive で非効率なため、現代 LLM と同様に GQA/MQA のような KV cache 共有構造を対象とする。圧縮注意と sliding window 注意は FlashAttention-2 kernel を使えるが、疎な選択注意には専用設計が必要である。FlashAttention のように時間的に連続する query block を SRAM へ載せると、block 内 query が互いに異なる KV block を要求し、アクセス効率が悪い。そこで各 query 位置について、同じ疎 KV block を共有する GQA group の全 query head を SRAM へまとめて載せる。[図 3](#figure-03)に順伝播実装を示す。
 
 1. **Group 中心のデータロード。** inner loop ごとに、位置 $t$ の group 内全 head の query $Q\in\mathbb{R}^{[h,d_k]}$ と共有する疎 key/value block index $\mathcal{I}_t$ を読む。
-
 2. **KV の共有取得。** inner loop で $\mathcal{I}_t$ の連続 key/value block を $K\in\mathbb{R}^{[B_k,d_k]}$、$V\in\mathbb{R}^{[B_k,d_v]}$ として SRAM に順次読み、メモリロードを抑える。$B_k$ は $B_k\mid l'$ を満たす kernel block size である。
-
 3. **Grid 上の outer loop。** inner-loop 長は選択 block 数 $n$ に比例し、query block 間でほぼ同じなので、query/output loop を Triton grid scheduler に置き、kernel を単純化・最適化する。
 
 group 内共有で重複 KV 転送を除き、GPU streaming multiprocessor 間で workload を均衡させることで、ほぼ最適な算術強度を得る。

@@ -238,9 +238,7 @@ $$
 为在训练和 prefill 阶段达到 FlashAttention 级别的加速, 我们基于 Triton 实现了适配硬件的稀疏注意力 kernel. MHA 在解码时内存开销大、效率低, 因而我们遵循当前先进 LLM 的做法, 重点面向 GQA、MQA 等共享 KV cache 的架构. 压缩注意力和滑动窗口注意力可以直接适配现有 FlashAttention-2 kernel, 但稀疏选择注意力需要专门设计. 如果沿用 FlashAttention 的方式, 把时间上连续的 query block 加载到 SRAM, 由于一个 block 内的 query 可能需要互不相交的 KV block, 内存访问会很低效. 我们的核心优化是改用另一种 query 分组策略: 对 query 序列上的每个位置, 把同一 GQA group 内的所有 query head 一并载入 SRAM, 因为它们共享相同的稀疏 KV block. [图 3](#figure-03) 展示了前向传播实现. 该 kernel 架构有以下特点:
 
 1. **以 group 为中心加载数据.** 每次 inner loop 中, 加载位置 $t$ 上该 group 内所有 head 的 query $Q\in\mathbb{R}^{[h,d_k]}$, 以及它们共享的稀疏 key/value block 索引 $\mathcal{I}_t$.
-
 2. **共享 KV 获取.** 在 inner loop 中, 按 $\mathcal{I}_t$ 连续加载 key/value block 到 SRAM, 形成 $K\in\mathbb{R}^{[B_k,d_k]}$、$V\in\mathbb{R}^{[B_k,d_v]}$, 以尽量减少内存加载. 其中, $B_k$ 是满足 $B_k\mid l'$ 的 kernel block size.
-
 3. **在 grid 上执行 outer loop.** 不同 query block 的 inner-loop 长度, 即与被选 block 数 $n$ 成正比的长度, 几乎一致, 因而把 query/output loop 放入 Triton grid scheduler, 可以简化并优化 kernel.
 
 该设计通过两点让算术强度接近最优: (1) 在 group 内共享, 消除多余的 KV 传输; (2) 在 GPU streaming multiprocessor 之间平衡计算 workload.

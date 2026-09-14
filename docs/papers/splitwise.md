@@ -40,11 +40,8 @@ LLM 通常运行在昂贵且耗电的 GPU 上 [Nvi23f]. LLM 突然开始大规�
 **总结.** 本文作出以下贡献:
 
 1.  使用生产轨迹, 在 NVIDIA A100 和 H100 GPU 上全面分析 LLM 推理中提示阶段与 token 生成阶段的执行和利用模式差异.
-
 2.  提出 Splitwise, 通过把提示计算阶段和 token 生成阶段拆分到不同机器上, 优化现有硬件的利用率.
-
 3.  探索使用 Splitwise 部署同构和异构集群的设计空间, 以优化总成本、请求吞吐量和配置功耗.
-
 4.  使用生产轨迹评估基于 Splitwise 设计的系统.
 
 <span id="section-2"></span>
@@ -532,9 +529,7 @@ Splitwise 实现为机器分配提示角色或 token 角色. 提示机器生成�
 我们开源了评估 Splitwise 所需的主要组件; 这些组件也可改用于评估未来的 LLM 推理服务系统. Artifact 包括:
 
 - 来自 Microsoft Azure 两个 LLM 推理服务的生产轨迹.
-
 - 在 vLLM [Kwo23] 中实现的 Splitwise KV 缓存传输机制原型.
-
 - SplitwiseSim, 用于评估 LLM 推理集群模型服务的离散事件模拟器.
 
 受硬件条件限制, 我们只测试了轨迹和 SplitwiseSim 的 Artifact 功能.
@@ -544,17 +539,11 @@ Splitwise 实现为机器分配提示角色或 token 角色. 提示机器生成�
 ### 10.1 Artifact 检查清单 (元信息)
 
 - **数据集:** 生产轨迹作为 Artifact 的一部分提供.
-
 - **运行环境:** Linux / Ubuntu.
-
 - **硬件:** vLLM 原型需要两台通过 GPU InfiniBand 连接的机器 (例如 NVIDIA DGX-A100、NVIDIA DGX-H100). SplitwiseSim 需要一台 x86-64 CPU 机器.
-
 - **公开提供?:** 是.
-
 - **代码许可证 (如公开提供)?:** MIT.
-
 - **数据许可证 (如公开提供)?:** CC-BY.
-
 - **已存档 (提供 DOI)?:** 10.5281/zenodo.11003049.
 
 <span id="section-10-2"></span>
@@ -564,9 +553,7 @@ Splitwise 实现为机器分配提示角色或 token 角色. 提示机器生成�
 **获取方式.** 完整 Artifact 在 Zenodo 上以归档形式提供: <https://doi.org/10.5281/zenodo.11003049>. 各组件也可分别在线获取:
 
 - 生产轨迹可从 Azure Public Dataset GitHub 仓库下载 [Azu24].
-
 - KV 缓存传输原型可从 vLLM GitHub 仓库下载, 当前以 pull request 形式提供 [Add24].
-
 - SplitwiseSim 及相关实验和绘图脚本可从单独的 GitHub 仓库下载 [Spl24].
 
 **硬件依赖.** KV 缓存传输原型需要两台通过 InfiniBand 连接的 GPU 机器, 例如 NVIDIA DGX-A100 或 NVIDIA DGX-H100. SplitwiseSim 需要标准 x86-64 CPU 机器; 可以用多台机器并行运行模拟.
@@ -588,9 +575,7 @@ Splitwise 实现为机器分配提示角色或 token 角色. 提示机器生成�
 提交、审查和徽章授予方法:
 
 - <https://www.acm.org/publications/policies/artifact-review-and-badging-current>
-
 - <http://cTuning.org/ae/submission-20201122.html>
-
 - <http://cTuning.org/ae/reviewing-20201122.html>
 
 [+1]: 此项工作的一部分在 Microsoft 实习期间完成.

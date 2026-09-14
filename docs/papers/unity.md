@@ -165,9 +165,7 @@ Unity 提供一套全面的机器映射, 覆盖并行机器的有效使用方式
 Unity 使用六种并行化算子, 表示不同并行化策略带来的计算与通信成本. 这六种算子又分为三对, 每一对中的一个算子都是另一个算子的"反向传播" (例如, 对 Partition 做反向传播后, 它在语义上等价于 Combine, 反之亦然). 三对算子如下:
 
 1. *Partition 与 Combine:* Partition 和 Combine 改变张量的并行度. 更具体地说, Partition 把某个张量维度拆分为多个大小相同的分区, 从而提高该维度的并行度, 如 [图 8a](#figure-08) 所示. Combine 执行相反操作: 将多个分区拼接为一个, 降低张量的并行度.
-
 2. *Replicate 与 Reduce:* Replicate 和 Reduce 分别通过复制与求和张量, 控制副本维度的并行度, 如 [图 8b](#figure-08) 所示. 对权重张量应用 Replicate 操作时, 其反向传播自然地表示参数同步.
-
 3. *Pipeline 与 Batch:* Pipeline 把张量维度拆分为大小相同的分区, 并一次处理一个分区; Batch 聚合不同迭代中的张量 (见 [图 8c](#figure-08)). 注意, Pipeline 不会改变张量维度的并行度, 而会减小该维度的大小.
 
 <span id="figure-08"></span>

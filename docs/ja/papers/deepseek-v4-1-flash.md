@@ -43,9 +43,7 @@ CED と CSA2 に加えて、元の DeepSeek-V4 アーキテクチャもさらに
 このベースモデルを基に、推論能力とエージェント能力を引き出す事後学習を行った。前述のアーキテクチャ上の革新とは対照的に、事後学習にはアルゴリズム上の新規性はない。レシピは教師ありファインチューニング（SFT）の後に強化学習（RL）とオンポリシー蒸留（OPD）を行う標準形に従い、DeepSeek-V4 の開発で使った確立済みの手法 [Dee26] 以外に変更を加えていない。本質的な変更はすべてデータパイプラインにある。データ合成と環境構築の大規模な自動化パイプラインを開発し、RL に用いるデータ、タスク、ロールアウトを段階的に拡大することで、テキスト、マルチモーダル、エージェントの各領域へモデル能力を広げた。[図 1（a）](#figure-01)は、主要なエージェントベンチマークにおける DeepSeek-V4.1-Flash の性能をまとめたものである。評価から、コンパクトな規模でありながら、DeepSeek-V4.1-Flash は次のような特徴的な能力構成を示した。
 
 - **推論。** 数学や競技プログラミングなど推論負荷の高いベンチマークで高精度を維持し、Kimi-K3 [Kim26c] や DeepSeek-V4-Pro といった最上位のオープンソースモデルに匹敵する性能を示す。
-
 - **エージェント。** Terminal-Bench 2.1 [Mer26]、DeepSWE v1.1 [Dee26c]、AutomationBench [She26] など標準的なエージェントベンチマークで、クローズドソースの最先端モデルと同等の性能を達成した。日常のコーディングタスクとホワイトカラー業務フローを十分にこなせる。ただし、専門家水準の領域知識を要する Terminal-Bench 4.0 [Mar26] のような科学系エージェントタスクでは、巨大モデルとの差が残る。
-
 - **マルチモーダル。** マルチモーダル領域では、視覚推論と専門的な図表の解釈を測るベンチマークにおいて、Kimi-K3 など最上位のオープンソース競合を上回る。正式な指標に加え、フロントエンド開発やオフィス自動化など現実の視覚エージェント業務でも、レンダリングした画面キャプチャを利用して目視検査と自己修正を行う実用性を示した。それでも、巨大なクローズドソースシステムとの比較では総合性能に明確な差が残ることを認める。
 
 これらの結果から、DeepSeek-V4.1-Flash は大多数のベンチマークですでにクローズドソースの最先端モデルに匹敵し、現実のタスクの 95% 超を完了できることが分かる。同時に、活性化フットプリントが小さいため、推論レイテンシとサービングコストも低い。したがって DeepSeek-V4.1-Flash は、能力と効率のバランスに優れ、幅広い利用者の日常業務を支える高速で手頃なアシスタントになり得る。要するに、DeepSeek-V4.1-Flash はデプロイコストを下げながら、モデルの知能と推論効率を同時に高める。長期ホライズンのエージェントを大規模展開する際のコスト障壁を大きく下げ、より広い場面への導入機会を生み出す。また、今後のスケーリングに向けた新たな出発点でもある。この基盤の上で、モデルアーキテクチャ、事前学習、事後学習を共同でスケールし、モデル知能の最前線をさらに探究していく。
@@ -308,7 +306,6 @@ $$
   $$
 
   ここで $N$ は token count、$\rho$ は token 当たりの raw byte、$C$ は token 当たりの compute、$B_{\mathrm{IO}}$ と $B_{\mathrm{GPU}}$ は file system と GPU の bandwidth である。$N$ は相殺されるため、条件は token 当たりの量（$\rho$ と $C$）だけに依存し、系列長や cluster size には依存しない。$\rho$ は resolution cap や spatial downsample など vision module configuration で決まる。したがって storage throughput がボトルネックになるのは、ablation のように token 当たり compute が少ない小規模モデルだけであり、本番規模のモデルは compute-bound のままである。
-
 - **増分画像転送。** 上記の均衡シャーディングに加え、reinforcement-learning rollout では画像を inference engine へ増分的にのみ転送し、engine の CPU-side decoding・preprocessing output を distributed file system に cache して、rollout と後続学習で再利用する。
 
 <span id="section-3-1-2"></span>
@@ -352,7 +349,6 @@ SWA KV の永続保存はコストが高いうえ効果も薄い。その access
 そこで V4.1 は永続 KV キャッシュ管理を次のように改める。
 
 1. SWA KV は永続 KV キャッシュに保存せず、各 machine の host DRAM の 10% から用意した distributed memory pool に置く。この pool の総容量ははるかに小さいが、TTL が数分と短いため、期限切れ entry をすぐ新規 session に再利用できる。実ワークロードでは、この高い turnover で同時進行中の active session の大半を十分処理できる。global KV は永続 KV キャッシュに残し、少なくとも 72 時間の lifetime を保証する。
-
 2. SWA KV を eviction すれば必然的に miss が生じるが、軽量 fallback の Encoder SWA Bounded Replay（詳細は[第 3.2.2 節](#section-3-2-2)）により低コストに保てる。global KV は hit したものの SWA KV が miss する、避けられないが頻度の低い request では、完全な $L\times n_{\mathrm{win}}$-token forward pass ではなく $n_{\mathrm{win}}$ token だけを再計算して欠落 state を復元する。この bounded replay が設計の要であり、致命的な miss を緩やかで安価な劣化へ変えることで、永続 KV キャッシュから SWA KV を除く根拠となる。
 
 <span id="section-3-2-2"></span>
@@ -608,11 +604,8 @@ OPD stage は training 中の dynamic reconfiguration も必要とする。model
 reasoning は GPQA Diamond [Rei23]、Humanity's Last Exam [Pha25]、Codeforces（internal benchmark）、MathArena Apex [Dek25] で評価し、temperature と top-$p$ は 1.0 とする。agentic capability は次の 4 category で評価する。
 
 - **Code agent：** Terminal-Bench 2.1 [Mer26]、Terminal-Bench 3.0 [Mar26a]、Terminal-Bench 4.0 [Mar26]、DeepSWE v1.1 [Dee26c]、ProgramBench [Yan26a]、NL2Repo-Bench [Din25]。
-
 - **Cyber security：** SEC-Bench Pro version 260505 [Lee26]、CyberGym [Wan25c]、ExploitGym [Wan26b]。
-
 - **General agent：** AutomationBench v1.0.6 の public evaluation set [She26]、Agents' Last Exam [Sun26a]（ALE-CLI）。
-
 - **Visual agent：** Chartography [Gar26]、BabyVision [Che26]、ZeroBench の main set [Rob25]。
 
 code agent では、DeepSeek Harness の Minimal mode、1M-token context window、temperature 1.0、top-p 0.95 で DeepSeek-V4.1-Flash を評価する。公式設定へ合わせ、DeepSWE v1.1 には mini-SWE harness を使う。SEC-Bench Pro には session compact 設計を持つ Claude Code harness を専用に使う。visual agent task は Claude Code harness、512k-token context window、temperature 1.0、top-p 0.95 で評価する。Agents' Last Exam と AutomationBench は公式 scaffold で評価する。ほかの coding scaffold における性能は[表 4](#table-04)に示す。

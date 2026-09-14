@@ -34,9 +34,7 @@ Evaluation shows that XGrammar can achieve up to 100x reduction in per-token lat
 The main contribution of this paper is as follows:
 
 - We introduce an adaptive token mask cache that leverages context-independent tokens and significantly reduces mask generation overhead.
-
 - We design a persistent execution stack that enables fast rollback operations, rapid state branching, and rollback, expediting context-dependent token processing.
-
 - We built an efficient grammar engine co-designed with the LLM serving framework to achieve minimal structured generation overhead.
 
 <span id="section-2"></span>
@@ -90,9 +88,7 @@ As shown in [Figure 1](#figure-01), XGrammar utilizes a byte-level pushdown auto
 To accelerate the generation of the token mask cache, the adaptive token cache categorizes tokens into two types ([Figure 4](#figure-04)): context-independent tokens, which constitute the vast majority and can be pre-computed, and context-dependent tokens, which require slower, on-the-fly processing but are relatively few. This token classification relates to how tokens are validated by the pushdown automaton. We found that, considering the transition of the stack state, the process of matching tokens to the automaton can be divided into three categories:
 
 1.  The matching process expands into a child rule, pushing new elements onto the stack.
-
 2.  The matching process advances within the current rule, updating the stack top node to a new position.
-
 3.  The matching process reaches the end of the current rule and returns to a parent rule, popping elements from the stack.
 
 Validating tokens in the former two cases only relies on the stack top node, which represents the position within the current rule, so we define these tokens as *context-independent tokens*. The tokens in the third type, however, requires inspecting the entire running stack in validation, and are defined as *context-dependent tokens*. For every node of the pushdown automaton, there is a set of context-independent tokens with this node being at the top of the stack at runtime, and their validity can be determined ahead of time. Therefore, we precompute the validity of these tokens and store them in a cache with the stack top node as the key, which we refer to as the adaptive token mask cache. It also adaptively selects the most efficient storage format based on the cache’s contents, as explained in the next paragraph.
@@ -108,9 +104,7 @@ At runtime, we retrieve the validity of context-independent tokens directly base
 **Adaptive storage.** The token mask cache adopts an adaptive storage format to reduce memory usage, as illustrated in [Figure 5](#figure-05). For each automaton node, the token mask cache divides the vocabulary into three parts: the accepted context-independent tokens, the rejected context-independent tokens, and the context-dependent tokens. Since these three parts together cover all tokens, it is sufficient to store only the two smaller subsets. We observe that, for a set of context-independent tokens, they tend to be either almost entirely accepted, namely *accept-heavy* cases, or almost entirely rejected, namely *reject-heavy* cases. This arises because, if wildcards can be matched from the current node, such as the wildcard `[^"\\]*` in the rule of string, nearly all tokens are valid; whereas if the node only accepts a few specific characters, nearly all tokens are invalid. Based on this observation, we designed the following adaptive storage format:
 
 1.  For accept-heavy cases, we store the rejected context-independent tokens and context-dependent tokens in two arrays.
-
 2.  For reject-heavy cases, we store the accepted context-independent tokens and context-dependent tokens in two arrays.
-
 3.  For rare cases where the accepted and rejected tokens are roughly equal, we store the accepted and rejected context-independent tokens and compress them into a bitset matching the vocabulary size.
 
 Thus, in both accept-heavy and reject-heavy cases, the adaptive storage format only requires storing a small subset of tokens, significantly reducing memory usage. In practice, we will enumerate the three storage types, calculate their respective costs, and choose the storage type with the smallest size. For Llama-3.1 model and JSON grammar, this adaptive storage method can effectively reduce the total memory usage to 0.2% (from 160 MB to 0.46 MB).
@@ -229,11 +223,8 @@ With the optimizations mentioned above, the token mask generation process is sig
 We implement XGrammar in 12,000 lines of core C++ code, and we provide Python bindings to facilitate seamless integration with LLM inference frameworks. In this section, we evaluate XGrammar to answer the following questions:
 
 - Can XGrammar efficiently support each step of constrained decoding? ([Section 4.1](#section-4-1))
-
 - Does XGrammar achieve minimal overhead for end-to-end structured generation in LLM serving? ([Section 4.2](#section-4-2))
-
 - How effective is each optimization technique introduced in XGrammar? ([Section 4.3](#section-4-3))
-
 - How does XGrammar effect downstream structured generation tasks? ([Section 4.4](#section-4-4))
 
 <span id="section-4-1"></span>
@@ -340,9 +331,7 @@ $$
 where:
 
 - $R$ is a finite set of grammar rules.
-
 - $\Sigma$ is a finite input alphabet.
-
 - For each rule $r \in R$, the corresponding finite state automaton is given by
 
   $$
@@ -350,13 +339,9 @@ where:
 
   $$
   where $Q_r$ is a finite set of states, $q^{\mathrm{start}}_r \in Q_r$ is the start state, $F_r \subseteq Q_r$ is the set of accepting states, and $\delta_r$ is the transition function defined over $Q_r$. The transition labels in $A_r$ are drawn from the alphabet $\Sigma \cup R$, which includes both input characters and rule references.
-
 - $q_{\text{main}}$ is the start state corresponding to the main rule.
-
 - $\delta$ is the global transition function that governs the operation of the PDA by handling two kinds of transitions:
-
   - *Character transitions*: When in a state $q \in Q_r$, reading an input symbol $a \in \Sigma$ may lead to a transition within the same automaton, i.e., $q \xrightarrow{a} q'$.
-
   - *Rule reference transitions*: When in a state $q \in Q_r$, a transition labeled by a rule reference to $s \in R$ allows the PDA to push the current return information onto the stack and jump to the start state $q^{\mathrm{start}}_s$ of $A_s$.
 
 The parsing state is represented by a set of pairs $\{(s_i, q_i)\}$, where $s_i$ denotes the content of the stack (encoding return information), $q_i$ is the current state (with $q_i \in Q_r$ for some $r \in R$). There can be multiple such pairs because the pushdown automaton can contain non-deterministic transitions, which means there could be multiple possible parsing stacks and states. In the main body of the paper, for simplicity, we place the current state $q_i$ at the top of the stack. Thus, the parsing state is represented as a set of parsing stacks.

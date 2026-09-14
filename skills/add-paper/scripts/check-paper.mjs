@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import MarkdownIt from 'markdown-it'
 import { readPaperAbbreviations } from '../../../scripts/lib/paper-config.mjs'
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
@@ -24,6 +25,7 @@ const pages = [
 const pdfPath = path.join(root, `docs/.vuepress/public/paper/${slug}.pdf`)
 const errors = []
 const warnings = []
+const markdownParser = new MarkdownIt()
 
 function fail(message) {
   errors.push(message)
@@ -393,6 +395,59 @@ function validateFencedCodeIndentation(markdown, label) {
       fail(`${label}: fenced code block at line ${fenceLine} uses non-two-space indentation at line ${index + 1}`)
     }
     indentationWidths.push(indentation.length)
+  }
+}
+
+function validateListItemSpacing(markdown, label) {
+  const lines = markdown.split(/\r?\n/)
+  const violationLines = new Set()
+  const listMarker = /^(\s*)(?:[-+*]|\d+[.)])\s+/
+  const listStack = []
+
+  for (const token of markdownParser.parse(markdown, {})) {
+    if (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') {
+      listStack.push({ hasItem: false })
+      continue
+    }
+    if (token.type === 'bullet_list_close' || token.type === 'ordered_list_close') {
+      listStack.pop()
+      continue
+    }
+    if (token.type !== 'list_item_open') continue
+
+    const list = listStack.at(-1)
+    if (list?.hasItem && token.map?.[0] > 0) {
+      let lineIndex = token.map[0] - 1
+      while (lineIndex >= 0 && !lines[lineIndex].trim()) {
+        violationLines.add(lineIndex + 1)
+        lineIndex -= 1
+      }
+    }
+    if (list) list.hasItem = true
+  }
+
+  let fenceMarker = null
+  for (const [index, line] of lines.entries()) {
+    const fence = line.match(/^\s*(`{3,}|~{3,})/)
+    if (fence) {
+      const marker = fence[1][0]
+      if (fenceMarker === null) fenceMarker = marker
+      else if (fenceMarker === marker) fenceMarker = null
+      continue
+    }
+    if (fenceMarker !== null || line.trim()) continue
+
+    let previous = index - 1
+    let next = index + 1
+    while (previous >= 0 && !lines[previous].trim()) previous -= 1
+    while (next < lines.length && !lines[next].trim()) next += 1
+    if (listMarker.test(lines[previous] ?? '') && listMarker.test(lines[next] ?? '')) {
+      violationLines.add(index + 1)
+    }
+  }
+
+  if (violationLines.size > 0) {
+    fail(`${label}: blank line between list items at line(s) ${[...violationLines].sort((a, b) => a - b).join(', ')}`)
   }
 }
 
@@ -790,6 +845,7 @@ for (const page of pages) {
     warn(`${label}: review pseudocode fence; math-heavy algorithms must use nested unordered lists`)
   }
   validateFencedCodeIndentation(markdown, label)
+  validateListItemSpacing(markdown, label)
   validateAlgorithmDescriptions(markdown, label)
   validateRunInParagraphHeadings(markdown, label)
   const formalContent = validateFormalStatementsAndProofs(markdown, page.locale, label)

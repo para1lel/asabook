@@ -36,9 +36,7 @@ Selective SSM、ひいては Mamba アーキテクチャは完全な recurrent m
 複数種類のモダリティと設定において、事前学習の品質と領域固有 task の性能の双方から、汎用 sequence FM backbone としての Mamba の可能性を実証的に検証する。
 
 - **Synthetic task。** 大規模言語モデルにとって重要だと提案されてきた copying や induction head などの synthetic task において、Mamba はそれらを容易に解くだけでなく、*解を無期限の長さまで外挿*できる（$>$1M token）。
-
 - **音声とゲノミクス。** Mamba は、音声波形と DNA 配列のモデリングにおいて SaShiMi、Hyena、Transformer など従来の state-of-the-art model を、事前学習品質と downstream metric の双方で上回る（例えば、難しい音声生成 dataset で FID を半分以下にする）。どちらの設定でも、*context を長くするにつれて系列長 100 万まで性能が向上する*。
-
 - **言語モデリング。** Mamba は、事前学習 perplexity と downstream evaluation の双方で、*真に Transformer 品質の性能を実現した初の線形時間 sequence model* である。最大 1B parameter までの scaling law により、Mamba が LLaMa [Tou23] に基づく非常に強力な現代的 Transformer 学習 recipe を含む広範な baseline を上回ることを示す。Mamba 言語モデルは同規模の Transformer に対して 5$\times$ の生成 throughput を持ち、Mamba-3B の品質は 2 倍の規模の Transformer と同等である（例えば、常識推論の平均値で Pythia-3B より 4 point 高く、Pythia-7B さえ上回る）。
 
 モデルコードと事前学習済み checkpoint は <https://github.com/state-spaces/mamba> で open-source として公開している。
@@ -127,13 +125,9 @@ SSM の別の変種では、離散化 step を迂回し、$(\overline{\bm{A}}, \
 最もよく知られた SSM architecture の一部を論じる。その多くは本研究の主要 baseline としても用いる。
 
 - Linear attention [Kat20] は self-attention の近似であり、縮退した linear SSM とみなせる recurrence を伴う。
-
 - H3 [Dao23d] は、この recurrence を S4 を使うよう一般化した。これは 2 つの gated connection で SSM を挟んだ architecture とみなせる（[図 3](#figure-03)）。H3 はさらに、main SSM layer の前に標準的な local convolution を挿入し、それを shift-SSM と位置付けている。
-
 - Hyena [Pol23a] は H3 と同じ architecture を用いるが、S4 layer を MLP-parameterized global convolution [Rom21] に置き換える。
-
 - RetNet [Sun23a] は architecture に gate をもう 1 つ追加し、より単純な SSM を用いることで、convolution の代わりに multi-head attention（MHA）の変種を用いた、並列化可能な別の計算経路を実現する。
-
 - RWKV [Pen23g] は、別の linear attention 近似である attention-free Transformer [Zha21e] に基づき、言語モデリング向けに設計された近年の RNN である。その主要な「WKV」mechanism は LTI recurrence を伴い、2 つの SSM の比とみなせる。
 
 密接に関連するその他の SSM と architecture は、拡張した関連研究（[第 8 節](#section-8)）でさらに論じる。特に S5 [Smi23]、QRNN [Bra16]、SRU [Lei17] を取り上げる。これらを、本研究の中核である selective SSM に最も密接に関連する手法とみなしている。
@@ -153,7 +147,6 @@ sequence modeling の根本的な問題は、*context をより小さな state �
 この原理を理解するため、2 つの synthetic task を一貫した例として用いる（[図 2](#figure-02)）。
 
 - **Selective Copying** task は、記憶すべき token の位置を変化させることで、一般的な Copying task [Arj16] を修正する。関連する token（*色付き*）を記憶し、無関係な token（*白*）を除外するには、*content-aware* な推論が必要となる。
-
 - **Induction Heads** task は、LLM の in-context learning 能力の大部分を説明すると仮定されている、よく知られた mechanism である [Ols22]。適切な context（*黒*）で正しい出力をいつ生成すべきか知るには、*context-aware* な推論が必要となる。
 
 これらの task は LTI model の failure mode を明らかにする。recurrent の観点では、その一定の dynamics（例えば [式 2](#equation-02) の $(\overline{\bm{A}}, \overline{\bm{B}})$ 遷移）では、context から正しい情報を選択することも、系列に沿って渡される hidden state へ入力依存の形で作用することもできない。convolution の観点では、通常の Copying task は time-awareness のみを必要とするため global convolution で解ける [Rom21] 一方、Selective Copying task は content-awareness がないため難しい（[図 2](#figure-02)）ことが知られている。より具体的には、入力から出力までの間隔が変化するため、静的な convolution kernel ではモデリングできない。
@@ -225,9 +218,7 @@ convolution [Kri12] や attention [Bah15, Vas17] のような hardware-friendly 
 まずこの動機を改めて確認し、先行手法の制約を克服する本研究の方法を概観する。
 
 - 高いレベルでは、SSM のような recurrent model は常に表現力と速度の tradeoff を取る。[第 3.1 節](#section-3-1) で論じたように、hidden state dimension が大きいモデルほど有効だが低速になるはずである。したがって、*速度とメモリの cost を負わずに hidden state dimension を最大化*したい。
-
 - recurrent mode は convolution mode より柔軟であることに注意されたい。後者 [式 3](#equation-03) は前者 [式 2](#equation-02) を展開して導かれるからである [Gu21a, Gu22a]。しかし、これには shape $\mathtt{(B,L,D,N)}$ の潜在 state $h$ を計算して実体化する必要があり、shape $\mathtt{(B,L,D)}$ の入力 $x$ および出力 $y$ より（SSM state dimension $N$ 倍）大幅に大きい。そこで state の計算を迂回し、サイズが $\mathtt{(B,L,D)}$ にすぎない convolution kernel [式 3a](#equation-03-a) を実体化できる、より効率的な convolution mode が導入された。
-
 - 従来の LTI state space model は recurrent-convolutional の二重形式を活用し、効率を損なうことなく、実効 state dimension を従来の RNN よりはるかに大きい $N$ 倍（$\approx 10-100$）へ増やす。
 
 <span id="section-3-3-2"></span>
@@ -237,7 +228,6 @@ convolution [Kri12] や attention [Bah15, Vas17] のような hardware-friendly 
 selection mechanism は LTI model の制約を克服するよう設計されている。そのため同時に、SSM の計算問題を再検討する必要がある。kernel fusion、parallel scan、recomputation という 3 つの古典的手法でこれに対処する。主な観察は 2 点である。
 
 - 素朴な recurrent 計算は $O(B L D N)$ FLOP、convolutional 計算は $O(B L D \log(L))$ FLOP を要し、前者は定数因子が小さい。したがって長い系列かつ state dimension $N$ が過度に大きくない場合、実際には recurrent mode の方が FLOP が少なくなりうる。
-
 - 2 つの課題は、recurrence が逐次的であることと、大量のメモリを使うことである。後者に対しては、convolutional mode と同様に、完全な state $h$ を実際には実体化しないよう試みられる。
 
 主な発想は、現代の accelerator（GPU）の性質を活用し、memory hierarchy のより効率的な階層でのみ state $h$ を実体化することだ。特に、大半の演算（行列乗算を除く）は memory bandwidth に律速される [Wil09, Iva21, Dao22]。これは本研究の scan operation も含み、kernel fusion を使って memory IO の量を減らすことで、標準実装に対して大幅な高速化を得る。
@@ -342,9 +332,7 @@ selection が持つ 3 つの具体的な機械的効果を詳述する。
 [第 4.1 節](#section-4-1) では、[第 3.1 節](#section-3-1) で動機付けた 2 つの synthetic task を解く Mamba の能力を検証する。続いて 3 つの領域を評価し、それぞれで自己回帰事前学習と downstream task の双方を扱う。
 
 - [第 4.2 節](#section-4-2)：言語モデルの事前学習（scaling law）と zero-shot downstream evaluation。
-
 - [第 4.3 節](#section-4-3)：DNA 配列の事前学習と、長い系列の分類 task に対する fine-tuning。
-
 - [第 4.4 節](#section-4-4)：音声波形の事前学習と、自己回帰的に生成した音声 clip の品質。
 
 最後に、[第 4.5 節](#section-4-5) では学習時と推論時の双方における Mamba の計算効率を示し、[第 4.6 節](#section-4-6) では architecture と selective SSM のさまざまな構成要素を ablation する。
@@ -484,7 +472,6 @@ $\{ \texttt{human}, \texttt{chimpanzee}, \texttt{gorilla}, \texttt{orangutan}, \
 このモデルは次で構成される。
 
 1. model dimension $D$ を stage ごとに 2 倍にする、係数 $p$ の 2 段階 pooling を持つ U-Net backbone。
-
 2. 各 stage で交互に配置した S4 block と MLP block。
 
 S4+MLP block を Mamba block で置き換えることを検討する。
@@ -550,11 +537,8 @@ SC09 は、「zero」から「nine」までの数字について、高度に多�
 [表 6](#table-06) では architecture（block）とその inner SSM layer（[図 3](#figure-03)）の効果を調べる。次のことが分かった。
 
 - global convolution と等価な、従来の non-selective（LTI）SSM 同士では、性能は非常に近い。
-
 - 従来研究の complex-valued S4 variant を real-valued variant に置き換えても性能への影響は小さく、hardware efficiency を考慮すれば（少なくとも LM では）real-valued SSM の方が良い選択となりうることを示唆する。
-
 - これらのいずれを selective SSM（S6）で置き換えても性能は大幅に改善し、[第 3 節](#section-3) の動機を裏付ける。
-
 - Mamba architecture は H3 architecture と同程度に機能する（selective layer を使うとわずかに良いように見える）。
 
 Mamba block と MLP（従来型 architecture）や MHA（hybrid attention architecture）など他の block を交互に配置する場合も [第 11.2.2 節](#section-11-2-2) で調べる。
@@ -660,17 +644,12 @@ structured state space model に selection mechanism を導入し、系列長に
 先行研究の structured SSM、特に本手法と関係するものを簡潔に概観する。
 
 - S4 [Gu21a, Gu22a] は最初の structured SSM を導入し、diagonal structure と diagonal plus low-rank（DPLR）を説明した。continuous-time online memorization（HIPPO）[Gu20a] との関係から、DPLR SSM 向けの効率的な convolutional algorithm に焦点を当てた。
-
 - DSS [Gup22] は HIPPO initialization を近似することで、diagonal structured SSM の実証的な有効性を初めて発見した。S4D [Gu22b] はこれを理論的に拡張した。
-
 - S5 [Smi23] は独立に diagonal SSM approximation を発見し、parallel scan で recurrent に計算した初の S4 model である。しかし、それには実効 state dimension を小さくする必要があり、SSM の次元を SISO（single-input single-output）から MIMO（multi-input multi-output）の定式化へ切り替えて実現した。本研究が提案する S6 も scan を使うが、（i）SISO dimension を維持してより大きな実効 recurrent state を得る、（ii）hardware-aware algorithm で計算問題を克服する、（iii）selection mechanism を追加する、という点で異なる。
 
   [Lu23a] は episode trajectory 間で SSM state を reset するため、S5 を meta-RL に適用した。その mechanism は、入力に依存する学習可能な本研究の mechanism とは異なり、$\overline{\bm{A}}$ を手動で $0$ に設定する、hard-coded な selection mechanism の一例とみなせる。この設定へ selective SSM を一般的に適用し、episode boundary で state を自動的に reset するようモデルが学習したかを調べることは興味深い。
-
 - Mega [Ma23b] は S4 を complex-valued ではなく real-valued に簡素化し、exponential moving average（EMA）という解釈を与えた。さらに、SSM の discretization step と EMA の *damping* term との興味深い関係を示した。元来の S4 論文の知見と異なり、特定の設定や異なる architectural component と組み合わせた場合に real-valued SSM が実証的に有効だと示した初のモデルである。
-
 - Liquid S4 [Has23] も S4 を input-dependent state transition で拡張することを動機としている。この観点では selection mechanism と似ているが、依然として convolutionally に計算され、LTI に近い限定的な形である。
-
 - SGConv [Li23y]、Hyena [Pol23a]、LongConv [Fu23b]、MultiresConv [Shi23e]、Toeplitz Neural Network [Qin23d] はいずれも S4 の convolutional representation に焦点を当て、異なる parameterization で global または long convolution kernel を構成する。しかし、これらの手法は高速な自己回帰推論を直接行えない。
 
 特に、これらの手法、および把握している他のすべての structured SSM は non-selective であり、通常は厳密に LTI（linear time invariant）である。
@@ -682,17 +661,12 @@ structured state space model に selection mechanism を導入し、系列長に
 SSM architecture または state space neural network（SSNN）という用語を、従来の SSM の一つを black-box layer として組み込んだ deep neural network architecture を指すために用いる。
 
 - GSS [Meh23] は SSM を組み込んだ最初の gated neural network architecture である。[Hua22] の gated attention unit（GAU）を動機とし、追加の projection を除けば本研究の block と非常によく似ている。最も重要なのは、その projection が SSM の state size を減らすため model dimension を*縮小*する一方、本研究では [第 3.1 節](#section-3-1) の動機に基づき、state size を増やすため model dimension を*拡大*する点である。
-
 - Mega [Ma23b] は、上述した S4 の EMA への簡素化を、効率的な attention approximation を用いる hybrid architecture に組み込んだ。
-
 - H3 [Dao23d] は S4 と linear attention [Kat20] の組合せを動機とする。この linear attention の定式化をより一般的な recurrence へ一般化した最初の手法であり、後続 architecture の基礎にもなった。
-
 - Selective S4 [Wan23l] は S4 を black box として組み込み、入力へ乗算する binary mask を生成する。「selection」という名称は共通するが、selection mechanism より architectural gating に近い architecture の変更だと考える（[第 7 節](#section-7)）。例えば、無関係な入力を単に mask out しても関連入力間の間隔には影響しないため、Selective Copying task は解けないと仮定する（実際、noise token を 0 に embedding すれば、Selective Copying task はあらかじめ mask されたものとさえみなせる）。
-
 - RetNet [Sun23a] も Linear Attention に基づき H3 と非常によく似ているが、inner S4 layer を state dimension $N=1$ の特殊例まで縮小する。そのようには位置付けられていないが、その recurrence は linear SSM の特殊例とみなせる。
 
   主な改善源は、大きな *head dimension* を持つ linear attention を用いることであり、これは input-dependent state expansion を行う別の方法とみなせる。linear attention variant の文脈で大きな head dimension を最初に用いたのは H3 だが、追加計算量が比例して増えるため、その後は広く使われなかった。RetNet は、convolution の代わりに標準的 multi-head attention の variant で計算を並列化する別の方法によってこれを避ける。この方法は、単純な EMA として働く RetNet 固有の SSM の特殊例だから可能となる。
-
 - RWKV [Pen23g] は、言語モデリング向けに設計された近年の別の RNN である。linear attention の別の variant である AFT（attention-free Transformer [Zha21e]）に基づく。主要な「WKV」mechanism は LTI recurrence を伴い、2 つの SSM の比とみなせる。
 
 また、Transformer の MHA block と MLP block を統合することを動機とした [Hua22] の gated attention unit（GAU）も取り上げる。これは H3 block と MLP block を統合した本研究の architecture（[第 3.4 節](#section-3-4)）の着想源となった。
@@ -706,7 +680,6 @@ RNN と SSM は、ともに潜在 *state* 上の *recurrence* という概念を
 strongly typed RNN [Bal16]、quasi-RNN（QRNN）[Bra16]、simple recurrent unit（SRU）[Lei17, Lei21] など、以前の複数の RNN は time-wise nonlinearity を持たない gated RNN の形を取る。gating mechanism と selection mechanism の関係により、これらは selective SSM の事例とみなせるため、ある意味では上述した LTI structured SSM 群より強力である。主な相違点は次のとおり。
 
 - state expansion（$N=1$）も selective な $\bm{B}, \bm{C}$ parameter も用いないが、いずれも性能に重要である（[第 4.6 節](#section-4-6)）。
-
 - heuristic な gating mechanism を用いる。本研究ではこれを selection mechanism + discretization の帰結として一般化する（[定理 1](#theorem-01)）。原理的な SSM theory との関係により、より良い parameterization と initialization が得られる（[第 3.6 節](#section-3-6)）。
 
 さらに、以前の RNN は効率問題と vanishing gradient problem [Hoc91, Hoc01, Pas13] に苦しんだことで知られ、いずれも逐次的な性質に起因する。前者は上述した RNN の一部では parallel scan [Mar18] を活用して解決できたが、後者はその後 SSM のために発展した理論なしには難しかった。例えば現代の structured SSM は、古典的 SSM theory に着想を得た recurrent dynamics のより慎重な parameterization（例えば離散化 [Gu21a, Gu23a]）または直接的な解析 [Orv23, Kau20, Gup22a] の点で異なる。
@@ -728,11 +701,8 @@ kernel attention のほかにも efficient attention の variant は多数あり
 long context は広く扱われる話題となり、近年の複数のモデルがより長い系列へスケールできると主張している。しかし、これは計算面からの主張であることが多く、広範には検証されていない。次が含まれる。
 
 - Recurrent Memory Transformer [Bul23] は Transformer backbone の軽量 wrapper である。系列長 1M まで汎化する能力を示したが、synthetic memorization task に限られる。主な結果は、本研究の Induction Heads 外挿実験（[表 2](#table-02)）と似ている。
-
 - LongNet [Din23a] は長さ 1B までスケールすると主張したが、実際の task では長さ $<100K$ だけを評価した。
-
 - Hyena と HyenaDNA [Pol23a, Ngu23a] は最大 1M の context を活用すると主張した。しかし、その実験は長い context ほど比例して多くのデータで学習しており、context 1M での品質向上が context length によるのか、データと計算量の増加によるのか結論付けにくい。
-
 - Sparse Transformer [Chi19] は strided sparse attention Transformer を用い、長さ $2^{20}=1048576$ の音声波形をモデリングする proof-of-concept を示したが、計算量と model size を統制した場合の performance tradeoff は論じなかった。
 
 これに対し、本研究は長い context による性能向上を有意に実証した最初期の手法の一つだと考える。
@@ -803,11 +773,8 @@ input-dependent selectivity がなければ、SSM は fast Fourier transform（F
 [第 3.2 節](#section-3-2) の scan algorithm を実装する標準的な方法は、サイズ $(B, L, D, N)$ の scan input $\overline{\bm{A}}, \overline{\bm{B}}$ を GPU HBM（high-bandwidth memory、一般に GPU memory と呼ばれる）に用意し、parallel associative scan 実装を呼び出してサイズ $(B, L, D, N)$ の scan output を GPU HBM へ書き込み、それからその scan output に $\bm{C}$ を乗じてサイズ $(B, L, D)$ の出力を生成する。しかし、これには $O(B L D N)$ のオーダーの memory read / write が必要となる。代わりに、離散化 step、scan、$\bm{C}$ との乗算を一つの kernel に fuse できる。
 
 1. 低速な HBM から高速な SRAM へ $O(B L D + D N)$ byte の memory（$\Delta, \bm{A}, \bm{B}, \bm{C}$）を読み込む。
-
 2. 離散化し、SRAM 上にサイズ $(B, L, D, N)$ の $\overline{\bm{A}}, \overline{\bm{B}}$ を生成する。
-
 3. parallel associative scan を行い、SRAM 上にサイズ $(B, L, D, N)$ の中間 state を得る。
-
 4. $\bm{C}$ と乗算して総和を取り、サイズ $(B, L, D)$ の出力を生成し HBM へ書き込む。
 
 この方法により、IO を（state dimension）$O(N)$ 倍削減し、実際には operation を 20-40 倍高速化する（[第 4.5 節](#section-4-5)）。
@@ -865,11 +832,8 @@ Scaling law 実験は概ね GPT3 recipe に従った。すべてのモデルを 
 **学習 Recipe。** すべてのモデルで、次の設定を持つ AdamW optimizer を用いた。
 
 - gradient clip value $1.0$
-
 - weight decay $0.1$
-
 - dropout なし
-
 - cosine decay を伴う linear learning rate warmup
 
 既定では、peak learning rate は GPT3 の仕様とする。
@@ -877,27 +841,18 @@ Scaling law 実験は概ね GPT3 recipe に従った。すべてのモデルを 
 複数のモデルには、PaLM [Cho23a] や LLaMa [Tou23] など広く使われる大規模言語モデルで採用された変更を参考に「improved recipe」を与える。これには次が含まれる。
 
 - $1e-5$ までの cosine decay を伴う linear learning rate warmup。peak value は GPT3 の値の $5\times$
-
 - linear bias term なし
-
 - LayerNorm の代わりに RMSNorm
-
 - PyTorch の既定値 $\beta=(.9, .999)$ の代わりに AdamW hyperparameter $\beta=(.9, .95)$（GPT3 の値）
 
 **Architecture と学習の詳細。** 用いるモデルは次のとおり。
 
 - **Transformer**：GPT3 に基づく標準 Transformer（[表 12](#table-12)）。
-
 - **Transformer++**：改善した architecture、すなわち rotary positional encoding [Su21] と SwiGLU MLP [Sha20]、および上述の improved training recipe を持つ Transformer。
-
 - **Hyena**：Hyena block（S4 を MLP でパラメータ化した global convolution に置き換えた H3 block）と標準的な MLP block を交互に配置する。MLP block の expansion factor は $4$ ではなく $2$ とし、parameter 数を保つため layer 数をそれに応じて $1.5\times$ に増やす。
-
 - **H3++**：H3 architecture に、（i）上述した Hyena と同じ「thin」dimension、（ii）上述の improved training recipe、（iii）8 の linear attention *head dimension* を含むいくつかの変更を加える。
-
 - **RWKV**：[Pen23g] の既定の RWKV model で、変更された MLP block を含む。また、特定の parameter で learning rate を $2\times$ または $3\times$ に増やすなど、指定された training recipe も可能な限り用いた。
-
 - **RetNet**：[Sun23a] の既定の RetNet model。上述の improved training recipe も与えた。
-
 - **Mamba**：上述の improved training recipe を持つ標準 Mamba architecture。
 
 <span id="section-11-2-2"></span>
@@ -909,7 +864,6 @@ Scaling law 実験は概ね GPT3 recipe に従った。すべてのモデルを 
 **Mamba Architecture：Block の交互配置。** Mamba block と組み合わせる異なる architectural block の効果を検証する。Mamba block は、単に標準的な SwiGLU block へ追加の $\mathrm{conv} \to \mathrm{SSM}$ path を加えたものだという観点に注目する。ここから 2 つの自然な ablation が得られる。
 
 - Mamba block を均質に積み重ねず、標準 MLP block と交互に配置するとどうなるか。これは Mamba から SSM の半分を取り除くこととも解釈できる。
-
 - Mamba block を MHA（multi-head attention）block と交互に配置するとどうなるか。これは SwiGLU MLP を持つ Transformer（すなわち Transformer++ と呼ぶもの）を取り、その MLP block へ単に SSM を追加することとも解釈できる。
 
 [図 9](#figure-09)（*右*）は、これらの variant を元の（均質な）Mamba architecture と比較する。興味深いことに、どちらの変更も大きな影響を与えない。Mamba-MLP architecture はわずかに悪いだけで、依然として Transformer++ 以外の全モデルより良い。Mamba-MHA architecture はわずかに良いだけである。近年の多くの研究が（LTI）SSM と Attention の組合せは大幅な改善につながりうると見いだした [Dao23d, Fat23a, Sao23, Zuo22, Fat23] ことを考えると、これはやや意外である。
@@ -917,11 +871,8 @@ Scaling law 実験は概ね GPT3 recipe に従った。すべてのモデルを 
 **H3 Architecture：学習 Recipe。** 次に、Transformer++ と Mamba を除いて最も弱いモデルと最も強いモデルである Hyena と H3++ の差を ablation し、特に training recipe の効果を分離する。
 
 - **Hyena**：元来の architecture と GPT3 training recipe を持つ Hyena block（[図 4](#figure-04) と同じ）。
-
 - **Hyena+**：同じ architecture だが、上述した improved training recipe を用いる。
-
 - **H3+**：Hyena+ と同じ architecture だが、Hyena convolution kernel を S4D convolution kernel へ置き換える。
-
 - **H3++**：H3+ と同じだが、linear attention の *head dimension* を 8 とする。これにより SSM recurrence 内の計算量は増えるが、parameter は増えない。
 
 一般的な表記規則として、「Model+」は improved training recipe を持つ base model を表し、「Model++」は architectural な変更も許す。
@@ -929,9 +880,7 @@ Scaling law 実験は概ね GPT3 recipe に従った。すべてのモデルを 
 [図 9](#figure-09)（*右*）は次のことを示す。
 
 - improved training recipe により大幅に改善する。この recipe は主要な [図 4](#figure-04) の多くのモデル（RetNet、H3++、Transformer++、Mamba）で用いた。
-
 - inner LTI SSM の選択は重要ではなく（例えば Hyena 対 S4）、本論文全体の知見と一致する。
-
 - head dimension の拡大は性能を改善し、拡張した state dimension が SSM の性能を改善するという主要な主題の一つ（[第 3 節](#section-3)）と一致する。
 
 <span id="figure-09"></span>
@@ -949,15 +898,10 @@ Scaling law 実験は概ね GPT3 recipe に従った。すべてのモデルを 
 downstream evaluation には、この領域の大半の研究と同様、EleutherAI の LM evaluation harness [Gao21] を用いる。常識推論を測る次の task / dataset で評価する。
 
 - LAMBADA [Pap16a]
-
 - HellaSwag [Zel19]
-
 - PIQA [Bis20]
-
 - ARC-challenge [Cla18]
-
 - ARC-easy：ARC-challenge の容易な subset
-
 - WinoGrande [Sak21]
 
 LAMBADA、WinoGrande、PIQA、ARC-easy には accuracy を、HellaSwag と ARC-challenge には系列長で正規化した accuracy を報告する（これらの task ではほぼすべてのモデルで normalized accuracy の方が高いため）。
@@ -977,7 +921,6 @@ dataset はゲノミクスに関する先行研究 Enformer [Avs21] の split �
 学習 sequence length が $2^{17}$ でない場合は HyenaDNA と異なる。HyenaDNA は常に固定 sub-segment（例えば指定 segment の冒頭または中央）を取り、どの学習 sequence length でも各 epoch は $34021$ sample に固定され、必ずしも genome 全体を通過しない。一方、本研究では学習データ全体を用いる。
 
 - context length $L$ が $2^{17}$ 以下の場合、各 segment を長さ $L$ の重複しない sub-segment に分け、合計 sample 数を $S \times \frac{2^{17}}{L}$、epoch あたりの token 数を $S \times 2^{17} \approx 4.5B$ とする。
-
 - context length $L$ が $2^{17}$ より長い場合、各 segment を、指定 segment で始まるものと指定 segment で終わるものの 2 sample にする。したがって各 epoch には $2S$ item、$2 S L$ token が含まれる。例えば sequence length $2^{18}=262144$ では既定の $4\times$、sequence length $2^{20}$ では $16\times$ の token がある。
 
 その他の学習詳細は、概して言語モデリング実験（[第 11.2 節](#section-11-2)）と同じ protocol に従う。例えば $(\beta_1, \beta_2) = (0.9, 0.95)$ の AdamW、dropout なし、weight decay $0.1$ を用いる。総 step の 10% を linear warmup とする cosine learning rate scheduler を用いる。
@@ -989,9 +932,7 @@ dataset はゲノミクスに関する先行研究 Enformer [Avs21] の split �
 **モデル。** 検討するモデルは次のとおり。
 
 - Transformer++：改善した architecture、とりわけ RoPE positional encoding [Su21] を用いる Transformer。非形式的な知見として、[Vas17] の vanilla positional encoding より明らかに良いことが分かった。
-
 - HyenaDNA：[Pol23a, Ngu23a] の Hyena model。概ね、MHA block を、MLP でパラメータ化した global convolution を使う H3 block へ置き換えた Transformer である。
-
 - Mamba：標準 Mamba architecture。
 
 **Model Size。** 次の model size を用いる。
@@ -1081,11 +1022,8 @@ dataset は長さ最大 1 分、すなわち $960000$ の clip からなり、su
 自己回帰学習は概ね自己回帰言語モデリング protocol に従い、例えば次を用いた。
 
 - weight decay $0.1$
-
 - 総 step の 10% を learning rate warmup
-
 - $\beta=(0.9, 0.95)$ の AdamW optimizer
-
 - gradient clip value $0.1$
 
 learning rate $0.002$、batch size $16$ で $200000$ training step 学習した。

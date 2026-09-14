@@ -372,13 +372,9 @@ WELDER provides end-to-end DNN model compilation with its new tile-graph abstrac
 This artifact will validate the following claims:
 
 - End-to-end model performances. By reproducing the experiments of [Figure 9](#figure-09), [Figure 10](#figure-10), [Figure 11](#figure-11), [Table 3](#table-03) and [Table 6](#table-06).
-
 - Motivation experiments in [Figure 1](#figure-01) and [Figure 2](#figure-02).
-
 - Ablation study in [Figure 13](#figure-13).
-
 - Compilation time in [Table 5](#table-05).
-
 - GPU stale out experiments in [Table 7](#table-07).
 
 <span id="section-9-2"></span>

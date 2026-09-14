@@ -35,13 +35,9 @@ permalink: /papers/deepseek-moe/
 我们的贡献概括如下:
 
 - **架构创新.** 我们提出 DeepSeekMoE, 一种以实现极致专家特化为目标的新型 MoE 架构, 它采用细粒度专家划分和共享专家隔离两项主要策略.
-
 - **实验验证.** 我们进行了广泛实验, 从实验上验证 DeepSeekMoE 架构的有效性. 实验结果证实 DeepSeekMoE 2B 具有很高的专家特化程度, 并表明 DeepSeekMoE 2B 的性能可以接近 MoE 模型的上界.
-
 - **可扩展性.** 我们扩展 DeepSeekMoE 并训练出一个 16B 模型, 结果表明 DeepSeekMoE 16B 仅用约 40% 的计算量, 便取得了与 DeepSeek 7B 和 LLaMA2 7B 相当的性能. 我们还初步尝试将 DeepSeekMoE 扩展到 145B, 结果显示它相较 GShard 架构仍有稳定优势, 性能也与 DeepSeek 67B 相当.
-
 - **MoE 对齐.** 我们成功对 DeepSeekMoE 16B 进行了监督微调, 得到一个对齐的聊天模型, 展现出 DeepSeekMoE 16B 的适应能力与通用性.
-
 - **公开发布.** 本着开放研究的精神, 我们向公众发布 DeepSeekMoE 16B 的模型检查点. 值得一提的是, 该模型无需量化, 便可部署在一张配有 40GB 显存的 GPU 上.
 
 <span id="section-2"></span>

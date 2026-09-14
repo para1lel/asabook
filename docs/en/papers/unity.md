@@ -165,9 +165,7 @@ Machine mappings provide two key desirable properties: expressiveness and scalab
 Unity uses six parallelization operators to capture the computation and communication costs associated with different parallelization strategies. These six are further divided into three pairs, where one operator is the "back propagation" of the other (e.g., when back propagation is done on Partition it becomes semantically equivalent to Combine, and the same in reverse). The three pairs are:
 
 1. *Partition and Combine:* Partition and Combine change a tensor's degree of parallelism. More specifically, Partition increases the parallelism degree of a tensor dimension by splitting the dimension into multiple equal-sized partitions, as shown in [Figure 8a](#figure-08). Combine performs the reverse: reducing a tensor's degree of parallelism by concatenating multiple partitions into one.
-
 2. *Replicate and Reduce:* Replicate and Reduce control the parallelism degree of the replica dimension by copying and summing tensors, as shown in [Figure 8b](#figure-08). Parameter synchronization is naturally captured as the back propagation of Replicate operations applied to weight tensors.
-
 3. *Pipeline and Batch:* Pipeline splits a tensor dimension into equal size partitions and processes one partition at a time, while Batch aggregates tensors across iterations (see [Figure 8c](#figure-08)). Note that Pipeline does not modify the parallelism degree of a tensor dimension, but instead reduce its size.
 
 <span id="figure-08"></span>

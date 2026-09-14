@@ -25,13 +25,9 @@ Various forms of conditional computation have been proposed as a way to increase
 While these ideas are promising in theory, no work to date has yet demonstrated massive improvements in model capacity, training time, or model quality. We blame this on a combination of the following challenges:
 
 - Modern computing devices, especially GPUs, are much faster at arithmetic than at branching. Most of the works above recognize this and propose turning on/off large chunks of the network with each gating decision.
-
 - Large batch sizes are critical for performance, as they amortize the costs of parameter transfers and updates. Conditional computation reduces the batch sizes for the conditionally active chunks of the network.
-
 - Network bandwidth can be a bottleneck. A cluster of GPUs may have computational power thousands of times greater than the aggregate inter-device network bandwidth. To be computationally efficient, the relative computational versus network demands of an algorithm must exceed this ratio. Embedding layers, which can be seen as a form of conditional computation, are handicapped by this very problem. Since the embeddings generally need to be sent across the network, the number of (example, parameter) interactions is limited by network bandwidth instead of computational capacity.
-
 - Depending on the scheme, loss terms may be necessary to achieve the desired level of sparsity per-chunk and/or per example. [Ben15] use three such terms. These issues can affect both model quality and load-balancing.
-
 - Model capacity is most critical for very large data sets. The existing literature on conditional computation deals with relatively small image recognition data sets consisting of up to 600,000 images. It is hard to imagine that the labels of these images provide a sufficient signal to adequately train a model with millions, let alone billions of parameters.
 
 In this work, we for the first time address all of the above challenges and finally realize the promise of conditional computation. We obtain greater than 1000x improvements in model capacity with only minor losses in computational efficiency and significantly advance the state-of-the-art results on public language modeling and translation data sets.
@@ -341,11 +337,8 @@ It would seem simpler to let $\mathrm{Load}_{H}(X)_{i,j}=\mathrm{Load}_{i}(X_{i}
 **Computationally-Matched Baselines:** The MoE-4 model does not employ sparsity, since all 4 experts are always used. In addition, we trained four more computationally-matched baseline models with no sparsity:
 
 - MoE-1-Wide: The MoE layer consists of a single "expert" containing one ReLU-activated hidden layer of size 4096.
-
 - MoE-1-Deep: The MoE layer consists of a single "expert" containing four ReLU-activated hidden layers, each with size $1024$.
-
 - 4xLSTM-512: We replace the MoE layer with two additional 512-unit LSTM layers.
-
 - LSTM-2048-512: The model contains one 2048-unit LSTM layer (and no MoE). The output of the LSTM is projected down to 512 dimensions [Sak14]. The next timestep of the LSTM receives the projected output. This is identical to one of the models published in [Joz16]. We re-ran it to account for differences in training regimen, and obtained results very similar to the published ones.
 
 **Training:** The models were trained on a cluster of 16 K40 GPUs using the synchronous method described in [Section 3](#section-3). Each batch consisted of a set of sentences totaling roughly 300,000 words. In the interest of time, we limited training to 10 epochs, (27,000 steps). Training took 12-16 hours for all models, except for MoE-4, which took 18 hours (since all the expert computation was performed on only 4 of 16 GPUs). We used the Adam optimizer [Kin15]. The base learning rate was increased linearly for the first 1000 training steps, and decreased after that so as to be proportional to the inverse square root of the step number. The Softmax output layer was trained efficiently using importance sampling similarly to the models in [Joz16]. For each model, we performed a hyper-parmeter search to find the best dropout probability, in increments of 0.1.

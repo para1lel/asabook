@@ -94,7 +94,6 @@ Compared to the prior benchmarks miniF2F, FIMO, and ProofNet, PutnamBench is the
 **Factored Solutions.** Roughly 60% of Putnam problems, in their natural language form, require exhibiting a (closed-form) solution along with a proof of its correctness. Such problems do not assert propositions, and hence are not immediately formalizable as they are not directly the statement of a theorem. Prior benchmarks such as miniF2F [Zhe22a] sidestep this issue by rewording the problem statement to ask for a proof that the solution satisfies the constraints of the problem. However, this reduction diminishes the overall difficulty of the problem, as producing a solution can constitute the majority of the difficulty. To address this issue, we factor out solutions of such problems from the formalized theorem statement. We include an example in [Figure 2](#figure-02). In this way, we provide two tasks for neural theorem proving:
 
 1. **Task 1:** Given the theorem statement, first identify the (closed-form) solution, and then provide a proof of correctness by rewriting the solution into the theorem statement.
-
 2. **Task 2:** Given the theorem statement and solution, produce a proof of its correctness. This task aligns with the current benchmarks.
 
 We note that the process of producing the numerical solution may be highly correlated with the proof of its correctness. In this way, our formalizations can reflect the true difficulty of the informal problem statement.
@@ -225,83 +224,61 @@ This work was supported by NSF awards CCF-2212559 and CCF-2403211, the NSF Insti
 ## 7 Checklist
 
 1. For all authors...
-
    1. Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
 
       **Answer: Yes.** We support our main claims in [Section 3](#section-3) and [Section 4](#section-4).
-
    2. Did you describe the limitations of your work?
 
       **Answer: Yes.** We discussed in [Section 3](#section-3) the challenges of formalizing certain problem categories such as geometry and probability due to the nature of support for such mathematical theory in each language.
-
    3. Did you discuss any potential negative societal impacts of your work?
 
       **Answer: N/A.** We do not anticipate any negative societal impact of our work.
-
    4. Have you read the ethics review guidelines and ensured that your paper conforms to them?
 
       **Answer: Yes.** We have read the ethics review guidelines and ensured our paper conforms to them.
-
 2. If you are including theoretical results...
-
    1. Did you state the full set of assumptions of all theoretical results?
 
       **Answer: N/A.** We do not include any theoretical results.
-
    2. Did you include complete proofs of all theoretical results?
 
       **Answer: N/A.** We do not include any theoretical results.
-
 3. If you ran experiments (e.g. for benchmarks)...
-
    1. Did you include the code, data, and instructions needed to reproduce the main experimental results (either in the supplemental material or as a URL)?
 
       **Answer: Yes.** We disclosed all information related to the experiments, which use open-sourced methods. We have also included the URL to our dataset: [https://github.com/trishullab/PUTNAM/](https://github.com/trishullab/PUTNAM/).
-
    2. Did you specify all the training details (e.g., data splits, hyperparameters, how they were chosen)?
 
       **Answer: N/A.** We did not perform any training.
-
    3. Did you report error bars (e.g., with respect to the random seed after running experiments multiple times)?
 
       **Answer: No.** We evaluate our selected methodologies using established metrics accepted by the neural theorem-proving community. See [Section 4](#section-4).
-
    4. Did you include the total amount of compute and the type of resources used (e.g., type of GPUs, internal cluster, or cloud provider)?
 
       **Answer: Yes.** Most of our experiments rely on calls to GPT-4, we include sampling details. We also mention the hyperparameters to calls to symbolic methods in [Section 4](#section-4).
-
 4. If you are using existing assets (e.g., code, data, models) or curating/releasing new assets...
-
    1. If your work uses existing assets, did you cite the creators?
 
       **Answer: Yes.** We did cite the creators of any existing assets we used.
-
    2. Did you mention the license of the assets?
 
       **Answer: Yes.** We aligned the license of our benchmark with the license of those assets.
-
    3. Did you include any new assets either in the supplemental material or as a URL?
 
       **Answer: Yes.** We included our dataset by sharing the following URL: [https://github.com/trishullab/PUTNAM/](https://github.com/trishullab/PUTNAM/).
-
    4. Did you discuss whether and how consent was obtained from people whose data you're using/curating?
 
       **Answer: Yes.** We obtained permission from the MAA.
-
    5. Did you discuss whether the data you are using/curating contains personally identifiable information or offensive content?
 
       **Answer: N/A.** Our data does not contain such content.
-
 5. If you used crowdsourcing or conducted research with human subjects...
-
    1. Did you include the full text of instructions given to participants and screenshots, if applicable?
 
       **Answer: N/A.** We did not conduct research with human subjects nor crowdsource.
-
    2. Did you describe any potential participant risks, with links to Institutional Review Board (IRB) approvals, if applicable?
 
       **Answer: N/A.** We did not conduct research with human subjects nor crowdsource.
-
    3. Did you include the estimated hourly wage paid to participants and the total amount spent on participant compensation?
 
       **Answer: N/A.** We did not conduct research with human subjects nor crowdsource.

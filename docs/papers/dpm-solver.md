@@ -887,9 +887,7 @@ $\tilde{\bm{\epsilon}}_{\theta}$ 的时间输入可能不是整数, 但实验表
 给定函数求值次数的固定预算 $K\leq 20$, 把区间 $[\lambda_{T},\lambda_{\epsilon}]$ 均匀划分成 $M=(\lfloor K/3\rfloor+1)$ 段, 用 $M$ 步生成样本. 这 $M$ 步取决于 $K$ 模 $3$ 的余数 $R$, 以保证函数求值总次数恰好为 $K$.
 
 - 若 $R=0$, 先执行 $M-2$ 步 DPM-Solver-3, 再分别执行 1 步 DPM-Solver-2 和 1 步 DPM-Solver-1. 函数求值总次数为 $3\cdot(\frac{K}{3}-1)+2+1=K$.
-
 - 若 $R=1$, 先执行 $M-1$ 步 DPM-Solver-3, 再执行 1 步 DPM-Solver-1. 函数求值总次数为 $3\cdot(\frac{K-1}{3})+1=K$.
-
 - 若 $R=2$, 先执行 $M-1$ 步 DPM-Solver-3, 再执行 1 步 DPM-Solver-2. 函数求值总次数为 $3\cdot(\frac{K-2}{3})+2=K$.
 
 实验发现, 这种时间步设计能显著改善生成质量. DPM-Solver 用 10 步即可生成质量相当的样本, 用 20 步可生成高质量样本.

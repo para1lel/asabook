@@ -239,13 +239,9 @@ Our work introduces a general method for compressing large language models (LLMs
 In the Supplementary Materials, we provide code to reproduce all experiments in this paper. More specifically, this includes:
 
 - Compressing all models from the OPT and BLOOM model families to 2/3/4 bits.
-
 - Evaluating perplexity of the quantized models.
-
 - Our 3-bit CUDA kernel together with compressed inference benchmarking features.
-
 - Code for the ZeroShot experiments.
-
 - A README file providing sample commands and information on how to run all scripts.
 
 <span id="section-9"></span>

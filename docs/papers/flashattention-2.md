@@ -24,9 +24,7 @@ pageClass: paper-reading
 在 FlashAttention 的基础上, 我们提出 FlashAttention-2, 通过更好的并行方式与工作划分来解决这些问题.
 
 1.  在 [第 3.1 节](#section-3-1) 中, 我们调整算法以减少非矩阵乘法 FLOP 的数量, 同时不改变输出. 虽然非矩阵乘法 FLOP 只占 FLOP 总量的一小部分, 但由于 GPU 设有专门的矩阵乘法单元, 执行这些操作需要更长时间, 因而矩阵乘法吞吐量最高可达非矩阵乘法吞吐量的 16$\times$. 因此, 应当减少非矩阵乘法 FLOP, 尽可能把时间花在矩阵乘法 FLOP 上.
-
 2.  除了批次和头数维度外, 我们还沿序列长度维度并行执行前向传播与反向传播. 当序列较长时 (因此批次大小通常较小), 这会提高占用率 (GPU 资源利用率).
-
 3.  即使在一个注意力计算块内部, 我们也会在一个线程块的不同 warp 之间划分工作, 以减少通信和共享内存读写.
 
 在 [第 4 节](#section-4) 中, 我们通过实验验证了 FlashAttention-2 即使与 FlashAttention 相比也能带来显著加速. 不同设置 (使用或不使用因果掩码, 不同头维度) 下的基准测试表明, FlashAttention-2 相比 FlashAttention 能获得约 2$\times$ 加速, 前向传播最高达到理论峰值吞吐量的 73%, 反向传播最高达到理论峰值吞吐量的 63%. 用于端到端训练 GPT 风格模型时, 我们在每块 A100 GPU 上达到最高 225 TFLOPs/s 的训练速度.
@@ -158,7 +156,6 @@ $$
     $$
 
     只有在循环的最后才用 $\mathrm{diag}(\ell^{(\mathrm{last})})^{-1}$ 缩放最终的 $\tilde{\mathbf{O}}^{(\mathrm{last})}$, 从而得到正确输出.
-
 2.  无需同时为反向传播保存最大值 $m^{(j)}$ 和指数和 $\ell^{(j)}$. 只需存储 logsumexp $L^{(j)} = m^{(j)} + \log(\ell^{(j)})$.
 
 对于 [第 2.3 节](#section-2-3) 中的简单两块情形, 在线 softmax 技巧现在变为:
@@ -202,7 +199,6 @@ $$
 **因果掩码.** 注意力的一个常见用例是自回归语言建模, 此时需要对注意力矩阵 $\mathbf{S}$ 应用因果掩码 (即将所有满足 $j > i$ 的项 $\mathbf{S}_{ij}$ 置为 $-\infty$).
 
 1.  由于 FlashAttention 和 FlashAttention-2 已按块运行, 对所有列索引均大于行索引的块 (序列较长时约占一半), 可以跳过该块的计算. 与不使用因果掩码的注意力相比, 这会带来约 1.7-1.8$\times$ 加速.
-
 2.  对于行索引一定严格小于列索引的块, 无需应用因果掩码. 这意味着每一行只需对 1 个块应用因果掩码 (假设块为方形).
 
 **正确性, 运行时间与内存需求.** 与 FlashAttention 一样, [算法 1](#algorithm-01) 返回正确的输出 $\mathbf{O}= \mathrm{softmax}(\mathbf{Q}\mathbf{K}^\top)\mathbf{V}$ (不做近似), 使用 $O(N^2d)$ FLOP, 并在输入和输出之外需要 $O(N)$ 额外内存 (用于存储 logsumexp $L$). 其证明与 Dao 等人 [Dao22] 的证明 (定理 1) 几乎相同, 因此此处省略.
@@ -290,7 +286,6 @@ FlashAttention-2 的反向传播与 FlashAttention 几乎相同. 我们做了一
 我们评估使用 FlashAttention-2 训练 Transformer 模型的影响.
 
 - **注意力基准测试.** 我们测量 FlashAttention-2 在不同序列长度下的运行时间, 并与 PyTorch 中的标准实现, FlashAttention 以及 Triton 中的 FlashAttention 比较. 我们确认, FlashAttention-2 比 FlashAttention 快 1.7-3.0$\times$, 比 Triton 中的 FlashAttention 快 1.3-2.5$\times$, 比标准注意力实现快 3-10$\times$. FlashAttention-2 最高达到 230 TFLOPs/s, 即 A100 GPU 理论峰值 TFLOPs/s 的 73%.
-
 - **端到端训练速度** 使用序列长度 2k 或 8k 端到端训练大小为 1.3B 和 2.7B 的 GPT 风格模型时, FlashAttention-2 相比 FlashAttention 最多加速 1.3$\times$, 相比不使用 FlashAttention 的基线最多加速 2.8$\times$. FlashAttention-2 在每块 A100 GPU 上最高达到 225 TFLOPs/s (模型 FLOP 利用率为 72%).
 
 <span id="section-4-1"></span>

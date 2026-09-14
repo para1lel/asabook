@@ -36,9 +36,7 @@ Selective SSMs, and by extension the Mamba architecture, are fully recurrent mod
 We empirically validate Mamba's potential as a general sequence FM backbone, in both pretraining quality and domain-specific task performance, on several types of modalities and settings:
 
 - **Synthetics.** On important synthetic tasks such as copying and induction heads that have been proposed as being key to large language models, Mamba not only solves them easily but can *extrapolate solutions indefinitely long* ($>$1M tokens).
-
 - **Audio and Genomics.** Mamba out-performs prior state-of-the-art models such as SaShiMi, Hyena, and Transformers on modeling audio waveforms and DNA sequences, both in pretraining quality and downstream metrics (e.g. reducing FID on a challenging speech generation dataset by more than half). In both settings, its *performance improves with longer context up to million-length sequences*.
-
 - **Language Modeling.** Mamba is the first *linear-time sequence model that truly achieves Transformer-quality performance*, both in pretraining perplexity and downstream evaluations. With scaling laws up to 1B parameters, we show that Mamba exceeds the performance of a large range of baselines, including very strong modern Transformer training recipes based on LLaMa [Tou23]. Our Mamba language model has 5$\times$ generation throughput compared to Transformers of similar size, and Mamba-3B's quality matches that of Transformers twice its size (e.g. 4 points higher avg. on common sense reasoning compared to Pythia-3B and even exceeding Pythia-7B).
 
 Model code and pre-trained checkpoints are open-sourced at <https://github.com/state-spaces/mamba>.
@@ -127,13 +125,9 @@ Throughout this entire paper we use the term "SSM" to refer exclusively to the c
 We discuss some of the most well-known SSM architectures, many of which will also serve as our primary baselines.
 
 - Linear attention [Kat20] is an approximation of self-attention involving a recurrence which can be viewed as a degenerate linear SSM.
-
 - H3 [Dao23d] generalized this recurrence to use S4; it can be viewed as an architecture with an SSM sandwiched by two gated connections ([Figure 3](#figure-03)). H3 also inserts a standard local convolution, which they frame as a shift-SSM, before the main SSM layer.
-
 - Hyena [Pol23a] uses the same architecture as H3 but replaces the S4 layer with an MLP-parameterized global convolution [Rom21].
-
 - RetNet [Sun23a] adds an additional gate to the architecture and uses a simpler SSM, allowing an alternative parallelizable computation path, using a variant of multi-head attention (MHA) instead of convolutions.
-
 - RWKV [Pen23g] is a recent RNN designed for language modeling based on another linear attention approximation, the attention-free Transformer [Zha21e]. Its main "WKV" mechanism involves LTI recurrences and can be viewed as the ratio of two SSMs.
 
 Other closely related SSMs and architectures are discussed further in an extended related work ([Section 8](#section-8)). We highlight in particular S5 [Smi23], QRNN [Bra16], and SRU [Lei17], which we view as the most closely related methods to our core selective SSM.
@@ -153,7 +147,6 @@ We argue that a fundamental problem of sequence modeling is *compressing context
 To understand this principle, we focus on two running examples of synthetic tasks ([Figure 2](#figure-02)).
 
 - The **Selective Copying** task modifies the popular Copying task [Arj16] by varying the position of the tokens to memorize. It requires *content-aware* reasoning to be able to memorize the relevant tokens (*colored*) and filter out the irrelevant ones (*white*).
-
 - The **Induction Heads** task is a well-known mechanism hypothesized to explain the majority of in-context learning abilities of LLMs [Ols22]. It requires *context-aware* reasoning to know when to produce the correct output in the appropriate context (*black*).
 
 These tasks reveal the failure mode of LTI models. From the recurrent view, their constant dynamics (e.g. the $(\overline{\bm{A}}, \overline{\bm{B}})$ transitions in [Equation 2](#equation-02)) cannot let them select the correct information from their context, or affect the hidden state passed along the sequence in an input-dependent way. From the convolutional view, it is known that global convolutions can solve the vanilla Copying task [Rom21] because it only requires time-awareness, but that they have difficulty with the Selective Copying task because of lack of content-awareness ([Figure 2](#figure-02)). More concretely, the spacing between inputs-to-outputs is varying and cannot be modeled by static convolution kernels.
@@ -225,9 +218,7 @@ which was why S4 and all derivatives used LTI (non-selective) models, most commo
 We first revisit this motivation and overview our approach to overcome limitations of prior methods.
 
 - At a high level, recurrent models such as SSMs always balance a tradeoff between expressivity and speed: as discussed in [Section 3.1](#section-3-1), models with larger hidden state dimension should be more effective but slower. Thus we want to *maximize hidden state dimension without paying speed and memory costs*.
-
 - Note that the recurrent mode is more flexible than the convolution mode, since the latter [Equation 3](#equation-03) is derived from expanding the former [Equation 2](#equation-02) [Gu21a, Gu22a]. However, this would require computing and materializing the latent state $h$ with shape $\mathtt{(B,L,D,N)}$, which is much larger (by a factor of $N$, the SSM state dimension) than the input $x$ and output $y$ of shape $\mathtt{(B,L,D)}$. Thus the more efficient convolution mode was introduced which could bypass the state computation and materializes a convolution kernel [Equation 3a](#equation-03-a) of size only $\mathtt{(B,L,D)}$.
-
 - Prior LTI state space models leverage the dual recurrent-convolutional forms to increase the effective state dimension by a factor of $N$ ($\approx 10-100$), much larger than traditional RNNs, without efficiency penalties.
 
 <span id="section-3-3-2"></span>
@@ -237,7 +228,6 @@ We first revisit this motivation and overview our approach to overcome limitatio
 The selection mechanism is designed to overcome the limitations of LTI models; at the same time, we therefore need to revisit the computation problem of SSMs. We address this with three classical techniques: kernel fusion, parallel scan, and recomputation. We make two main observations:
 
 - The naive recurrent computation uses $O(B L D N)$ FLOPs while the convolutional computation uses $O(B L D \log(L))$ FLOPs, and the former has a lower constant factor. Thus for long sequences and not-too-large state dimension $N$, the recurrent mode can actually use fewer FLOPs.
-
 - The two challenges are the sequential nature of recurrence, and the large memory usage. To address the latter, just like the convolutional mode, we can attempt to not actually materialize the full state $h$.
 
 The main idea is to leverage properties of modern accelerators (GPUs) to materialize the state $h$ only in more efficient levels of the memory hierarchy. In particular, most operations (except matrix multiplication) are bounded by memory bandwidth [Wil09, Iva21, Dao22]. This includes our scan operation, and we use kernel fusion to reduce the amount of memory IOs, leading to a significant speedup compared to a standard implementation.
@@ -342,9 +332,7 @@ In our experiments, the $\Delta$ parameter (which can be viewed as a bias term) 
 In [Section 4.1](#section-4-1) we test Mamba's ability to solve the two synthetic tasks motivated in [Section 3.1](#section-3-1). We then evaluate on three domains, each evaluated on autoregressive pretraining as well as downstream tasks.
 
 - [Section 4.2](#section-4-2): language model pretraining (scaling laws), and zero-shot downstream evaluation.
-
 - [Section 4.3](#section-4-3): DNA sequence pretraining, and fine-tuning on a long-sequence classification task.
-
 - [Section 4.4](#section-4-4): audio waveform pretraining, and the quality of autoregressively generated speech clips.
 
 Finally, [Section 4.5](#section-4-5) shows Mamba's computational efficiency at both training and inference time, and [Section 4.6](#section-4-6) ablates various components of the architecture and selective SSMs.
@@ -484,7 +472,6 @@ For the audio waveform modality, we compare primarily to the SaShiMi architectur
 This model comprises:
 
 1.  a U-Net backbone with two stages of pooling by a factor $p$ that doubles the model dimension $D$ per stage,
-
 2.  alternating S4 and MLP blocks in each stage.
 
 We consider replacing the S4+MLP blocks with Mamba blocks.
@@ -550,11 +537,8 @@ We perform a series of detailed ablations on components of our model, focusing o
 [Table 6](#table-06) investigates the effects of the architecture (block) and its inner SSM layer ([Figure 3](#figure-03)). We find that
 
 - Among previous non-selective (LTI) SSMs, which are equivalent to global convolutions, performance is very similar.
-
 - Replacing the complex-valued S4 variant from previous work with a real-valued one does not affect performance much, suggesting that (at least for LM) real-valued SSMs may be a better choice when accounting for hardware efficiency.
-
 - Replacing any of these with a selective SSM (S6) significantly improves performance, validating the motivation of [Section 3](#section-3).
-
 - The Mamba architecture performs similarly to the H3 architecture (and seems slightly better when using a selective layer).
 
 We also investigate interleaving the Mamba block with other blocks such as MLP (a traditional architecture) MHA (a hybrid attention architecture) in [Section 11.2.2](#section-11-2-2).
@@ -660,17 +644,12 @@ We overview several prior works related to our methods. We mention that some of 
 We describe a brief overview of some structured SSMs from past work, particularly those that have a relation to our method.
 
 - S4 [Gu21a, Gu22a] introduced the first structured SSM, describing diagonal structure and diagonal plus low-rank (DPLR). It focused on efficient convolutional algorithms for DPLR SSMs due to a connection to continuous-time online memorization (HIPPO) [Gu20a].
-
 - DSS [Gup22] first discovered the empirical effectiveness of diagonal structured SSMs by approximating the HIPPO initialization. This was expanded on theoretically in S4D [Gu22b].
-
 - S5 [Smi23] independently discovered the diagonal SSM approximation, and is the first S4 model to be computed recurrently with the parallel scan. However, this required lowering the effective state dimension, which they accomplished by switching the SSM dimensions from a SISO (single-input single-output) to MIMO (multi-input multi-output) formulation. Our proposed S6 shares the scan, but differs by (i) keeping the SISO dimensions, which provides a larger effective recurrent state, (ii) using a hardware-aware algorithm to overcome the computation issue, (iii) adding the selection mechanism.
 
   [Lu23a] applied S5 to meta-RL in order to handle resetting the SSM state between episode trajectories. Their mechanism can be viewed as a particular hard-coded instance of a selection mechanism, where $\overline{\bm{A}}$ is manually set to $0$, instead of our learnable mechanism that depends on the input. It would be interesting to apply selective SSMs generically to this setting and probe if the model has learned to automatically reset its state on episode boundaries.
-
 - Mega [Ma23b] introduced a simplification of S4 to be real- instead of complex- valued, giving it an interpretation of being an exponential moving average (EMA). They additionally make an interesting connection of the discretization step of SSMs to an EMA *damping* term. Contrary to findings in the original S4 papers, this was the first model to show that real-valued SSMs are empirically effective in certain settings or when combined with different architectural components.
-
 - Liquid S4 [Has23] is also motivated by augmenting S4 with an input-dependent state transition. From this perspective it shares similarity to selection mechanisms, although in a limited form which is still computed convolutionally and close to LTI.
-
 - SGConv [Li23y], Hyena [Pol23a], LongConv [Fu23b], MultiresConv [Shi23e], and Toeplitz Neural Network [Qin23d] all focus on the convolutional representation of S4 and create global or long convolution kernels with different parameterizations. However, these methods cannot do fast autoregressive inference directly.
 
 Notably, all of these methods, and all other structured SSMs that we are aware of, have been non-selective and usually strictly LTI (linear time invariant).
@@ -682,17 +661,12 @@ Notably, all of these methods, and all other structured SSMs that we are aware o
 We use SSM architectures or state space neural networks (SSNN) to refer to deep neural network architectures incorporating one of the previous SSMs as a black box layer.
 
 - GSS [Meh23] was the first gated neural network architecture incorporating SSMs. It is motivated by the gated attention unit (GAU) of [Hua22] and looks quite similar to our block, except with additional projections. Most importantly, its projection *contracts* the model dimension to reduce the state size of the SSM, while ours *expands* the model dimension in order to increase the state size, based on the motivation in [Section 3.1](#section-3-1).
-
 - Mega [Ma23b] combined the EMA simplification of S4 described above into a hybrid architecture using an efficient attention approximation.
-
 - H3 [Dao23d] is motivated by combining S4 with linear attention [Kat20]. It is the first to generalize this formulation of linear attention to more general recurrences, which is also the basis of later architectures.
-
 - Selective S4 [Wan23l] incorporates S4 as a black box to generate a binary mask which is multiplied on the input. While sharing the "selection" name, we consider this an architectural modification that is closer to architectural gating than a selection mechanism ([Section 7](#section-7)). For example, we hypothesize that it would not solve the Selective Copying task because simply masking out the irrelevant inputs does not affect the spacing between the relevant ones (indeed, the Selective Copying task can even be viewed as coming pre-masked if the noise tokens are embedded to 0).
-
 - RetNet [Sun23a] is also based on Linear Attention and very similar to H3, but reduces the inner S4 layer to a special case where the state dimension is $N=1$. Although not framed as such, its recurrence can be viewed as a special case of a linear SSM.
 
   Its primary source of improvement is using a linear attention with large *head dimension*, which can be viewed as another method to perform input-dependent state expansion. Using a larger head dimension in the context of linear attention variants was first done by H3, but not extensively used since this requires a proportional amount of extra computation. RetNet avoids this with an alternate way to parallelize the computation with a variant of standard multi-head attention instead of convolutions, made feasible by their particular special case of SSMs which acts as a simple EMA.
-
 - RWKV [Pen23g] is another recent RNN designed for language modeling. It is based on AFT (attention-free Transformer [Zha21e]), another variant of linear attention. Its main "WKV" mechanism involves LTI recurrences and can be seen as the ratio of two SSMs.
 
 We also highlight the gated attention unit (GAU) from [Hua22], which was motivated by combining the Transformer's MHA and MLP blocks together and was an inspiration for our architecture ([Section 3.4](#section-3-4)) combining the H3 and MLP blocks.
@@ -706,7 +680,6 @@ RNNs and SSMs are broadly related, as they both involve the concepts of *recurre
 Several older RNNs such as the strongly typed RNN [Bal16], quasi-RNN (QRNN) [Bra16], and simple recurrent unit (SRU) [Lei17, Lei21] involve forms of gated RNNs without time-wise nonlinearities. Because of the connections of gating mechanisms and selection mechanisms, these can be viewed as cases of selective SSMs, and are thus more powerful in a sense than the family of LTI structured SSMs above. The main differences are:
 
 - They do not use state expansion ($N=1$) or selective $\bm{B}, \bm{C}$ parameters, both of which are important for performance ([Section 4.6](#section-4-6)).
-
 - They use a heuristic gating mechanism, which we generalize as a consequence of the selection mechanism + discretization ([Theorem 1](#theorem-01)). The connections to principled SSM theory provides better parameterizations and initializations ([Section 3.6](#section-3-6)).
 
 Additionally, older RNNs famously suffered from efficiency issues and the vanishing gradients problem [Hoc91, Hoc01, Pas13], both caused by their sequential nature. The former could be solved for some of the above RNNs by leveraging the parallel scan [Mar18], but the latter was difficult without theory later developed for SSMs. For example, modern structured SSMs differ in more careful parameterization of the recurrent dynamics inspired by classical SSM theory (e.g. through discretization [Gu21a, Gu23a]), or direct analysis [Orv23, Kau20, Gup22a]).
@@ -728,11 +701,8 @@ Aside from kernel attention, many other variants of efficient attention exist; t
 Long context has become a popular subject, and several recent models have claimed to scale to longer and longer sequences. However, these are often from a computational standpoint and have not been extensively validated. These include:
 
 - Recurrent Memory Transformer [Bul23], a lightweight wrapper around a Transformer backbone. It showed ability to generalize up to 1M sequences but only on synthetic memorization tasks; their main result is similar to our Induction Heads extrapolation experiment ([Table 2](#table-02)).
-
 - LongNet [Din23a], which claimed to scale to 1B length but only evaluated on length $<100K$ for actual tasks.
-
 - Hyena and HyenaDNA [Pol23a, Ngu23a], which claimed to leverage up to 1M context. However, their experiments trained on proportionally more data at longer contexts, making it hard to conclude if quality improvements at 1M context are due to context length or due to more data and computation.
-
 - Sparse Transformer [Chi19] showed a proof-of-concept of using a strided sparse attention Transformer to model audio waveforms of length $2^{20}=1048576$, although did not discuss performance tradeoffs when controlling for computation and model size.
 
 In contrast, we believe this work presents one of the first approaches to meaningfully demonstrate increasing performance with longer context.
@@ -802,11 +772,8 @@ Without input-dependent selectivity, SSMs can be efficiently implemented as a co
 The standard way to implement the scan algorithm in [Section 3.2](#section-3-2) is to prepare the scan input $\overline{\bm{A}}, \overline{\bm{B}}$ of size $(B, L, D, N)$ in GPU HBM (high-bandwidth memory, commonly referred to as GPU memory), call a parallel associative scan implementation to write the scan output of size $(B, L, D, N)$ to GPU HBM, then multiply that scan output with $\bm{C}$ to produce an output of size $(B, L, D)$. However, this requires the number of memory reads/writes on the order of $O(B L D N)$. We can instead fuse the discretization step, the scan, and the multiplication with $\bm{C}$ into one kernel:
 
 1.  We read in $O(B L D + D N)$ bytes of memory ($\Delta, \bm{A}, \bm{B}, \bm{C}$) from slow HBM to fast SRAM.
-
 2.  We discretize to produce $\overline{\bm{A}}, \overline{\bm{B}}$ of size $(B, L, D, N)$ in SRAM.
-
 3.  We perform a parallel associative scan, yielding intermediate states of size $(B, L, D, N)$ in SRAM.
-
 4.  We multiply and sum with $\bm{C}$, producing outputs of size $(B, L, D)$ and write it to HBM.
 
 This way, we reduce IOs by a factor of $O(N)$ (the state dimension), which in practice speeds up the operation by 20-40 times ([Section 4.5](#section-4-5)).
@@ -864,11 +831,8 @@ Scaling law experiments generally followed the GPT3 recipe. All models were trai
 **Training Recipes.** All models used the AdamW optimizer with
 
 - gradient clip value $1.0$
-
 - weight decay $0.1$
-
 - no dropout
-
 - linear learning rate warmup with cosine decay
 
 By default, the peak learning rate is the GPT3 specification.
@@ -876,27 +840,18 @@ By default, the peak learning rate is the GPT3 specification.
 We give several models an "improved recipe", inspired by changes adopted by popular large language models such as PaLM [Cho23a] and LLaMa [Tou23]. These include:
 
 - linear learning rate warmup with cosine decay to $1e-5$, with a peak value of $5\times$ the GPT3 value
-
 - no linear bias terms
-
 - RMSNorm instead of LayerNorm
-
 - AdamW hyperparameter $\beta=(.9, .95)$ (the GPT3 value) instead of the PyTorch default of $\beta=(.9, .999)$
 
 **Architecture and Training Details.** Our models are:
 
 - **Transformer**: The standard Transformer based on GPT3 ([Table 12](#table-12)).
-
 - **Transformer++**: A Transformer with an improved architecture, namely rotary positional encodings [Su21] and SwiGLU MLP [Sha20], and the improved training recipe above.
-
 - **Hyena**: Interleaving a Hyena block (the H3 block with S4 replaced by a global convolution parameterized by an MLP) with standard MLP blocks. The MLP blocks have expansion factor $2$ instead of $4$ and the number of layers is correspondingly increased by $1.5\times$ to preserve parameter count.
-
 - **H3++**: The H3 architecture with a few modifications, including (i) using the same "thin" Hyena dimensions above (ii) the improved training recipe above (iii) a linear attention *head dimension* of 8.
-
 - **RWKV**: The default RWKV model from [Pen23g], including its modified MLP block. We also used as much of its specified training recipe as possible, such as increasing the learning rates by $2\times$ or $3\times$ on certain parameters.
-
 - **RetNet**: The default RetNet model from [Sun23a]. We also gave it the improved training recipe above.
-
 - **Mamba**: The standard Mamba architecture, with the improved training recipe.
 
 <span id="section-11-2-2"></span>
@@ -908,7 +863,6 @@ We perform additional ablations on the architecture using the same protocol as t
 **Mamba Architecture: Interleaving Blocks.** We test the effect of different architectural blocks combined with the Mamba block. We focus on the viewpoint that the Mamba block is simply the standard SwiGLU block with an extra $\mathrm{conv} \to \mathrm{SSM}$ path added. This leads to two natural ablations:
 
 - What if the Mamba block is interleaved with a standard MLP block, instead of stacked homogenously? This can also be interpreted as taking Mamba and removing half of the SSMs.
-
 - What if the Mamba block is interleaved with MHA (multi-head attention) blocks? This can also be interpreted as taking a Transformer with SwiGLU MLPs (i.e. what we call Transformer++) and simply adding SSMs to the MLP blocks.
 
 [Figure 9](#figure-09) (*Right*) shows these variants compared to the original (homogenous) Mamba architecture. Interestingly, neither change matters too much. The Mamba-MLP architecture is only slightly worse, and still better than all models except Transformer++. The Mamba-MHA architecture is only slightly better, which is somewhat surprising in light of the fact that many recent works have found that combining (LTI) SSMs with Attention can lead to substantial improvements [Dao23d, Fat23a, Sao23, Zuo22, Fat23].
@@ -916,11 +870,8 @@ We perform additional ablations on the architecture using the same protocol as t
 **H3 Architecture: Training Recipes.** Next we ablate differences between the Hyena and H3++ models, our weakest and strongest models outside of Transformer++ and Mamba, particularly to isolate the effect of training recipes.
 
 - **Hyena**: The Hyena block with its original architecture and GPT3 training recipe (same as [Figure 4](#figure-04)).
-
 - **Hyena+**: The same architecture but with the improved training recipe described above.
-
 - **H3+**: The same architecture as Hyena+ but with the Hyena convolution kernel swapped out for S4D convolution kernel.
-
 - **H3++**: The same as H3+, but with a linear attention *head dimension* of 8. This increases computation inside the SSM recurrence but does not increase parameters.
 
 Our general convention is that "Model+" represents the base model with the improved training recipe, and "Model++" also allows for architectural changes.
@@ -928,9 +879,7 @@ Our general convention is that "Model+" represents the base model with the impro
 [Figure 9](#figure-09) (*Right*) shows that
 
 - A large improvement is achieved by the improved training recipe, which was used for many of the models in the main [Figure 4](#figure-04) (RetNet, H3++, Transformer++, Mamba).
-
 - The choice of the inner LTI SSM does not matter (e.g. Hyena vs. S4), consistent with findings throughout this paper.
-
 - The head dimension expansion improves performance, consistent with one of our main themes that expanded state dimension improves performance for SSMs ([Section 3](#section-3)).
 
 <span id="figure-09"></span>
@@ -948,15 +897,10 @@ This pretraining procedure is the same as the scaling law protocol, but extended
 For downstream evaluation, we use the LM evaluation harness from EleutherAI [Gao21], as done by most work in this area. We evaluate on the following tasks/datasets that measure common sense reasoning:
 
 - LAMBADA [Pap16a]
-
 - HellaSwag [Zel19]
-
 - PIQA [Bis20]
-
 - ARC-challenge [Cla18]
-
 - ARC-easy: an easy subset of ARC-challenge
-
 - WinoGrande [Sak21]
 
 We report accuracy for LAMBADA, WinoGrande, PIQA, and ARC-easy, and accuracy normalized by sequence length for HellaSwag and ARC-challenge (since normalized accuracy is higher for almost all models for these task).
@@ -976,7 +920,6 @@ The dataset follows the splits from the prior Enformer work on genomics [Avs21];
 We deviate from HyenaDNA when the training sequence length is not $2^{17}$. HyenaDNA always takes a fixed sub-segment (e.g. the beginning or middle of the prescribed segment), and thus for any training sequence length each epoch is fixed to $34021$ samples and doesn't necessarily go through the whole genome. On the other hand, we use the entire training data:
 
 - When the context length $L$ is less than (or equal to) $2^{17}$, we divide up each segment into non-overlapping sub-segments of length $L$, so that there are $S \times \frac{2^{17}}{L}$ total samples and $S \times 2^{17} \approx 4.5B$ tokens per epoch.
-
 - When the context length $L$ is greater than $2^{17}$, we turn each segment into two samples, one that begins with the prescribed segment and one that ends with the prescribed segment. Thus each epoch has $2S$ items and $2 S L$ tokens per epoch. For example, at sequence length $2^{18}=262144$ there are $4\times$ as many tokens as the default, and at sequence length $2^{20}$ there are $16\times$ as many tokens.
 
 Other training details generally follow the same protocol as our language modeling experiments ([Section 11.2](#section-11-2)). For example, we use the AdamW with $(\beta_1, \beta_2) = (0.9, 0.95)$, no dropout, weight decay $0.1$. We use a cosine learning rate scheduler with linear warmup for 10% of total steps.
@@ -988,9 +931,7 @@ Other training details generally follow the same protocol as our language modeli
 **Models.** The models we consider are:
 
 - Transformer++: a Transformer with improved architecture, notably the usage of RoPE positional encodings [Su21]. Informally, we found these to be noticeably better than vanilla positional encodings from [Vas17].
-
 - HyenaDNA: the Hyena model from [Pol23a, Ngu23a], which is roughly a Transformer with the MHA block replaced by an H3 block using a global convolution parameterized by an MLP.
-
 - Mamba: the standard Mamba architecture.
 
 **Model Sizes.** We use the following model sizes.
@@ -1080,11 +1021,8 @@ However, on the right side, we keep the outer layers of the U-Net Mamba-S4 and a
 Autoregressive training largely followed the autoregressive language modeling protocol, such as
 
 - Weight decay $0.1$
-
 - Learning rate warmup for 10% of total steps
-
 - AdamW optimizer with $\beta=(0.9, 0.95)$
-
 - Gradient clip value $0.1$
 
 We used a learning rate of $0.002$ and $200000$ training steps at a batch size of $16$.

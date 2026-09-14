@@ -24,9 +24,7 @@ Transformer [Vas17] のコンテキスト長を拡大することは、その中
 FlashAttention を基に、本稿ではこれらの課題に対処するため、並列性と作業分割を改善した FlashAttention-2 を提案する。
 
 1. [第 3.1 節](#section-3-1)では、出力を変えずに非 matmul FLOP の数を減らすようアルゴリズムを調整する。非 matmul FLOP は総 FLOP 数のごく一部しか占めないが、GPU には行列乗算専用のユニットがあるため、実行にはより長い時間がかかり、その結果 matmul のスループットは非 matmul のスループットより最大 16$\times$ 高くなり得る。したがって、非 matmul FLOP を減らし、可能な限り多くの時間を matmul FLOP の実行に費やすことが重要である。
-
 2. batch と head 数の次元に加え、系列長の次元に沿って forward pass と backward pass の両方を並列化することを提案する。これにより、系列が長い場合（したがって batch size が小さいことが多い）に占有率（GPU リソースの利用率）が向上する。
-
 3. attention 計算の 1 ブロック内でも、スレッドブロックの異なる warp 間で作業を分割し、通信と共有メモリの読み書きを削減する。
 
 [第 4 節](#section-4)では、FlashAttention-2 が FlashAttention と比べても大幅な高速化をもたらすことを実験的に検証する。異なる設定（causal mask の有無、異なる head dimension）でのベンチマークにより、FlashAttention-2 が FlashAttention に対して約 2$\times$ の高速化を達成し、forward pass では理論上の最大スループットの最大 73%、backward pass では最大 63% に達することを示す。GPT 型モデルの end-to-end 学習に用いると、A100 GPU 1 基当たり最大 225 TFLOPs/s の学習速度に達する。
@@ -158,7 +156,6 @@ FlashAttention のアルゴリズムを調整し、非 matmul FLOP の数を減�
     $$
 
     ループのまさに最後でのみ、最終的な $\tilde{\mathbf{O}}^{(\mathrm{last})}$ を $\mathrm{diag}(\ell^{(\mathrm{last})})^{-1}$ でスケーリングして正しい出力を得る。
-
 2. backward pass のために、最大値 $m^{(j)}$ と指数関数の和 $\ell^{(j)}$ の両方を保存する必要はない。logsumexp $L^{(j)} = m^{(j)} + \log(\ell^{(j)})$ だけを保存すればよい。
 
 [第 2.3 節](#section-2-3)の 2 ブロックという単純な場合、online softmax の技法は次のようになる。
@@ -202,7 +199,6 @@ FlashAttention-2 の forward pass 全体を [アルゴリズム 1](#algorithm-01
 **因果マスキング。** attention の一般的なユースケースの 1 つは自己回帰言語モデリングであり、そこでは attention 行列 $\mathbf{S}$ に causal mask を適用する必要がある（すなわち、$j > i$ を満たす任意の要素 $\mathbf{S}_{ij}$ を $-\infty$ に設定する）。
 
 1. FlashAttention と FlashAttention-2 はすでにブロック単位で動作するため、すべての列 index が行 index より大きい任意のブロック（系列長が大きい場合、ブロックの約半分）について、そのブロックの計算を省略できる。これにより、causal mask を使用しない attention と比べて約 1.7-1.8$\times$ の高速化が得られる。
-
 2. 行 index が列 index より厳密に小さいことが保証されるブロックには、causal mask を適用する必要がない。つまり、各行では causal mask を 1 ブロックにだけ適用すればよい（正方形ブロックを仮定）。
 
 **正しさ、実行時間、メモリ要件。** FlashAttention と同様に、[アルゴリズム 1](#algorithm-01)は、$O(N^2d)$ FLOP を用い、入力と出力に加えて $O(N)$ の追加メモリ（logsumexp $L$ の保存用）を必要としながら、正しい出力 $\mathbf{O}= \mathrm{softmax}(\mathbf{Q}\mathbf{K}^\top)\mathbf{V}$ を返す（近似は用いない）。証明は Dao ら [Dao22] の証明（定理 1）とほぼ同じであるため、ここでは省略する。
@@ -290,7 +286,6 @@ FlashAttention-2 では代わりに、$\mathbf{K}$ と $\mathbf{V}$ をすべて
 Transformer モデルの学習に FlashAttention-2 を用いた場合の影響を評価する。
 
 - **アテンションのベンチマーク。** 異なる系列長における FlashAttention-2 の実行時間を測定し、PyTorch の標準実装、FlashAttention、Triton の FlashAttention と比較する。FlashAttention-2 は FlashAttention より 1.7-3.0$\times$、Triton の FlashAttention より 1.3-2.5$\times$、標準的な attention 実装より 3-10$\times$ 高速であることを確認する。FlashAttention-2 は最大 230 TFLOPs/s、すなわち A100 GPU の理論上の最大 TFLOPs/s の 73% に達する。
-
 - **エンドツーエンドの学習速度。** 系列長 2k または 8k で、サイズ 1.3B および 2.7B の GPT 型モデルを end-to-end で学習する際に使用すると、FlashAttention-2 は FlashAttention に対して最大 1.3$\times$、FlashAttention を使用しないベースラインに対して 2.8$\times$ の高速化をもたらす。FlashAttention-2 は A100 GPU 1 基当たり最大 225 TFLOPs/s（モデル FLOPs 利用率 72%）に達する。
 
 <span id="section-4-1"></span>

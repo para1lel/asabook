@@ -43,9 +43,7 @@ permalink: /papers/deepseek-v4-1-flash/
 在此基础模型之上, 我们通过后训练激发其推理与智能体能力. 与上述架构创新不同, 后训练没有引入算法创新: 整套流程遵循标准范式, 即先做监督微调 (SFT), 再做强化学习 (RL) 和在策略蒸馏 (OPD); 除 DeepSeek-V4 开发中已成熟采用的做法外 [Dee26], 没有其他改动. 实质变化全部位于数据流水线. 我们建立了大规模自动化流水线来合成数据, 构建环境, 并逐步扩大 RL 所用数据, 任务和 rollout 的规模, 从而拓展模型在文本, 多模态和智能体领域的能力. [图 1(a)](#figure-01) 汇总了 DeepSeek-V4.1-Flash 在核心智能体基准上的成绩. 评测结果显示, 这款模型虽然规模紧凑, 却形成了鲜明的能力特征:
 
 - 推理. 模型的推理能力很强, 在数学和竞赛编程等重推理基准上维持较高准确率, 表现与 Kimi-K3 [Kim26c] 和 DeepSeek-V4-Pro 等顶尖开源模型相当.
-
 - 智能体. 在 Terminal-Bench 2.1 [Mer26], DeepSWE v1.1 [Dee26c] 和 AutomationBench [She26] 等标准智能体基准上, DeepSeek-V4.1-Flash 与闭源前沿模型不相上下. 它完全能够处理日常编程任务和白领工作流. 不过, 在 Terminal-Bench 4.0 [Mar26] 等需要专家级领域知识的科学类智能体任务上, 它与巨型模型仍有差距.
-
 - 多模态. 在多模态领域, 对于视觉推理和专业图表解读基准, 该模型超过了 Kimi-K3 等顶尖开源对手. 除了正式指标, 它在前端开发和办公自动化等现实视觉智能体工作流中也很实用, 可以利用渲染后的屏幕截图进行视觉检查和自我修正. 但我们承认, 与巨型闭源系统相比, 它的整体表现仍有明显差距.
 
 这些结果表明, DeepSeek-V4.1-Flash 在绝大多数基准上已经能够比肩闭源前沿模型, 也能完成 95% 以上的现实任务. 同时, 较小的激活规模带来低推理延迟和低服务成本. 因此我们认为, DeepSeek-V4.1-Flash 在能力与效率之间取得了较好平衡, 可以作为快速, 经济的助手, 为广泛用户的日常工作提供支持. 总体而言, DeepSeek-V4.1-Flash 在提高模型智能与推理效率的同时降低了部署成本. 它明显降低了大规模部署长程智能体的成本门槛, 为这类智能体进入更多场景创造了条件. DeepSeek-V4.1-Flash 也是我们继续扩展的新起点. 以此为基础, 我们将同步扩展模型架构, 预训练和后训练, 继续探索模型智能的前沿.
@@ -305,7 +303,6 @@ $$
   $$
 
   加载过程就始终隐藏在计算之后. 这里, $N$ 是 Token 数, $\rho$ 是每 Token 的原始字节数, $C$ 是每 Token 的计算量, $B_{\mathrm{IO}}$ 和 $B_{\mathrm{GPU}}$ 分别是文件系统与 GPU 带宽. 因为 $N$ 可约去, 这一条件只涉及每 Token 的量 ($\rho$ 与 $C$), 与序列长度和集群规模无关; $\rho$ 由视觉模块配置决定, 如分辨率上限或空间下采样. 因此, 只有消融实验中每 Token 计算量较低的小模型会受存储吞吐量限制, 生产规模模型仍受计算约束.
-
 - 增量图像传输. 除上述均衡分片外, 强化学习 rollout 只会增量地把图像传给推理引擎, 并把引擎在 CPU 侧的解码与预处理结果缓存在分布式文件系统中, 供后续 rollout 和训练复用.
 
 <span id="section-3-1-2"></span>
@@ -349,7 +346,6 @@ V4 部署中, SWA KV 占持久化 KV 缓存容量的近一半. 在该缓存内�
 因此, V4.1 对持久化 KV 缓存管理作出如下调整:
 
 1. SWA KV 不再进入持久化 KV 缓存, 而是存放在一个分布式内存池中; 每台机器从主机 DRAM 划出 10% 供该内存池使用. 该池的总容量小得多, 但 TTL 很短 (只有数分钟), 过期条目可以立即回收给新会话. 在现实负载下, 如此高的周转率足以服务绝大多数并发活跃会话. 全局 KV 仍放在持久化 KV 缓存中, 保证至少 72 小时的生命周期.
-
 2. 淘汰 SWA KV 必然会造成未命中, 但轻量回退机制编码器 SWA 有界重放 (详见[第 3.2.2 节](#section-3-2-2)) 可将其成本控制在较低水平. 对于不可避免但并不频繁的全局 KV 命中, SWA KV 未命中请求, 它只重算 $n_{\mathrm{win}}$ 个 Token, 而非执行完整的 $L\times n_{\mathrm{win}}$ Token 前向传播, 即可恢复缺失状态. 有界重放是这项设计的核心: 它把灾难性的未命中变为平缓, 廉价的性能退化, 从而使移除持久化 KV 缓存中的 SWA KV 成为合理选择.
 
 <span id="section-3-2-2"></span>
@@ -605,11 +601,8 @@ OPD 阶段还要求训练期间动态重新配置. 我们持续追踪模型能�
 推理方面, 我们在 GPQA Diamond [Rei23], Humanity's Last Exam [Pha25], Codeforces (内部基准) 和 MathArena Apex [Dek25] 上评测, temperature 与 top-$p$ 均为 1.0. 智能体能力评测分为四类:
 
 - 编程智能体: Terminal-Bench 2.1 [Mer26], Terminal-Bench 3.0 [Mar26a], Terminal-Bench 4.0 [Mar26], DeepSWE v1.1 [Dee26c], ProgramBench [Yan26a], NL2Repo-Bench [Din25].
-
 - 网络安全: SEC-Bench Pro 260505 版 [Lee26], CyberGym [Wan25c] 与 ExploitGym [Wan26b].
-
 - 通用智能体: AutomationBench v1.0.6 公开评测集 [She26], Agents' Last Exam [Sun26a] (ALE-CLI).
-
 - 视觉智能体: Chartography [Gar26], BabyVision [Che26], ZeroBench 主集 [Rob25].
 
 评测编程智能体时, DeepSeek-V4.1-Flash 使用 DeepSeek Harness 的 Minimal 模式, 上下文窗口为 1M Token, temperature 设为 1.0, top-p 设为 0.95. 为符合官方设置要求, DeepSWE v1.1 使用 mini-SWE harness. SEC-Bench Pro 专门使用 Claude Code harness, 因为它采用会话压缩设计. 视觉智能体任务使用 Claude Code harness 评测, 上下文窗口为 512k Token, temperature 设为 1.0, top-p 设为 0.95. Agents' Last Exam 与 AutomationBench 使用各自的官方 scaffold 评测. 其他编程 scaffold 下的模型表现见[表 4](#table-04).

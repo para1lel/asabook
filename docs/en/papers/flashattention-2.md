@@ -24,9 +24,7 @@ However, context length increases even more, FlashAttention is still not nearly 
 Building on FlashAttention, we propose FlashAttention-2 with better parallelism and work partitioning to address these challenges.
 
 1.  In [Section 3.1](#section-3-1), we tweak the algorithms to reduce the number of non-matmul FLOPs while not changing the output. While the non-matmul FLOPs only account for a small fraction of the total FLOPs, they take longer to perform as GPUs have specialized units for matrix multiply, and as a result the matmul throughput can be up to 16$\times$ higher than non-matmul throughput. It is thus important to reduce non-matmul FLOPs and spend as much time as possible doing matmul FLOPs.
-
 2.  We propose to parallelize both the forward pass and backward pass along the sequence length dimension, in addition to the batch and number of heads dimension. This increases occupancy (utilization of GPU resources) in the case where the sequences are long (and hence batch size is often small).
-
 3.  Even within one block of attention computation, we partition the work between different warps of a thread block to reduce communication and shared memory reads/writes.
 
 In [Section 4](#section-4), we empirically validate that FlashAttention-2 yields significant speedup compared to even FlashAttention. Benchmarks on different settings (with or without causal mask, different head dimensions) show that FlashAttention-2 achieves around 2$\times$ speedup over FlashAttention, reaching up to 73% of the theoretical max throughput in the forward pass, and up to 63% of the theoretical max throughput in the backward pass. When used end-to-end to train GPT-style models, we reach training speed of up to 225 TFLOPs/s per A100 GPU.
@@ -158,7 +156,6 @@ We revisit the online softmax trick as shown in [Section 2.3](#section-2-3) and 
     $$
 
     Only at the every end of the loop do we scale the final $\tilde{\mathbf{O}}^{(\mathrm{last})}$ by $\mathrm{diag}(\ell^{(\mathrm{last})})^{-1}$ to get the right output.
-
 2.  We do not have to save both the max $m^{(j)}$ and the sum of exponentials $\ell^{(j)}$ for the backward pass. We only need to store the logsumexp $L^{(j)} = m^{(j)} + \log(\ell^{(j)})$.
 
 In the simple case of 2 blocks in [Section 2.3](#section-2-3), the online softmax trick now becomes:
@@ -202,7 +199,6 @@ We describe the full FlashAttention-2 forward pass in [Algorithm 1](#algorithm-0
 **Causal masking.** One common use case of attention is in auto-regressive language modeling, where we need to apply a causal mask to the attention matrix $\mathbf{S}$ (i.e., any entry $\mathbf{S}_{ij}$ with $j > i$ is set to $-\infty$).
 
 1.  As FlashAttention and FlashAttention-2 already operate by blocks, for any blocks where all the column indices are more than the row indices (approximately half of the blocks for large sequence length), we can skip the computation of that block. This leads to around 1.7-1.8$\times$ speedup compared to attention without the causal mask.
-
 2.  We do not need to apply the causal mask for blocks whose row indices are guaranteed to be strictly less than the column indices. This means that for each row, we only need apply causal mask to 1 block (assuming square block).
 
 **Correctness, runtime, and memory requirement.** As with FlashAttention, [Algorithm 1](#algorithm-01) returns the correct output $\mathbf{O}= \mathrm{softmax}(\mathbf{Q}\mathbf{K}^\top)\mathbf{V}$ (with no approximation), using $O(N^2d)$ FLOPs and requires $O(N)$ additional memory beyond inputs and output (to store the logsumexp $L$). The proof is almost the same as the proof of Dao et al. [Dao22] (Theorem 1), so we omit it here.
@@ -290,7 +286,6 @@ We manually tune for each head dimensions since there are essentially only 4 cho
 We evaluate the impact of using FlashAttention-2 to train Transformer models.
 
 - **Benchmarking attention.** We measure the runtime of FlashAttention-2 across different sequence lengths and compare it to a standard implementation in PyTorch, FlashAttention, and FlashAttention in Triton. We confirm that FlashAttention-2 is 1.7-3.0$\times$ faster than FlashAttention, 1.3-2.5$\times$ faster than FlashAttention in Triton, and 3-10$\times$ faster than a standard attention implementation. FlashAttention-2 reaches up to 230 TFLOPs/s, 73% of the theoretical maximum TFLOPs/s on A100 GPUs.
-
 - **End-to-end training speed** When used end-to-end to train GPT-style models of size 1.3B and 2.7B on sequence lengths either 2k or 8k, FlashAttention-2 yields up to 1.3$\times$ speedup compared to FlashAttention and 2.8$\times$ speedup compared to a baseline without FlashAttention. FlashAttention-2 reaches up to 225 TFLOPs/s (72% model FLOPs utilization) per A100 GPU.
 
 <span id="section-4-1"></span>

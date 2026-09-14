@@ -40,11 +40,8 @@ We show that Splitwise-based LLM inference clusters can achieve 1.4$\times$ high
 **Summary.** We make the following contributions:
 
 1.  An extensive characterization of the differences in the execution and utilization patterns of the prompt and token generation phases in LLM inference on the NVIDIA A100 and H100 GPUs using production traces.
-
 2.  Splitwise, our technique for optimized utilization of available hardware, which splits the prompt computation and token generation phases onto separate machines.
-
 3.  A design exploration of homogeneous and heterogeneous cluster deployments with Splitwise to optimize the overall cost, request throughput, and provisioned power.
-
 4.  An evaluation of the systems designed with Splitwise using production traces.
 
 <span id="section-2"></span>
@@ -532,9 +529,7 @@ We thank the reviewers for their helpful feedback. We thank Chetan Bansal, Srika
 We open source critical components needed to evaluate Splitwise; these could be repurposed to also evaluate future LLM inference serving systems. Our artifact includes:
 
 - Production traces from two LLM inference services at Microsoft Azure.
-
 - A prototype implementation of Splitwise's KV-cache transfer mechanism in vLLM [Kwo23].
-
 - SplitwiseSim, a discrete event simulator to evaluate model serving in LLM inference clusters.
 
 Artifact functionality was only tested for the traces and SplitwiseSim due to limited hardware availability.
@@ -544,17 +539,11 @@ Artifact functionality was only tested for the traces and SplitwiseSim due to li
 ### 10.1 Artifact check-list (meta-information)
 
 - **Data set:** Production traces available as a part of the artifact.
-
 - **Run-time environment:** Linux / Ubuntu.
-
 - **Hardware:** Two machines connected over GPU Infiniband for the vLLM prototype (*e.g.* NVIDIA DGX-A100, NVIDIA DGX-H100). x86-64 CPU machine for SplitwiseSim.
-
 - **Publicly available?:** Yes.
-
 - **Code licenses (if publicly available)?:** MIT.
-
 - **Data licenses (if publicly available)?:** CC-BY.
-
 - **Archived (provide DOI)?:** 10.5281/zenodo.11003049.
 
 <span id="section-10-2"></span>
@@ -564,9 +553,7 @@ Artifact functionality was only tested for the traces and SplitwiseSim due to li
 **How to access.** The entire artifact is available as an archive on Zenodo: <https://doi.org/10.5281/zenodo.11003049>. Individual components are also available online as follows:
 
 - The production traces can be downloaded from the Azure Public Dataset GitHub repository [Azu24].
-
 - The KV-cache transfer prototype can be downloaded from the vLLM GitHub repository, currently available as a pull request [Add24].
-
 - SplitwiseSim, and the associated experiment and plotting scripts, can be downloaded from a separate GitHub repository [Spl24].
 
 **Hardware dependencies.** The KV-cache transfer prototype requires two GPU machines connected over Infiniband, such as NVIDIA DGX-A100s or NVIDIA DGX-H100s. SplitwiseSim requires a standard x86-64 CPU machine; multiple machines may be used to parallelize simulation runs.
@@ -588,9 +575,7 @@ Please refer to the README files within the artifact for installation and usage 
 Submission, reviewing and badging methodology:
 
 - <https://www.acm.org/publications/policies/artifact-review-and-badging-current>
-
 - <http://cTuning.org/ae/submission-20201122.html>
-
 - <http://cTuning.org/ae/reviewing-20201122.html>
 
 [+1]: Work partly done as an intern at Microsoft.

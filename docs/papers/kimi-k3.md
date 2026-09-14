@@ -577,9 +577,7 @@ MoE 层使用在各 EP rank 上复制的共享专家, 并将专家分派与合�
 AgentENV ([代码仓库](https://github.com/kvcache-ai/AgentENV)) 由我们与合作伙伴共同开发, 是一个专为智能体 AI 工作负载设计的沙箱系统. 它围绕三个核心目标构建:
 
 - **高保真隔离沙箱 runtime.** 随着智能体能力增强, 任务难度提高, 它们往往会进行更激进的探索, 甚至尝试奖励破解. 一方面, 这带来了独特的安全挑战: 在早期使用传统容器沙箱 runtime 的实验中, 我们观察到多次由智能体意外操作引起的 kernel panic 和死锁. 另一方面, 我们希望允许尽可能多的探索, 以免限制智能体能力; 复杂任务也需要接近真实世界环境的沙箱, 例如智能体应当能够按需挂载磁盘, 运行容器, 甚至启动虚拟机. AgentENV 使用 Firecracker [Aga20] 运行隔离的 microVM, 提供容器 runtime 无法达到的隔离性和保真度.
-
 - **灵活的智能体 RL 沙箱生命周期.** 在底层, AgentENV 支持沙箱状态的增量 checkpoint 和恢复. 执行 checkpoint 时只保存自上次 checkpoint 以来变脏的内存页, checkpoint 和恢复延迟最低分别可达 133 ms 和 49 ms. 在此基础上, AgentENV 提供三种有助于提高智能体 RL 效率的高级操作. (a) 暂停与恢复: 暂停的沙箱不占用内存或 CPU 资源; 因此, 智能体等待模型推理结果时可以暂停沙箱, 而等待时间可能占沙箱生命周期的 98%. (b) Fork: fork 从原沙箱的精确状态创建新沙箱, 同时保持原沙箱运行, 适合用于无副作用的奖励评判. (c) Snapshot: 可以定期保存沙箱 snapshot, 用于错误恢复.
-
 - **高效率与高密度.** 在我们的工作负载中, 可能需要在数秒内创建数万个沙箱, 且每个沙箱都拥有独特的镜像集合. 我们采用 OverlayBD [Li20] 作为镜像格式, 并结合自定义 ublk 驱动实现, 存储层共享和 P2P 传输, 在大规模运行时实现亚秒级启动延迟. 我们还通过写时复制内存和页 cache 优化进一步降低内存占用, 在真实工作负载中实现最高 $6.5\times$ 的内存超分比.
 
 在 Kimi K3 的整个训练和评估过程中, 我们基于 1,505,678 个镜像共创建了 51,219,741 个沙箱.
@@ -653,11 +651,8 @@ Kimi K3 引入了多个新架构模块: KDA ([§2.1.1](#_2-1-1-kimi-delta-attent
 我们在一个综合基准测试套件上评估 Kimi K3, 该套件按四个主要能力轴线组织:
 
 - **推理与知识:** GPQA Diamond [Rei24], CritPt [Art26], AA-LCR [Art26a] 和 Humanity's Last Exam (HLE-Full, 分为使用工具和不使用工具两种设置) [Pha25].
-
 - **编码:** DeepSWE [Ela26], ProgramBench [Pro26], Terminal-Bench 2.1 [Mer26], FrontierSWE [Fu24], SWE-Marathon [Swe26], PostTrainBench [Pos26], MLS-Bench-Lite [Lyu26] 和 SciCode [Tia24, Art26].
-
 - **智能体:** BrowseComp [Wei25], DeepSearchQA [Ved25], ResearchRubrics [Sha26], Toolathlon-Verified [Too26], MCPMark-Verified [Wu25], MCP-Atlas [Ban26a], AutomationBench [She26], JobBench [Li26], GDPval-AA v2 [Pat25], AA-Briefcase [Art26, Age26], Agents' Last Exam (ALE) [Age26a, Sun26a], APEX-Agents [Vid26], OfficeQA Pro [Ops26], SpreadsheetBench 2 [Zhu26], OSWorld-Verified [Xie25], OSWorld 2.0 [Yua26], SaaS-Bench [Shi26], $\tau^3$-Banking [Ban26, Art26], Harvey Lab-AA [Art26, Har26], CorpFin v2 [Val26], Finance Agent v2 [Fro26] 和 Legal Research Bench [Val26b].
-
 - **视觉:** WorldVQA [Zho26], OmniDocBench [Ouy25], PerceptionBench [Kim26d], Video-MME [Fu24], MMVU [Zha25a] 和配有 Python 工具的 BabyVision [Che26]. MMMU-Pro [Yue24], CharXiv (RQ) [Wan24a], Math-Vision [Wan24] 和 ZeroBench-main [Rob25] 均分为使用和不使用 Python 工具增强两种设置.
 
 #### 6.1.2 基线
@@ -705,7 +700,6 @@ GDPval-AA v2, AA-Briefcase, $\tau^3$-Banking, Harvey Lab-AA, APEX-Agents, SciCod
 #### 编码能力与体验
 
 - **Kimi Code Bench 2.0 (KCB 2.0):** 在真实的端到端软件工程任务上评估编码智能体, 涵盖广泛的编程语言和面向生产的技术栈.
-
 - **Kimi Webdev Bench:** 使用来自真实使用场景的高难度 Web 开发提示评估模型, 通过专家盲评比较输出, 结果见[表 4](#table-04).
 
 <span id="table-04"></span>
@@ -719,33 +713,21 @@ GDPval-AA v2, AA-Briefcase, $\tau^3$-Banking, Harvey Lab-AA, APEX-Agents, SciCod
 #### 通用智能体体验
 
 - **24/7 ClawBench 2.0:** 模拟全天候助理工作, 其中任务跨越多日, 事件并发到达, 中断也很常见.
-
 - **Multi-Agent Infra for Routing and Assignment (MIRA) Bench:** 评估长链条, 多角色, 多系统的企业协作任务, 衡量智能体能否执行端到端工作, 并判断何时应组织子智能体或向其委派任务.
-
 - **Kimi Autonomous Execution Tasks (KAET):** 在模拟真实用户请求和企业系统操作的任务上评估长程自主执行能力.
-
 - **Context Learning and Instruction Following (CLIF) Bench:** 评估上下文学习, 要求模型从给定上下文中学习, 同时遵循交错使用多项复杂技能的指令.
-
 - **Agentic Vision Bench:** 评估智能体在执行任务期间能否注意到关键视觉事实, 并正确利用这些事实.
-
 - **Swarm Bench:** 在适合协同分解与并行执行的复杂任务上, 评估模型编排智能体集群 [Kim26b] 的能力.
-
 - **Online Experience:** 模拟真实在线智能体的使用分布, 衡量模型在用户最常请求的交付文件类型上的表现.
-
 - **Deep Research Bench:** 使用领域专家整理的深度研究式查询评估模型, 并依据与专家判断对齐的评分标准打分.
-
 - **Finance Bench:** 在真实金融工作上评估模型, 要求模型端到端执行从来源材料到可审查交付物的完整工作流.
-
 - **Knowledge Work Vision (KWV) Bench:** 评估从真实知识工作场景蒸馏的任务中提取出的原子视觉能力.
-
 - **DECK Bench:** 衡量根据真实使用场景中的任务描述制作高质量演示文稿的能力.
-
 - **Agent Behavior Bench:** 将智能体评估从结果正确性扩展到过程质量, 在任务完成情况之外, 还评估工具使用行为, 效率和规范性.
 
 #### 对话体验
 
 - **Faithfulness:** 衡量模型响应中的事实幻觉率, 每个响应都由事实核查器验证.
-
 - **Chat All-in-One Bench:** 衡量产品使用各阶段的对话体验, 场景围绕真实在线用户需求设计.
 
 **评估配置.** 除按 harness 拆分为不同行的基准外, [表 3](#table-03) 中的 Harness 列均报告 Kimi K3 使用的 harness. 对于其他模型, Claude 系列模型和 GLM-5.2 使用 Claude Code 评估, GPT 系列模型使用 Codex 评估. 例外是所有模型都使用同一指定 harness 的基准: 24/7 ClawBench 2.0 使用 OpenClaw; MIRA Bench 使用内部 OOD harness MIRA (Multi-Agent Infra for Routing and Assignment); Agent Behavior Bench 和 Chat All-in-One 使用 Kimi Work; CLIF 和 Agentic Vision Bench 使用 Kimi Code.

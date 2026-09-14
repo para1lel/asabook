@@ -41,9 +41,7 @@ In this paper, we propose to address the tensorized program optimization problem
 To address these challenges, we introduce *TensorIR*, an abstraction for automatic tensor program optimization. To begin with, we introduce a new construct called *block* that allows us to divide and isolate tensorized computation region from the outer loop nests. The new abstraction allows us to effectively represent tensorized computations and combine them with loop nests, threading, and memory hierarchy. We also introduce program transformation primitives to express a rich space of potential optimizations. We build a novel automatic scheduling algorithm on top of the abstraction and transformation primitives. Additionally, TensorIR abstraction also allows us to represent and optimize programs that contain a mixture of irregular computations and tensor computations, expanding the possible support beyond a normal tensor expression [Che18]. This paper makes the following contributions:
 
 - We propose a novel abstraction for tensorized programs that separates tensorized computation from the loop transformations. Meanwhile, the same abstraction allows us to uniformly represent tensor intrinsics and hardware constraints.
-
 - We build transformation primitives to generate a rich search space of tensorized program optimization with correctness validation.
-
 - We design and implement a new tensorization-aware automatic scheduler.
 
 We integrate TensorIR with an end-to-end compilation framework and show that it outperforms existing machine learning compilation solutions by up to 7x and automatically brings competitive performance to heavily optimized platform-specific solutions.
@@ -143,9 +141,7 @@ The blocks and their buffer read/write relations capture a complete picture of t
 **Threading Validation** When building a program for GPUs and other accelerators with threading support, we also need to do additional validations with respect to the threading and memory hierarchies. We do three kinds of validations:
 
 - **Thread binding**: Ensure different iterators bound to the same thread are consistent and meet the launching constraints of the backend.
-
 - **Cooperative memory access**: For blocks that produce buffers stored in shared memory collaboratively across threads, we need to ensure the block covers downstream requirements from all the threads in the same group. Meanwhile, upstream blocks that provide inputs for this block need to cover the read requirement of this block from all the threads in this group.
-
 - **Execution scope**: Validate that tensor intrinsic runs at the correct execution scope (e.g., TensorCore needs to run at the warp-level).
 
 **Correctness of Schedule Primitives** We add checks to each schedule primitive to ensure the correctness of the transformation. When a schedule primitive only changes the loop nests, we can also use the validation procedure to ensure correctness. Because the block iteration domains and dependencies stay the same in these cases. We find primitive-specific necessary conditions for schedule primitives that change the blocks (e.g., blockization).
@@ -306,9 +302,7 @@ After the tensorized program sketch generation phase, we can get billions of pos
 We implement TensorIR on top of Apache TVM [Che18]. Notably, the insights described in the paper can benefit other machine learning compilation frameworks as well. This section provides evaluations to answer the following questions:
 
 - Can TensorIR optimize common set of machine learning operators  ([Section 5.1](#section-5-1))?
-
 - Can TensorIR bring performance boost to end-to-end network execution ([Section 5.2](#section-5-2))?
-
 - Can TensorIR support tensor intrinsics on different hardware platforms ([Section 5.3](#section-5-3))?
 
 To evaluate TensorIR along those axes, we compare our solution to existing machine learning compilation solutions on GPU and CPU platforms. We will discuss the specific setups in the corresponding subsections.

@@ -887,9 +887,7 @@ In practice, we have $T=1$, and the smallest discrete time $t_{1}=10^{-3}$. For 
 Given a fixed budget $K\leq 20$ of the number of function evaluations, we uniformly divide the interval $[\lambda_{T},\lambda_{\epsilon}]$ into $M=(\lfloor K/3\rfloor+1)$ segments, and take $M$ steps to generate samples. The $M$ steps are dependent on the remainder $R$ of $K$ mod $3$ to make sure the total number of function evaluations is exactly $K$.
 
 - If $R=0$, we firstly take $M-2$ steps of DPM-Solver-3, and then take $1$ step of DPM-Solver-2 and 1 step of DPM-Solver-1. The total number of function evaluations is $3\cdot(\frac{K}{3}-1)+2+1=K$.
-
 - If $R=1$, we firstly take $M-1$ steps of DPM-Solver-3 and then take $1$ step of DPM-Solver-1. The total number of function evaluations is $3\cdot(\frac{K-1}{3})+1=K$.
-
 - If $R=2$, we firstly take $M-1$ steps of DPM-Solver-3 and then take $1$ step of DPM-Solver-2. The total number of function evaluations is $3\cdot(\frac{K-2}{3})+2=K$.
 
 We empirically find that this design of time steps can greatly improve the generation quality, and DPM-Solver can generate comparable samples in 10 steps and high-quality samples in 20 steps.

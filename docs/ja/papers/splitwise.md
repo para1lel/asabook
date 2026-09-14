@@ -40,11 +40,8 @@ Splitwise ベースの LLM 推論クラスタは、既存クラスタよりコ�
 **要約。** 本研究の貢献は次のとおりである。
 
 1.  本番トレースを用い、NVIDIA A100 と H100 GPU 上の LLM 推論について、プロンプトとトークン生成フェーズの実行・利用パターンの違いを広範に分析した。
-
 2.  利用可能なハードウェアを効率よく使うため、プロンプト計算とトークン生成を別マシンへ分割する Splitwise を提案した。
-
 3.  Splitwise による同種・異種クラスタ配備を探索し、総コスト、要求スループット、配備電力を最適化した。
-
 4.  本番トレースを使って Splitwise のシステム設計を評価した。
 
 <span id="section-2"></span>
@@ -532,9 +529,7 @@ LLM 推論の二フェーズを詳細に分析し、資源利用の違いを得�
 Splitwise の評価に必要な主要構成要素を公開し、将来のサービング評価にも転用できる。Artifact は次を含む。
 
 - Azure の二つの LLM サービスの本番トレース。
-
 - vLLM [Kwo23] 上の KV 転送プロトタイプ。
-
 - クラスタを評価する離散イベントシミュレータ SplitwiseSim。
 
 ハードウェア制約によりトレースと SplitwiseSim だけを機能検証した。
@@ -544,17 +539,11 @@ Splitwise の評価に必要な主要構成要素を公開し、将来のサー�
 ### 10.1 Artifact チェックリスト（メタ情報）
 
 - **データセット：** Artifact に本番トレースを含む。
-
 - **実行環境：** Linux / Ubuntu。
-
 - **ハードウェア：** vLLM は GPU InfiniBand 接続の二台（DGX-A100/H100 など）。SplitwiseSim は x86-64 CPU。
-
 - **公開：** はい。
-
 - **コードライセンス：** MIT。
-
 - **データライセンス：** CC-BY。
-
 - **アーカイブ DOI：** 10.5281/zenodo.11003049。
 
 <span id="section-10-2"></span>
@@ -564,9 +553,7 @@ Splitwise の評価に必要な主要構成要素を公開し、将来のサー�
 **アクセス方法。** 全体は Zenodo <https://doi.org/10.5281/zenodo.11003049> にあり、個別には次から得られる。
 
 - Azure Public Dataset の本番トレース [Azu24]。
-
 - vLLM GitHub の pull request にある転送プロトタイプ [Add24]。
-
 - 別 GitHub リポジトリの SplitwiseSim と実験・描画スクリプト [Spl24]。
 
 **ハードウェア依存。** プロトタイプは InfiniBand 接続の GPU 二台、SplitwiseSim は標準 x86-64 CPU を要し、複数台で並列化できる。
@@ -588,9 +575,7 @@ Artifact 内の README を参照する。
 提出、査読、バッジ付与の方法論：
 
 - <https://www.acm.org/publications/policies/artifact-review-and-badging-current>
-
 - <http://cTuning.org/ae/submission-20201122.html>
-
 - <http://cTuning.org/ae/reviewing-20201122.html>
 
 [+1]: この研究の一部は Microsoft でのインターン中に行われた。

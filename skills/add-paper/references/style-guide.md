@@ -123,7 +123,7 @@ def example(items):
 
 ## Algorithms
 
-- Render every list in a paper page as a standard Markdown unordered or ordered list with `-` (or `*`) or `1.` markers. Do not emulate lists with bold paragraphs, manual numeric prefixes, or blank-line-separated pseudo-items.
+- Render every list in a paper page as a standard Markdown unordered or ordered list with `-` (or `*`) or `1.` markers. Do not emulate lists with bold paragraphs, manual numeric prefixes, or blank-line-separated pseudo-items. Never insert a blank line between adjacent ordered or unordered list items, including sibling items at nested levels; keep list items contiguous and use indentation alone to express hierarchy.
 - Render math-heavy algorithms as unordered Markdown lists, not `pseudocode` fences.
 - Put the algorithm title in bold above the list.
 - Keep the title and list in the same structural block so their spacing matches a normal Markdown paragraph followed by a list. If the list uses a `.paper-algorithm` overflow wrapper, put both the bold title and the complete list inside that wrapper; do not leave the title outside or add special CSS margin overrides to compensate.
@@ -211,7 +211,7 @@ Example:
 - Compare proof-container counts across all three languages. Confirm the summaries are `Proof`, `证明`, and `証明`, every proof is closed by default, and no visible proof prefix or terminal QED mark remains.
 - Compare equation anchors, citation-token sets, image basenames, and algorithm step counts.
 - Confirm every nonempty row in a multi-row `aligned`, `alignedat`, or `split` formula has an intentional `&` alignment point, and compare those points across all three languages.
-- Confirm every algorithm title is followed by its list with ordinary Markdown paragraph-to-list spacing. When an overflow wrapper is present, confirm it contains both the title and complete list rather than beginning between them.
+- Confirm every algorithm title is followed by its list with ordinary Markdown paragraph-to-list spacing. When an overflow wrapper is present, confirm it contains both the title and complete list rather than beginning between them. Confirm no ordered or unordered list contains a blank line between adjacent items at any nesting level.
 - Compare annotation labels and definitions, and confirm no Markdown footnotes remain.
 - Confirm no standalone reference-list or empty generic appendix heading remains.
 - Confirm every title is at most 50 characters and every matrix transpose uses `^\top`.

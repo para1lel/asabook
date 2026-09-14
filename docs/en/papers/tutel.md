@@ -38,11 +38,8 @@ Tutel is a fully implemented framework for diverse MoE algorithms at scale. Over
 Our key contributions are as follows:
 
 - Provide detailed analysis on the dynamic nature of MoE and following challenges in existing frameworks.
-
 - Propose adaptive parallelism switching that efficiently handles dynamic workload of MoE, which achieves $1.35\times\sim 14.57\times$ speedup of a single MoE layer.
-
 - Aggregating all acceleration techniques, Tutel delivers speedup of MoE at any scale: $4.96\times$ and $5.75\times$ speedup of a single MoE layer over 16 and 2,048 A100 GPUs, respectively.
-
 - Tutel has been used to implement and run the sparse MoE version of a state-of-the-art vision model, SwinV2-MoE, on real-world computer vision problems. It achieves up to $1.55\times$ and $2.11\times$ speedup for training and inference, respectively, compared to previous frameworks such as Fairseq. We also demonstrate superior accuracy of the sparse model than the counterpart dense model, indicating the readiness of Tutel in training real-world AI models.
 
 <span id="section-2"></span>
