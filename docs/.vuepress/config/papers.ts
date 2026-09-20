@@ -5002,6 +5002,10 @@ export const paperAbbreviations = {
 // Shared category order and page lists for all three languages.
 const paperGroups = [
   {
+    titles: ['软件工程', 'Software Engineering', 'ソフトウェア工学'],
+    items: ['managing-large-software-systems'],
+  },
+  {
     titles: ['编译技术', 'Compiler Technology', 'コンパイラ技術'],
     items: ['tvm', 'autograph', 'tensorflow-eager', 'taso', 'chainer', 'ansor', 'rammer', 'pet', 'flashattention', 'tensorir', 'pytorch-2', 'welder', 'flashattention-2', 'mirage', 'ladder', 'tilelang', 'pipethreader', 'flashattention-3', 'streamtensor', 'flashattention-4', 'event-tensor', 'tilesight'],
   },
