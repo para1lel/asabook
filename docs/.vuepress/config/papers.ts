@@ -2276,6 +2276,7 @@ export const paperAbbreviations = {
   'Nar21': 'Deepak Narayanan. "Efficient large-scale language model training on gpu clusters using megatron-lm." Proceedings of the international conference for high performance computing, networking, storage and analysis. 2021. [Link](/papers/megatron-lm/)', // published: 2021-04-09
   'Su21': 'Jianlin Su, Yu Lu, Shengfeng Pan, Ahmed Murtadha, Bo Wen, Yunfeng Liu. Roformer: Enhanced Transformer with rotary position embedding. arXiv preprint arXiv:2104.09864, 2021. [Link](/papers/roformer/)', // published: 2021-04-20
   'Su24': 'Su, Jianlin et al. "Roformer: Enhanced transformer with rotary position embedding." Neurocomputing. 2024. [Link](/papers/roformer/)', // published: 2021-04-20
+  'Rom22': 'Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In Proc. CVPR, 2022. [Link](/papers/latent-diffusion-models/)', // published: 2021-12-20
   'A22': 'Munonyedi Egbo. 2022. A review of the thermal performance of vapor chambers and heat sinks: Critical heat flux, thermal resistances, and surface temperatures. International Journal of Heat and Mass Transfer 183 (2022), 122108.',
   'A22a': 'Myeong-Jae Park, Ho Sung Cho, Tae-Sik Yun, Sangjin Byeon, Young Jun Koo, Sangsic Yoon, Dong Uk Lee, Seokwoo Choi, Jihwan Park, Jinhyung Lee, Kyungjun Cho, Junil Moon, Byung-Kuk Yoon, Young-Jun Park, Sang-muk Oh, Chang Kwon Lee, Tae-Kyun Kim, Seong-Hee Lee, Hyun-Woo Kim, Yucheon Ju, Seung-Kyun Lim, Seung Geun Baek, Kyo Yun Lee, Sang Hun Lee, Woo Sung We, Seungchan Kim, Yongseok Choi, Seong-Hak Lee, Seung Min Yang, Gunho Lee, In-Keun Kim, Younghyun Jeon, Jae-Hyung Park, Jong Chan Yun, Chanhee Park, Sun-Yeol Kim, Sungjin Kim, Dong-Yeol Lee, Su-Hyun Oh, Taejin Hwang, Junghyun Shin, Yunho Lee, Hyunsik Kim, Jaeseung Lee, Youngdo Hur, Sangkwon Lee, Jieun Jang, Junhyun Chun, and Joohwan Cho. 2022. A 192-Gb 12-High 896-GB/s HBM3 DRAM with a TSV Auto-Calibration Scheme and Machine-Learning-Based Layout Optimization. In 2022 IEEE International Solid-State Circuits Conference (ISSCC), Vol. 65. 444–446. [Link](https://doi.org/10.1109/ISSCC42614.2022.9731562)',
   'A22b': 'Wei-Chen Chen, Hang-Ting Lue, Meng-Yan Wu, Teng-Hao Yeh, Pei-Ying Du, Tzu-Hsuan Hsu, Chih-Chang Hsieh, Keh-Chung Wang, and Chih-Yuan Lu. 2022. A 3D stackable DRAM: Capacitor-less three-wordline gate-controlled thyristor (GCT) RAM with> 40 μ\\mu a current sensing window,> 10 10 Endurance, and 3-second retention at room temperature. In 2022 International Electron Devices Meeting (IEDM). IEEE, 26–3.',
@@ -2501,7 +2502,6 @@ export const paperAbbreviations = {
   'Ree22': 'James K. Reed et al. "Torch.fx: Practical Program Capture and Transformation for Deep Learning in Python." 2022. [Link](https://arxiv.org/abs/2112.08429)',
   'Rep22': 'Replit ghostwriter. https://replit.com/site/ghostwriter. 2022. [Link](https://replit.com/site/ghostwriter)',
   'Rob22': 'Roberts, A., Chung, H. W., Levskaya, A., Mishra, G., Bradbury, J., Andor, D., Narang, S., Lester, B., Gaffney, C., Mohiuddin, A., Hawthorne, C., Lewkowycz, A., Salcianu, A., van Zee, M., Austin, J., Goodman, S., Soares, L. B., Hu, H., Tsvyashchenko, S., Chowdhery, A., Bastings, J., Bulian, J., Garc\\\'ia, X., Ni, J., Chen, A., Kenealy, K., Clark, J., Lee, S., Garrette, D. H., Lee-Thorp, J., Raffel, C., Shazeer, N. M., Ritter, M., Bosma, M., Passos, A., Maitin-Shepard, J. B., Fiedel, N., Omernick, M., Saeta, B., Sepassi, R., Spiridonov, A., Newlan, J., and Gesmundo, A. Scaling up models and data with t5x and seqio. ArXiv, abs/2203.17189, 2022.',
-  'Rom22': 'Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer. High-resolution image synthesis with latent diffusion models. In Proc. CVPR, 2022. [Link](https://arxiv.org/abs/2112.10752)',
   'Rus22': 'Sasha Rush and Sidd Karamcheti. "The Annotated S4." ICLR Blog Track 2022. [Link](https://srush.github.io/annotated-s4/)',
   'Ryu22': 'Sungju Ryu, Hyungjun Kim, Wooseok Yi, Eunhwan Kim, Yulhwa Kim, Taesu Kim, Jae-Joon Kim. "Bitblade: Energy-efficient variable bit-precision hardware accelerator for quantized neural networks". IEEE Journal of Solid-State Circuits, 2022.',
   'Sah22': 'Chitwan Saharia, William Chan, Huiwen Chang, Chris A. Lee, Jonathan Ho, Tim Salimans, David J. Fleet, and Mohammad Norouzi. Palette: Image-to-image diffusion models. In Proc. SIGGRAPH, 2022. [Link](https://arxiv.org/abs/2111.05826)',
@@ -5148,7 +5148,7 @@ const paperGroups = [
   },
   {
     titles: ['生成模型', 'Generative Models', '生成モデル'],
-    items: ['gumbel-softmax', 'diffusion-design-space', 'dpm-solver', 'consistency-models', 'gigagan'],
+    items: ['gumbel-softmax', 'diffusion-design-space', 'latent-diffusion-models', 'dpm-solver', 'consistency-models', 'gigagan'],
   },
   {
     titles: ['处理器架构', 'Processor Architecture', 'プロセッサアーキテクチャ'],
