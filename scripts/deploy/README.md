@@ -29,7 +29,7 @@ journalctl --user -u asabook-deploy -n 100 --no-pager
 
 ## 自动发布
 
-GitHub Actions workflow 已移除。`asabook-deploy.timer` 启动后首次等待 45 秒，此后每次同步结束两分钟后检查，附加最多 15 秒的随机延迟。同步直接从 GitHub 拉取，不依赖其他内网服务器、部署 API 或 GitHub Actions secret。
+GitHub Actions workflow 已移除。`asabook-deploy.timer` 启动后首次等待 45 秒，此后每次同步结束一小时后检查，附加最多 15 秒的随机延迟。同步直接从 GitHub 拉取，不依赖其他内网服务器、部署 API 或 GitHub Actions secret。
 
 同步使用 `flock` 串行执行，拒绝浅克隆、脏工作区、错误 origin 或非 `main` 分支。已发布版本与远端 `main` 相同时不重建。新提交运行：
 

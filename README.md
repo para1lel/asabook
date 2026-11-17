@@ -25,6 +25,6 @@ npm run docs:build
 
 ## 部署
 
-`192.168.80.152` 的 systemd 用户定时器每两分钟检查 GitHub `main` 分支，发现新提交后自动拉取、构建并原子发布，通过 Cloudflare Tunnel 提供访问。构建失败会保留当前线上版本。
+`192.168.80.152` 的 systemd 用户定时器每小时检查 GitHub `main` 分支，发现新提交后自动拉取、构建并原子发布，通过 Cloudflare Tunnel 提供访问。构建失败会保留当前线上版本。
 
 服务器仓库路径为 `/data1/shared/dongwu.chen/asabook`。部署、日志与回滚操作见 [部署说明](scripts/deploy/README.md)。站内搜索只索引页面标题，避免增加客户端搜索索引负担。

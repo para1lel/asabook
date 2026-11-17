@@ -1,9 +1,9 @@
 [Unit]
-Description=Check ASa Book main branch every two minutes
+Description=Check ASa Book main branch every hour
 
 [Timer]
 OnBootSec=45s
-OnUnitInactiveSec=2min
+OnUnitInactiveSec=1h
 RandomizedDelaySec=15s
 Unit=asabook-deploy.service
 
