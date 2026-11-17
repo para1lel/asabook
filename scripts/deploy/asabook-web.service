@@ -3,7 +3,9 @@ Description=ASa Book static website
 After=network.target
 
 [Service]
-ExecStart=%h/.local/bin/caddy run --config /data0/shared/dongwu.chen/asabook/scripts/deploy/Caddyfile --adapter caddyfile
+Environment=XDG_DATA_HOME=/data1/shared/dongwu.chen/share
+Environment=XDG_CONFIG_HOME=/data1/shared/dongwu.chen/config
+ExecStart=/data1/shared/dongwu.chen/bin/caddy run --config /data1/shared/dongwu.chen/asabook/scripts/deploy/Caddyfile --adapter caddyfile
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

@@ -1,13 +1,43 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { spawn } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
+import { promisify } from 'node:util'
 import { once } from 'node:events'
 import { createServer } from 'node:net'
-import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, readdir, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 import { fetchMain } from '../deploy/git-fetch.mjs'
+
+test('scheduled synchronization rejects unsafe checkouts without changing the published release', async () => {
+  const execute = promisify(execFile)
+  const directory = await mkdtemp(join(tmpdir(), 'asabook-sync-test-'))
+  const checkout = join(directory, 'checkout')
+  const state = join(directory, 'state')
+  const metadata = '{"sha":"previous-release"}\n'
+  await mkdir(join(state, 'current'), { recursive: true })
+  await writeFile(join(state, 'current/_deployment.json'), metadata)
+  await execute('git', ['init', '-b', 'main', checkout])
+  const git = (...args) => execute('git', ['-C', checkout, ...args])
+  const sync = () => execute(process.execPath, ['scripts/deploy/sync.mjs'], {
+    env: { ...process.env, ASABOOK_REPO: checkout, ASABOOK_STATE: state },
+  })
+  try {
+    await git('remote', 'add', 'origin', 'https://example.invalid/wrong.git')
+    await assert.rejects(sync(), (error) => /Unexpected repository origin/.test(error.stderr))
+    await git('remote', 'set-url', 'origin', 'https://github.com/para1lel/asabook.git')
+    await git('symbolic-ref', 'HEAD', 'refs/heads/development')
+    await assert.rejects(sync(), (error) => /Server checkout must use main/.test(error.stderr))
+    await git('symbolic-ref', 'HEAD', 'refs/heads/main')
+    await writeFile(join(checkout, 'untracked.txt'), 'local edit')
+    await assert.rejects(sync(), (error) => /Server checkout has local changes/.test(error.stderr))
+    assert.equal(await readFile(join(state, 'current/_deployment.json'), 'utf8'), metadata)
+    assert.deepEqual((await readdir(state)).sort(), ['current', 'logs'])
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
+})
 
 test('Git fetch retries transient TLS failures and succeeds after recovery', async () => {
   let attempts = 0

@@ -1,7 +1,6 @@
-import { spawn } from 'node:child_process'
 import { access, cp, mkdir, readlink, rename, symlink, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
-import { readJob, repo, saveJob, state, validId } from './common.mjs'
+import { readJob, repo, run, saveJob, state, validId, validateCheckout } from './common.mjs'
 import { fetchMain } from './git-fetch.mjs'
 
 const id = process.argv[2]
@@ -9,20 +8,6 @@ if (!validId(id)) throw new Error('Invalid job ID')
 let job = await readJob(id)
 if (!job) throw new Error('Unknown deployment job')
 
-function run(command, args, capture = false) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: repo, stdio: ['ignore', capture ? 'pipe' : 'inherit', 'pipe'] })
-    let output = ''
-    let stderr = ''
-    child.stdout?.on('data', (chunk) => { output += chunk })
-    child.stderr.on('data', (chunk) => {
-      process.stderr.write(chunk)
-      stderr = (stderr + chunk).slice(-4096)
-    })
-    child.once('error', reject)
-    child.once('close', (code) => code === 0 ? resolve(output.trim()) : reject(new Error(`${command} ${args.join(' ')} failed (${code}): ${stderr.trim()}`)))
-  })
-}
 async function update(fields) {
   job = { ...job, ...fields }
   await saveJob(job)
@@ -30,10 +15,7 @@ async function update(fields) {
 
 try {
   await update({ status: 'running', startedAt: new Date().toISOString() })
-  if (await run('git', ['status', '--porcelain'], true)) throw new Error('Server checkout has local changes')
-  if (await run('git', ['rev-parse', '--is-shallow-repository'], true) !== 'false') throw new Error('Full Git history is required')
-  if (await run('git', ['remote', 'get-url', 'origin'], true) !== 'https://github.com/para1lel/asabook.git') throw new Error('Unexpected repository origin')
-  if (await run('git', ['branch', '--show-current'], true) !== 'main') throw new Error('Server checkout must use main')
+  await validateCheckout()
   await fetchMain(run)
   const latest = await run('git', ['rev-parse', 'origin/main'], true)
   if (job.sha !== latest) {

@@ -1,19 +1,19 @@
 [Unit]
-Description=ASa Book authenticated deployment API
+Description=ASa Book GitHub synchronization and atomic publication
 After=network.target asabook-web.service
 
 [Service]
-Environment=PATH=%h/.local/opt/node-v24.18.0-linux-x64/bin:%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Type=oneshot
+Environment=PATH=/data1/shared/dongwu.chen/software/node24/bin:/data1/shared/dongwu.chen/bin:/usr/local/bin:/usr/bin:/bin
 Environment=NODE_OPTIONS=--max-old-space-size=65536
-EnvironmentFile=%h/.config/asabook/deploy.env
+Environment=npm_config_cache=/data1/shared/dongwu.chen/cache/npm
+Environment=TMPDIR=/data1/shared/dongwu.chen/tmp
+Environment=ASABOOK_GIT_PROXY=http://127.0.0.1:7890
 UnsetEnvironment=http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
-ExecStart=%h/.local/opt/node-v24.18.0-linux-x64/bin/node /data0/shared/dongwu.chen/asabook/scripts/deploy/server.mjs
-Restart=on-failure
-RestartSec=5
+ExecStartPre=/usr/bin/mkdir -p /data1/shared/dongwu.chen/state/asabook
+ExecStart=/usr/bin/flock -n /data1/shared/dongwu.chen/state/asabook/deploy.lock /data1/shared/dongwu.chen/software/node24/bin/node /data1/shared/dongwu.chen/asabook/scripts/deploy/sync.mjs
 KillMode=control-group
+TimeoutStartSec=2h
 TimeoutStopSec=30
 NoNewPrivileges=true
 UMask=0022
-
-[Install]
-WantedBy=default.target
