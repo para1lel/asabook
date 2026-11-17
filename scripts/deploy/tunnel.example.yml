@@ -8,5 +8,5 @@ ingress:
   - hostname: www.asabook.cc
     service: http://127.0.0.1:8787
   - hostname: ssh.asabook.cc
-    service: ssh://127.0.0.1:54321
+    service: ssh://127.0.0.1:22
   - service: http_status:404

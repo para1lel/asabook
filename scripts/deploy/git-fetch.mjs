@@ -8,7 +8,7 @@ export async function fetchMain(run, wait = delay) {
       const proxy = attempt > 1 ? process.env.ASABOOK_GIT_PROXY || '' : ''
       await run('git', [
         '-c', `http.proxy=${proxy}`, '-c', `https.proxy=${proxy}`,
-        '-c', 'http.lowSpeedLimit=1024', '-c', 'http.lowSpeedTime=60',
+        '-c', 'http.lowSpeedLimit=65536', '-c', 'http.lowSpeedTime=30',
         'fetch', '--prune', 'origin',
       ])
       return

@@ -49,9 +49,9 @@ npm run docs:build -- --clean-cache
 systemctl --user start asabook-deploy.service
 ```
 
-静态服务只监听 `127.0.0.1:8787`。Tunnel 仅发布 `asabook.cc`、`www.asabook.cc` 和 `ssh.asabook.cc`；SSH 转到 `127.0.0.1:54321`，沿用现有 Cloudflare Access 策略。其他域名返回 404。旧部署 API 和 trigger 脚本保留供历史参考，152 不运行 API、不开放 `8788`。
+静态服务只监听 `127.0.0.1:8787`。Tunnel 仅发布 `asabook.cc`、`www.asabook.cc` 和 `ssh.asabook.cc`；SSH 转到服务器实际监听的 `127.0.0.1:22`，沿用现有 Cloudflare Access 策略。本机通过 LAN 地址连接 152 时仍使用外部映射端口 `54321`。其他域名返回 404。旧部署 API 和 trigger 脚本保留供历史参考，152 不运行 API、不开放 `8788`。
 
-GitHub 拉取优先直连；暂时性 TLS、连接和低速错误最多尝试四次，间隔 10、20、30 秒。重试可使用 `ASABOOK_GIT_PROXY` 指定的 152 本机 Mihomo，GitHub 路由组优先直连，探测失败时使用香港 x0.8 节点。认证、证书校验和仓库错误直接失败。不要关闭证书校验或固定 GitHub IP。同步和 Tunnel 服务清除通用代理变量，Tunnel 独立直连公网。
+GitHub 拉取优先直连；暂时性 TLS、连接和低速错误最多尝试四次，间隔 10、20、30 秒。传输速度连续 30 秒低于 64 KiB/s 时结束当前尝试。重试使用 `ASABOOK_GIT_PROXY` 指定的 152 本机 Mihomo 回退端口 `127.0.0.1:7891`，仅在直连操作失败后使用香港 x0.8 节点。常规代理端口 `7890` 仍按规则直连优先。认证、证书校验和仓库错误直接失败。不要关闭证书校验或固定 GitHub IP。同步和 Tunnel 服务清除通用代理变量，Tunnel 独立直连公网。
 
 ## 安装与配置更新
 

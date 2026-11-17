@@ -8,7 +8,7 @@ Environment=PATH=/data1/shared/dongwu.chen/software/node24/bin:/data1/shared/don
 Environment=NODE_OPTIONS=--max-old-space-size=65536
 Environment=npm_config_cache=/data1/shared/dongwu.chen/cache/npm
 Environment=TMPDIR=/data1/shared/dongwu.chen/tmp
-Environment=ASABOOK_GIT_PROXY=http://127.0.0.1:7890
+Environment=ASABOOK_GIT_PROXY=http://127.0.0.1:7891
 UnsetEnvironment=http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
 ExecStartPre=/usr/bin/mkdir -p /data1/shared/dongwu.chen/state/asabook
 ExecStart=/usr/bin/flock -n /data1/shared/dongwu.chen/state/asabook/deploy.lock /data1/shared/dongwu.chen/software/node24/bin/node /data1/shared/dongwu.chen/asabook/scripts/deploy/sync.mjs
